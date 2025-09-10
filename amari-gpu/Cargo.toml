@@ -1,0 +1,21 @@
+[package]
+name = "amari-gpu"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+amari-core = { path = "../amari-core" }
+wgpu = "0.19"
+futures = "0.3"
+pollster = "0.3"
+bytemuck = { workspace = true, features = ["derive"] }
+thiserror = { workspace = true }
+
+[dev-dependencies]
+criterion = "0.5"
+
+[features]
+default = []
+webgpu = ["wgpu/webgpu"]

@@ -1,0 +1,15 @@
+[package]
+name = "amari-info-geom"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+amari-core = { path = "../amari-core" }
+num-traits = { workspace = true }
+thiserror = { workspace = true }
+approx = { workspace = true }
+
+[dev-dependencies]
+criterion = "0.5"

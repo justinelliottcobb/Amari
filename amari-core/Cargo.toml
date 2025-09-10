@@ -1,0 +1,23 @@
+[package]
+name = "amari-core"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+num-traits = { workspace = true }
+approx = { workspace = true }
+rayon = { workspace = true, optional = true }
+bytemuck = { workspace = true }
+thiserror = { workspace = true }
+serde = { workspace = true, optional = true }
+
+[dev-dependencies]
+proptest = "1.4"
+criterion = "0.5"
+
+[features]
+default = []
+serialize = ["serde"]
+parallel = ["rayon"]

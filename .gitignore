@@ -1,0 +1,16 @@
+/target/
+**/*.rs.bk
+Cargo.lock
+*.swp
+*.swo
+*~
+.DS_Store
+node_modules/
+dist/
+*.wasm
+*.js
+*.d.ts
+pkg/
+wasm-pack.log
+.vscode/
+.idea/

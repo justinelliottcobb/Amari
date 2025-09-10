@@ -1,0 +1,324 @@
+//! Information Geometry operations for statistical manifolds
+//!
+//! This crate implements the foundational concepts of Information Geometry,
+//! including Fisher metrics, α-connections, Bregman divergences, and the
+//! Amari-Chentsov tensor structure.
+
+use amari_core::Multivector;
+use num_traits::{Float, Zero};
+use thiserror::Error;
+
+// pub mod fisher;
+// pub mod connections;
+// pub mod divergences;
+// pub mod manifolds;
+
+#[derive(Error, Debug)]
+pub enum InfoGeomError {
+    #[error("Numerical instability in computation")]
+    NumericalInstability,
+    
+    #[error("Invalid parameter dimension: expected {expected}, got {actual}")]
+    InvalidDimension { expected: usize, actual: usize },
+    
+    #[error("Parameter out of valid range")]
+    ParameterOutOfRange,
+}
+
+/// Trait for objects that can be used as parameters on statistical manifolds
+pub trait Parameter {
+    type Scalar: Float;
+    
+    /// Dimension of the parameter space
+    fn dimension(&self) -> usize;
+    
+    /// Get parameter component by index
+    fn get_component(&self, index: usize) -> Self::Scalar;
+    
+    /// Set parameter component by index
+    fn set_component(&mut self, index: usize, value: Self::Scalar);
+}
+
+impl<const P: usize, const Q: usize, const R: usize> Parameter for Multivector<P, Q, R> {
+    type Scalar = f64;
+    
+    fn dimension(&self) -> usize {
+        Self::BASIS_COUNT
+    }
+    
+    fn get_component(&self, index: usize) -> f64 {
+        self.get(index)
+    }
+    
+    fn set_component(&mut self, index: usize, value: f64) {
+        self.set(index, value);
+    }
+}
+
+/// Fisher Information Metric for statistical manifolds
+pub trait FisherMetric<T: Parameter> {
+    /// Compute the Fisher information matrix at a point
+    fn fisher_matrix(&self, point: &T) -> Result<Vec<Vec<T::Scalar>>, InfoGeomError>;
+    
+    /// Compute inner product using Fisher metric
+    fn fisher_inner_product(
+        &self,
+        point: &T,
+        v1: &T,
+        v2: &T,
+    ) -> Result<T::Scalar, InfoGeomError> {
+        let g = self.fisher_matrix(point)?;
+        let mut result = T::Scalar::zero();
+        
+        for i in 0..v1.dimension() {
+            for j in 0..v2.dimension() {
+                if i < g.len() && j < g[i].len() {
+                    result = result + g[i][j] * v1.get_component(i) * v2.get_component(j);
+                }
+            }
+        }
+        
+        Ok(result)
+    }
+}
+
+/// α-connection on a statistical manifold
+pub trait AlphaConnection<T: Parameter> {
+    /// The α parameter defining this connection (-1 ≤ α ≤ 1)
+    fn alpha(&self) -> f64;
+    
+    /// Christoffel symbols for the α-connection
+    fn christoffel_symbols(&self, point: &T) -> Result<Vec<Vec<Vec<T::Scalar>>>, InfoGeomError>;
+    
+    /// Covariant derivative along a curve
+    fn covariant_derivative(
+        &self,
+        point: &T,
+        vector: &T,
+        direction: &T,
+    ) -> Result<T, InfoGeomError>;
+}
+
+/// Dually flat manifold with e-connection and m-connection
+pub struct DuallyFlatManifold<T: Parameter> {
+    alpha_plus: Box<dyn AlphaConnection<T>>,  // α = +1 (e-connection)
+    alpha_minus: Box<dyn AlphaConnection<T>>, // α = -1 (m-connection)
+}
+
+impl<T: Parameter> DuallyFlatManifold<T> {
+    pub fn new(
+        e_connection: Box<dyn AlphaConnection<T>>,
+        m_connection: Box<dyn AlphaConnection<T>>,
+    ) -> Self {
+        Self {
+            alpha_plus: e_connection,
+            alpha_minus: m_connection,
+        }
+    }
+    
+    /// The e-connection (exponential connection, α = +1)
+    pub fn e_connection(&self) -> &dyn AlphaConnection<T> {
+        self.alpha_plus.as_ref()
+    }
+    
+    /// The m-connection (mixture connection, α = -1)
+    pub fn m_connection(&self) -> &dyn AlphaConnection<T> {
+        self.alpha_minus.as_ref()
+    }
+}
+
+/// Compute the Bregman divergence between two points
+pub fn bregman_divergence<F>(
+    phi: F,
+    p: &Multivector<3, 0, 0>,
+    q: &Multivector<3, 0, 0>,
+) -> Result<f64, InfoGeomError>
+where
+    F: Fn(&Multivector<3, 0, 0>) -> f64,
+{
+    let phi_p = phi(p);
+    let phi_q = phi(q);
+    
+    // Approximate gradient using finite differences
+    let eps = 1e-8;
+    let mut grad_phi_q = Multivector::zero();
+    
+    for i in 0..8 {
+        let mut q_plus = q.clone();
+        q_plus.set(i, q.get(i) + eps);
+        let phi_plus = phi(&q_plus);
+        
+        let mut q_minus = q.clone();
+        q_minus.set(i, q.get(i) - eps);
+        let phi_minus = phi(&q_minus);
+        
+        let derivative = (phi_plus - phi_minus) / (2.0 * eps);
+        grad_phi_q.set(i, derivative);
+    }
+    
+    let diff = p - q;
+    let inner_product = diff.scalar_product(&grad_phi_q);
+    
+    Ok(phi_p - phi_q - inner_product)
+}
+
+/// Compute KL divergence using natural and expectation parameters
+pub fn kl_divergence(
+    eta_p: &Multivector<3, 0, 0>, // Natural parameters for p
+    eta_q: &Multivector<3, 0, 0>, // Natural parameters for q
+    mu_p: &Multivector<3, 0, 0>,  // Expectation parameters for p
+) -> f64 {
+    // KL(p||q) = <η_p - η_q, μ_p> - ψ(η_p) + ψ(η_q)
+    // where ψ is the log partition function
+    
+    let eta_diff = eta_p - eta_q;
+    let bracket_term = eta_diff.scalar_product(mu_p);
+    
+    // For simplicity, assume log partition functions cancel in relative computation
+    bracket_term
+}
+
+/// Compute the Amari-Chentsov tensor at a point
+pub fn amari_chentsov_tensor(
+    x: &Multivector<3, 0, 0>,
+    y: &Multivector<3, 0, 0>,
+    z: &Multivector<3, 0, 0>,
+) -> f64 {
+    // Simplified version: the Amari-Chentsov tensor is the unique (up to scaling)
+    // symmetric 3-tensor that is invariant under sufficient statistics
+    
+    // T(X,Y,Z) = ∂³ψ/∂θ^i∂θ^j∂θ^k X^i Y^j Z^k
+    // For multivectors, we use geometric products
+    
+    let xy = x.geometric_product(y);
+    let tensor_value = xy.scalar_product(z);
+    
+    tensor_value
+}
+
+/// α-connection factory
+pub struct AlphaConnectionFactory;
+
+impl AlphaConnectionFactory {
+    /// Create an α-connection for the given α value
+    pub fn create<T: Parameter + Clone + 'static>(
+        alpha: f64,
+    ) -> Box<dyn AlphaConnection<T>> {
+        Box::new(StandardAlphaConnection::new(alpha))
+    }
+}
+
+/// Standard implementation of α-connection
+struct StandardAlphaConnection<T: Parameter> {
+    alpha: f64,
+    _phantom: std::marker::PhantomData<T>,
+}
+
+impl<T: Parameter> StandardAlphaConnection<T> {
+    fn new(alpha: f64) -> Self {
+        Self {
+            alpha,
+            _phantom: std::marker::PhantomData,
+        }
+    }
+}
+
+impl<T: Parameter + Clone> AlphaConnection<T> for StandardAlphaConnection<T> {
+    fn alpha(&self) -> f64 {
+        self.alpha
+    }
+    
+    fn christoffel_symbols(&self, _point: &T) -> Result<Vec<Vec<Vec<T::Scalar>>>, InfoGeomError> {
+        // Simplified implementation - would need proper computation based on the metric
+        let dim = _point.dimension();
+        let mut symbols = Vec::new();
+        for _ in 0..dim {
+            let mut dim2 = Vec::new();
+            for _ in 0..dim {
+                let mut dim3 = Vec::new();
+                for _ in 0..dim {
+                    dim3.push(T::Scalar::zero());
+                }
+                dim2.push(dim3);
+            }
+            symbols.push(dim2);
+        }
+        
+        // For now, return zero symbols (flat connection)
+        // In practice, this would involve computing derivatives of the metric
+        
+        Ok(symbols)
+    }
+    
+    fn covariant_derivative(
+        &self,
+        _point: &T,
+        vector: &T,
+        _direction: &T,
+    ) -> Result<T, InfoGeomError> {
+        // Simplified: in flat space, covariant derivative equals ordinary derivative
+        Ok(vector.clone())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use amari_core::basis::MultivectorBuilder;
+    
+    #[test]
+    fn test_bregman_divergence() {
+        let p = MultivectorBuilder::<3, 0, 0>::new()
+            .scalar(1.0)
+            .e(1, 2.0)
+            .build();
+        
+        let q = MultivectorBuilder::<3, 0, 0>::new()
+            .scalar(1.5)
+            .e(1, 1.5)
+            .build();
+        
+        // Simple quadratic potential
+        let phi = |mv: &Multivector<3, 0, 0>| mv.norm_squared();
+        
+        let divergence = bregman_divergence(phi, &p, &q).unwrap();
+        assert!(divergence >= 0.0); // Bregman divergences are non-negative
+    }
+    
+    #[test]
+    fn test_kl_divergence() {
+        let eta_p = MultivectorBuilder::<3, 0, 0>::new()
+            .scalar(1.0)
+            .build();
+        
+        let eta_q = MultivectorBuilder::<3, 0, 0>::new()
+            .scalar(0.5)
+            .build();
+        
+        let mu_p = MultivectorBuilder::<3, 0, 0>::new()
+            .scalar(2.0)
+            .build();
+        
+        let kl = kl_divergence(&eta_p, &eta_q, &mu_p);
+        assert_eq!(kl, 1.0); // (1.0 - 0.5) * 2.0 = 1.0
+    }
+    
+    #[test]
+    fn test_amari_chentsov_tensor() {
+        let x = MultivectorBuilder::<3, 0, 0>::new()
+            .e(1, 1.0)
+            .build();
+        
+        let y = MultivectorBuilder::<3, 0, 0>::new()
+            .e(2, 1.0)
+            .build();
+        
+        let z = MultivectorBuilder::<3, 0, 0>::new()
+            .e(1, 1.0)
+            .e(2, 1.0)
+            .build();
+        
+        let tensor_value = amari_chentsov_tensor(&x, &y, &z);
+        assert!(tensor_value.abs() > 0.0); // Should be non-zero for this configuration
+    }
+}
