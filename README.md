@@ -1,6 +1,6 @@
 # Amari 🌟
 
-A high-performance Geometric Algebra/Clifford Algebra library with Information Geometry operations, designed for TypeScript interop via WASM and optional GPU acceleration.
+A high-performance Geometric Algebra/Clifford Algebra library with Information Geometry operations and Tropical-Dual-Clifford fusion system for advanced mathematical computing, designed for TypeScript interop via WASM and optional GPU acceleration.
 
 [![Rust](https://img.shields.io/badge/Rust-1.75+-orange.svg)](https://www.rust-lang.org/)
 [![WebAssembly](https://img.shields.io/badge/WebAssembly-Ready-blue.svg)](https://webassembly.org/)
@@ -10,9 +10,12 @@ A high-performance Geometric Algebra/Clifford Algebra library with Information G
 ## ✨ Features
 
 - **High-Performance Core**: Optimized Rust implementation with SIMD support and cache-aligned data structures
+- **Tropical-Dual-Clifford Fusion**: Revolutionary three-algebra system combining tropical, dual number, and Clifford algebras
 - **WebAssembly Bindings**: Zero-copy TypeScript/JavaScript bindings for web applications
 - **GPU Acceleration**: Optional WebGPU compute shaders for batch operations
 - **Information Geometry**: Fisher metrics, α-connections, Bregman divergences, and Amari-Chentsov tensors
+- **Automatic Differentiation**: Forward-mode autodiff with dual numbers for exact gradients
+- **Tropical Algebra**: Max-plus operations for efficient path finding and sequence decoding
 - **Type Safety**: Const generics eliminate runtime dimension checks
 - **Flexible Signatures**: Support for arbitrary metric signatures Cl(P,Q,R)
 
@@ -21,6 +24,9 @@ A high-performance Geometric Algebra/Clifford Algebra library with Information G
 ### Crates
 
 - **`amari-core`**: Core Clifford algebra types and CPU implementations
+- **`amari-tropical`**: Tropical (max-plus) algebra for efficient optimization
+- **`amari-dual`**: Dual numbers for automatic differentiation
+- **`amari-fusion`**: Unified Tropical-Dual-Clifford system
 - **`amari-wasm`**: WASM bindings for TypeScript/JavaScript
 - **`amari-gpu`**: Optional GPU acceleration via WebGPU/wgpu
 - **`amari-info-geom`**: Information geometry operations
@@ -31,12 +37,49 @@ A high-performance Geometric Algebra/Clifford Algebra library with Information G
 // Multivector in Clifford algebra Cl(P,Q,R)
 Multivector<const P: usize, const Q: usize, const R: usize>
 
+// Tropical-Dual-Clifford unified system
+TropicalDualClifford<T: Float, const DIM: usize>
+
+// Dual numbers for automatic differentiation
+DualNumber<T: Float>
+
+// Tropical numbers for max-plus algebra
+TropicalNumber<T: Float>
+
 // Common algebras
 type Cl3 = Multivector<3, 0, 0>;  // 3D Euclidean
 type Spacetime = Multivector<1, 3, 0>;  // Minkowski spacetime
 ```
 
 ## 🚀 Quick Start
+
+### Tropical-Dual-Clifford System
+
+```rust
+use amari_fusion::TropicalDualClifford;
+use amari_dual::DualNumber;
+use amari_tropical::TropicalNumber;
+
+// Create from logits (common in ML applications)
+let logits = vec![1.5, 2.0, 0.8, 1.2];
+let tdc = TropicalDualClifford::<f64, 4>::from_logits(&logits);
+
+// Evaluate using all three algebras simultaneously
+let other = TropicalDualClifford::from_logits(&[2.0, 1.5, 1.0, 0.9]);
+let evaluation = tdc.evaluate(&other);
+
+// Extract features from each algebra
+let tropical_features = tdc.extract_tropical_features(); // Fast path-finding
+let dual_features = tdc.extract_dual_features();         // Automatic gradients
+let clifford_geom = tdc.clifford;                        // Geometric relationships
+
+// Perform sensitivity analysis
+let sensitivity = tdc.sensitivity_analysis();
+let most_sensitive = sensitivity.most_sensitive(2);
+
+println!("Combined score: {}", evaluation.combined_score);
+println!("Most sensitive components: {:?}", most_sensitive);
+```
 
 ### Rust
 
@@ -135,6 +178,42 @@ Run benchmarks to see performance on your system:
 
 ## 🧮 Mathematical Foundation
 
+### Tropical-Dual-Clifford System
+
+The revolutionary fusion of three algebraic systems:
+
+#### Tropical Algebra (Max-Plus)
+```
+a ⊕ b = max(a, b)    // Tropical addition
+a ⊙ b = a + b        // Tropical multiplication
+```
+- **Applications**: Path optimization, sequence decoding, dynamic programming
+- **Benefits**: Converts exponential operations to linear max operations
+
+#### Dual Numbers
+```
+a + εb where ε² = 0
+(a + εb) + (c + εd) = (a + c) + ε(b + d)
+(a + εb) × (c + εd) = ac + ε(ad + bc)
+```
+- **Applications**: Automatic differentiation, gradient computation
+- **Benefits**: Exact derivatives without finite differences or computational graphs
+
+#### Clifford Algebra
+```
+ab = a·b + a∧b      // Geometric product
+```
+- **Applications**: Rotations, reflections, geometric transformations
+- **Benefits**: Unified treatment of scalars, vectors, bivectors, trivectors
+
+### Unified TDC Operations
+
+The fusion system enables simultaneous computation across all three algebras:
+
+1. **Tropical Phase**: Fast approximation using max-plus operations
+2. **Dual Phase**: Exact computation with automatic gradients
+3. **Clifford Phase**: Geometric refinement and spatial reasoning
+
 ### Geometric Product
 
 The fundamental operation combining inner and outer products:
@@ -158,6 +237,54 @@ ab = a·b + a∧b
 - **Amari-Chentsov Tensor**: Fundamental tensor structure
 
 ## 📚 Examples
+
+### Tropical-Dual-Clifford System
+
+```rust
+use amari_fusion::{TropicalDualClifford, optimizer::TDCOptimizer};
+
+// Optimization using all three algebras
+let initial_params = vec![0.1, 0.5, -0.2, 0.8];
+let tdc = TropicalDualClifford::<f64, 4>::from_logits(&initial_params);
+
+let optimizer = TDCOptimizer::new()
+    .with_tropical_warmup(5)     // Fast tropical approximation
+    .with_dual_refinement(10)    // Exact dual gradients
+    .with_clifford_projection(); // Geometric constraints
+
+let result = optimizer.optimize(&tdc, &target_function)?;
+```
+
+### Automatic Differentiation
+
+```rust
+use amari_dual::{DualNumber, functions::softmax};
+
+// Forward-mode autodiff
+let inputs: Vec<DualNumber<f64>> = vec![
+    DualNumber::variable(1.0),
+    DualNumber::variable(2.0),
+    DualNumber::variable(0.5),
+];
+
+let output = softmax(&inputs);
+// output[i].real contains the value
+// output[i].dual contains the gradient
+```
+
+### Tropical Sequence Decoding
+
+```rust
+use amari_tropical::viterbi::ViterbiDecoder;
+
+// Efficient Viterbi algorithm using tropical algebra
+let transitions = create_transition_matrix();
+let emissions = create_emission_matrix();
+let observations = vec![0, 1, 2, 1, 0];
+
+let decoder = ViterbiDecoder::new(&transitions, &emissions);
+let best_path = decoder.decode(&observations);
+```
 
 ### 3D Rotations
 
@@ -207,6 +334,9 @@ cargo doc --workspace --open
 - **Physics**: Spacetime calculations and electromagnetic field theory
 - **Machine Learning**: Statistical manifold operations and natural gradients
 - **Computer Vision**: Multi-view geometry and camera calibration
+- **Mathematical Optimization**: Hybrid tropical-dual-Clifford optimization
+- **Sequence Analysis**: Efficient decoding using tropical Viterbi
+- **Automatic Differentiation**: Exact gradients for scientific computing
 
 ## 🔬 Research Applications
 
@@ -214,6 +344,9 @@ cargo doc --workspace --open
 - **Geometric Deep Learning**: Operations on non-Euclidean data
 - **Quantum Computing**: Clifford group operations
 - **Crystallography**: Symmetry group calculations
+- **Tropical Geometry**: Max-plus linear algebra and optimization
+- **Computational Algebra**: Multi-algebraic system integration
+- **Neural Architecture Search**: Gradient-based optimization with geometric constraints
 
 ## 🤝 Contributing
 

@@ -1,5 +1,5 @@
 [workspace]
-members = ["amari-core", "amari-wasm", "amari-gpu", "amari-info-geom"]
+members = ["amari-core", "amari-wasm", "amari-gpu", "amari-info-geom", "amari-tropical", "amari-dual", "amari-fusion"]
 resolver = "2"
 
 [workspace.package]
