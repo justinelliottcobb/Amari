@@ -157,17 +157,18 @@ impl<T: Float> AttentionHead<T> {
         key_mv: &Multivector<3, 0, 0>,
         value_mv: &Multivector<3, 0, 0>
     ) -> Multivector<3, 0, 0> {
-        // Compute rotor between query and key
-        let rotor = query_mv.compute_rotor(key_mv);
+        // Simplified geometric attention using scalar product
+        let alignment = query_mv.scalar_product(key_mv);
+        let norm_product = query_mv.norm() * key_mv.norm();
         
-        // Apply rotor to value to get geometrically-aligned result
-        let aligned_value = rotor.apply_to_vector(value_mv);
+        let attention_strength = if norm_product > 0.0 {
+            (alignment / norm_product).max(0.0).min(1.0)
+        } else {
+            0.0
+        };
         
-        // Compute attention strength based on geometric alignment
-        let alignment = query_mv.inner_product(key_mv);
-        let attention_strength = (alignment / (query_mv.norm() * key_mv.norm())).max(0.0);
-        
-        aligned_value * attention_strength
+        // Scale value by attention strength
+        value_mv.clone() * attention_strength
     }
     
     /// Multi-head self-attention using all three systems
@@ -188,9 +189,9 @@ impl<T: Float> AttentionHead<T> {
         let dual_attention = self.compute_attention_dual(&dual_queries, &dual_keys, &dual_values, mask);
         
         // Phase 3: Geometric refinement using Clifford algebra
-        let query_mv = input.clifford;
-        let key_mv = input.clifford;
-        let value_mv = input.clifford;
+        let query_mv = input.clifford.clone();
+        let key_mv = input.clifford.clone();
+        let value_mv = input.clifford.clone();
         let clifford_attention = self.compute_attention_clifford(&query_mv, &key_mv, &value_mv);
         
         // Combine results from all three systems

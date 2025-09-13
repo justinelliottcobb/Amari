@@ -198,6 +198,29 @@ impl<T: Float, const DIM: usize> TropicalMultivector<T, DIM> {
         self.coefficients.iter().copied().fold(TropicalNumber::zero(), |acc, x| acc + x)
     }
     
+    /// Check if the multivector is zero
+    pub fn is_zero(&self) -> bool {
+        self.coefficients.iter().all(|c| c.is_zero())
+    }
+    
+    /// Add two tropical multivectors
+    pub fn add(&self, other: &Self) -> Self {
+        let mut result = Self::zero();
+        for i in 0..Self::BASIS_COUNT {
+            result.coefficients[i] = self.coefficients[i] + other.coefficients[i];
+        }
+        result
+    }
+    
+    /// Scale by a regular scalar
+    pub fn scale(&self, factor: T) -> Self {
+        let mut result = Self::zero();
+        for i in 0..Self::BASIS_COUNT {
+            result.coefficients[i] = TropicalNumber(self.coefficients[i].0 + factor);
+        }
+        result
+    }
+    
     /// Get indices of non-zero (non-negative-infinity) elements
     pub fn support(&self) -> Vec<usize> {
         self.coefficients

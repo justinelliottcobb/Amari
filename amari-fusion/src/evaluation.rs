@@ -4,7 +4,7 @@ use crate::{TropicalDualClifford, optimizer::OptimizationResult};
 use amari_core::Multivector;
 use amari_dual::{DualNumber, functions::{softmax, cross_entropy_loss, kl_divergence}};
 use amari_tropical::{TropicalNumber, TropicalMultivector};
-use alloc::vec::Vec;
+use alloc::vec::{self, Vec};
 use num_traits::Float;
 use core::fmt;
 
@@ -210,10 +210,11 @@ impl<T: Float> LLMEvaluator<T> {
         
         if count > 0 {
             // Average and convert to perplexity
-            let avg_log_prob = TropicalNumber(total_log_prob.0 - (count as f64).ln());
+            let count_ln = T::from((count as f64).ln()).unwrap_or(T::zero());
+            let avg_log_prob = TropicalNumber(total_log_prob.0 - count_ln);
             TropicalNumber(-avg_log_prob.0) // exp(-avg_log_prob)
         } else {
-            TropicalNumber::infinity()
+            TropicalNumber::neg_infinity()
         }
     }
     
@@ -232,7 +233,11 @@ impl<T: Float> LLMEvaluator<T> {
                 let dual_logits = pred.extract_dual_features();
                 
                 // Create target distribution (one-hot)
-                let mut target_dist = vec![T::zero(); dual_logits.len().min(self.vocab_size)];
+                let dist_len = dual_logits.len().min(self.vocab_size);
+                let mut target_dist = Vec::with_capacity(dist_len);
+                for _ in 0..dist_len {
+                    target_dist.push(T::zero());
+                }
                 if target < target_dist.len() {
                     target_dist[target] = T::one();
                 }
@@ -263,16 +268,20 @@ impl<T: Float> LLMEvaluator<T> {
         
         // Analyze geometric relationships between consecutive predictions
         for i in 1..predictions.len() {
-            let prev_mv = predictions[i-1].clifford;
-            let curr_mv = predictions[i].clifford;
+            let prev_mv = &predictions[i-1].clifford;
+            let curr_mv = &predictions[i].clifford;
             
-            // Compute geometric similarity using rotor distance
-            let rotor = prev_mv.compute_rotor(&curr_mv);
-            let rotor_angle = rotor.extract_angle();
+            // Compute geometric similarity using scalar product
+            let similarity = prev_mv.scalar_product(&curr_mv);
+            let norm_product = prev_mv.norm() * curr_mv.norm();
             
-            // Coherence decreases with larger rotational changes
-            let coherence = (-rotor_angle.abs() / T::from(core::f64::consts::PI).unwrap()).exp();
-            total_coherence = total_coherence + coherence;
+            // Coherence based on normalized similarity
+            let coherence = if norm_product > 0.0 {
+                T::from(similarity / norm_product).unwrap_or(T::zero())
+            } else {
+                T::zero()
+            };
+            total_coherence = total_coherence + coherence.abs();
             count += 1;
         }
         
@@ -528,7 +537,7 @@ impl<T: Float> LLMEvaluator<T> {
         &self,
         model_a_results: &[EvaluationMetrics<T>],
         model_b_results: &[EvaluationMetrics<T>]
-    ) -> ModelComparison<T> {
+    ) -> ModelComparison {
         assert_eq!(model_a_results.len(), model_b_results.len());
         
         let mut comparison = ModelComparison::new();
@@ -566,7 +575,7 @@ pub enum TaskType {
 
 /// Model comparison results
 #[derive(Clone, Debug)]
-pub struct ModelComparison<T: Float> {
+pub struct ModelComparison {
     pub perplexity_wins_a: usize,
     pub coherence_wins_a: usize,
     pub bleu_wins_a: usize,
@@ -574,7 +583,7 @@ pub struct ModelComparison<T: Float> {
     pub total_cases: usize,
 }
 
-impl<T: Float> ModelComparison<T> {
+impl ModelComparison {
     pub fn new() -> Self {
         Self {
             perplexity_wins_a: 0,

@@ -11,11 +11,11 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 extern crate alloc;
-use alloc::vec::Vec;
+use alloc::vec::{self, Vec};
 
 use amari_core::Multivector;
 use amari_tropical::{TropicalNumber, TropicalMultivector, TropicalMatrix};
-use amari_dual::{DualNumber, DualMultivector};
+use amari_dual::{DualNumber, multivector::DualMultivector};
 use num_traits::Float;
 
 pub mod optimizer;
@@ -93,7 +93,13 @@ impl<T: Float, const DIM: usize> TropicalDualClifford<T, DIM> {
     pub fn scale(&self, factor: T) -> Self {
         Self {
             tropical: self.tropical.scale(factor),
-            dual: self.dual.clone() * DualNumber::constant(T::from(factor.to_f64().unwrap_or(1.0)).unwrap()),
+            dual: {
+                let mut scaled = self.dual.clone();
+                for i in 0..8 {
+                    scaled.set(i, scaled.get(i) * DualNumber::constant(factor));
+                }
+                scaled
+            },
             clifford: self.clifford.clone() * factor.to_f64().unwrap_or(1.0),
         }
     }
@@ -131,16 +137,21 @@ impl<T: Float, const DIM: usize> TropicalDualClifford<T, DIM> {
         let tropical = TropicalMultivector::from_log_probs(logits);
         
         // Convert to dual for automatic differentiation
-        let dual_coeffs: Vec<f64> = logits.iter()
+        let dual_coeffs_t: Vec<T> = logits.iter()
             .take(8) // Take first 8 for 3D Clifford
-            .map(|&x| x.to_f64().unwrap_or(0.0))
-            .chain(core::iter::repeat(0.0))
+            .copied()
+            .chain(core::iter::repeat(T::zero()))
             .take(8)
             .collect();
-        let dual = DualMultivector::new_variables(&dual_coeffs);
+        let dual = DualMultivector::new_variables(&dual_coeffs_t);
+        
+        // Convert to f64 for Clifford
+        let dual_coeffs_f64: Vec<f64> = dual_coeffs_t.iter()
+            .map(|&x| x.to_f64().unwrap_or(0.0))
+            .collect();
         
         // Convert to Clifford for geometric operations
-        let clifford = Multivector::from_coefficients(dual_coeffs);
+        let clifford = Multivector::from_coefficients(dual_coeffs_f64);
         
         Self {
             tropical,
@@ -364,7 +375,10 @@ impl<T: Float> TropicalDualDistribution<T> {
         let mut vertices = Vec::new();
         
         for &idx in &support {
-            let mut vertex = vec![T::zero(); support.len()];
+            let mut vertex = Vec::with_capacity(support.len());
+            for _ in 0..support.len() {
+                vertex.push(T::zero());
+            }
             if let Some(pos) = support.iter().position(|&x| x == idx) {
                 vertex[pos] = self.logits.tropical.get(idx).value();
             }
