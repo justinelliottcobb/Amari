@@ -22,10 +22,24 @@ pub struct TropicalNumber<T: Float>(pub T);
 
 impl<T: Float> TropicalNumber<T> {
     /// Additive identity (negative infinity)
-    pub const ZERO: Self = Self(T::neg_infinity());
+    pub fn neg_infinity() -> Self {
+        Self(T::neg_infinity())
+    }
     
     /// Multiplicative identity (zero in regular arithmetic)
-    pub const ONE: Self = Self(T::zero());
+    pub fn zero() -> Self {
+        Self(T::zero())
+    }
+    
+    /// Additive identity (same as neg_infinity for tropical)
+    pub fn tropical_zero() -> Self {
+        Self::neg_infinity()
+    }
+    
+    /// Multiplicative identity (same as zero for tropical)
+    pub fn tropical_one() -> Self {
+        Self::zero()
+    }
     
     /// Create from regular number
     pub fn new(value: T) -> Self {
@@ -77,6 +91,10 @@ impl<T: Float> TropicalNumber<T> {
     }
 }
 
+// Note: We don't implement Zero and One traits for TropicalNumber
+// because tropical zero is negative infinity and tropical one is zero,
+// which conflicts with the standard definitions
+
 impl<T: Float> Add for TropicalNumber<T> {
     type Output = Self;
     
@@ -101,21 +119,7 @@ impl<T: Float> Neg for TropicalNumber<T> {
     }
 }
 
-impl<T: Float> Zero for TropicalNumber<T> {
-    fn zero() -> Self {
-        Self::ZERO
-    }
-    
-    fn is_zero(&self) -> bool {
-        self.is_zero()
-    }
-}
-
-impl<T: Float> One for TropicalNumber<T> {
-    fn one() -> Self {
-        Self::ONE
-    }
-}
+// Removed duplicate Zero/One implementations
 
 /// Tropical multivector for geometric operations in tropical algebra
 #[derive(Clone, Debug)]

@@ -3,7 +3,7 @@
 use crate::{DualNumber, MultiDual};
 use amari_core::Multivector;
 use alloc::vec::Vec;
-use num_traits::Float;
+use num_traits::{Float, Zero, One};
 
 /// Multivector with dual number coefficients for automatic differentiation
 #[derive(Clone, Debug)]
@@ -47,7 +47,7 @@ impl<T: Float, const P: usize, const Q: usize, const R: usize> DualMultivector<T
     pub fn constant(mv: &Multivector<P, Q, R>) -> Self {
         let mut coeffs = Vec::with_capacity(Self::BASIS_COUNT);
         for i in 0..Self::BASIS_COUNT {
-            coeffs.push(DualNumber::constant(mv.get(i)));
+            coeffs.push(DualNumber::constant(T::from(mv.get(i)).unwrap_or(T::zero())));
         }
         Self { coefficients: coeffs }
     }
@@ -323,7 +323,14 @@ impl<T: Float> MultiDualMultivector<T> {
     /// Create new multi-dual multivector
     pub fn new(values: Vec<T>, n_vars: usize) -> Self {
         let basis_count = values.len();
-        let jacobian = vec![vec![T::zero(); n_vars]; basis_count];
+        let mut jacobian = Vec::with_capacity(basis_count);
+        for _ in 0..basis_count {
+            let mut row = Vec::with_capacity(n_vars);
+            for _ in 0..n_vars {
+                row.push(T::zero());
+            }
+            jacobian.push(row);
+        }
         
         Self {
             values,
@@ -337,7 +344,14 @@ impl<T: Float> MultiDualMultivector<T> {
     pub fn variables(values: Vec<T>) -> Self {
         let n_vars = values.len();
         let basis_count = values.len();
-        let mut jacobian = vec![vec![T::zero(); n_vars]; basis_count];
+        let mut jacobian = Vec::with_capacity(basis_count);
+        for _ in 0..basis_count {
+            let mut row = Vec::with_capacity(n_vars);
+            for _ in 0..n_vars {
+                row.push(T::zero());
+            }
+            jacobian.push(row);
+        }
         
         // Set up identity jacobian
         for i in 0..basis_count {
@@ -364,7 +378,13 @@ impl<T: Float> MultiDualMultivector<T> {
     
     /// Get full gradient of coefficient i
     pub fn gradient(&self, coeff_index: usize) -> Vec<T> {
-        self.jacobian.get(coeff_index).cloned().unwrap_or_else(|| vec![T::zero(); self.n_vars])
+        self.jacobian.get(coeff_index).cloned().unwrap_or_else(|| {
+            let mut grad = Vec::with_capacity(self.n_vars);
+            for _ in 0..self.n_vars {
+                grad.push(T::zero());
+            }
+            grad
+        })
     }
 }
 

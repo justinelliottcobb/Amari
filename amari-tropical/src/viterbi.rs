@@ -5,7 +5,7 @@
 
 use crate::{TropicalNumber, TropicalMatrix, TropicalMultivector};
 use alloc::vec::Vec;
-use num_traits::Float;
+use num_traits::{Float, Zero, One};
 
 /// Viterbi decoder using tropical algebra
 pub struct TropicalViterbi<T: Float> {
@@ -33,7 +33,14 @@ impl<T: Float> TropicalViterbi<T> {
         
         // Viterbi trellis as tropical matrix
         let mut trellis = TropicalMatrix::new(n_states, n_obs);
-        let mut path = vec![vec![0; n_obs]; n_states];
+        let mut path = Vec::with_capacity(n_states);
+        for _ in 0..n_states {
+            let mut row = Vec::with_capacity(n_obs);
+            for _ in 0..n_obs {
+                row.push(0);
+            }
+            path.push(row);
+        }
         
         // Initialize first column (tropical style)
         for state in 0..n_states {
@@ -78,7 +85,10 @@ impl<T: Float> TropicalViterbi<T> {
         }
         
         // Backtrack to find optimal path
-        let mut optimal_path = vec![0; n_obs];
+        let mut optimal_path = Vec::with_capacity(n_obs);
+        for _ in 0..n_obs {
+            optimal_path.push(0);
+        }
         optimal_path[n_obs - 1] = best_final_state;
         
         for t in (0..n_obs-1).rev() {
@@ -139,11 +149,11 @@ impl<T: Float> TropicalPolynomial<T> {
         }
         
         let mut result = self.coefficients[0];
-        let mut x_power = TropicalNumber::one();
+        let mut x_power = TropicalNumber::tropical_one();
         
         for &coeff in self.coefficients.iter().skip(1) {
-            x_power = x_power * x;
-            result = result + (coeff * x_power);
+            x_power = x_power.tropical_mul(x);
+            result = result.tropical_add(coeff.tropical_mul(x_power));
         }
         
         result

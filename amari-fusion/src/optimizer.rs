@@ -259,7 +259,7 @@ impl<T: Float> TropicalDualOptimizer<T> {
         // Update tropical representation with log values
         let tropical_coeffs: Vec<T> = dual_values.iter()
             .take(DIM.min(8))
-            .chain(std::iter::repeat(&0.0))
+            .chain(core::iter::repeat(&0.0))
             .take(1 << DIM)
             .map(|&x| T::from(x).unwrap_or(T::zero()))
             .collect();

@@ -134,7 +134,7 @@ impl<T: Float, const DIM: usize> TropicalDualClifford<T, DIM> {
         let dual_coeffs: Vec<f64> = logits.iter()
             .take(8) // Take first 8 for 3D Clifford
             .map(|&x| x.to_f64().unwrap_or(0.0))
-            .chain(std::iter::repeat(0.0))
+            .chain(core::iter::repeat(0.0))
             .take(8)
             .collect();
         let dual = DualMultivector::new_variables(&dual_coeffs);

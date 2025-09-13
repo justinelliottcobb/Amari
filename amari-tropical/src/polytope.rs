@@ -5,7 +5,7 @@
 
 use crate::{TropicalNumber, TropicalMultivector, TropicalMatrix};
 use alloc::vec::Vec;
-use num_traits::Float;
+use num_traits::{Float, Zero, One};
 
 /// A tropical polytope representing attention patterns
 #[derive(Clone, Debug)]
@@ -52,7 +52,11 @@ impl<T: Float> TropicalPolytope<T> {
         }
         
         Self {
-            vertices: vec![coeffs],
+            vertices: {
+                let mut v = Vec::with_capacity(1);
+                v.push(coeffs);
+                v
+            },
             dimension: 1 << DIM,
         }
     }
@@ -72,7 +76,7 @@ impl<T: Float> TropicalPolytope<T> {
             
             // Check if this vertex can be expressed as tropical combination of others
             for other in &self.vertices {
-                if std::ptr::eq(vertex, other) {
+                if core::ptr::eq(vertex, other) {
                     continue;
                 }
                 

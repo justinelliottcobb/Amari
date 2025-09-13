@@ -308,7 +308,10 @@ impl<T: Float> MultiDual<T> {
     
     /// Create variable at given index
     pub fn variable(value: T, index: usize, n_vars: usize) -> Self {
-        let mut gradient = vec![T::zero(); n_vars];
+        let mut gradient = Vec::with_capacity(n_vars);
+        for _ in 0..n_vars {
+            gradient.push(T::zero());
+        }
         gradient[index] = T::one();
         Self { value, gradient }
     }
@@ -317,7 +320,13 @@ impl<T: Float> MultiDual<T> {
     pub fn constant(value: T, n_vars: usize) -> Self {
         Self {
             value,
-            gradient: vec![T::zero(); n_vars],
+            gradient: {
+                let mut g = Vec::with_capacity(n_vars);
+                for _ in 0..n_vars {
+                    g.push(T::zero());
+                }
+                g
+            },
         }
     }
     
@@ -400,7 +409,10 @@ impl<T: Float> AutoDiffContext<T> {
         
         for (i, var) in self.variables.iter().enumerate() {
             // Set up dual number for i-th partial derivative
-            let mut inputs = vec![DualNumber::constant(T::zero()); self.variables.len()];
+            let mut inputs = Vec::with_capacity(self.variables.len());
+            for _ in 0..self.variables.len() {
+                inputs.push(DualNumber::constant(T::zero()));
+            }
             for (j, &v) in self.variables.iter().enumerate() {
                 inputs[j] = if i == j {
                     DualNumber::variable(v.real)

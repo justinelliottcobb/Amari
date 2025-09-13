@@ -152,7 +152,7 @@ pub fn attention<T: Float>(
 
 /// GELU activation function with automatic differentiation
 pub fn gelu<T: Float>(x: DualNumber<T>) -> DualNumber<T> {
-    let sqrt_2_pi = T::from(2.0).unwrap().sqrt() / T::from(core::f64::consts::PI).unwrap().sqrt();
+    let sqrt_2_pi = T::from(2.0).unwrap().sqrt() / T::from(3.141592653589793).unwrap().sqrt();
     let coeff = DualNumber::constant(T::from(0.5).unwrap());
     let tanh_input = DualNumber::constant(sqrt_2_pi) * (x + DualNumber::constant(T::from(0.044715).unwrap()) * x.powf(T::from(3.0).unwrap()));
     
