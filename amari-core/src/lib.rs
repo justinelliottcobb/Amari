@@ -170,6 +170,22 @@ impl<const P: usize, const Q: usize, const R: usize> Multivector<P, Q, R> {
         self + other
     }
     
+    /// Get the grade of a multivector (returns the highest non-zero grade)
+    pub fn grade(&self) -> usize {
+        for grade in (0..=Self::DIM).rev() {
+            let projection = self.grade_projection(grade);
+            if !projection.is_zero() {
+                return grade;
+            }
+        }
+        0 // Zero multivector has grade 0
+    }
+    
+    /// Outer product with a vector (convenience method)
+    pub fn outer_product_with_vector(&self, other: &Vector<P, Q, R>) -> Self {
+        self.outer_product(&other.mv)
+    }
+    
     /// Geometric product with another multivector
     ///
     /// The geometric product is the fundamental operation in geometric algebra,
@@ -509,7 +525,7 @@ impl<const P: usize, const Q: usize, const R: usize> From<f64> for Scalar<P, Q, 
 /// Vector type - wrapper around Multivector with only grade 1
 #[derive(Debug, Clone, PartialEq)]
 pub struct Vector<const P: usize, const Q: usize, const R: usize> {
-    mv: Multivector<P, Q, R>,
+    pub mv: Multivector<P, Q, R>,
 }
 
 impl<const P: usize, const Q: usize, const R: usize> Vector<P, Q, R> {
@@ -564,12 +580,50 @@ impl<const P: usize, const Q: usize, const R: usize> Vector<P, Q, R> {
     pub fn as_slice(&self) -> &[f64] {
         self.mv.as_slice()
     }
+    
+    /// Inner product with another vector
+    pub fn inner_product(&self, other: &Self) -> Multivector<P, Q, R> {
+        self.mv.inner_product(&other.mv)
+    }
+    
+    /// Inner product with a multivector
+    pub fn inner_product_with_mv(&self, other: &Multivector<P, Q, R>) -> Multivector<P, Q, R> {
+        self.mv.inner_product(other)
+    }
+    
+    /// Inner product with a bivector
+    pub fn inner_product_with_bivector(&self, other: &Bivector<P, Q, R>) -> Multivector<P, Q, R> {
+        self.mv.inner_product(&other.mv)
+    }
+    
+    /// Outer product with another vector
+    pub fn outer_product(&self, other: &Self) -> Multivector<P, Q, R> {
+        self.mv.outer_product(&other.mv)
+    }
+    
+    /// Outer product with a multivector
+    pub fn outer_product_with_mv(&self, other: &Multivector<P, Q, R>) -> Multivector<P, Q, R> {
+        self.mv.outer_product(other)
+    }
+    
+    /// Outer product with a bivector
+    pub fn outer_product_with_bivector(&self, other: &Bivector<P, Q, R>) -> Multivector<P, Q, R> {
+        self.mv.outer_product(&other.mv)
+    }
+    
+    /// Left contraction with bivector
+    pub fn left_contraction(&self, other: &Bivector<P, Q, R>) -> Multivector<P, Q, R> {
+        // Left contraction: a ⌊ b = grade_projection(a * b, |grade(b) - grade(a)|)
+        let product = self.mv.geometric_product(&other.mv);
+        let target_grade = if 2 >= 1 { 2 - 1 } else { 1 - 2 };
+        product.grade_projection(target_grade)
+    }
 }
 
 /// Bivector type - wrapper around Multivector with only grade 2
 #[derive(Debug, Clone, PartialEq)]
 pub struct Bivector<const P: usize, const Q: usize, const R: usize> {
-    mv: Multivector<P, Q, R>,
+    pub mv: Multivector<P, Q, R>,
 }
 
 impl<const P: usize, const Q: usize, const R: usize> Bivector<P, Q, R> {
@@ -578,6 +632,18 @@ impl<const P: usize, const Q: usize, const R: usize> Bivector<P, Q, R> {
         if P + Q + R >= 2 { mv.set_bivector_component(0, xy); } // e12
         if P + Q + R >= 3 { mv.set_bivector_component(1, xz); } // e13
         if P + Q + R >= 3 { mv.set_bivector_component(2, yz); } // e23
+        Self { mv }
+    }
+    
+    pub fn e12() -> Self {
+        let mut mv = Multivector::zero();
+        mv.set_bivector_component(0, 1.0); // e12
+        Self { mv }
+    }
+    
+    pub fn e13() -> Self {
+        let mut mv = Multivector::zero();
+        mv.set_bivector_component(1, 1.0); // e13
         Self { mv }
     }
     
@@ -595,6 +661,11 @@ impl<const P: usize, const Q: usize, const R: usize> Bivector<P, Q, R> {
         self.mv.geometric_product(&other.mv)
     }
     
+    /// Geometric product with another bivector
+    pub fn geometric_product_with_bivector(&self, other: &Self) -> Multivector<P, Q, R> {
+        self.mv.geometric_product(&other.mv)
+    }
+    
     pub fn magnitude(&self) -> f64 {
         self.mv.norm()
     }
@@ -607,6 +678,34 @@ impl<const P: usize, const Q: usize, const R: usize> Bivector<P, Q, R> {
             2 => self.mv.get(6),  // e23
             _ => 0.0,
         }
+    }
+    
+    /// Inner product with another bivector
+    pub fn inner_product(&self, other: &Self) -> Multivector<P, Q, R> {
+        self.mv.inner_product(&other.mv)
+    }
+    
+    /// Inner product with a vector
+    pub fn inner_product_with_vector(&self, other: &Vector<P, Q, R>) -> Multivector<P, Q, R> {
+        self.mv.inner_product(&other.mv)
+    }
+    
+    /// Outer product with another bivector
+    pub fn outer_product(&self, other: &Self) -> Multivector<P, Q, R> {
+        self.mv.outer_product(&other.mv)
+    }
+    
+    /// Outer product with a vector
+    pub fn outer_product_with_vector(&self, other: &Vector<P, Q, R>) -> Multivector<P, Q, R> {
+        self.mv.outer_product(&other.mv)
+    }
+    
+    /// Right contraction with vector
+    pub fn right_contraction(&self, other: &Vector<P, Q, R>) -> Multivector<P, Q, R> {
+        // Right contraction: a ⌋ b = grade_projection(a * b, |grade(a) - grade(b)|)
+        let product = self.mv.geometric_product(&other.mv);
+        let target_grade = if 2 >= 1 { 2 - 1 } else { 1 - 2 };
+        product.grade_projection(target_grade)
     }
 }
 
@@ -625,6 +724,9 @@ impl<const P: usize, const Q: usize, const R: usize> core::ops::Index<usize> for
 
 /// Convenience type alias for basis vector E
 pub type E<const P: usize, const Q: usize, const R: usize> = Vector<P, Q, R>;
+
+// Re-export the Rotor type from the rotor module
+pub use rotor::Rotor;
 
 #[cfg(test)]
 mod tests {
