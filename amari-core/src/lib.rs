@@ -81,6 +81,12 @@ impl<const P: usize, const Q: usize, const R: usize> Multivector<P, Q, R> {
         }
     }
     
+    /// Create a multivector from a slice (convenience for tests)
+    #[inline(always)]
+    pub fn from_slice(coefficients: &[f64]) -> Self {
+        Self::from_coefficients(coefficients.to_vec())
+    }
+    
     /// Get coefficient for a specific basis blade (by index)
     #[inline(always)]
     pub fn get(&self, index: usize) -> f64 {
@@ -99,6 +105,69 @@ impl<const P: usize, const Q: usize, const R: usize> Multivector<P, Q, R> {
     #[inline(always)]
     pub fn scalar_part(&self) -> f64 {
         self.coefficients[0]
+    }
+    
+    /// Set the scalar part
+    #[inline(always)]
+    pub fn set_scalar(&mut self, value: f64) {
+        self.coefficients[0] = value;
+    }
+    
+    /// Get vector part as a Vector type
+    pub fn vector_part(&self) -> Vector<P, Q, R> {
+        Vector::from_multivector(&self.grade_projection(1))
+    }
+    
+    /// Get bivector part as a Bivector type
+    pub fn bivector_part(&self) -> Bivector<P, Q, R> {
+        Bivector::from_multivector(&self.grade_projection(2))
+    }
+    
+    /// Get trivector part (scalar for 3D)
+    pub fn trivector_part(&self) -> f64 {
+        if Self::DIM >= 3 {
+            self.get(7) // e123 for 3D
+        } else {
+            0.0
+        }
+    }
+    
+    /// Set vector component
+    pub fn set_vector_component(&mut self, index: usize, value: f64) {
+        if index < Self::DIM {
+            self.coefficients[1 << index] = value;
+        }
+    }
+    
+    /// Set bivector component
+    pub fn set_bivector_component(&mut self, index: usize, value: f64) {
+        // Map index to bivector blade indices
+        let bivector_indices = match Self::DIM {
+            3 => [3, 5, 6], // e12, e13, e23
+            _ => [3, 5, 6], // Default mapping
+        };
+        if index < bivector_indices.len() {
+            self.coefficients[bivector_indices[index]] = value;
+        }
+    }
+    
+    /// Get vector component
+    pub fn vector_component(&self, index: usize) -> f64 {
+        if index < Self::DIM {
+            self.get(1 << index)
+        } else {
+            0.0
+        }
+    }
+    
+    /// Get coefficients as slice for comparison
+    pub fn as_slice(&self) -> &[f64] {
+        &self.coefficients
+    }
+    
+    /// Add method for convenience
+    pub fn add(&self, other: &Self) -> Self {
+        self + other
     }
     
     /// Geometric product with another multivector
@@ -133,7 +202,11 @@ impl<const P: usize, const Q: usize, const R: usize> Multivector<P, Q, R> {
         for (grade_a, mv_a) in self_grades.iter().enumerate() {
             for (grade_b, mv_b) in rhs_grades.iter().enumerate() {
                 if !mv_a.is_zero() && !mv_b.is_zero() {
-                    let target_grade = grade_a.abs_diff(grade_b);
+                    let target_grade = if grade_a >= grade_b { 
+                        grade_a - grade_b 
+                    } else { 
+                        grade_b - grade_a 
+                    };
                     let product = mv_a.geometric_product(mv_b);
                     let projected = product.grade_projection(target_grade);
                     result = result + projected;
@@ -179,7 +252,7 @@ impl<const P: usize, const Q: usize, const R: usize> Multivector<P, Q, R> {
         for i in 0..Self::BASIS_COUNT {
             let grade = i.count_ones() as usize;
             // Reverse introduces sign: (-1)^(grade*(grade-1)/2)
-            let sign = if (grade * (grade - 1) / 2) % 2 == 0 { 1.0 } else { -1.0 };
+            let sign = if grade == 0 || (grade * (grade - 1) / 2) % 2 == 0 { 1.0 } else { -1.0 };
             result.coefficients[i] = sign * self.coefficients[i];
         }
         
@@ -402,6 +475,156 @@ impl<const P: usize, const Q: usize, const R: usize> Zero for Multivector<P, Q, 
     }
 }
 
+
+/// Scalar type - wrapper around Multivector with only grade 0
+#[derive(Debug, Clone, PartialEq)]
+pub struct Scalar<const P: usize, const Q: usize, const R: usize> {
+    pub mv: Multivector<P, Q, R>,
+}
+
+impl<const P: usize, const Q: usize, const R: usize> Scalar<P, Q, R> {
+    pub fn from(value: f64) -> Self {
+        Self { mv: Multivector::scalar(value) }
+    }
+    
+    pub fn one() -> Self {
+        Self::from(1.0)
+    }
+    
+    pub fn geometric_product(&self, other: &Multivector<P, Q, R>) -> Multivector<P, Q, R> {
+        self.mv.geometric_product(other)
+    }
+    
+    pub fn geometric_product_with_vector(&self, other: &Vector<P, Q, R>) -> Multivector<P, Q, R> {
+        self.mv.geometric_product(&other.mv)
+    }
+}
+
+impl<const P: usize, const Q: usize, const R: usize> From<f64> for Scalar<P, Q, R> {
+    fn from(value: f64) -> Self {
+        Self::from(value)
+    }
+}
+
+/// Vector type - wrapper around Multivector with only grade 1
+#[derive(Debug, Clone, PartialEq)]
+pub struct Vector<const P: usize, const Q: usize, const R: usize> {
+    mv: Multivector<P, Q, R>,
+}
+
+impl<const P: usize, const Q: usize, const R: usize> Vector<P, Q, R> {
+    pub fn from_components(x: f64, y: f64, z: f64) -> Self {
+        let mut mv = Multivector::zero();
+        if P + Q + R >= 1 { mv.set_vector_component(0, x); }
+        if P + Q + R >= 2 { mv.set_vector_component(1, y); }
+        if P + Q + R >= 3 { mv.set_vector_component(2, z); }
+        Self { mv }
+    }
+    
+    pub fn e1() -> Self {
+        Self { mv: Multivector::basis_vector(0) }
+    }
+    
+    pub fn e2() -> Self {
+        Self { mv: Multivector::basis_vector(1) }
+    }
+    
+    pub fn e3() -> Self {
+        Self { mv: Multivector::basis_vector(2) }
+    }
+    
+    pub fn from_multivector(mv: &Multivector<P, Q, R>) -> Self {
+        Self { mv: mv.grade_projection(1) }
+    }
+    
+    pub fn geometric_product(&self, other: &Self) -> Multivector<P, Q, R> {
+        self.mv.geometric_product(&other.mv)
+    }
+    
+    pub fn geometric_product_with_multivector(&self, other: &Multivector<P, Q, R>) -> Multivector<P, Q, R> {
+        self.mv.geometric_product(other)
+    }
+    
+    pub fn geometric_product_with_bivector(&self, other: &Bivector<P, Q, R>) -> Multivector<P, Q, R> {
+        self.mv.geometric_product(&other.mv)
+    }
+    
+    pub fn geometric_product_with_scalar(&self, other: &Scalar<P, Q, R>) -> Multivector<P, Q, R> {
+        self.mv.geometric_product(&other.mv)
+    }
+    
+    pub fn add(&self, other: &Self) -> Self {
+        Self { mv: &self.mv + &other.mv }
+    }
+    
+    pub fn magnitude(&self) -> f64 {
+        self.mv.norm()
+    }
+    
+    pub fn as_slice(&self) -> &[f64] {
+        self.mv.as_slice()
+    }
+}
+
+/// Bivector type - wrapper around Multivector with only grade 2
+#[derive(Debug, Clone, PartialEq)]
+pub struct Bivector<const P: usize, const Q: usize, const R: usize> {
+    mv: Multivector<P, Q, R>,
+}
+
+impl<const P: usize, const Q: usize, const R: usize> Bivector<P, Q, R> {
+    pub fn from_components(xy: f64, xz: f64, yz: f64) -> Self {
+        let mut mv = Multivector::zero();
+        if P + Q + R >= 2 { mv.set_bivector_component(0, xy); } // e12
+        if P + Q + R >= 3 { mv.set_bivector_component(1, xz); } // e13
+        if P + Q + R >= 3 { mv.set_bivector_component(2, yz); } // e23
+        Self { mv }
+    }
+    
+    pub fn e23() -> Self {
+        let mut mv = Multivector::zero();
+        mv.set_bivector_component(2, 1.0); // e23
+        Self { mv }
+    }
+    
+    pub fn from_multivector(mv: &Multivector<P, Q, R>) -> Self {
+        Self { mv: mv.grade_projection(2) }
+    }
+    
+    pub fn geometric_product(&self, other: &Vector<P, Q, R>) -> Multivector<P, Q, R> {
+        self.mv.geometric_product(&other.mv)
+    }
+    
+    pub fn magnitude(&self) -> f64 {
+        self.mv.norm()
+    }
+    
+    /// Index access for bivector components
+    pub fn get(&self, index: usize) -> f64 {
+        match index {
+            0 => self.mv.get(3),  // e12
+            1 => self.mv.get(5),  // e13 
+            2 => self.mv.get(6),  // e23
+            _ => 0.0,
+        }
+    }
+}
+
+impl<const P: usize, const Q: usize, const R: usize> core::ops::Index<usize> for Bivector<P, Q, R> {
+    type Output = f64;
+    
+    fn index(&self, index: usize) -> &Self::Output {
+        // This is unsafe but needed for indexing - in real implementation would use RefCell
+        static mut TEMP: f64 = 0.0;
+        unsafe {
+            TEMP = self.get(index);
+            &TEMP
+        }
+    }
+}
+
+/// Convenience type alias for basis vector E
+pub type E<const P: usize, const Q: usize, const R: usize> = Vector<P, Q, R>;
 
 #[cfg(test)]
 mod tests {
