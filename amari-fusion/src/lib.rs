@@ -270,6 +270,21 @@ impl<T: Float, const DIM: usize> TropicalDualClifford<T, DIM> {
             clifford: clifford_interp,
         }
     }
+    
+    /// Get tropical view
+    pub fn tropical(&self) -> &TropicalMultivector<T, DIM> {
+        &self.tropical
+    }
+    
+    /// Get dual view
+    pub fn dual(&self) -> &DualMultivector<T, 3, 0, 0> {
+        &self.dual
+    }
+    
+    /// Get clifford view
+    pub fn clifford(&self) -> &Multivector<3, 0, 0> {
+        &self.clifford
+    }
 }
 
 /// Result of evaluating two TDC objects

@@ -247,6 +247,11 @@ impl<T: Float, const DIM: usize> TropicalMultivector<T, DIM> {
             .fold(TropicalNumber::zero(), |acc, x| acc + x)
     }
     
+    /// Create from logits (log probabilities)
+    pub fn from_logits(logits: &[T]) -> Self {
+        Self::from_log_probs(logits)
+    }
+    
     /// Viterbi algorithm using tropical algebra
     /// Returns the most likely path through states
     pub fn viterbi(

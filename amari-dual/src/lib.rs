@@ -15,6 +15,9 @@ use amari_core::Multivector;
 pub mod multivector;
 pub mod functions;
 
+// Re-export commonly used types
+pub use multivector::{DualMultivector, MultiDualMultivector};
+
 /// A dual number: a + bε where ε² = 0
 /// 
 /// The real part stores the function value, the dual part stores the derivative.
@@ -38,6 +41,11 @@ impl<T: Float> DualNumber<T> {
             real: value,
             dual: T::one(),
         }
+    }
+    
+    /// Create a variable (derivative = 1) - alias for consistency
+    pub fn new_variable(value: T) -> Self {
+        Self::variable(value)
     }
     
     /// Create a constant (derivative = 0)
