@@ -11,6 +11,7 @@ use core::sync::atomic::{AtomicPtr, Ordering};
 type CayleyEntry = (f64, usize);
 
 /// Cayley table for Clifford algebra Cl(P,Q,R)
+#[derive(Clone)]
 pub struct CayleyTable<const P: usize, const Q: usize, const R: usize> {
     table: Vec<CayleyEntry>,
     dim: usize,
@@ -19,7 +20,12 @@ pub struct CayleyTable<const P: usize, const Q: usize, const R: usize> {
 impl<const P: usize, const Q: usize, const R: usize> CayleyTable<P, Q, R> {
     const DIM: usize = P + Q + R;
     const BASIS_COUNT: usize = 1 << Self::DIM;
-    
+
+    /// Create a new CayleyTable (alias for get() for compatibility)
+    pub fn new() -> &'static Self {
+        Self::get()
+    }
+
     /// Get or create the singleton Cayley table
     pub fn get() -> &'static Self {
         static mut TABLE: AtomicPtr<()> = AtomicPtr::new(core::ptr::null_mut());

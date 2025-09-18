@@ -12,6 +12,7 @@ amari-tropical = { path = "amari-tropical" }
 amari-dual = { path = "amari-dual" }
 amari-fusion = { path = "amari-fusion" }
 amari-info-geom = { path = "amari-info-geom" }
+amari-automata = { path = "amari-automata" }
 
 [dev-dependencies]
 approx.workspace = true
@@ -21,7 +22,7 @@ name = "integration"
 path = "tests/integration.rs"
 
 [workspace]
-members = ["amari-core", "amari-wasm", "amari-gpu", "amari-info-geom", "amari-tropical", "amari-dual", "amari-fusion"]
+members = ["amari-core", "amari-wasm", "amari-gpu", "amari-info-geom", "amari-tropical", "amari-dual", "amari-fusion", "amari-automata"]
 resolver = "2"
 
 [workspace.package]

@@ -218,6 +218,30 @@ impl<T: Float, const DIM: usize> TropicalMultivector<T, DIM> {
         }
         result
     }
+
+    /// Tropical addition (alias for add)
+    pub fn tropical_add(&self, other: &Self) -> Self {
+        self.add(other)
+    }
+
+    /// Tropical multiplication (element-wise multiplication of coefficients)
+    pub fn tropical_mul(&self, other: &Self) -> Self {
+        let mut result = Self::zero();
+        for i in 0..Self::BASIS_COUNT {
+            result.coefficients[i] = self.coefficients[i].tropical_mul(other.coefficients[i]);
+        }
+        result
+    }
+
+    /// Tropical scaling (multiply all coefficients by scalar)
+    pub fn tropical_scale(&self, scalar: T) -> Self {
+        let mut result = Self::zero();
+        let tropical_scalar = TropicalNumber::new(scalar);
+        for i in 0..Self::BASIS_COUNT {
+            result.coefficients[i] = self.coefficients[i].tropical_mul(tropical_scalar);
+        }
+        result
+    }
     
     /// Scale by a regular scalar
     pub fn scale(&self, factor: T) -> Self {
