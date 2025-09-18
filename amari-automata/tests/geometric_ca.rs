@@ -75,8 +75,8 @@ fn test_reversible_ca_with_group_structure() {
 fn test_continuous_ca_with_rotors() {
     // Cells are rotors that compose
     let mut ca = GeometricCA::<3, 0, 0>::rotor_ca(100);
-    let rotor = Rotor::from_bivector(&Bivector::e12(), PI / 4.0);
-    ca.set_cell(50, rotor.as_multivector());
+    let rotor = Rotor::from_bivector(&Bivector::from_components(1.0, 0.0, 0.0), PI / 4.0);
+    ca.set_cell(50, rotor.as_multivector().clone()).unwrap();
     ca.step();
 
     let neighbor = ca.get_cell(51);
@@ -105,7 +105,7 @@ fn test_multivector_neighborhoods() {
     let mut ca = GeometricCA::<3, 0, 0>::new(10);
 
     // Set initial multivector state
-    ca.set_cell(5, Multivector::e1() + Multivector::e2());
+    ca.set_cell(5, Multivector::basis_vector(0) + Multivector::basis_vector(1)).unwrap();
     ca.step();
 
     // Check von Neumann neighborhood
@@ -119,11 +119,11 @@ fn test_geometric_grade_preservation() {
     let mut ca = GeometricCA::<3, 0, 0>::grade_preserving(50);
 
     // Set scalar
-    ca.set_cell(10, Multivector::scalar(1.0));
+    ca.set_cell(10, Multivector::scalar(1.0)).unwrap();
     // Set vector
-    ca.set_cell(20, Multivector::e1());
+    ca.set_cell(20, Multivector::basis_vector(0)).unwrap();
     // Set bivector
-    ca.set_cell(30, Multivector::e12());
+    ca.set_cell(30, Multivector::from_bivector(&Bivector::from_components(1.0, 0.0, 0.0))).unwrap();
 
     ca.step();
 
@@ -137,8 +137,8 @@ fn test_ca_boundary_conditions() {
     let mut ca_periodic = GeometricCA::<2, 0, 0>::with_boundary_periodic(10);
     let mut ca_fixed = GeometricCA::<2, 0, 0>::with_boundary_fixed(10);
 
-    ca_periodic.set_cell(0, Multivector::e1());
-    ca_fixed.set_cell(0, Multivector::e1());
+    ca_periodic.set_cell(0, Multivector::basis_vector(0)).unwrap();
+    ca_fixed.set_cell(0, Multivector::basis_vector(0)).unwrap();
 
     ca_periodic.step();
     ca_fixed.step();
@@ -156,7 +156,7 @@ fn test_multivector_conservation_laws() {
 
     // Set initial configuration
     for i in 40..60 {
-        ca.set_cell(i, Multivector::scalar(1.0));
+        ca.set_cell(i, Multivector::scalar(1.0)).unwrap();
     }
 
     let initial_total = ca.total_magnitude();
