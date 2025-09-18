@@ -1,3 +1,25 @@
+[package]
+name = "amari"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+amari-core = { path = "amari-core" }
+amari-tropical = { path = "amari-tropical" }
+amari-dual = { path = "amari-dual" }
+amari-fusion = { path = "amari-fusion" }
+amari-info-geom = { path = "amari-info-geom" }
+
+[dev-dependencies]
+approx.workspace = true
+
+[[test]]
+name = "integration"
+path = "tests/integration.rs"
+
 [workspace]
 members = ["amari-core", "amari-wasm", "amari-gpu", "amari-info-geom", "amari-tropical", "amari-dual", "amari-fusion"]
 resolver = "2"

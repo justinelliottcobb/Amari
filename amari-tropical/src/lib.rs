@@ -21,6 +21,7 @@ pub mod viterbi;
 pub struct TropicalNumber<T: Float>(pub T);
 
 impl<T: Float> TropicalNumber<T> {
+    
     /// Additive identity (negative infinity)
     pub fn neg_infinity() -> Self {
         Self(T::neg_infinity())
@@ -117,6 +118,12 @@ impl<T: Float> Neg for TropicalNumber<T> {
     fn neg(self) -> Self {
         Self(-self.0)
     }
+}
+
+// Convenient constants for f64
+impl TropicalNumber<f64> {
+    pub const ZERO: Self = Self(f64::NEG_INFINITY);
+    pub const ONE: Self = Self(0.0);
 }
 
 // Removed duplicate Zero/One implementations
@@ -238,6 +245,89 @@ impl<T: Float, const DIM: usize> TropicalMultivector<T, DIM> {
             .copied()
             .map(|x| TropicalNumber::new(x.value().abs()))
             .fold(TropicalNumber::zero(), |acc, x| acc + x)
+    }
+    
+    /// Create from logits (log probabilities)
+    pub fn from_logits(logits: &[T]) -> Self {
+        Self::from_log_probs(logits)
+    }
+    
+    /// Viterbi algorithm using tropical algebra
+    /// Returns the most likely path through states
+    pub fn viterbi(
+        transitions: &TropicalMatrix<T>,
+        emissions: &TropicalMatrix<T>, 
+        initial_probs: &[T],
+        sequence_length: usize,
+    ) -> Vec<usize> {
+        let num_states = initial_probs.len();
+        let mut path = Vec::with_capacity(sequence_length);
+        
+        // Dynamic programming tables
+        let mut current_probs = Vec::with_capacity(num_states);
+        let mut prev_states = Vec::with_capacity(sequence_length);
+        for _ in 0..sequence_length {
+            let mut row = Vec::with_capacity(num_states);
+            for _ in 0..num_states {
+                row.push(0);
+            }
+            prev_states.push(row);
+        }
+        
+        // Initialize with first observation
+        for i in 0..num_states {
+            let init_prob = TropicalNumber::from_log_prob(initial_probs[i]);
+            let emit_prob = emissions.data[i][0]; // First observation
+            current_probs.push(init_prob * emit_prob);
+        }
+        
+        // Forward pass through sequence
+        for t in 1..sequence_length {
+            let mut new_probs = Vec::with_capacity(num_states);
+            
+            for curr_state in 0..num_states {
+                let mut best_prob = TropicalNumber::zero(); // -infinity
+                let mut best_prev = 0;
+                
+                for prev_state in 0..num_states {
+                    let transition_prob = transitions.data[prev_state][curr_state];
+                    let emission_prob = emissions.data[curr_state][t.min(emissions.cols - 1)];
+                    let total_prob = current_probs[prev_state] * transition_prob * emission_prob;
+                    
+                    if total_prob.value() > best_prob.value() {
+                        best_prob = total_prob;
+                        best_prev = prev_state;
+                    }
+                }
+                
+                new_probs.push(best_prob);
+                prev_states[t][curr_state] = best_prev;
+            }
+            
+            current_probs = new_probs;
+        }
+        
+        // Find best final state
+        let mut best_final_state = 0;
+        let mut best_final_prob = current_probs[0];
+        for (i, &prob) in current_probs.iter().enumerate().skip(1) {
+            if prob.value() > best_final_prob.value() {
+                best_final_prob = prob;
+                best_final_state = i;
+            }
+        }
+        
+        // Backtrack to reconstruct path
+        path.push(best_final_state);
+        let mut current_state = best_final_state;
+        
+        for t in (1..sequence_length).rev() {
+            current_state = prev_states[t][current_state];
+            path.push(current_state);
+        }
+        
+        path.reverse();
+        path
     }
 }
 

@@ -43,11 +43,29 @@ impl<T: Float, const P: usize, const Q: usize, const R: usize> DualMultivector<T
         Self { coefficients: coeffs }
     }
     
-    /// Create constant dual multivector
-    pub fn constant(mv: &Multivector<P, Q, R>) -> Self {
+    /// Create dual multivector where each coefficient is a variable - alias
+    pub fn new_variable(values: &[T]) -> Self {
+        Self::new_variables(values)
+    }
+    
+    /// Create constant dual multivector from Multivector
+    pub fn constant_mv(mv: &Multivector<P, Q, R>) -> Self {
         let mut coeffs = Vec::with_capacity(Self::BASIS_COUNT);
         for i in 0..Self::BASIS_COUNT {
             coeffs.push(DualNumber::constant(T::from(mv.get(i)).unwrap_or(T::zero())));
+        }
+        Self { coefficients: coeffs }
+    }
+    
+    /// Create constant dual multivector from slice
+    pub fn constant(values: &[T]) -> Self {
+        let mut coeffs = Vec::with_capacity(Self::BASIS_COUNT);
+        for i in 0..Self::BASIS_COUNT {
+            if i < values.len() {
+                coeffs.push(DualNumber::constant(values[i]));
+            } else {
+                coeffs.push(DualNumber::constant(T::zero()));
+            }
         }
         Self { coefficients: coeffs }
     }
@@ -268,6 +286,17 @@ impl<T: Float, const P: usize, const Q: usize, const R: usize> DualMultivector<T
             result.coefficients[i] = self.coefficients[i].apply_with_derivative(&f, &df);
         }
         result
+    }
+    
+    /// Forward-mode automatic differentiation
+    pub fn forward_mode_ad<F>(&self, f: F) -> (T, Self)
+    where
+        F: Fn(Self) -> Self,
+    {
+        let result = f(self.clone());
+        let value = result.coefficients[0].real; // Extract scalar part value
+        let gradient = result; // The result contains gradients
+        (value, gradient)
     }
 }
 
