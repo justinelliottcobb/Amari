@@ -77,13 +77,18 @@ impl AssemblyRule {
 
 /// Assembly constraint (re-added for lib.rs imports)
 #[derive(Clone, Debug)]
-pub struct AssemblyConstraint {
-    pub constraint_type: String,
+pub enum AssemblyConstraint {
+    NoHoles,
+    ConnectedRegion,
+    BoundingBox(usize, usize),
+    MinimumSize(usize),
+    MaximumSize(usize),
+    Custom(String),
 }
 
 impl AssemblyConstraint {
     pub fn new() -> Self {
-        Self { constraint_type: "default".to_string() }
+        Self::Custom("default".to_string())
     }
 }
 

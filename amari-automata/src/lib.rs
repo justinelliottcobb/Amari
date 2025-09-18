@@ -62,10 +62,11 @@ pub mod tropical_solver;
 // Re-export main types
 pub use geometric_ca::{GeometricCA, CARule, CellState};
 pub use inverse_design::{InverseDesigner, InverseCADesigner, TargetPattern, TropicalConstraint, Objective};
-pub use self_assembly::{SelfAssembler, SelfAssembly, Polyomino, TileSet, AssemblyRule, WangTileSet, Shape, AssemblyConstraint};
-pub use cayley_navigation::{DefaultCayleyNavigator, CayleyNavigator, CayleyGraphNavigator, GroupElement, Generator};
-pub use ui_assembly::{UIAssembler, UIComponent, LayoutConstraint, Layout};
-pub use tropical_solver::TropicalSolver;
+pub use self_assembly::{SelfAssembler, SelfAssembly, Polyomino, TileSet, AssemblyRule, WangTileSet, Shape, AssemblyConstraint, Assembly, Component, AssemblyConfig, ComponentType, UIComponentType};
+pub use cayley_navigation::{DefaultCayleyNavigator, CayleyNavigator, CayleyGraphNavigator, GroupElement, Generator, CayleyGraph};
+pub use ui_assembly::{UIAssembler, UIComponent, LayoutConstraint, Layout, UIAssemblyConfig};
+pub use tropical_solver::{TropicalSolver, TropicalSystem, ConstraintType, SolverConfig, TropicalExpression};
+pub use inverse_design::{Target, Configuration};
 
 /// Common error types for the automata system
 #[derive(Debug, Clone, PartialEq)]

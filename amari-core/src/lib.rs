@@ -25,7 +25,7 @@ pub mod basis;
 pub mod rotor;
 pub mod unicode_ops;
 
-use cayley::CayleyTable;
+pub use cayley::CayleyTable;
 
 /// A multivector in a Clifford algebra Cl(P,Q,R)
 /// 
@@ -61,6 +61,16 @@ impl<const P: usize, const Q: usize, const R: usize> Multivector<P, Q, R> {
         let mut mv = Self::zero();
         mv.coefficients[0] = value;
         mv
+    }
+
+    /// Create multivector from vector
+    pub fn from_vector(vector: &Vector<P, Q, R>) -> Self {
+        vector.mv.clone()
+    }
+
+    /// Create multivector from bivector
+    pub fn from_bivector(bivector: &Bivector<P, Q, R>) -> Self {
+        bivector.mv.clone()
     }
     
     /// Create a basis vector e_i (i starts from 0)
@@ -688,6 +698,11 @@ pub struct Vector<const P: usize, const Q: usize, const R: usize> {
 }
 
 impl<const P: usize, const Q: usize, const R: usize> Vector<P, Q, R> {
+    /// Create zero vector
+    pub fn zero() -> Self {
+        Self { mv: Multivector::zero() }
+    }
+
     pub fn from_components(x: f64, y: f64, z: f64) -> Self {
         let mut mv = Multivector::zero();
         if P + Q + R >= 1 { mv.set_vector_component(0, x); }
