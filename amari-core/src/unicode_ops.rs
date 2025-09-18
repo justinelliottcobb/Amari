@@ -186,7 +186,7 @@ macro_rules! anticommutator {
 #[macro_export]
 macro_rules! norm_squared {
     ($a:expr) => {
-        $a.mv.norm_squared()
+        $a.norm_squared()
     };
 }
 
@@ -194,7 +194,7 @@ macro_rules! norm_squared {
 #[macro_export]
 macro_rules! unit {
     ($a:expr) => {{
-        $a.mv.normalize().unwrap_or($a.mv.clone())
+        $a.normalize().unwrap_or($a.clone())
     }};
 }
 

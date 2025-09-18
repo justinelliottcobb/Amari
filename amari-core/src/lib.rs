@@ -856,7 +856,7 @@ impl<const P: usize, const Q: usize, const R: usize> core::ops::Index<usize> for
             0 => &self.mv.components[3],  // e12
             1 => &self.mv.components[5],  // e13
             2 => &self.mv.components[6],  // e23
-            _ => &self.mv.components[0],  // Return reference to a zero element
+            _ => panic!("Bivector index out of range: {}", index),
         }
     }
 }
