@@ -14,10 +14,15 @@ use amari_core::{Multivector, Vector, Bivector};
 use amari_tropical::TropicalMultivector;
 use approx::assert_relative_eq;
 
-type TestCA = GeometricCA<3, 0, 0>;
-type TestDesigner = InverseDesigner<f64, 3, 0, 0>;
-type TestAssembler = SelfAssembler<3, 0, 0>;
-type TestUIAssembler = UIAssembler<3, 0, 0>;
+// Common dimension constants for maintainable test configuration
+const DIM: usize = 3;
+const P: usize = 0;
+const Q: usize = 0;
+
+type TestCA = GeometricCA<DIM, P, Q>;
+type TestDesigner = InverseDesigner<f64, DIM, P, Q>;
+type TestAssembler = SelfAssembler<DIM, P, Q>;
+type TestUIAssembler = UIAssembler<DIM, P, Q>;
 
 #[test]
 fn test_ca_to_assembly_workflow() {

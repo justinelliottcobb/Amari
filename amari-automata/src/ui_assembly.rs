@@ -303,7 +303,7 @@ impl<const P: usize, const Q: usize, const R: usize> UIAssembly<P, Q, R> {
     pub fn compute_layout(&mut self, available_space: LayoutRect) -> AutomataResult<()> {
         // Simple box model layout for now
         let mut current_y = available_space.y;
-        let spacing = 10.0; // Default spacing
+        let spacing = 10.0; // Default spacing (TODO: make configurable)
 
         for (i, component) in self.ui_components.iter().enumerate() {
             let (width, height, depth) = component.effective_size();
