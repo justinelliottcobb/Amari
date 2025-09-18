@@ -7,13 +7,15 @@
 use crate::{AutomataError, AutomataResult};
 use amari_tropical::TropicalMultivector;
 use alloc::vec::Vec;
+use alloc::boxed::Box;
 use core::cmp::Ordering;
+use num_traits::Float;
 
 // Missing type needed by lib.rs imports - using the more complete implementation below
 
 /// A constraint in tropical algebra
 #[derive(Debug, Clone)]
-pub struct TropicalConstraint<T: Clone, const DIM: usize> {
+pub struct TropicalConstraint<T: Float + Clone, const DIM: usize> {
     /// Left-hand side of constraint
     pub lhs: TropicalExpression<T, DIM>,
     /// Right-hand side of constraint
@@ -39,7 +41,7 @@ pub enum ConstraintType {
 
 /// Tropical expression built from variables and operations
 #[derive(Debug, Clone)]
-pub enum TropicalExpression<T: Clone, const DIM: usize> {
+pub enum TropicalExpression<T: Float + Clone, const DIM: usize> {
     /// Variable reference
     Variable(usize),
     /// Constant value
@@ -54,7 +56,7 @@ pub enum TropicalExpression<T: Clone, const DIM: usize> {
 
 /// System of tropical constraints
 #[derive(Debug, Clone)]
-pub struct TropicalSystem<T: Clone, const DIM: usize> {
+pub struct TropicalSystem<T: Float + Clone, const DIM: usize> {
     /// All constraints in the system
     pub constraints: Vec<TropicalConstraint<T, DIM>>,
     /// Variable bounds
@@ -65,7 +67,7 @@ pub struct TropicalSystem<T: Clone, const DIM: usize> {
 
 /// Solution to a tropical system
 #[derive(Debug, Clone)]
-pub struct TropicalSolution<T: Clone, const DIM: usize> {
+pub struct TropicalSolution<T: Float + Clone, const DIM: usize> {
     /// Variable assignments
     pub variables: Vec<TropicalMultivector<T, DIM>>,
     /// Objective value
@@ -112,7 +114,7 @@ pub struct SolverConfig<T: Clone> {
 }
 
 /// Solver cache for performance
-struct SolverCache<T: Clone, const DIM: usize> {
+struct SolverCache<T: Float + Clone, const DIM: usize> {
     /// Cached expression evaluations
     expression_cache: Vec<Option<TropicalMultivector<T, DIM>>>,
     /// Constraint satisfaction cache
@@ -121,7 +123,7 @@ struct SolverCache<T: Clone, const DIM: usize> {
     update_history: Vec<Vec<TropicalMultivector<T, DIM>>>,
 }
 
-impl<T: Clone + PartialOrd + Copy, const DIM: usize> TropicalConstraint<T, DIM> {
+impl<T: Float + Clone + PartialOrd + Copy, const DIM: usize> TropicalConstraint<T, DIM> {
     /// Create a new constraint
     pub fn new(
         lhs: TropicalExpression<T, DIM>,
@@ -191,7 +193,7 @@ impl<T: Clone + PartialOrd + Copy, const DIM: usize> TropicalConstraint<T, DIM> 
     }
 }
 
-impl<T: Clone + PartialOrd + Copy, const DIM: usize> TropicalExpression<T, DIM> {
+impl<T: Float + Clone + PartialOrd + Copy, const DIM: usize> TropicalExpression<T, DIM> {
     /// Create a variable expression
     pub fn variable(index: usize) -> Self {
         Self::Variable(index)
@@ -270,7 +272,7 @@ impl<T: Clone + PartialOrd + Copy, const DIM: usize> TropicalExpression<T, DIM> 
     }
 }
 
-impl<T: Clone + PartialOrd + Copy, const DIM: usize> TropicalSystem<T, DIM> {
+impl<T: Float + Clone + PartialOrd + Copy, const DIM: usize> TropicalSystem<T, DIM> {
     /// Create a new tropical system
     pub fn new(num_variables: usize) -> Self {
         Self {
@@ -321,7 +323,7 @@ impl<T: Clone + PartialOrd + Copy, const DIM: usize> TropicalSystem<T, DIM> {
     }
 }
 
-impl<T: Clone + PartialOrd + Copy, const DIM: usize> TropicalSolver<T, DIM> {
+impl<T: Float + Clone + PartialOrd + Copy, const DIM: usize> TropicalSolver<T, DIM> {
     /// Create a new tropical solver
     pub fn new(config: SolverConfig<T>) -> Self {
         Self {
@@ -432,7 +434,7 @@ impl<T: Clone + PartialOrd + Copy, const DIM: usize> TropicalSolver<T, DIM> {
     }
 }
 
-impl<T: Clone, const DIM: usize> SolverCache<T, DIM> {
+impl<T: Float + Clone, const DIM: usize> SolverCache<T, DIM> {
     /// Create a new cache
     fn new() -> Self {
         Self {
@@ -443,7 +445,7 @@ impl<T: Clone, const DIM: usize> SolverCache<T, DIM> {
     }
 }
 
-impl<T: Clone + PartialOrd> Default for SolverConfig<T> {
+impl<T: Float + Clone + PartialOrd + Default> Default for SolverConfig<T> {
     fn default() -> Self {
         Self {
             max_iterations: 1000,
@@ -460,7 +462,7 @@ trait ApproxEqual<T> {
     fn approx_equal(&self, other: &Self) -> bool;
 }
 
-impl<T: Clone, const DIM: usize> ApproxEqual<TropicalMultivector<T, DIM>> for TropicalMultivector<T, DIM> {
+impl<T: Float + Clone, const DIM: usize> ApproxEqual<TropicalMultivector<T, DIM>> for TropicalMultivector<T, DIM> {
     fn approx_equal(&self, _other: &Self) -> bool {
         // Simplified implementation - would need proper tropical comparison
         true

@@ -7,6 +7,7 @@
 use crate::{AutomataError, AutomataResult, Evolvable};
 use amari_core::{Multivector, Rotor, Bivector, CayleyTable};
 use alloc::vec::Vec;
+use alloc::boxed::Box;
 
 /// Cell state for geometric cellular automata
 pub type CellState<const P: usize, const Q: usize, const R: usize> = Multivector<P, Q, R>;

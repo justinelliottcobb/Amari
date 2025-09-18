@@ -12,6 +12,29 @@ use alloc::string::String;
 
 // Missing types needed by lib.rs imports (simplified implementations)
 
+/// Component type classification
+#[derive(Clone, Debug, PartialEq)]
+pub enum ComponentType {
+    UIElement(UIComponentType),
+    Structural,
+    Data,
+}
+
+/// UI-specific component types
+#[derive(Clone, Debug, PartialEq)]
+pub enum UIComponentType {
+    Container,
+    Button,
+    Label,
+    Input,
+    Panel,
+    Navigation,
+    Content,
+    Header,
+    Footer,
+    Sidebar,
+}
+
 /// UI layout constraint
 #[derive(Clone, Debug)]
 pub struct LayoutConstraint {
