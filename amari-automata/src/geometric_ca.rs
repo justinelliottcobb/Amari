@@ -269,6 +269,11 @@ impl<const P: usize, const Q: usize, const R: usize> GeometricCA<P, Q, R> {
         }
     }
 
+    /// Set the CA rule
+    pub fn set_rule(&mut self, rule: CARule<P, Q, R>) {
+        self.rule = rule;
+    }
+
     /// Set a pattern in the CA (for 2D interpretation)
     pub fn set_pattern(&mut self, x: usize, y: usize, pattern: &[[i32; 3]; 3]) {
         for (dy, row) in pattern.iter().enumerate() {
@@ -446,6 +451,14 @@ impl<const P: usize, const Q: usize, const R: usize> GeometricCA<P, Q, R> {
 }
 
 impl<const P: usize, const Q: usize, const R: usize> CARule<P, Q, R> {
+    /// Create a custom rule with given function
+    pub fn custom(rule_fn: fn(&Multivector<P, Q, R>, &[Multivector<P, Q, R>]) -> Multivector<P, Q, R>) -> Self {
+        Self {
+            rule_fn,
+            rule_type: RuleType::Geometric,
+        }
+    }
+
     /// Create a basic geometric rule (simplified version)
     pub fn geometric_simple() -> Self {
         Self {

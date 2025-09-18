@@ -60,7 +60,7 @@ pub mod ui_assembly;
 pub mod tropical_solver;
 
 // Re-export main types
-pub use geometric_ca::{GeometricCA, CARule, CellState};
+pub use geometric_ca::{GeometricCA, CARule, CellState, RuleType};
 pub use inverse_design::{InverseDesigner, InverseCADesigner, TargetPattern, TropicalConstraint, Objective};
 pub use self_assembly::{SelfAssembler, SelfAssembly, Polyomino, TileSet, AssemblyRule, WangTileSet, Shape, AssemblyConstraint, Assembly, Component, AssemblyConfig, ComponentType, UIComponentType};
 pub use cayley_navigation::{DefaultCayleyNavigator, CayleyNavigator, CayleyGraphNavigator, GroupElement, Generator, CayleyGraph};

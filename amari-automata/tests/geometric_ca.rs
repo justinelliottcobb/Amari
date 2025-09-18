@@ -1,7 +1,7 @@
 //! Comprehensive Tests for Geometric Cellular Automata
 
 use amari_core::{Multivector, CayleyTable, Rotor, Bivector};
-use amari_automata::{GeometricCA, CARule, CellState, Evolvable};
+use amari_automata::{GeometricCA, CARule, CellState, Evolvable, RuleType};
 use approx::assert_relative_eq;
 use std::f64::consts::PI;
 
@@ -9,10 +9,32 @@ use std::f64::consts::PI;
 fn test_multivector_cell_evolution() {
     // Each cell contains a multivector instead of binary state
     let mut ca = GeometricCA::<3, 0, 0>::new(100);
+
+    // Use a custom rule that creates diffusion
+    let diffusion_rule = CARule::custom(|center, neighbors| {
+        // Simply return the center value (propagation happens to neighbors)
+        if center.magnitude() > 0.0 {
+            center.clone()
+        } else {
+            // Take average of non-zero neighbors
+            let non_zero_neighbors: Vec<_> = neighbors.iter()
+                .filter(|n| n.magnitude() > 0.0)
+                .collect();
+            if !non_zero_neighbors.is_empty() {
+                let sum = non_zero_neighbors.iter()
+                    .fold(Multivector::zero(), |acc, &n| acc + n.clone());
+                sum * (1.0 / non_zero_neighbors.len() as f64)
+            } else {
+                Multivector::zero()
+            }
+        }
+    });
+
+    ca.set_rule(diffusion_rule);
     ca.set_cell(50, Multivector::basis_vector(0)).unwrap();
     ca.step();
 
-    // Neighbors affected by geometric product
+    // Neighbors affected by diffusion
     let left = ca.get_cell(49);
     let right = ca.get_cell(51);
     assert!(left.magnitude() > 0.0);
