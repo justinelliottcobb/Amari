@@ -387,6 +387,7 @@ impl<const P: usize, const Q: usize, const R: usize> GeometricCA<P, Q, R> {
             }
         }
     }
+
 }
 
 impl<const P: usize, const Q: usize, const R: usize> Evolvable for GeometricCA<P, Q, R> {
@@ -445,6 +446,17 @@ impl<const P: usize, const Q: usize, const R: usize> GeometricCA<P, Q, R> {
 }
 
 impl<const P: usize, const Q: usize, const R: usize> CARule<P, Q, R> {
+    /// Create a basic geometric rule (simplified version)
+    pub fn geometric_simple() -> Self {
+        Self {
+            rule_fn: |center, neighbors| {
+                neighbors.iter().fold(center.clone(), |acc, n| {
+                    acc.geometric_product(n)
+                })
+            },
+            rule_type: RuleType::Geometric,
+        }
+    }
 
     /// Apply rule to center and neighbors
     pub fn apply(&self, center: &Multivector<P, Q, R>, neighbors: &[Multivector<P, Q, R>]) -> Multivector<P, Q, R> {
