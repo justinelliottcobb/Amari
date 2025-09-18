@@ -426,24 +426,48 @@ impl<const P: usize, const Q: usize, const R: usize> GeometricCA<P, Q, R> {
     fn get_neighbors(&self, index: usize) -> Vec<Multivector<P, Q, R>> {
         let mut neighbors = Vec::new();
 
-        // Simple 1D neighborhood
-        let left = if index > 0 { index - 1 } else {
-            match self.boundary {
-                BoundaryCondition::Periodic => self.size - 1,
-                _ => index,
-            }
-        };
+        if self.height == 1 {
+            // 1D neighborhood
+            let left = if index > 0 { index - 1 } else {
+                match self.boundary {
+                    BoundaryCondition::Periodic => self.size - 1,
+                    _ => index,
+                }
+            };
 
-        let right = if index < self.size - 1 { index + 1 } else {
-            match self.boundary {
-                BoundaryCondition::Periodic => 0,
-                _ => index,
-            }
-        };
+            let right = if index < self.size - 1 { index + 1 } else {
+                match self.boundary {
+                    BoundaryCondition::Periodic => 0,
+                    _ => index,
+                }
+            };
 
-        neighbors.push(self.grid[left].clone());
-        if left != right {
-            neighbors.push(self.grid[right].clone());
+            neighbors.push(self.grid[left].clone());
+            if left != right {
+                neighbors.push(self.grid[right].clone());
+            }
+        } else {
+            // 2D neighborhood (Moore neighborhood - 8 neighbors)
+            let x = index % self.width;
+            let y = index / self.width;
+
+            for dy in -1..=1 {
+                for dx in -1..=1 {
+                    if dx == 0 && dy == 0 { continue; } // Skip center cell
+
+                    let nx = (x as i32 + dx);
+                    let ny = (y as i32 + dy);
+
+                    // Handle boundaries
+                    if nx >= 0 && nx < self.width as i32 && ny >= 0 && ny < self.height as i32 {
+                        let neighbor_idx = (ny as usize) * self.width + (nx as usize);
+                        neighbors.push(self.grid[neighbor_idx].clone());
+                    } else {
+                        // Out of bounds - add zero for fixed boundary
+                        neighbors.push(Multivector::zero());
+                    }
+                }
+            }
         }
 
         neighbors
