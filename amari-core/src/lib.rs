@@ -262,17 +262,30 @@ impl<const P: usize, const Q: usize, const R: usize> Multivector<P, Q, R> {
         self.geometric_product(rhs).scalar_part()
     }
     
+    /// Calculate the sign change for reversing a blade of given grade
+    ///
+    /// The reverse operation introduces a sign change of (-1)^(grade*(grade-1)/2)
+    /// This comes from the fact that reversing a k-blade requires k(k-1)/2 swaps
+    /// of basis vectors, and each swap introduces a sign change.
+    #[inline]
+    fn reverse_sign_for_grade(grade: usize) -> f64 {
+        if (grade * (grade - 1) / 2) % 2 == 0 {
+            1.0
+        } else {
+            -1.0
+        }
+    }
+
     /// Reverse operation (reverses order of basis vectors in each blade)
     pub fn reverse(&self) -> Self {
         let mut result = Self::zero();
-        
+
         for i in 0..Self::BASIS_COUNT {
             let grade = i.count_ones() as usize;
-            // Reverse introduces sign: (-1)^(grade*(grade-1)/2)
-            let sign = if (grade * (grade - 1) / 2) % 2 == 0 { 1.0 } else { -1.0 };
+            let sign = Self::reverse_sign_for_grade(grade);
             result.coefficients[i] = sign * self.coefficients[i];
         }
-        
+
         result
     }
     
@@ -837,13 +850,13 @@ impl<const P: usize, const Q: usize, const R: usize> Bivector<P, Q, R> {
 
 impl<const P: usize, const Q: usize, const R: usize> core::ops::Index<usize> for Bivector<P, Q, R> {
     type Output = f64;
-    
+
     fn index(&self, index: usize) -> &Self::Output {
-        // This is unsafe but needed for indexing - in real implementation would use RefCell
-        static mut TEMP: f64 = 0.0;
-        unsafe {
-            TEMP = self.get(index);
-            &TEMP
+        match index {
+            0 => &self.mv.components[3],  // e12
+            1 => &self.mv.components[5],  // e13
+            2 => &self.mv.components[6],  // e23
+            _ => &self.mv.components[0],  // Return reference to a zero element
         }
     }
 }

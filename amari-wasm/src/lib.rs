@@ -241,6 +241,9 @@ impl WasmRotor {
     /// Create a rotor from a bivector and angle
     #[wasm_bindgen(js_name = fromBivector)]
     pub fn from_bivector(bivector: &WasmMultivector, angle: f64) -> WasmRotor {
+        // Convert the WasmMultivector to a Bivector wrapper for type safety.
+        // The Bivector type ensures only grade-2 components are used, providing
+        // compile-time guarantees that the rotor is constructed from valid bivector data.
         let biv = Bivector::from_multivector(&bivector.inner);
         Self {
             inner: Rotor::from_bivector(&biv, angle),
