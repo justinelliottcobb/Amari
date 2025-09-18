@@ -92,7 +92,7 @@ pub struct SolutionMetrics<T: Clone> {
 }
 
 /// Tropical constraint solver
-pub struct TropicalSolver<T: Clone, const DIM: usize> {
+pub struct TropicalSolver<T: Float + Clone, const DIM: usize> {
     /// Solver configuration
     config: SolverConfig<T>,
     /// Cached intermediate results
@@ -100,7 +100,7 @@ pub struct TropicalSolver<T: Clone, const DIM: usize> {
 }
 
 /// Solver configuration
-pub struct SolverConfig<T: Clone> {
+pub struct SolverConfig<T: Float + Clone> {
     /// Maximum number of iterations
     pub max_iterations: usize,
     /// Convergence tolerance
@@ -167,8 +167,14 @@ impl<T: Float + Clone + PartialOrd + Copy, const DIM: usize> TropicalConstraint<
 
         let satisfied = match self.constraint_type {
             ConstraintType::Equal => lhs_val.approx_equal(&rhs_val),
-            ConstraintType::LessEqual => lhs_val.partial_cmp(&rhs_val) != Some(Ordering::Greater),
-            ConstraintType::GreaterEqual => lhs_val.partial_cmp(&rhs_val) != Some(Ordering::Less),
+            ConstraintType::LessEqual => {
+                // Simplified: just check for tropical ordering
+                lhs_val.approx_equal(&lhs_val.tropical_add(&rhs_val))
+            }
+            ConstraintType::GreaterEqual => {
+                // Simplified: just check for tropical ordering
+                rhs_val.approx_equal(&lhs_val.tropical_add(&rhs_val))
+            }
             ConstraintType::TropicalAbsorbed => {
                 let sum = lhs_val.tropical_add(&rhs_val);
                 sum.approx_equal(&rhs_val)

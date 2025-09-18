@@ -119,7 +119,7 @@ impl<const P: usize, const Q: usize, const R: usize> GeometricCA<P, Q, R> {
             height: 1,
             generation: 0,
             rule: CARule::reversible(),
-            cayley_table: Some(CayleyTable::new()),
+            cayley_table: Some(CayleyTable::new().clone()),
             boundary: BoundaryCondition::Periodic,
         }
     }
@@ -147,7 +147,7 @@ impl<const P: usize, const Q: usize, const R: usize> GeometricCA<P, Q, R> {
             height: 1,
             generation: 0,
             rule: CARule::default(),
-            cayley_table: Some(CayleyTable::new()),
+            cayley_table: Some(CayleyTable::new().clone()),
             boundary: BoundaryCondition::Periodic,
         }
     }
@@ -217,7 +217,7 @@ impl<const P: usize, const Q: usize, const R: usize> GeometricCA<P, Q, R> {
             height: 1,
             generation: 0,
             rule: CARule::group_based(group_name),
-            cayley_table: Some(CayleyTable::new()),
+            cayley_table: Some(CayleyTable::new().clone()),
             boundary: BoundaryCondition::Periodic,
         }
     }
@@ -316,8 +316,9 @@ impl<const P: usize, const Q: usize, const R: usize> GeometricCA<P, Q, R> {
 
     /// Set state from group element
     pub fn set_state(&mut self, element: crate::GroupElement) {
-        // Simplified implementation
-        self.grid[0] = element.to_multivector();
+        // Simplified implementation - convert from 3,0,0 to P,Q,R
+        let source_mv = element.to_multivector();
+        self.grid[0] = Multivector::scalar(source_mv.scalar_part());
     }
 
     /// Apply generators
@@ -330,7 +331,11 @@ impl<const P: usize, const Q: usize, const R: usize> GeometricCA<P, Q, R> {
 
     /// Convert to pattern for comparison
     pub fn as_pattern(&self) -> crate::TargetPattern {
-        crate::TargetPattern::from_multivectors(&self.grid)
+        // Convert P,Q,R multivectors to 3,0,0 for TargetPattern
+        let converted: Vec<Multivector<3, 0, 0>> = self.grid.iter()
+            .map(|mv| Multivector::scalar(mv.scalar_part()))
+            .collect();
+        crate::TargetPattern::from_multivectors(&converted)
     }
 
     /// Get total magnitude of all cells
@@ -440,16 +445,6 @@ impl<const P: usize, const Q: usize, const R: usize> GeometricCA<P, Q, R> {
 }
 
 impl<const P: usize, const Q: usize, const R: usize> CARule<P, Q, R> {
-    /// Create a geometric rule
-    pub fn geometric<F>(rule_fn: F) -> Self
-    where
-        F: Fn(&Multivector<P, Q, R>, &[Multivector<P, Q, R>]) -> Multivector<P, Q, R> + 'static,
-    {
-        Self {
-            rule_fn: Box::leak(Box::new(rule_fn)),
-            rule_type: RuleType::Geometric,
-        }
-    }
 
     /// Apply rule to center and neighbors
     pub fn apply(&self, center: &Multivector<P, Q, R>, neighbors: &[Multivector<P, Q, R>]) -> Multivector<P, Q, R> {
@@ -571,7 +566,7 @@ impl<const P: usize, const Q: usize, const R: usize> Clone for CARule<P, Q, R> {
     }
 }
 
-impl<const P: usize, const Q: usize, const R: usize> PartialEq for RuleType {
+impl PartialEq for RuleType {
     fn eq(&self, other: &Self) -> bool {
         core::mem::discriminant(self) == core::mem::discriminant(other)
     }

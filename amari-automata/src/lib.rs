@@ -37,10 +37,14 @@
 
 #![no_std]
 
+#[macro_use]
 extern crate alloc;
 use alloc::vec::Vec;
 use alloc::string::String;
 use alloc::boxed::Box;
+
+// Need core for format! macro in no_std
+use alloc::format;
 
 // Re-export dependencies for convenience
 pub use amari_core::{Multivector, Vector, Bivector};
@@ -59,7 +63,7 @@ pub mod tropical_solver;
 pub use geometric_ca::{GeometricCA, CARule, CellState};
 pub use inverse_design::{InverseDesigner, InverseCADesigner, TargetPattern, TropicalConstraint, Objective};
 pub use self_assembly::{SelfAssembler, SelfAssembly, Polyomino, TileSet, AssemblyRule, WangTileSet, Shape, AssemblyConstraint};
-pub use cayley_navigation::{CayleyNavigator, CayleyGraphNavigator, GroupElement, Generator};
+pub use cayley_navigation::{DefaultCayleyNavigator, CayleyNavigator, CayleyGraphNavigator, GroupElement, Generator};
 pub use ui_assembly::{UIAssembler, UIComponent, LayoutConstraint, Layout};
 pub use tropical_solver::TropicalSolver;
 

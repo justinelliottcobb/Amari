@@ -7,7 +7,7 @@
 use crate::{AutomataError, AutomataResult, InverseDesignable};
 use crate::geometric_ca::{GeometricCA, CARule};
 use amari_core::Multivector;
-use amari_dual::DualMultivector;
+use amari_dual::{DualMultivector, DualNumber};
 use alloc::vec::Vec;
 use alloc::string::String;
 use num_traits::Float;
@@ -187,7 +187,8 @@ impl<T: Float, const P: usize, const Q: usize, const R: usize> InverseDesigner<T
         for neighbor in neighbors {
             // Geometric product contribution
             let geo = current.geometric_product(&neighbor);
-            sum = sum + geo * T::from(rule.geo_weight).unwrap();
+            let weight = DualNumber::constant(T::from(rule.geo_weight).unwrap());
+            sum = sum + geo * weight;
 
             // Note: Outer and inner products would need to be implemented
             // for DualMultivector to complete this

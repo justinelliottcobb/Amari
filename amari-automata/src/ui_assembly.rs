@@ -4,36 +4,13 @@
 //! general self-assembly framework with UI-specific constraints, layout rules,
 //! and component types.
 
-use crate::self_assembly::{Component, SelfAssembler};
+use crate::self_assembly::{Component, SelfAssembler, ComponentType, UIComponentType, Assembly, AssemblyConfig};
 use crate::{AutomataError, AutomataResult, SelfAssembling};
 use amari_core::{Multivector, Vector, Bivector};
 use alloc::vec::Vec;
-use alloc::string::String;
+use alloc::string::{String, ToString};
 
 // Missing types needed by lib.rs imports (simplified implementations)
-
-/// Component type classification
-#[derive(Clone, Debug, PartialEq)]
-pub enum ComponentType {
-    UIElement(UIComponentType),
-    Structural,
-    Data,
-}
-
-/// UI-specific component types
-#[derive(Clone, Debug, PartialEq)]
-pub enum UIComponentType {
-    Container,
-    Button,
-    Label,
-    Input,
-    Panel,
-    Navigation,
-    Content,
-    Header,
-    Footer,
-    Sidebar,
-}
 
 /// UI layout constraint
 #[derive(Clone, Debug)]

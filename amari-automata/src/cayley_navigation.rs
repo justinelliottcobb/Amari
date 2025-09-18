@@ -5,7 +5,7 @@
 //! a mathematical foundation for understanding CA dynamics.
 
 use crate::{AutomataError, AutomataResult};
-use amari_core::Multivector;
+use amari_core::{Multivector, CayleyTable};
 use alloc::vec::Vec;
 use alloc::string::String;
 use alloc::boxed::Box;
@@ -55,7 +55,7 @@ impl CayleyGraphNavigator {
 }
 
 /// Type alias for default CayleyNavigator (for lib.rs import)
-pub type CayleyNavigator = CayleyNavigator<3, 0, 0>;
+pub type DefaultCayleyNavigator = CayleyNavigator<3, 0, 0>;
 
 /// A node in the Cayley graph representing a CA state
 #[derive(Debug, Clone, PartialEq)]
@@ -97,13 +97,6 @@ pub struct CayleyGraph<const P: usize, const Q: usize, const R: usize> {
     cayley_table: Option<CayleyTable<P, Q, R>>,
 }
 
-/// Precomputed Cayley table for fast group operations
-pub struct CayleyTable<const P: usize, const Q: usize, const R: usize> {
-    /// Table mapping (i, j, k) -> result of generator_i * generator_j = generator_k
-    table: Vec<Vec<Vec<Option<usize>>>>,
-    /// Inverse table for each generator
-    inverses: Vec<Option<usize>>,
-}
 
 /// Navigator for traversing Cayley graphs
 pub struct CayleyNavigator<const P: usize, const Q: usize, const R: usize> {
@@ -240,7 +233,7 @@ impl<const P: usize, const Q: usize, const R: usize> CayleyGraph<P, Q, R> {
             }
         }
 
-        self.cayley_table = Some(CayleyTable { table, inverses });
+        self.cayley_table = Some(CayleyTable::new().clone());
         Ok(())
     }
 

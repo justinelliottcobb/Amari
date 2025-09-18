@@ -7,7 +7,7 @@
 use crate::{AutomataError, AutomataResult, SelfAssembling};
 use amari_core::{Multivector, Vector, Bivector};
 use alloc::vec::Vec;
-use alloc::string::String;
+use alloc::string::{String, ToString};
 
 // Missing types needed by lib.rs imports (simplified implementations to avoid duplicates with existing code below)
 
@@ -138,6 +138,11 @@ pub enum UIComponentType {
     Input,
     Container,
     Spacer,
+    Navigation,
+    Content,
+    Header,
+    Footer,
+    Sidebar,
 }
 
 /// An assembled structure of components
@@ -311,7 +316,7 @@ impl<const P: usize, const Q: usize, const R: usize> Assembly<P, Q, R> {
         let attraction = -sig_a.inner_product(&sig_b).abs();
 
         // Distance penalty
-        let distance = (comp_a.position.mv - comp_b.position.mv).magnitude();
+        let distance = (comp_a.position.mv.clone() - comp_b.position.mv.clone()).magnitude();
         let distance_penalty = distance * distance;
 
         attraction + distance_penalty
@@ -321,7 +326,7 @@ impl<const P: usize, const Q: usize, const R: usize> Assembly<P, Q, R> {
     pub fn calculate_stability(&mut self) {
         // Stability based on connection density and energy
         let total_possible_connections = self.components.len() * (self.components.len() - 1) / 2;
-        let actual_connections: usize = self.connections.iter().map(|c| c.len()).sum() / 2;
+        let actual_connections: usize = self.connections.iter().map(|c| c.len()).sum::<usize>() / 2;
 
         let connection_ratio = if total_possible_connections > 0 {
             actual_connections as f64 / total_possible_connections as f64
@@ -348,7 +353,7 @@ impl<const P: usize, const Q: usize, const R: usize> SelfAssembler<P, Q, R> {
     /// Create a new self-assembler
     pub fn new(config: AssemblyConfig) -> Self {
         let zero_vec = Vector::zero();
-        let unit_vec = Vector::e1() + Vector::e2() + Vector::e3();
+        let unit_vec = Vector::e1();
 
         Self {
             config,
@@ -389,7 +394,7 @@ impl<const P: usize, const Q: usize, const R: usize> SelfAssembler<P, Q, R> {
         let geometric_affinity = sig_a.inner_product(&sig_b).abs();
 
         // Distance-based modulation
-        let distance = (a.position.mv - b.position.mv).magnitude();
+        let distance = (a.position.mv.clone() - b.position.mv.clone()).magnitude();
         let distance_factor = (-distance * distance).exp();
 
         // Type compatibility bonus
