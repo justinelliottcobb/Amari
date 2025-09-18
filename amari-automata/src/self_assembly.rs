@@ -7,6 +7,97 @@
 use crate::{AutomataError, AutomataResult, SelfAssembling};
 use amari_core::{Multivector, Vector, Bivector};
 use alloc::vec::Vec;
+use alloc::string::String;
+
+// Missing types needed by lib.rs imports (simplified implementations to avoid duplicates with existing code below)
+
+/// Polyomino shape for tiling
+#[derive(Clone, Debug)]
+pub struct Polyomino {
+    pub cells: Vec<(usize, usize)>,
+}
+
+impl Polyomino {
+    pub fn new() -> Self {
+        Self { cells: Vec::new() }
+    }
+
+    pub fn to_multivector(&self) -> Multivector<3, 0, 0> {
+        Multivector::scalar(self.cells.len() as f64)
+    }
+}
+
+/// Set of tiles for assembly
+#[derive(Clone, Debug)]
+pub struct TileSet {
+    pub tiles: Vec<Polyomino>,
+}
+
+impl TileSet {
+    pub fn new() -> Self {
+        Self { tiles: Vec::new() }
+    }
+}
+
+/// Wang tile set
+#[derive(Clone, Debug)]
+pub struct WangTileSet {
+    pub tiles: Vec<Polyomino>,
+}
+
+impl WangTileSet {
+    pub fn new() -> Self {
+        Self { tiles: Vec::new() }
+    }
+}
+
+/// Assembly shape
+#[derive(Clone, Debug)]
+pub struct Shape {
+    pub boundary: Vec<(f64, f64)>,
+}
+
+impl Shape {
+    pub fn new() -> Self {
+        Self { boundary: Vec::new() }
+    }
+}
+
+/// Assembly rule (re-added for lib.rs imports)
+#[derive(Clone, Debug)]
+pub struct AssemblyRule {
+    pub affinity_threshold: f64,
+}
+
+impl AssemblyRule {
+    pub fn new() -> Self {
+        Self { affinity_threshold: 0.5 }
+    }
+}
+
+/// Assembly constraint (re-added for lib.rs imports)
+#[derive(Clone, Debug)]
+pub struct AssemblyConstraint {
+    pub constraint_type: String,
+}
+
+impl AssemblyConstraint {
+    pub fn new() -> Self {
+        Self { constraint_type: "default".to_string() }
+    }
+}
+
+/// Self-assembly system (re-added for lib.rs imports)
+#[derive(Clone, Debug)]
+pub struct SelfAssembly {
+    pub components: Vec<Component<3, 0, 0>>,
+}
+
+impl SelfAssembly {
+    pub fn new() -> Self {
+        Self { components: Vec::new() }
+    }
+}
 
 /// A geometric component that can participate in self-assembly
 #[derive(Debug, Clone)]

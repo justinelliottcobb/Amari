@@ -7,7 +7,55 @@
 use crate::{AutomataError, AutomataResult};
 use amari_core::Multivector;
 use alloc::vec::Vec;
-use core::collections::BTreeMap;
+use alloc::string::String;
+use alloc::boxed::Box;
+use alloc::collections::BTreeMap;
+
+// Missing types needed by lib.rs imports (simplified implementations)
+
+/// Group element in Cayley graph
+#[derive(Clone, Debug, PartialEq)]
+pub struct GroupElement {
+    pub representation: Multivector<3, 0, 0>,
+}
+
+impl GroupElement {
+    pub fn identity() -> Self {
+        Self { representation: Multivector::scalar(1.0) }
+    }
+
+    pub fn to_multivector(&self) -> Multivector<3, 0, 0> {
+        self.representation.clone()
+    }
+}
+
+/// Generator for group operations
+#[derive(Clone, Debug)]
+pub struct Generator {
+    pub operation: Multivector<3, 0, 0>,
+}
+
+impl Generator {
+    pub fn rotation() -> Self {
+        Self { operation: Multivector::basis_vector(0) }
+    }
+}
+
+
+/// Graph-based Cayley navigator
+#[derive(Clone, Debug)]
+pub struct CayleyGraphNavigator {
+    pub graph: BTreeMap<String, Vec<String>>,
+}
+
+impl CayleyGraphNavigator {
+    pub fn new() -> Self {
+        Self { graph: BTreeMap::new() }
+    }
+}
+
+/// Type alias for default CayleyNavigator (for lib.rs import)
+pub type CayleyNavigator = CayleyNavigator<3, 0, 0>;
 
 /// A node in the Cayley graph representing a CA state
 #[derive(Debug, Clone, PartialEq)]

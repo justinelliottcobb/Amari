@@ -39,6 +39,8 @@
 
 extern crate alloc;
 use alloc::vec::Vec;
+use alloc::string::String;
+use alloc::boxed::Box;
 
 // Re-export dependencies for convenience
 pub use amari_core::{Multivector, Vector, Bivector};

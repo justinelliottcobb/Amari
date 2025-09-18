@@ -16,8 +16,12 @@ pub type CellState<const P: usize, const Q: usize, const R: usize> = Multivector
 pub struct GeometricCA<const P: usize, const Q: usize, const R: usize> {
     /// Grid of multivector cells
     grid: Vec<Multivector<P, Q, R>>,
-    /// Grid size (1D for now)
+    /// Grid size (total number of cells)
     size: usize,
+    /// Grid width (for 2D interpretation)
+    width: usize,
+    /// Grid height (for 2D interpretation)
+    height: usize,
     /// Current generation
     generation: usize,
     /// Evolution rule parameters
@@ -61,11 +65,33 @@ impl<const P: usize, const Q: usize, const R: usize> GeometricCA<P, Q, R> {
         Self {
             grid: vec![Multivector::zero(); size],
             size,
+            width: size,
+            height: 1,
             generation: 0,
             rule: CARule::default(),
             cayley_table: None,
             boundary: BoundaryCondition::Periodic,
         }
+    }
+
+    /// Create a new 2D geometric cellular automaton
+    pub fn new_2d(width: usize, height: usize) -> Self {
+        let size = width * height;
+        Self {
+            grid: vec![Multivector::zero(); size],
+            size,
+            width,
+            height,
+            generation: 0,
+            rule: CARule::default(),
+            cayley_table: None,
+            boundary: BoundaryCondition::Periodic,
+        }
+    }
+
+    /// Get dimensions as (width, height)
+    pub fn dimensions(&self) -> (usize, usize) {
+        (self.width, self.height)
     }
 
     /// Create 2D Game of Life with geometric states
@@ -74,6 +100,8 @@ impl<const P: usize, const Q: usize, const R: usize> GeometricCA<P, Q, R> {
         Self {
             grid: vec![Multivector::zero(); size],
             size,
+            width,
+            height,
             generation: 0,
             rule: CARule::game_of_life(),
             cayley_table: None,
@@ -86,6 +114,8 @@ impl<const P: usize, const Q: usize, const R: usize> GeometricCA<P, Q, R> {
         Self {
             grid: vec![Multivector::zero(); size],
             size,
+            width: size,
+            height: 1,
             generation: 0,
             rule: CARule::reversible(),
             cayley_table: Some(CayleyTable::new()),
@@ -98,6 +128,8 @@ impl<const P: usize, const Q: usize, const R: usize> GeometricCA<P, Q, R> {
         Self {
             grid: vec![Multivector::zero(); size],
             size,
+            width: size,
+            height: 1,
             generation: 0,
             rule: CARule::rotor(),
             cayley_table: None,
@@ -110,6 +142,8 @@ impl<const P: usize, const Q: usize, const R: usize> GeometricCA<P, Q, R> {
         Self {
             grid: vec![Multivector::zero(); size],
             size,
+            width: size,
+            height: 1,
             generation: 0,
             rule: CARule::default(),
             cayley_table: Some(CayleyTable::new()),
@@ -122,6 +156,8 @@ impl<const P: usize, const Q: usize, const R: usize> GeometricCA<P, Q, R> {
         Self {
             grid: vec![Multivector::zero(); size],
             size,
+            width: size,
+            height: 1,
             generation: 0,
             rule: CARule::grade_preserving(),
             cayley_table: None,
@@ -134,6 +170,8 @@ impl<const P: usize, const Q: usize, const R: usize> GeometricCA<P, Q, R> {
         Self {
             grid: vec![Multivector::zero(); size],
             size,
+            width: size,
+            height: 1,
             generation: 0,
             rule: CARule::default(),
             cayley_table: None,
@@ -146,6 +184,8 @@ impl<const P: usize, const Q: usize, const R: usize> GeometricCA<P, Q, R> {
         Self {
             grid: vec![Multivector::zero(); size],
             size,
+            width: size,
+            height: 1,
             generation: 0,
             rule: CARule::default(),
             cayley_table: None,
@@ -158,6 +198,8 @@ impl<const P: usize, const Q: usize, const R: usize> GeometricCA<P, Q, R> {
         Self {
             grid: vec![Multivector::zero(); size],
             size,
+            width: size,
+            height: 1,
             generation: 0,
             rule: CARule::conservative(),
             cayley_table: None,
@@ -170,6 +212,8 @@ impl<const P: usize, const Q: usize, const R: usize> GeometricCA<P, Q, R> {
         Self {
             grid: vec![Multivector::zero(); 100], // Default size
             size: 100,
+            width: 100,
+            height: 1,
             generation: 0,
             rule: CARule::group_based(group_name),
             cayley_table: Some(CayleyTable::new()),
@@ -182,6 +226,8 @@ impl<const P: usize, const Q: usize, const R: usize> GeometricCA<P, Q, R> {
         Self {
             grid: vec![Multivector::zero(); 100],
             size: 100,
+            width: 100,
+            height: 1,
             generation: 0,
             rule: rule.clone(),
             cayley_table: None,
@@ -191,9 +237,12 @@ impl<const P: usize, const Q: usize, const R: usize> GeometricCA<P, Q, R> {
 
     /// Create CA from seed
     pub fn from_seed(seed: &[Multivector<P, Q, R>]) -> Self {
+        let size = seed.len();
         Self {
             grid: seed.to_vec(),
-            size: seed.len(),
+            size,
+            width: size,
+            height: 1,
             generation: 0,
             rule: CARule::default(),
             cayley_table: None,

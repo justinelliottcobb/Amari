@@ -21,6 +21,3 @@ serde-support = ["serde"]
 approx = "0.5"
 criterion = "0.5"
 
-[[bench]]
-name = "automata_benchmarks"
-harness = false

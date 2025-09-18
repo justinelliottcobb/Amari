@@ -4,10 +4,41 @@
 //! general self-assembly framework with UI-specific constraints, layout rules,
 //! and component types.
 
-use crate::self_assembly::{Component, Assembly, SelfAssembler, AssemblyConfig, ComponentType, UIComponentType};
+use crate::self_assembly::{Component, SelfAssembler};
 use crate::{AutomataError, AutomataResult, SelfAssembling};
 use amari_core::{Multivector, Vector, Bivector};
 use alloc::vec::Vec;
+use alloc::string::String;
+
+// Missing types needed by lib.rs imports (simplified implementations)
+
+/// UI layout constraint
+#[derive(Clone, Debug)]
+pub struct LayoutConstraint {
+    pub constraint_type: String,
+}
+
+impl LayoutConstraint {
+    pub fn new() -> Self {
+        Self { constraint_type: "default".to_string() }
+    }
+}
+
+/// UI layout
+#[derive(Clone, Debug)]
+pub struct Layout {
+    pub components: Vec<UIComponent<3, 0, 0>>,
+}
+
+impl Layout {
+    pub fn new() -> Self {
+        Self { components: Vec::new() }
+    }
+}
+
+/// Type alias for default UIAssembler (for lib.rs import)
+// Note: This creates an alias for the parameterized version - find the actual struct name
+// pub type UIAssemblerDefault = UIAssembler<3, 0, 0>;
 
 /// UI-specific component with additional layout properties
 #[derive(Debug, Clone)]

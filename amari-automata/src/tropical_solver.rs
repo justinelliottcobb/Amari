@@ -9,6 +9,8 @@ use amari_tropical::TropicalMultivector;
 use alloc::vec::Vec;
 use core::cmp::Ordering;
 
+// Missing type needed by lib.rs imports - using the more complete implementation below
+
 /// A constraint in tropical algebra
 #[derive(Debug, Clone)]
 pub struct TropicalConstraint<T: Clone, const DIM: usize> {
