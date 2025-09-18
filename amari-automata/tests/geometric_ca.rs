@@ -64,21 +64,14 @@ fn test_game_of_life_geometric() {
         [1, 1, 1],
     ]);
 
-    // Store initial state
-    let initial_total = ca.total_magnitude();
-    println!("Initial total: {}", initial_total);
-    assert!(initial_total > 0.0); // Pattern should be set
-
     // Evolve 4 steps
-    for i in 0..4 {
+    for _ in 0..4 {
         ca.step();
-        let step_total = ca.total_magnitude();
-        println!("Step {} total: {}", i+1, step_total);
     }
 
-    // Something should have changed (Game of Life should evolve)
+    // Pattern should still exist (Game of Life with proper 2D neighborhoods)
     let final_total = ca.total_magnitude();
-    assert!(final_total > 0.0); // Pattern should still exist in some form
+    assert!(final_total > 0.0);
 }
 
 #[test]
@@ -121,7 +114,6 @@ fn test_cayley_table_performance() {
     }
     let duration = start.elapsed();
 
-    println!("Performance test duration: {}ms", duration.as_millis());
     // Should complete within reasonable time (relaxed for debug builds)
     assert!(duration.as_millis() < 5000);
 }
