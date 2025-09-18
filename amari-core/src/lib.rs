@@ -119,8 +119,13 @@ impl<const P: usize, const Q: usize, const R: usize> Multivector<P, Q, R> {
         Vector::from_multivector(&self.grade_projection(1))
     }
     
-    /// Get bivector part as a Bivector type
-    pub fn bivector_part(&self) -> Bivector<P, Q, R> {
+    /// Get bivector part as a Multivector (grade 2 projection)
+    pub fn bivector_part(&self) -> Self {
+        self.grade_projection(2)
+    }
+
+    /// Get bivector part as a Bivector type wrapper
+    pub fn bivector_type(&self) -> Bivector<P, Q, R> {
         Bivector::from_multivector(&self.grade_projection(2))
     }
     
@@ -330,6 +335,21 @@ impl<const P: usize, const Q: usize, const R: usize> Multivector<P, Q, R> {
     /// Compute the norm
     pub fn norm(&self) -> f64 {
         self.norm_squared().abs().sqrt()
+    }
+
+    /// Alias for norm() - used by tests and other modules
+    pub fn magnitude(&self) -> f64 {
+        self.norm()
+    }
+
+    /// Absolute value (same as magnitude/norm for multivectors)
+    pub fn abs(&self) -> f64 {
+        self.magnitude()
+    }
+
+    /// Approximate equality comparison
+    pub fn approx_eq(&self, other: &Self, epsilon: f64) -> bool {
+        (self.clone() - other.clone()).magnitude() < epsilon
     }
     
     /// Normalize this multivector
@@ -853,9 +873,9 @@ impl<const P: usize, const Q: usize, const R: usize> core::ops::Index<usize> for
 
     fn index(&self, index: usize) -> &Self::Output {
         match index {
-            0 => &self.mv.components[3],  // e12
-            1 => &self.mv.components[5],  // e13
-            2 => &self.mv.components[6],  // e23
+            0 => &self.mv.coefficients[3],  // e12
+            1 => &self.mv.coefficients[5],  // e13
+            2 => &self.mv.coefficients[6],  // e23
             _ => panic!("Bivector index out of range: {}", index),
         }
     }

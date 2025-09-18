@@ -97,6 +97,28 @@ impl<T: Float, const P: usize, const Q: usize, const R: usize> DualMultivector<T
             .collect();
         Multivector::from_coefficients(derivatives)
     }
+
+    /// Get the real part (value) as a Multivector
+    pub fn real_part(&self) -> Multivector<P, Q, R> {
+        self.value()
+    }
+
+    /// Compute magnitude of the real part
+    pub fn magnitude(&self) -> T {
+        T::from(self.value().magnitude()).unwrap()
+    }
+
+    /// Create from real multivector (alias for constant_mv)
+    pub fn from_real_multivector(mv: Multivector<P, Q, R>) -> Self {
+        Self::constant_mv(&mv)
+    }
+
+    /// Create scalar dual multivector
+    pub fn scalar(value: T) -> Self {
+        let mut result = Self::zero();
+        result.coefficients[0] = DualNumber::constant(value);
+        result
+    }
     
     /// Geometric product with automatic differentiation
     pub fn geometric_product(&self, other: &Self) -> Self {

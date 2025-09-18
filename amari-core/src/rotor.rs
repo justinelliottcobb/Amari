@@ -77,7 +77,7 @@ impl<const P: usize, const Q: usize, const R: usize> Rotor<P, Q, R> {
     
     /// Get bivector part of the rotor
     pub fn bivector_part(&self) -> Bivector<P, Q, R> {
-        self.multivector.bivector_part()
+        self.multivector.bivector_type()
     }
     
     /// Get coefficients as slice
