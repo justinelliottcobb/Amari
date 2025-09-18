@@ -7,7 +7,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 extern crate alloc;
-use alloc::vec::{self, Vec};
+use alloc::vec::Vec;
 use core::ops::{Add, Mul, Neg};
 use num_traits::{Float, Zero, One};
 
