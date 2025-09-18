@@ -289,6 +289,32 @@ impl<T: Float, const P: usize, const Q: usize, const R: usize> DualMultivector<T
     }
     
     /// Forward-mode automatic differentiation
+    ///
+    /// Computes both the value and gradient of a function using dual numbers.
+    /// Forward-mode AD propagates derivatives alongside function evaluation,
+    /// allowing exact derivative computation without finite differences.
+    ///
+    /// # Parameters
+    /// - `f`: A function that takes a `DualMultivector` and returns a `DualMultivector`
+    ///
+    /// # Returns
+    /// A tuple containing:
+    /// - The scalar value of the function at the input point
+    /// - The full `DualMultivector` result containing all partial derivatives
+    ///
+    /// # Example
+    /// ```
+    /// let input = DualMultivector::from_scalar(2.0);
+    /// let (value, gradient) = input.forward_mode_ad(|x| x * x + x);
+    /// // value = 6.0 (2^2 + 2)
+    /// // gradient contains derivative = 5.0 (2*2 + 1)
+    /// ```
+    ///
+    /// # How it works
+    /// The dual number coefficients automatically track derivatives through
+    /// all arithmetic operations via operator overloading. The 'dual' part
+    /// of each number carries the derivative information, which is propagated
+    /// according to the chain rule during computation.
     pub fn forward_mode_ad<F>(&self, f: F) -> (T, Self)
     where
         F: Fn(Self) -> Self,

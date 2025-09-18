@@ -23,6 +23,7 @@ use num_traits::Zero;
 pub mod cayley;
 pub mod basis;
 pub mod rotor;
+pub mod unicode_ops;
 
 use cayley::CayleyTable;
 
@@ -261,17 +262,30 @@ impl<const P: usize, const Q: usize, const R: usize> Multivector<P, Q, R> {
         self.geometric_product(rhs).scalar_part()
     }
     
+    /// Calculate the sign change for reversing a blade of given grade
+    ///
+    /// The reverse operation introduces a sign change of (-1)^(grade*(grade-1)/2)
+    /// This comes from the fact that reversing a k-blade requires k(k-1)/2 swaps
+    /// of basis vectors, and each swap introduces a sign change.
+    #[inline]
+    fn reverse_sign_for_grade(grade: usize) -> f64 {
+        if (grade * (grade - 1) / 2) % 2 == 0 {
+            1.0
+        } else {
+            -1.0
+        }
+    }
+
     /// Reverse operation (reverses order of basis vectors in each blade)
     pub fn reverse(&self) -> Self {
         let mut result = Self::zero();
-        
+
         for i in 0..Self::BASIS_COUNT {
             let grade = i.count_ones() as usize;
-            // Reverse introduces sign: (-1)^(grade*(grade-1)/2)
-            let sign = if (grade * (grade - 1) / 2) % 2 == 0 { 1.0 } else { -1.0 };
+            let sign = Self::reverse_sign_for_grade(grade);
             result.coefficients[i] = sign * self.coefficients[i];
         }
-        
+
         result
     }
     
@@ -387,6 +401,131 @@ impl<const P: usize, const Q: usize, const R: usize> Multivector<P, Q, R> {
             if (result.clone() - old_result).norm() < 1e-14 {
                 break;
             }
+        }
+        
+        result
+    }
+    
+    /// Left contraction: a ⌟ b
+    ///
+    /// Generalized inner product where the grade of the result
+    /// is |grade(b) - grade(a)|. The left operand's grade is reduced.
+    pub fn left_contraction(&self, other: &Self) -> Self {
+        let self_grades = self.grade_decomposition();
+        let other_grades = other.grade_decomposition();
+        let mut result = Self::zero();
+        
+        for (a_grade, mv_a) in self_grades.iter().enumerate() {
+            if mv_a.is_zero() { continue; }
+            
+            for (b_grade, mv_b) in other_grades.iter().enumerate() {
+                if mv_b.is_zero() { continue; }
+                
+                // Left contraction: grade of result is |b_grade - a_grade|
+                if b_grade >= a_grade {
+                    let target_grade = b_grade - a_grade;
+                    let product = mv_a.geometric_product(mv_b);
+                    let projected = product.grade_projection(target_grade);
+                    result = result + projected;
+                }
+            }
+        }
+        
+        result
+    }
+    
+    /// Right contraction: a ⌞ b  
+    ///
+    /// Generalized inner product where the grade of the result
+    /// is |grade(a) - grade(b)|. The right operand's grade is reduced.
+    pub fn right_contraction(&self, other: &Self) -> Self {
+        let self_grades = self.grade_decomposition();
+        let other_grades = other.grade_decomposition();
+        let mut result = Self::zero();
+        
+        for (a_grade, mv_a) in self_grades.iter().enumerate() {
+            if mv_a.is_zero() { continue; }
+            
+            for (b_grade, mv_b) in other_grades.iter().enumerate() {
+                if mv_b.is_zero() { continue; }
+                
+                // Right contraction: grade of result is |a_grade - b_grade|
+                if a_grade >= b_grade {
+                    let target_grade = a_grade - b_grade;
+                    let product = mv_a.geometric_product(mv_b);
+                    let projected = product.grade_projection(target_grade);
+                    result = result + projected;
+                }
+            }
+        }
+        
+        result
+    }
+    
+    /// Hodge dual: ⋆a
+    ///
+    /// Maps k-vectors to (n-k)-vectors in n-dimensional space.
+    /// Essential for electromagnetic field theory and differential forms.
+    /// In 3D: scalar -> pseudoscalar, vector -> bivector, bivector -> vector, pseudoscalar -> scalar
+    pub fn hodge_dual(&self) -> Self {
+        let n = Self::DIM;
+        if n == 0 {
+            return self.clone();
+        }
+        
+        let mut result = Self::zero();
+        
+        // Create the pseudoscalar (highest grade basis element)
+        let pseudoscalar_index = (1 << n) - 1; // All bits set
+        
+        for i in 0..Self::BASIS_COUNT {
+            if self.coefficients[i].abs() < 1e-14 {
+                continue;
+            }
+            
+            // The Hodge dual of basis element e_i is obtained by 
+            // complementing the basis indices and applying the pseudoscalar
+            let dual_index = i ^ pseudoscalar_index;
+            
+            // Calculate the sign based on the number of swaps needed
+            let grade_i = i.count_ones() as usize;
+            let grade_dual = dual_index.count_ones() as usize;
+            
+            // Sign depends on the permutation parity
+            let mut sign = 1.0;
+            
+            // Count the number of index swaps needed (simplified calculation)
+            let mut temp_i = i;
+            let mut temp_dual = dual_index;
+            let mut swaps = 0;
+            
+            for bit_pos in 0..n {
+                let bit_mask = 1 << bit_pos;
+                if (temp_i & bit_mask) != 0 && (temp_dual & bit_mask) == 0 {
+                    // Count bits to the right in dual that are set
+                    let right_bits = temp_dual & ((1 << bit_pos) - 1);
+                    swaps += right_bits.count_ones();
+                }
+            }
+            
+            if swaps % 2 == 1 {
+                sign = -1.0;
+            }
+            
+            // Apply metric signature for negative basis vectors
+            for j in 0..n {
+                let bit_mask = 1 << j;
+                if (dual_index & bit_mask) != 0 {
+                    if j >= P + Q { // R signature (negative)
+                        sign *= -1.0;
+                    } else if j >= P { // Q signature (negative)
+                        sign *= -1.0;
+                    }
+                    // P signature remains positive
+                }
+            }
+            
+            result.coefficients[dual_index] += sign * self.coefficients[i];
         }
         
         result
@@ -711,13 +850,13 @@ impl<const P: usize, const Q: usize, const R: usize> Bivector<P, Q, R> {
 
 impl<const P: usize, const Q: usize, const R: usize> core::ops::Index<usize> for Bivector<P, Q, R> {
     type Output = f64;
-    
+
     fn index(&self, index: usize) -> &Self::Output {
-        // This is unsafe but needed for indexing - in real implementation would use RefCell
-        static mut TEMP: f64 = 0.0;
-        unsafe {
-            TEMP = self.get(index);
-            &TEMP
+        match index {
+            0 => &self.mv.components[3],  // e12
+            1 => &self.mv.components[5],  // e13
+            2 => &self.mv.components[6],  // e23
+            _ => panic!("Bivector index out of range: {}", index),
         }
     }
 }
