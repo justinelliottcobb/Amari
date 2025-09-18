@@ -284,6 +284,9 @@ impl<const P: usize, const Q: usize, const R: usize> Multivector<P, Q, R> {
     /// of basis vectors, and each swap introduces a sign change.
     #[inline]
     fn reverse_sign_for_grade(grade: usize) -> f64 {
+        if grade == 0 {
+            return 1.0;
+        }
         if (grade * (grade - 1) / 2) % 2 == 0 {
             1.0
         } else {
