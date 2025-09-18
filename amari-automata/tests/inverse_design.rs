@@ -1,214 +1,219 @@
-//! Tests for Inverse Design capabilities
+//! Comprehensive Tests for Inverse Design
 
-use amari_automata::{InverseDesigner, InverseDesignable, Target, Configuration};
-use amari_core::Multivector;
+use amari_automata::{InverseCADesigner, TargetPattern, TropicalConstraint, Objective, GeometricCA};
+use amari_dual::DualMultivector;
 use approx::assert_relative_eq;
 
-type TestDesigner = InverseDesigner<f64, 3, 0, 0>;
-
 #[test]
-fn test_designer_creation() {
-    let designer = TestDesigner::new(5, 5, 3, 0.01);
+fn test_find_seed_for_target_pattern() {
+    let target = TargetPattern::from_grid(&[
+        [1, 0, 1],
+        [0, 1, 0],
+        [1, 0, 1],
+    ]);
 
-    // Designer should be properly initialized
-    assert_eq!(designer.target_steps, 3);
-    assert_relative_eq!(designer.learning_rate, 0.01);
+    let designer = InverseCADesigner::new();
+    let seed = designer.find_seed(&target, 10); // 10 steps
+
+    let mut ca = GeometricCA::from_seed(&seed);
+    for _ in 0..10 {
+        ca.step();
+    }
+
+    assert_eq!(ca.as_pattern(), target);
 }
 
 #[test]
-fn test_random_configuration() {
-    let designer = TestDesigner::new(3, 3, 2, 0.1);
-    let config = designer.random_configuration(42);
+fn test_inverse_design_with_dual_numbers() {
+    // Dual numbers for gradient-based search
+    let target = TargetPattern::checkerboard(10, 10);
+    let mut designer = InverseCADesigner::with_dual_optimization();
+    let mut seed = DualMultivector::<f64, 3, 0, 0>::random_grid(10, 10);
 
-    // Configuration should have the right dimensions
-    assert_eq!(config.initial_state.len(), 3);
-    assert_eq!(config.initial_state[0].len(), 3);
+    for _ in 0..100 {
+        let evolved = designer.evolve_dual(&seed, 20);
+        let loss = designer.pattern_distance(&evolved.value, &target);
 
-    // Rule parameters should be reasonable
-    assert!(config.rule_params.threshold > 0.0);
-    assert!(config.rule_params.geo_weight > 0.0);
-}
-
-#[test]
-fn test_target_creation() {
-    let target_state = vec![
-        vec![Multivector::zero(); 3],
-        vec![Multivector::scalar(1.0), Multivector::basis_vector(0), Multivector::zero()],
-        vec![Multivector::zero(); 3],
-    ];
-
-    let target = Target::new(target_state.clone());
-
-    assert_eq!(target.target_state.len(), 3);
-    assert_eq!(target.position_weights.len(), 3);
-    assert_relative_eq!(target.position_weights[1][1], 1.0);
-}
-
-#[test]
-fn test_target_with_weights() {
-    let target_state = vec![vec![Multivector::zero(); 2]; 2];
-    let weights = vec![
-        vec![1.0, 2.0],
-        vec![0.5, 3.0],
-    ];
-
-    let target = Target::with_weights(target_state, weights.clone());
-
-    assert_eq!(target.position_weights, weights);
-}
-
-#[test]
-fn test_fitness_evaluation() {
-    let designer = TestDesigner::new(3, 3, 1, 0.1);
-
-    // Create a simple target
-    let target_state = vec![
-        vec![Multivector::zero(); 3],
-        vec![Multivector::zero(), Multivector::scalar(1.0), Multivector::zero()],
-        vec![Multivector::zero(); 3],
-    ];
-    let target = Target::new(target_state);
-
-    // Create a configuration
-    let config = designer.random_configuration(123);
-
-    // Fitness should be calculable
-    let fitness = designer.fitness(&config, &target);
-    assert!(fitness >= 0.0);
-}
-
-#[test]
-fn test_solver_configuration() {
-    let mut designer = TestDesigner::new(5, 5, 10, 0.05);
-
-    designer.set_max_iterations(500);
-    designer.set_convergence_threshold(1e-8);
-
-    assert_eq!(designer.max_iterations, 500);
-    assert_relative_eq!(designer.convergence_threshold, 1e-8);
-}
-
-#[test]
-fn test_simple_inverse_design() {
-    let designer = TestDesigner::new(3, 3, 2, 0.1);
-
-    // Create a simple target: single activated cell
-    let mut target_state = vec![vec![Multivector::zero(); 3]; 3];
-    target_state[1][1] = Multivector::scalar(1.0);
-    let target = Target::new(target_state);
-
-    // Try to find a seed (this may not always succeed with the simplified implementation)
-    match designer.find_seed(&target) {
-        Ok(config) => {
-            // If successful, the configuration should be valid
-            assert_eq!(config.initial_state.len(), 3);
-            assert_eq!(config.initial_state[0].len(), 3);
+        if loss < 0.01 {
+            break;
         }
-        Err(_) => {
-            // This is acceptable for now since we have a simplified implementation
-            // In a full implementation, we'd expect more success
-        }
+
+        // Update using gradients
+        seed = designer.gradient_step(seed, evolved.dual, 0.01);
+    }
+
+    assert!(designer.verify_seed(&seed.value, &target, 20));
+}
+
+#[test]
+fn test_tropical_constraint_satisfaction() {
+    // Tropical algebra linearizes constraints
+    let constraints = vec![
+        TropicalConstraint::has_pattern_at(5, 5, &[
+            [1, 1, 1],
+            [1, 1, 1],
+            [1, 1, 1],
+        ]),
+        TropicalConstraint::sparsity(0.2),
+    ];
+
+    let designer = InverseCADesigner::with_tropical_solver();
+    let seed = designer.solve_constraints(&constraints);
+
+    let mut ca = GeometricCA::from_seed(&seed);
+    for _ in 0..10 {
+        ca.step();
+    }
+
+    assert!(ca.has_pattern_at(5, 5, &[
+        [1, 1, 1],
+        [1, 1, 1],
+        [1, 1, 1],
+    ]));
+    assert!(ca.density() < 0.2);
+}
+
+#[test]
+fn test_gradient_based_optimization() {
+    // Test automatic differentiation through CA evolution
+    let target = TargetPattern::single_glider();
+    let mut designer = InverseCADesigner::with_gradient_descent();
+
+    let initial_seed = designer.random_seed(20, 20);
+    let optimized_seed = designer.optimize_seed(&initial_seed, &target, 100);
+
+    let fitness_initial = designer.evaluate_fitness(&initial_seed, &target);
+    let fitness_optimized = designer.evaluate_fitness(&optimized_seed, &target);
+
+    assert!(fitness_optimized > fitness_initial);
+}
+
+#[test]
+fn test_multi_objective_optimization() {
+    // Multiple objectives: pattern match + sparsity + stability
+    let objectives = vec![
+        Objective::PatternMatch(TargetPattern::cross(5)),
+        Objective::Sparsity(0.3),
+        Objective::Stability(10), // stable for 10 steps
+    ];
+
+    let designer = InverseCADesigner::multi_objective();
+    let pareto_front = designer.find_pareto_optimal(&objectives);
+
+    assert!(pareto_front.len() > 1);
+    for solution in pareto_front {
+        assert!(solution.satisfies_constraints(&objectives));
     }
 }
 
 #[test]
-fn test_configuration_properties() {
-    let config = Configuration {
-        initial_state: vec![
-            vec![Multivector::scalar(0.5), Multivector::zero()],
-            vec![Multivector::basis_vector(0), Multivector::scalar(1.0)],
-        ],
-        rule_params: OptimizableRule {
-            threshold: 0.3,
-            geo_weight: 1.2,
-            outer_weight: 0.8,
-            inner_weight: 0.4,
-        },
-    };
+fn test_pattern_morphing() {
+    // Find transition from pattern A to pattern B
+    let pattern_a = TargetPattern::horizontal_line(5);
+    let pattern_b = TargetPattern::vertical_line(5);
 
-    assert_eq!(config.initial_state.len(), 2);
-    assert_relative_eq!(config.rule_params.threshold, 0.3);
-    assert_relative_eq!(config.rule_params.geo_weight, 1.2);
+    let designer = InverseCADesigner::new();
+    let transition = designer.find_morphing_sequence(&pattern_a, &pattern_b, 20);
+
+    assert_eq!(transition.initial_pattern(), pattern_a);
+    assert_eq!(transition.final_pattern(), pattern_b);
+    assert!(transition.is_smooth());
 }
 
 #[test]
-fn test_dual_number_simulation() {
-    let designer = TestDesigner::new(2, 2, 1, 0.1);
-    let config = designer.random_configuration(789);
+fn test_reverse_engineering_rules() {
+    // Given patterns, infer the CA rule
+    let examples = vec![
+        (TargetPattern::single_cell(), TargetPattern::cross(3)),
+        (TargetPattern::two_cells_adjacent(), TargetPattern::diamond(3)),
+    ];
 
-    // This would test the dual number simulation if fully implemented
-    // For now, we test that the method exists and doesn't panic
-    match designer.simulate_with_gradients(&config) {
-        Ok(result) => {
-            assert_eq!(result.len(), 2);
-            assert_eq!(result[0].len(), 2);
-        }
-        Err(_) => {
-            // Expected for the simplified implementation
-        }
+    let designer = InverseCADesigner::rule_inference();
+    let inferred_rule = designer.infer_rule(&examples);
+
+    // Test the inferred rule
+    for (input, expected_output) in examples {
+        let mut ca = GeometricCA::with_rule(&inferred_rule);
+        ca.set_pattern(&input);
+        ca.evolve_to_stable();
+
+        assert!(ca.pattern_similarity(&expected_output) > 0.9);
     }
 }
 
 #[test]
-fn test_optimization_parameters() {
-    let rule = OptimizableRule {
-        threshold: 0.5,
-        geo_weight: 1.0,
-        outer_weight: 0.5,
-        inner_weight: 0.3,
-    };
+fn test_constraint_satisfaction_with_topology() {
+    // Complex topological constraints
+    let constraints = vec![
+        TropicalConstraint::connected_components(1),
+        TropicalConstraint::has_holes(0),
+        TropicalConstraint::genus(0), // sphere topology
+        TropicalConstraint::boundary_length(12),
+    ];
 
-    // All parameters should be accessible and modifiable
-    assert_relative_eq!(rule.threshold, 0.5);
-    assert_relative_eq!(rule.geo_weight, 1.0);
-    assert_relative_eq!(rule.outer_weight, 0.5);
-    assert_relative_eq!(rule.inner_weight, 0.3);
+    let designer = InverseCADesigner::with_topology_constraints();
+    let seed = designer.solve_topological_constraints(&constraints);
+
+    let mut ca = GeometricCA::from_seed(&seed);
+    ca.evolve_to_stable();
+
+    assert_eq!(ca.connected_components(), 1);
+    assert_eq!(ca.holes(), 0);
+    assert_eq!(ca.genus(), 0);
+    assert_relative_eq!(ca.boundary_length() as f64, 12.0, epsilon = 1.0);
 }
 
 #[test]
-fn test_target_patterns() {
-    // Test various target patterns that might be useful for UI assembly
+fn test_inverse_design_performance() {
+    // Large-scale inverse design should be tractable
+    let target = TargetPattern::complex_fractal(100, 100);
+    let designer = InverseCADesigner::with_performance_optimization();
 
-    // Horizontal line pattern
-    let mut horizontal = vec![vec![Multivector::zero(); 5]; 3];
-    for x in 0..5 {
-        horizontal[1][x] = Multivector::basis_vector(0);
+    let start_time = std::time::Instant::now();
+    let seed = designer.find_seed_fast(&target, 50);
+    let duration = start_time.elapsed();
+
+    // Should complete in reasonable time
+    assert!(duration.as_secs() < 30);
+
+    // Verify the solution
+    let mut ca = GeometricCA::from_seed(&seed);
+    for _ in 0..50 {
+        ca.step();
     }
-    let target_h = Target::new(horizontal);
-    assert_eq!(target_h.target_state[1][2].magnitude(), 1.0);
 
-    // Cross pattern
-    let mut cross = vec![vec![Multivector::zero(); 3]; 3];
-    cross[1][0] = Multivector::scalar(1.0);
-    cross[1][1] = Multivector::scalar(1.0);
-    cross[1][2] = Multivector::scalar(1.0);
-    cross[0][1] = Multivector::scalar(1.0);
-    cross[2][1] = Multivector::scalar(1.0);
-    let target_c = Target::new(cross);
-    assert_eq!(target_c.target_state[1][1].magnitude(), 1.0);
+    assert!(ca.pattern_similarity(&target) > 0.8);
 }
 
 #[test]
-fn test_convergence_detection() {
-    let mut designer = TestDesigner::new(2, 2, 1, 0.1);
-    designer.set_convergence_threshold(1e-6);
+fn test_dual_number_chain_rule() {
+    // Test that chain rule works correctly through CA evolution
+    let designer = InverseCADesigner::with_dual_optimization();
+    let seed = DualMultivector::<f64, 3, 0, 0>::with_gradient(
+        10, 10,
+        |i, j| if i == 5 && j == 5 { 1.0 } else { 0.0 }
+    );
 
-    // Create a trivial target (all zeros)
-    let target_state = vec![vec![Multivector::zero(); 2]; 2];
-    let target = Target::new(target_state);
+    let evolved = designer.evolve_dual(&seed, 5);
 
-    // A zero configuration should be close to a zero target
-    let zero_config = Configuration {
-        initial_state: vec![vec![Multivector::zero(); 2]; 2],
-        rule_params: OptimizableRule {
-            threshold: 0.5,
-            geo_weight: 1.0,
-            outer_weight: 0.5,
-            inner_weight: 0.5,
-        },
-    };
+    // Gradient should propagate through all evolution steps
+    assert!(evolved.has_gradient_at(4, 5));
+    assert!(evolved.has_gradient_at(6, 5));
+    assert!(evolved.has_gradient_at(5, 4));
+    assert!(evolved.has_gradient_at(5, 6));
+}
 
-    let fitness = designer.fitness(&zero_config, &target);
-    // Should be very low for matching configurations
-    assert!(fitness < 1.0);
+#[test]
+fn test_stochastic_optimization() {
+    // Test evolutionary/genetic algorithm approaches
+    let target = TargetPattern::maze_solution(20, 20);
+    let mut designer = InverseCADesigner::evolutionary();
+
+    designer.set_population_size(100);
+    designer.set_mutation_rate(0.1);
+    designer.set_crossover_rate(0.7);
+
+    let best_individual = designer.evolve_population(&target, 50);
+
+    assert!(designer.evaluate_fitness(&best_individual, &target) > 0.9);
 }

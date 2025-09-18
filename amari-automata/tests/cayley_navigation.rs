@@ -1,342 +1,295 @@
-//! Tests for Cayley Graph Navigation
+//! Comprehensive Tests for Cayley Graph Navigation
 
-use amari_automata::{CayleyGraph, CayleyNavigator, CayleyNode, CayleyPath};
+use amari_automata::{CayleyGraphNavigator, GroupElement, Generator, GeometricCA};
 use amari_core::Multivector;
 use approx::assert_relative_eq;
 
-type TestGraph = CayleyGraph<3, 0, 0>;
-type TestNavigator = CayleyNavigator<3, 0, 0>;
-
 #[test]
-fn test_cayley_node_creation() {
-    let state = Multivector::basis_vector(0);
-    let node = CayleyNode::new(state.clone(), 0, 0);
+fn test_cayley_graph_as_state_space() {
+    // CA states as group Cayley graph
+    let navigator = CayleyGraphNavigator::for_group("D4");
 
-    assert_eq!(node.id, 0);
-    assert_eq!(node.generation, 0);
-    assert_relative_eq!(node.state.magnitude(), state.magnitude());
+    let start = GroupElement::identity();
+    let target = GroupElement::from_name("r2f");
+    let path = navigator.find_path(start, target);
+
+    assert_eq!(path, vec![
+        Generator::Rotation,
+        Generator::Rotation,
+        Generator::Flip,
+    ]);
 }
 
 #[test]
-fn test_node_state_hash() {
-    let state1 = Multivector::scalar(1.0);
-    let state2 = Multivector::scalar(1.0);
-    let state3 = Multivector::scalar(2.0);
+fn test_ca_evolution_as_group_action() {
+    let mut ca = GeometricCA::with_group_structure("S3");
+    ca.set_state(GroupElement::identity());
 
-    let node1 = CayleyNode::new(state1, 0, 0);
-    let node2 = CayleyNode::new(state2, 1, 0);
-    let node3 = CayleyNode::new(state3, 2, 0);
+    ca.apply_generators(&[
+        Generator::Transposition(0, 1),
+        Generator::Transposition(1, 2),
+    ]);
 
-    // Same states should have same hash
-    assert_eq!(node1.state_hash(), node2.state_hash());
-    // Different states should have different hashes (usually)
-    assert_ne!(node1.state_hash(), node3.state_hash());
+    assert_eq!(ca.state(), GroupElement::from_permutation(&[2, 0, 1]));
 }
 
 #[test]
-fn test_cayley_graph_creation() {
-    let generators = vec![
-        Multivector::basis_vector(0),
-        Multivector::basis_vector(1),
-        Multivector::basis_vector(2),
-    ];
+fn test_inverse_problem_as_word_problem() {
+    let target = GroupElement::from_name("complex_element");
+    let solver = CayleyGraphNavigator::new();
+    let word = solver.find_word_for(target);
 
-    let graph = TestGraph::new(generators.clone());
-
-    assert_eq!(graph.generators.len(), 3);
-    assert_eq!(graph.node_count(), 0);
-    assert_eq!(graph.edge_count(), 0);
-}
-
-#[test]
-fn test_graph_add_nodes() {
-    let generators = vec![Multivector::basis_vector(0)];
-    let mut graph = TestGraph::new(generators);
-
-    let state1 = Multivector::scalar(1.0);
-    let state2 = Multivector::basis_vector(1);
-
-    let id1 = graph.add_node(state1.clone(), 0);
-    let id2 = graph.add_node(state2.clone(), 1);
-
-    assert_eq!(id1, 0);
-    assert_eq!(id2, 1);
-    assert_eq!(graph.node_count(), 2);
-
-    // Adding the same state again should return existing ID
-    let id1_again = graph.add_node(state1, 0);
-    assert_eq!(id1_again, id1);
-    assert_eq!(graph.node_count(), 2); // No new node added
-}
-
-#[test]
-fn test_graph_add_edges() {
-    let generators = vec![
-        Multivector::basis_vector(0),
-        Multivector::basis_vector(1),
-    ];
-    let mut graph = TestGraph::new(generators);
-
-    // Add some nodes
-    let id1 = graph.add_node(Multivector::scalar(1.0), 0);
-    let id2 = graph.add_node(Multivector::basis_vector(0), 1);
-
-    // Add edge
-    graph.add_edge(id1, id2, 0, 1.0).unwrap();
-
-    assert_eq!(graph.edge_count(), 1);
-
-    let neighbors = graph.get_neighbors(id1);
-    assert_eq!(neighbors.len(), 1);
-    assert_eq!(neighbors[0], id2);
-
-    // Test invalid edge addition
-    assert!(graph.add_edge(0, 10, 0, 1.0).is_err()); // Invalid node
-    assert!(graph.add_edge(0, 1, 5, 1.0).is_err());  // Invalid generator
-}
-
-#[test]
-fn test_cayley_table_building() {
-    let generators = vec![
-        Multivector::basis_vector(0), // e1
-        Multivector::basis_vector(1), // e2
-    ];
-    let mut graph = TestGraph::new(generators);
-
-    // Build the Cayley table
-    graph.build_cayley_table().unwrap();
-
-    assert!(graph.cayley_table.is_some());
-}
-
-#[test]
-fn test_generator_application() {
-    let generators = vec![
-        Multivector::basis_vector(0),
-        Multivector::basis_vector(1),
-    ];
-    let mut graph = TestGraph::new(generators);
-
-    let state = Multivector::scalar(1.0);
-    let node_id = graph.add_node(state, 0);
-
-    // Apply generator
-    let result = graph.apply_generator(node_id, 0).unwrap();
-
-    // Result should be the geometric product of scalar(1) and e1
-    assert!(result.magnitude() > 0.0);
-
-    // Test invalid applications
-    assert!(graph.apply_generator(10, 0).is_err()); // Invalid node
-    assert!(graph.apply_generator(0, 5).is_err());  // Invalid generator
-}
-
-#[test]
-fn test_navigator_creation() {
-    let generators = vec![Multivector::basis_vector(0)];
-    let mut graph = TestGraph::new(generators);
-
-    let start_node = graph.add_node(Multivector::scalar(1.0), 0);
-    let navigator = TestNavigator::new(graph, start_node).unwrap();
-
-    assert_eq!(navigator.current_position(), start_node);
-    assert_eq!(navigator.path_history().len(), 1);
-    assert_eq!(navigator.path_history()[0], start_node);
-
-    // Test invalid navigator creation
-    let empty_graph = TestGraph::new(vec![Multivector::basis_vector(0)]);
-    assert!(TestNavigator::new(empty_graph, 5).is_err());
-}
-
-#[test]
-fn test_navigator_state_access() {
-    let generators = vec![Multivector::basis_vector(0)];
-    let mut graph = TestGraph::new(generators);
-
-    let initial_state = Multivector::scalar(2.0);
-    let start_node = graph.add_node(initial_state.clone(), 0);
-    let navigator = TestNavigator::new(graph, start_node).unwrap();
-
-    let current_state = navigator.current_state().unwrap();
-    assert_relative_eq!(current_state.scalar_part(), initial_state.scalar_part());
-}
-
-#[test]
-fn test_navigator_navigation() {
-    let generators = vec![
-        Multivector::basis_vector(0),
-        Multivector::basis_vector(1),
-    ];
-    let mut graph = TestGraph::new(generators);
-
-    // Create a small graph
-    let node1 = graph.add_node(Multivector::scalar(1.0), 0);
-    let node2 = graph.add_node(Multivector::basis_vector(0), 1);
-
-    // Add bidirectional edges
-    graph.add_edge(node1, node2, 0, 1.0).unwrap();
-    graph.add_edge(node2, node1, 0, 1.0).unwrap();
-
-    let mut navigator = TestNavigator::new(graph, node1).unwrap();
-
-    // Try to navigate (this might not work with the simplified implementation)
-    match navigator.navigate_with_generator(0) {
-        Ok(new_node) => {
-            assert_eq!(new_node, node2);
-            assert_eq!(navigator.current_position(), node2);
-            assert_eq!(navigator.path_history().len(), 2);
-        }
-        Err(_) => {
-            // Expected with simplified implementation
-        }
-    }
-}
-
-#[test]
-fn test_path_finding() {
-    let generators = vec![Multivector::basis_vector(0)];
-    let mut graph = TestGraph::new(generators);
-
-    // Create a chain of nodes
-    let node1 = graph.add_node(Multivector::scalar(1.0), 0);
-    let node2 = graph.add_node(Multivector::basis_vector(0), 1);
-    let node3 = graph.add_node(Multivector::basis_vector(1), 2);
-
-    // Connect them in a chain
-    graph.add_edge(node1, node2, 0, 1.0).unwrap();
-    graph.add_edge(node2, node3, 0, 1.0).unwrap();
-
-    let navigator = TestNavigator::new(graph, node1).unwrap();
-
-    match navigator.find_path(node3) {
-        Ok(path) => {
-            assert!(path.nodes.len() >= 2);
-            assert_eq!(path.nodes[0], node1);
-            assert_eq!(path.nodes[path.nodes.len() - 1], node3);
-        }
-        Err(_) => {
-            // Path finding might fail if graph is not well-connected
-        }
+    let mut element = GroupElement::identity();
+    for generator in word {
+        element = element.multiply(generator);
     }
 
-    // Test path to invalid node
-    assert!(navigator.find_path(10).is_err());
+    assert_eq!(element, target);
 }
 
 #[test]
-fn test_navigator_reset() {
-    let generators = vec![Multivector::basis_vector(0)];
-    let mut graph = TestGraph::new(generators);
+fn test_geometric_algebra_group_structure() {
+    // Test Clifford algebra as a group
+    let navigator = CayleyGraphNavigator::for_clifford_algebra(3, 0, 0);
 
-    let node1 = graph.add_node(Multivector::scalar(1.0), 0);
-    let node2 = graph.add_node(Multivector::basis_vector(0), 1);
+    let e1 = GroupElement::from_multivector(Multivector::e1());
+    let e2 = GroupElement::from_multivector(Multivector::e2());
+    let e12 = GroupElement::from_multivector(Multivector::e12());
 
-    let mut navigator = TestNavigator::new(graph, node1).unwrap();
-
-    // Manually change position
-    navigator.current_node = node2;
-    navigator.path_history.push(node2);
-
-    assert_eq!(navigator.current_position(), node2);
-
-    // Reset should return to start
-    navigator.reset(node1).unwrap();
-
-    assert_eq!(navigator.current_position(), node1);
-    assert_eq!(navigator.path_history().len(), 1);
-    assert_eq!(navigator.path_history()[0], node1);
-
-    // Test invalid reset
-    assert!(navigator.reset(10).is_err());
-}
-
-#[test]
-fn test_cayley_path_structure() {
-    let path = CayleyPath {
-        nodes: vec![0, 1, 2],
-        generators: vec![0, 1],
-        weight: 2.0,
-        length: 3,
-    };
-
-    assert_eq!(path.nodes.len(), 3);
-    assert_eq!(path.generators.len(), 2);
-    assert_relative_eq!(path.weight, 2.0);
-    assert_eq!(path.length, 3);
-}
-
-#[test]
-fn test_geometric_algebra_generators() {
-    // Test with geometric algebra specific generators
-    let generators = vec![
-        Multivector::basis_vector(0),                    // e1
-        Multivector::basis_vector(1),                    // e2
-        Multivector::basis_vector(0) + Multivector::basis_vector(1), // e1 + e2
-    ];
-
-    let mut graph = TestGraph::new(generators);
-
-    // Add identity element
-    let identity = graph.add_node(Multivector::scalar(1.0), 0);
-
-    // Apply each generator
-    for i in 0..3 {
-        let result = graph.apply_generator(identity, i).unwrap();
-        assert!(result.magnitude() > 0.0);
-    }
-}
-
-#[test]
-fn test_graph_properties() {
-    let generators = vec![
-        Multivector::basis_vector(0),
-        Multivector::basis_vector(1),
-    ];
-    let mut graph = TestGraph::new(generators);
-
-    // Add several nodes
-    for i in 0..5 {
-        let state = Multivector::scalar(i as f64);
-        graph.add_node(state, i);
-    }
-
-    assert_eq!(graph.node_count(), 5);
-
-    // Get node by ID
-    let node = graph.get_node(2).unwrap();
-    assert_eq!(node.id, 2);
-
-    // Invalid node access
-    assert!(graph.get_node(10).is_none());
-}
-
-#[test]
-fn test_complex_navigation_scenario() {
-    // Test a more complex scenario with multiple generators and paths
-    let generators = vec![
-        Multivector::basis_vector(0),    // e1
-        Multivector::basis_vector(1),    // e2
-        Multivector::scalar(1.0),        // identity (for testing)
-    ];
-
-    let mut graph = TestGraph::new(generators);
-
-    // Create several states representing different multivector elements
-    let scalar_node = graph.add_node(Multivector::scalar(1.0), 0);
-    let e1_node = graph.add_node(Multivector::basis_vector(0), 1);
-    let e2_node = graph.add_node(Multivector::basis_vector(1), 1);
-    let e12_node = graph.add_node(
-        Multivector::basis_vector(0).geometric_product(&Multivector::basis_vector(1)),
-        2,
+    // e1 * e2 = e12
+    let path = navigator.find_path(
+        GroupElement::identity(),
+        e12.clone()
     );
 
-    // Connect nodes according to geometric algebra multiplication
-    graph.add_edge(scalar_node, e1_node, 0, 1.0).unwrap();
-    graph.add_edge(scalar_node, e2_node, 1, 1.0).unwrap();
-    graph.add_edge(e1_node, e12_node, 1, 1.0).unwrap();
+    let reconstructed = navigator.apply_path(&path);
+    assert_eq!(reconstructed, e12);
+}
 
-    let navigator = TestNavigator::new(graph, scalar_node).unwrap();
+#[test]
+fn test_group_orbit_exploration() {
+    // Explore all reachable states from a starting point
+    let navigator = CayleyGraphNavigator::for_group("A4"); // Alternating group
+    let start = GroupElement::identity();
 
-    // Should be able to find paths to other nodes
-    assert!(navigator.find_path(e1_node).is_ok() || navigator.find_path(e1_node).is_err());
+    let orbit = navigator.compute_orbit(start);
+
+    // A4 has 12 elements
+    assert_eq!(orbit.len(), 12);
+
+    // All elements should be distinct
+    let unique_elements: std::collections::HashSet<_> = orbit.into_iter().collect();
+    assert_eq!(unique_elements.len(), 12);
+}
+
+#[test]
+fn test_shortest_path_algorithms() {
+    // Test different path-finding algorithms
+    let navigator = CayleyGraphNavigator::for_group("D6");
+
+    let start = GroupElement::identity();
+    let target = GroupElement::from_name("r3f2");
+
+    let breadth_first_path = navigator.shortest_path_bfs(start.clone(), target.clone());
+    let dijkstra_path = navigator.shortest_path_dijkstra(start.clone(), target.clone());
+    let a_star_path = navigator.shortest_path_a_star(start, target);
+
+    // All should find optimal paths (may differ but same length)
+    assert_eq!(breadth_first_path.len(), dijkstra_path.len());
+    assert_eq!(breadth_first_path.len(), a_star_path.len());
+}
+
+#[test]
+fn test_group_homomorphisms() {
+    // Test mappings between different groups
+    let source_nav = CayleyGraphNavigator::for_group("Z4");
+    let target_nav = CayleyGraphNavigator::for_group("Z2");
+
+    let homomorphism = source_nav.find_homomorphism(&target_nav);
+
+    // Z4 -> Z2: mod 2 reduction
+    let z4_element = GroupElement::from_name("2");
+    let z2_image = homomorphism.apply(&z4_element);
+
+    assert_eq!(z2_image, GroupElement::from_name("0"));
+}
+
+#[test]
+fn test_cayley_table_generation() {
+    // Test automatic Cayley table generation
+    let generators = vec![
+        Generator::Rotation,
+        Generator::Reflection,
+    ];
+
+    let navigator = CayleyGraphNavigator::from_generators(generators);
+    let cayley_table = navigator.generate_cayley_table();
+
+    // Should satisfy group axioms
+    assert!(cayley_table.satisfies_associativity());
+    assert!(cayley_table.has_identity());
+    assert!(cayley_table.all_elements_have_inverse());
+}
+
+#[test]
+fn test_subgroup_analysis() {
+    // Find and analyze subgroups
+    let navigator = CayleyGraphNavigator::for_group("S4");
+
+    let subgroups = navigator.find_all_subgroups();
+
+    // S4 has many subgroups of various orders
+    assert!(subgroups.iter().any(|sg| sg.order() == 1));  // Trivial
+    assert!(subgroups.iter().any(|sg| sg.order() == 2));  // Z2
+    assert!(subgroups.iter().any(|sg| sg.order() == 3));  // Z3
+    assert!(subgroups.iter().any(|sg| sg.order() == 12)); // A4
+}
+
+#[test]
+fn test_conjugacy_classes() {
+    // Test conjugacy class computation
+    let navigator = CayleyGraphNavigator::for_group("D4");
+
+    let conjugacy_classes = navigator.compute_conjugacy_classes();
+
+    // D4 has 5 conjugacy classes
+    assert_eq!(conjugacy_classes.len(), 5);
+
+    // Each element should be in exactly one class
+    let total_elements: usize = conjugacy_classes.iter().map(|c| c.len()).sum();
+    assert_eq!(total_elements, 8); // |D4| = 8
+}
+
+#[test]
+fn test_group_action_on_sets() {
+    // Test group actions on various sets
+    let navigator = CayleyGraphNavigator::for_group("S3");
+
+    // Action on a set of 3 elements
+    let set = vec!["a", "b", "c"];
+    let permutation = GroupElement::from_name("(12)");
+
+    let result = navigator.apply_action(&permutation, &set);
+
+    assert_eq!(result, vec!["b", "a", "c"]);
+}
+
+#[test]
+fn test_fundamental_domain() {
+    // Find fundamental domain for group action
+    let navigator = CayleyGraphNavigator::for_group("Z2");
+
+    let space = GeometricSpace::torus(10, 10);
+    let fundamental_domain = navigator.find_fundamental_domain(&space);
+
+    // Should cover exactly half the space (Z2 action)
+    assert_relative_eq!(fundamental_domain.area(), space.area() / 2.0, epsilon = 0.1);
+}
+
+#[test]
+fn test_word_metrics() {
+    // Test different metrics on the group
+    let navigator = CayleyGraphNavigator::for_group("F2"); // Free group on 2 generators
+
+    let element = GroupElement::from_word(&["a", "b", "a^-1", "b^-1"]);
+
+    let word_length = navigator.word_metric(&element);
+    let conjugacy_length = navigator.conjugacy_metric(&element);
+
+    assert_eq!(word_length, 4);
+    assert!(conjugacy_length <= word_length);
+}
+
+#[test]
+fn test_random_walks_on_groups() {
+    // Test random walk properties
+    let navigator = CayleyGraphNavigator::for_group("Z10");
+
+    let mut current = GroupElement::identity();
+    let mut positions = vec![current.clone()];
+
+    // Perform 1000 random steps
+    for _ in 0..1000 {
+        let step = navigator.random_generator();
+        current = current.multiply(&step);
+        positions.push(current.clone());
+    }
+
+    // Should eventually visit all elements (ergodic)
+    let unique_positions: std::collections::HashSet<_> = positions.into_iter().collect();
+    assert!(unique_positions.len() > 5); // Should visit more than half
+}
+
+#[test]
+fn test_group_presentation() {
+    // Test group presentations and relations
+    let presentation = GroupPresentation::new(
+        vec!["r", "s"], // generators
+        vec![
+            "r^4 = 1",    // r has order 4
+            "s^2 = 1",    // s has order 2
+            "srs = r^-1", // conjugation relation
+        ]
+    );
+
+    let navigator = CayleyGraphNavigator::from_presentation(presentation);
+
+    // Should recognize this as D4
+    assert_eq!(navigator.group_order(), 8);
+    assert_eq!(navigator.group_name(), "D4");
+}
+
+#[test]
+fn test_covering_spaces() {
+    // Test universal covers and covering spaces
+    let base_navigator = CayleyGraphNavigator::for_group("Z2");
+    let covering_navigator = CayleyGraphNavigator::for_group("Z");
+
+    let covering_map = covering_navigator.covering_map_to(&base_navigator);
+
+    // Z -> Z2 covering map
+    let lift = covering_map.lift(&GroupElement::from_name("1"));
+    assert!(lift.projects_to(&GroupElement::from_name("1")));
+}
+
+#[test]
+fn test_growth_functions() {
+    // Test growth functions for different groups
+    let navigator = CayleyGraphNavigator::for_group("Z2");
+
+    let growth_function = navigator.compute_growth_function(10);
+
+    // Z2 has polynomial growth
+    assert!(growth_function.is_polynomial());
+    assert_eq!(growth_function.degree(), 1);
+}
+
+// Helper types for tests
+struct GeometricSpace {
+    width: usize,
+    height: usize,
+}
+
+impl GeometricSpace {
+    fn torus(width: usize, height: usize) -> Self {
+        Self { width, height }
+    }
+
+    fn area(&self) -> f64 {
+        (self.width * self.height) as f64
+    }
+}
+
+struct GroupPresentation {
+    generators: Vec<String>,
+    relations: Vec<String>,
+}
+
+impl GroupPresentation {
+    fn new(generators: Vec<&str>, relations: Vec<&str>) -> Self {
+        Self {
+            generators: generators.into_iter().map(|s| s.to_string()).collect(),
+            relations: relations.into_iter().map(|s| s.to_string()).collect(),
+        }
+    }
 }

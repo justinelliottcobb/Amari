@@ -1,168 +1,176 @@
-//! Tests for Geometric Cellular Automata
+//! Comprehensive Tests for Geometric Cellular Automata
 
-use amari_automata::{GeometricCA, CARule, Evolvable};
-use amari_core::Multivector;
+use amari_core::{Multivector, CayleyTable, Rotor, Bivector};
+use amari_automata::{GeometricCA, CARule, CellState};
 use approx::assert_relative_eq;
-
-type TestCA = GeometricCA<3, 0, 0>;
+use std::f64::consts::PI;
 
 #[test]
-fn test_ca_creation() {
-    let ca = TestCA::new(10, 10);
-    assert_eq!(ca.dimensions(), (10, 10));
-    assert_eq!(ca.generation(), 0);
+fn test_multivector_cell_evolution() {
+    // Each cell contains a multivector instead of binary state
+    let mut ca = GeometricCA::<3, 0, 0>::new(100);
+    ca.set_cell(50, Multivector::e1());
+    ca.step();
+
+    // Neighbors affected by geometric product
+    let left = ca.get_cell(49);
+    let right = ca.get_cell(51);
+    assert!(left.magnitude() > 0.0);
+    assert!(right.magnitude() > 0.0);
 }
 
 #[test]
-fn test_cell_operations() {
-    let mut ca = TestCA::new(5, 5);
-    let mv = Multivector::basis_vector(0);
+fn test_ca_rule_as_geometric_operation() {
+    // CA rules are geometric products with neighbors
+    let rule = CARule::geometric(|center, neighbors| {
+        neighbors.iter().fold(center.clone(), |acc, n| {
+            acc.geometric_product(n)
+        })
+    });
 
-    // Test setting and getting cells
-    ca.set_cell(2, 2, mv.clone()).unwrap();
-    let retrieved = ca.get_cell(2, 2).unwrap();
-    assert_relative_eq!(retrieved.scalar_part(), mv.scalar_part());
-
-    // Test bounds checking
-    assert!(ca.set_cell(10, 10, mv).is_err());
-    assert!(ca.get_cell(10, 10).is_err());
+    let center = Multivector::<3, 0, 0>::e1();
+    let neighbors = vec![Multivector::e2(), Multivector::e3()];
+    let result = rule.apply(&center, &neighbors);
+    assert_eq!(result.grade(), 3); // Should be trivector
 }
 
 #[test]
-fn test_evolution_step() {
-    let mut ca = TestCA::new(3, 3);
+fn test_game_of_life_geometric() {
+    // Conway's Game of Life with geometric states
+    let mut ca = GeometricCA::<2, 0, 0>::game_of_life(50, 50);
 
-    // Set initial pattern
-    let e1 = Multivector::basis_vector(0);
-    ca.set_cell(1, 1, e1).unwrap();
+    // Create glider pattern
+    ca.set_pattern(10, 10, &[
+        [0, 1, 0],
+        [0, 0, 1],
+        [1, 1, 1],
+    ]);
 
-    // Evolve one step
-    ca.step().unwrap();
-    assert_eq!(ca.generation(), 1);
-
-    // Check that evolution occurred
-    let center = ca.get_cell(1, 1).unwrap();
-    // The exact result depends on the rule, but it should be different
-    // from zero due to geometric algebra operations
-}
-
-#[test]
-fn test_custom_rule() {
-    let mut ca = TestCA::new(3, 3);
-    let custom_rule = CARule::new(0.1, 2.0, 1.0, 0.5);
-    ca.set_rule(custom_rule);
-
-    // Set initial state
-    let mv = Multivector::scalar(1.0);
-    ca.set_cell(1, 1, mv).unwrap();
-
-    // Evolution should work with custom rule
-    ca.step().unwrap();
-    assert_eq!(ca.generation(), 1);
-}
-
-#[test]
-fn test_reset() {
-    let mut ca = TestCA::new(3, 3);
-
-    // Set initial state and evolve
-    let mv = Multivector::basis_vector(1);
-    ca.set_cell(1, 1, mv).unwrap();
-    ca.step().unwrap();
-
-    assert_eq!(ca.generation(), 1);
-
-    // Reset should clear everything
-    ca.reset();
-    assert_eq!(ca.generation(), 0);
-
-    let cell = ca.get_cell(1, 1).unwrap();
-    assert_relative_eq!(cell.magnitude(), 0.0);
-}
-
-#[test]
-fn test_geometric_operations() {
-    let mut ca = TestCA::new(3, 3);
-
-    // Set up a pattern that will test geometric operations
-    let e1 = Multivector::basis_vector(0);
-    let e2 = Multivector::basis_vector(1);
-
-    ca.set_cell(0, 1, e1).unwrap();
-    ca.set_cell(1, 1, e2).unwrap();
-    ca.set_cell(2, 1, e1).unwrap();
-
-    // The center cell should be influenced by geometric products
-    ca.step().unwrap();
-
-    let center = ca.get_cell(1, 1).unwrap();
-    // Should have contributions from geometric algebra operations
-    assert!(center.magnitude() > 0.0);
-}
-
-#[test]
-fn test_rule_parameters() {
-    let rule = CARule::default();
-    let custom_rule = CARule::new(0.3, 1.5, 0.8, 0.2);
-
-    // Default rule should have reasonable values
-    // Custom rule should accept the provided values
-    // (Implementation details would be tested here)
-}
-
-#[test]
-fn test_neighborhood_computation() {
-    let ca = TestCA::new(5, 5);
-
-    // Test that cells have the right number of neighbors
-    // Corner cells: 3 neighbors
-    // Edge cells: 5 neighbors
-    // Interior cells: 8 neighbors
-
-    // This would require exposing the get_neighbors method
-    // or testing indirectly through evolution behavior
-}
-
-#[test]
-fn test_evolution_stability() {
-    let mut ca = TestCA::new(10, 10);
-
-    // Set a stable pattern (if such patterns exist for our rule)
-    let mv = Multivector::scalar(0.1);
-    for x in 3..7 {
-        for y in 3..7 {
-            ca.set_cell(x, y, mv.clone()).unwrap();
-        }
+    // Evolve 4 steps (glider period)
+    for _ in 0..4 {
+        ca.step();
     }
 
-    // Evolve several steps
-    for _ in 0..5 {
-        ca.step().unwrap();
-    }
-
-    // Pattern should remain relatively stable
-    let center = ca.get_cell(5, 5).unwrap();
-    assert!(center.magnitude() > 0.0);
+    // Glider should have moved
+    assert!(ca.has_pattern_at(11, 11, &[
+        [0, 1, 0],
+        [0, 0, 1],
+        [1, 1, 1],
+    ]));
 }
 
 #[test]
-fn test_geometric_algebra_properties() {
-    let mut ca = TestCA::new(3, 3);
+fn test_reversible_ca_with_group_structure() {
+    // Cayley table of group ensures reversibility
+    let mut ca = GeometricCA::<2, 0, 0>::reversible(100);
+    let initial = ca.clone();
 
-    // Test that the CA respects geometric algebra properties
-    let e1 = Multivector::basis_vector(0);
-    let e2 = Multivector::basis_vector(1);
+    for _ in 0..10 {
+        ca.step();
+    }
+    for _ in 0..10 {
+        ca.step_inverse();
+    }
 
-    // Set orthogonal vectors
-    ca.set_cell(0, 1, e1).unwrap();
-    ca.set_cell(2, 1, e2).unwrap();
+    assert_eq!(ca.state(), initial.state());
+}
 
-    ca.step().unwrap();
+#[test]
+fn test_continuous_ca_with_rotors() {
+    // Cells are rotors that compose
+    let mut ca = GeometricCA::<3, 0, 0>::rotor_ca(100);
+    let rotor = Rotor::from_bivector(&Bivector::e12(), PI / 4.0);
+    ca.set_cell(50, rotor.as_multivector());
+    ca.step();
 
-    let result = ca.get_cell(1, 1).unwrap();
+    let neighbor = ca.get_cell(51);
+    assert!(neighbor.bivector_part().magnitude() > 0.0);
+}
 
-    // The result should reflect geometric algebra operations
-    // e1 * e2 = e12 (bivector), so we expect bivector components
-    let bivector_magnitude = result.grade_projection(2).magnitude();
-    assert!(bivector_magnitude > 0.0);
+#[test]
+fn test_cayley_table_performance() {
+    // O(1) lookups instead of expensive computations
+    let mut ca = GeometricCA::<3, 0, 0>::with_cached_cayley(1000);
+
+    // Time should be constant regardless of operation complexity
+    let start = std::time::Instant::now();
+    for _ in 0..1000 {
+        ca.step();
+    }
+    let duration = start.elapsed();
+
+    // Should complete within reasonable time
+    assert!(duration.as_millis() < 1000);
+}
+
+#[test]
+fn test_multivector_neighborhoods() {
+    // Test different neighborhood structures with multivectors
+    let mut ca = GeometricCA::<3, 0, 0>::new(10);
+
+    // Set initial multivector state
+    ca.set_cell(5, Multivector::e1() + Multivector::e2());
+    ca.step();
+
+    // Check von Neumann neighborhood
+    assert!(ca.get_cell(4).magnitude() > 0.0);
+    assert!(ca.get_cell(6).magnitude() > 0.0);
+}
+
+#[test]
+fn test_geometric_grade_preservation() {
+    // Test that grade structure is preserved through evolution
+    let mut ca = GeometricCA::<3, 0, 0>::grade_preserving(50);
+
+    // Set scalar
+    ca.set_cell(10, Multivector::scalar(1.0));
+    // Set vector
+    ca.set_cell(20, Multivector::e1());
+    // Set bivector
+    ca.set_cell(30, Multivector::e12());
+
+    ca.step();
+
+    // Grade structure should be maintained or predictably transformed
+    assert!(ca.get_cell(10).scalar_part() != 0.0 || ca.get_cell(10).magnitude() == 0.0);
+}
+
+#[test]
+fn test_ca_boundary_conditions() {
+    // Test different boundary conditions
+    let mut ca_periodic = GeometricCA::<2, 0, 0>::with_boundary_periodic(10);
+    let mut ca_fixed = GeometricCA::<2, 0, 0>::with_boundary_fixed(10);
+
+    ca_periodic.set_cell(0, Multivector::e1());
+    ca_fixed.set_cell(0, Multivector::e1());
+
+    ca_periodic.step();
+    ca_fixed.step();
+
+    // Periodic should wrap around
+    assert!(ca_periodic.get_cell(9).magnitude() > 0.0);
+    // Fixed should not
+    assert_eq!(ca_fixed.get_cell(9).magnitude(), 0.0);
+}
+
+#[test]
+fn test_multivector_conservation_laws() {
+    // Test conservation of certain multivector quantities
+    let mut ca = GeometricCA::<3, 0, 0>::conservative(100);
+
+    // Set initial configuration
+    for i in 40..60 {
+        ca.set_cell(i, Multivector::scalar(1.0));
+    }
+
+    let initial_total = ca.total_magnitude();
+
+    for _ in 0..10 {
+        ca.step();
+    }
+
+    let final_total = ca.total_magnitude();
+
+    // Should conserve some quantity
+    assert_relative_eq!(initial_total, final_total, epsilon = 1e-10);
 }
