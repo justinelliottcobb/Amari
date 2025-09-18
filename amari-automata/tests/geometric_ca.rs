@@ -126,6 +126,25 @@ fn test_multivector_neighborhoods() {
     // Test different neighborhood structures with multivectors
     let mut ca = GeometricCA::<3, 0, 0>::new(10);
 
+    // Use diffusion rule for neighbor propagation
+    let diffusion_rule = CARule::custom(|center, neighbors| {
+        if center.magnitude() > 0.0 {
+            center.clone()
+        } else {
+            let non_zero_neighbors: Vec<_> = neighbors.iter()
+                .filter(|n| n.magnitude() > 0.0)
+                .collect();
+            if !non_zero_neighbors.is_empty() {
+                let sum = non_zero_neighbors.iter()
+                    .fold(Multivector::zero(), |acc, &n| acc + n.clone());
+                sum * (1.0 / non_zero_neighbors.len() as f64)
+            } else {
+                Multivector::zero()
+            }
+        }
+    });
+
+    ca.set_rule(diffusion_rule);
     // Set initial multivector state
     ca.set_cell(5, Multivector::basis_vector(0) + Multivector::basis_vector(1)).unwrap();
     ca.step();
@@ -158,6 +177,27 @@ fn test_ca_boundary_conditions() {
     // Test different boundary conditions
     let mut ca_periodic = GeometricCA::<2, 0, 0>::with_boundary_periodic(10);
     let mut ca_fixed = GeometricCA::<2, 0, 0>::with_boundary_fixed(10);
+
+    // Use diffusion rule for both
+    let diffusion_rule = CARule::custom(|center, neighbors| {
+        if center.magnitude() > 0.0 {
+            center.clone()
+        } else {
+            let non_zero_neighbors: Vec<_> = neighbors.iter()
+                .filter(|n| n.magnitude() > 0.0)
+                .collect();
+            if !non_zero_neighbors.is_empty() {
+                let sum = non_zero_neighbors.iter()
+                    .fold(Multivector::zero(), |acc, &n| acc + n.clone());
+                sum * (1.0 / non_zero_neighbors.len() as f64)
+            } else {
+                Multivector::zero()
+            }
+        }
+    });
+
+    ca_periodic.set_rule(diffusion_rule.clone());
+    ca_fixed.set_rule(diffusion_rule);
 
     ca_periodic.set_cell(0, Multivector::basis_vector(0)).unwrap();
     ca_fixed.set_cell(0, Multivector::basis_vector(0)).unwrap();
