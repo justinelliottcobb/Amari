@@ -268,7 +268,7 @@ impl<const P: usize, const Q: usize, const R: usize> Multivector<P, Q, R> {
         for i in 0..Self::BASIS_COUNT {
             let grade = i.count_ones() as usize;
             // Reverse introduces sign: (-1)^(grade*(grade-1)/2)
-            let sign = if grade == 0 || (grade * (grade - 1) / 2) % 2 == 0 { 1.0 } else { -1.0 };
+            let sign = if (grade * (grade - 1) / 2) % 2 == 0 { 1.0 } else { -1.0 };
             result.coefficients[i] = sign * self.coefficients[i];
         }
         
