@@ -76,10 +76,10 @@ impl<const P: usize, const Q: usize, const R: usize> CayleyTable<P, Q, R> {
 
         // For each bit in blade_b, count how many bits in blade_a are to its left
         // This represents swaps needed to move blade_a bits past blade_b bits
-        for i in 0..32 {  // Assuming max 32 dimensions
+        for i in 0..Self::DIM {
             if (blade_b >> i) & 1 == 1 {
                 // Count bits in blade_a that are to the left (higher index) than position i
-                for j in (i+1)..32 {
+                for j in (i+1)..Self::DIM {
                     if (blade_a >> j) & 1 == 1 {
                         swaps += 1;
                     }

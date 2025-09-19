@@ -11,9 +11,13 @@ impl<const P: usize, const Q: usize, const R: usize> Rotor<P, Q, R> {
     /// Create a rotor from a bivector using exponential map
     ///
     /// For a bivector B representing a plane and angle θ,
-    /// the rotor R = exp(B*θ/2) performs rotation by angle θ in that plane.
+    /// the rotor R = exp(-B*θ/2) performs a right-handed rotation by angle θ in that plane.
+    ///
+    /// The negative sign ensures the rotation follows the right-hand rule convention:
+    /// when the thumb points in the direction of the bivector orientation,
+    /// the fingers curl in the direction of positive rotation.
     pub fn from_bivector(bivector: &Bivector<P, Q, R>, angle: f64) -> Self {
-        let half_angle_bivector = &bivector.mv * (-angle / 2.0);  // Negate for correct handedness
+        let half_angle_bivector = &bivector.mv * (-angle / 2.0);  // Negative for right-handed rotation
         let rotor = half_angle_bivector.exp();
 
         Self {
@@ -22,8 +26,11 @@ impl<const P: usize, const Q: usize, const R: usize> Rotor<P, Q, R> {
     }
     
     /// Create a rotor from a raw multivector bivector
+    ///
+    /// Similar to `from_bivector` but accepts a raw `Multivector` representing a bivector.
+    /// Uses the same right-handed rotation convention.
     pub fn from_multivector_bivector(bivector: &Multivector<P, Q, R>, angle: f64) -> Self {
-        let half_angle_bivector = bivector * (-angle / 2.0);  // Negate for correct handedness
+        let half_angle_bivector = bivector * (-angle / 2.0);  // Negative for right-handed rotation
         let rotor = half_angle_bivector.exp();
 
         Self {
