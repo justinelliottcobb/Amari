@@ -1,4 +1,4 @@
-# Amari 🌟
+# Amari
 
 A high-performance Geometric Algebra/Clifford Algebra library with Information Geometry operations and Tropical-Dual-Clifford fusion system for advanced mathematical computing, designed for TypeScript interop via WASM and optional GPU acceleration.
 
@@ -7,29 +7,29 @@ A high-performance Geometric Algebra/Clifford Algebra library with Information G
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue.svg)](https://www.typescriptlang.org/)
 [![License](https://img.shields.io/badge/License-MIT%20OR%20Apache--2.0-green.svg)](LICENSE)
 
-## ✨ Features
+## Features
 
-- **High-Performance Core**: Optimized Rust implementation with SIMD support and cache-aligned data structures
-- **Tropical-Dual-Clifford Fusion**: Revolutionary three-algebra system combining tropical, dual number, and Clifford algebras
-- **WebAssembly Bindings**: Zero-copy TypeScript/JavaScript bindings for web applications
-- **GPU Acceleration**: Optional WebGPU compute shaders for batch operations
-- **Information Geometry**: Fisher metrics, α-connections, Bregman divergences, and Amari-Chentsov tensors
-- **Automatic Differentiation**: Forward-mode autodiff with dual numbers for exact gradients
-- **Tropical Algebra**: Max-plus operations for efficient path finding and sequence decoding
-- **Type Safety**: Const generics eliminate runtime dimension checks
-- **Flexible Signatures**: Support for arbitrary metric signatures Cl(P,Q,R)
+- High-Performance Core: Optimized Rust implementation with SIMD support and cache-aligned data structures
+- Tropical-Dual-Clifford Fusion: Revolutionary three-algebra system combining tropical, dual number, and Clifford algebras
+- WebAssembly Bindings: Zero-copy TypeScript/JavaScript bindings for web applications
+- GPU Acceleration: Optional WebGPU compute shaders for batch operations
+- Information Geometry: Fisher metrics, α-connections, Bregman divergences, and Amari-Chentsov tensors
+- Automatic Differentiation: Forward-mode autodiff with dual numbers for exact gradients
+- Tropical Algebra: Max-plus operations for efficient path finding and sequence decoding
+- Type Safety: Const generics eliminate runtime dimension checks
+- Flexible Signatures: Support for arbitrary metric signatures Cl(P,Q,R)
 
-## 🏗️ Architecture
+## Architecture
 
 ### Crates
 
-- **`amari-core`**: Core Clifford algebra types and CPU implementations
-- **`amari-tropical`**: Tropical (max-plus) algebra for efficient optimization
-- **`amari-dual`**: Dual numbers for automatic differentiation
-- **`amari-fusion`**: Unified Tropical-Dual-Clifford system
-- **`amari-wasm`**: WASM bindings for TypeScript/JavaScript
-- **`amari-gpu`**: Optional GPU acceleration via WebGPU/wgpu
-- **`amari-info-geom`**: Information geometry operations
+- `amari-core`: Core Clifford algebra types and CPU implementations
+- `amari-tropical`: Tropical (max-plus) algebra for efficient optimization
+- `amari-dual`: Dual numbers for automatic differentiation
+- `amari-fusion`: Unified Tropical-Dual-Clifford system
+- `amari-wasm`: WASM bindings for TypeScript/JavaScript
+- `amari-gpu`: Optional GPU acceleration via WebGPU/wgpu
+- `amari-info-geom`: Information geometry operations
 
 ### Key Types
 
@@ -51,7 +51,7 @@ type Cl3 = Multivector<3, 0, 0>;  // 3D Euclidean
 type Spacetime = Multivector<1, 3, 0>;  // Minkowski spacetime
 ```
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Tropical-Dual-Clifford System
 
@@ -158,15 +158,15 @@ cd amari-wasm && wasm-pack build --target web
 cd typescript && npm install && npm run build
 ```
 
-## 📊 Performance
+## Performance
 
 The library is optimized for high-performance applications:
 
-- **SIMD**: Vectorized operations where supported
-- **Cache Alignment**: 64-byte aligned data structures
-- **Const Generics**: Zero-cost abstractions for dimensions
-- **GPU Fallback**: Automatic CPU/GPU dispatch based on workload size
-- **Batch Operations**: Efficient batch processing for large datasets
+- SIMD: Vectorized operations where supported
+- Cache Alignment: 64-byte aligned data structures
+- Const Generics: Zero-cost abstractions for dimensions
+- GPU Fallback: Automatic CPU/GPU dispatch based on workload size
+- Batch Operations: Efficient batch processing for large datasets
 
 ### Benchmarks
 
@@ -176,7 +176,7 @@ Run benchmarks to see performance on your system:
 ./build.sh --bench
 ```
 
-## 🧮 Mathematical Foundation
+## Mathematical Foundation
 
 ### Tropical-Dual-Clifford System
 
@@ -236,7 +236,7 @@ ab = a·b + a∧b
 - **Bregman Divergences**: Information-geometric divergences
 - **Amari-Chentsov Tensor**: Fundamental tensor structure
 
-## 📚 Examples
+## Examples
 
 ### Tropical-Dual-Clifford System
 
@@ -304,7 +304,7 @@ let phi = |mv: &Multivector<3,0,0>| mv.norm_squared();
 let divergence = bregman_divergence(phi, &p, &q)?;
 ```
 
-## 🧪 Testing
+## Testing
 
 ```bash
 # Run all tests
@@ -327,28 +327,28 @@ cargo doc --workspace --open
 # target/doc/amari_core/index.html
 ```
 
-## 🎯 Use Cases
+## Use Cases
 
-- **Computer Graphics**: Rotations, reflections, and transformations
-- **Robotics**: Orientation representation and interpolation  
-- **Physics**: Spacetime calculations and electromagnetic field theory
-- **Machine Learning**: Statistical manifold operations and natural gradients
-- **Computer Vision**: Multi-view geometry and camera calibration
-- **Mathematical Optimization**: Hybrid tropical-dual-Clifford optimization
-- **Sequence Analysis**: Efficient decoding using tropical Viterbi
-- **Automatic Differentiation**: Exact gradients for scientific computing
+- Computer Graphics: Rotations, reflections, and transformations
+- Robotics: Orientation representation and interpolation
+- Physics: Spacetime calculations and electromagnetic field theory
+- Machine Learning: Statistical manifold operations and natural gradients
+- Computer Vision: Multi-view geometry and camera calibration
+- Mathematical Optimization: Hybrid tropical-dual-Clifford optimization
+- Sequence Analysis: Efficient decoding using tropical Viterbi
+- Automatic Differentiation: Exact gradients for scientific computing
 
-## 🔬 Research Applications
+## Research Applications
 
-- **Information Geometry**: Statistical manifold computations
-- **Geometric Deep Learning**: Operations on non-Euclidean data
-- **Quantum Computing**: Clifford group operations
-- **Crystallography**: Symmetry group calculations
-- **Tropical Geometry**: Max-plus linear algebra and optimization
-- **Computational Algebra**: Multi-algebraic system integration
-- **Neural Architecture Search**: Gradient-based optimization with geometric constraints
+- Information Geometry: Statistical manifold computations
+- Geometric Deep Learning: Operations on non-Euclidean data
+- Quantum Computing: Clifford group operations
+- Crystallography: Symmetry group calculations
+- Tropical Geometry: Max-plus linear algebra and optimization
+- Computational Algebra: Multi-algebraic system integration
+- Neural Architecture Search: Gradient-based optimization with geometric constraints
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
 

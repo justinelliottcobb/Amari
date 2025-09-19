@@ -13,9 +13,9 @@ impl<const P: usize, const Q: usize, const R: usize> Rotor<P, Q, R> {
     /// For a bivector B representing a plane and angle θ,
     /// the rotor R = exp(B*θ/2) performs rotation by angle θ in that plane.
     pub fn from_bivector(bivector: &Bivector<P, Q, R>, angle: f64) -> Self {
-        let half_angle_bivector = &bivector.mv * (angle / 2.0);
+        let half_angle_bivector = &bivector.mv * (-angle / 2.0);  // Negate for correct handedness
         let rotor = half_angle_bivector.exp();
-        
+
         Self {
             multivector: rotor.normalize().unwrap_or(Multivector::scalar(1.0)),
         }
@@ -23,9 +23,9 @@ impl<const P: usize, const Q: usize, const R: usize> Rotor<P, Q, R> {
     
     /// Create a rotor from a raw multivector bivector
     pub fn from_multivector_bivector(bivector: &Multivector<P, Q, R>, angle: f64) -> Self {
-        let half_angle_bivector = bivector * (angle / 2.0);
+        let half_angle_bivector = bivector * (-angle / 2.0);  // Negate for correct handedness
         let rotor = half_angle_bivector.exp();
-        
+
         Self {
             multivector: rotor.normalize().unwrap_or(Multivector::scalar(1.0)),
         }
@@ -186,22 +186,18 @@ pub fn reflect<const P: usize, const Q: usize, const R: usize>(
     v: &Multivector<P, Q, R>,
     n: &Multivector<P, Q, R>,
 ) -> Multivector<P, Q, R> {
-    // Reflection formula: -n * v * n
-    let nvn = n.geometric_product(v).geometric_product(n);
-    nvn * -1.0
+    // Reflection formula: n * v * n (for unit normal vector)
+    n.geometric_product(v).geometric_product(n)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::basis::{Basis, MultivectorBuilder};
-    
-    type Cl3 = Multivector<3, 0, 0>;
     
     #[test]
     fn test_rotor_90_degrees() {
         let e1 = Vector::<3, 0, 0>::e1();
-        let e2 = Vector::<3, 0, 0>::e2();
+        let _e2 = Vector::<3, 0, 0>::e2();
         let e12 = Bivector::<3, 0, 0>::e12();
         
         // Create 90-degree rotation in e1-e2 plane

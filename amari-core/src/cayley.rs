@@ -3,9 +3,7 @@
 //! The Cayley table precomputes the multiplication rules for all basis blade pairs,
 //! encoding both the resulting blade index and sign based on the algebra's signature.
 
-use alloc::boxed::Box;
 use alloc::vec::Vec;
-use core::sync::atomic::{AtomicPtr, Ordering};
 
 /// Entry in the Cayley table: (sign, result_index)
 type CayleyEntry = (f64, usize);
@@ -14,32 +12,20 @@ type CayleyEntry = (f64, usize);
 #[derive(Clone)]
 pub struct CayleyTable<const P: usize, const Q: usize, const R: usize> {
     table: Vec<CayleyEntry>,
-    dim: usize,
 }
 
 impl<const P: usize, const Q: usize, const R: usize> CayleyTable<P, Q, R> {
     const DIM: usize = P + Q + R;
     const BASIS_COUNT: usize = 1 << Self::DIM;
 
-    /// Create a new CayleyTable (alias for get() for compatibility)
-    pub fn new() -> &'static Self {
-        Self::get()
+    /// Create a new CayleyTable
+    pub fn new() -> Self {
+        Self::generate()
     }
 
-    /// Get or create the singleton Cayley table
-    pub fn get() -> &'static Self {
-        static mut TABLE: AtomicPtr<()> = AtomicPtr::new(core::ptr::null_mut());
-        
-        unsafe {
-            let ptr = TABLE.load(Ordering::Acquire);
-            if ptr.is_null() {
-                let table = Box::leak(Box::new(Self::generate()));
-                TABLE.store(table as *mut _ as *mut (), Ordering::Release);
-                table
-            } else {
-                &*(ptr as *const Self)
-            }
-        }
+    /// Get a reference to a new table (for compatibility)
+    pub fn get() -> Self {
+        Self::generate()
     }
     
     /// Generate the Cayley table for this algebra
@@ -55,7 +41,6 @@ impl<const P: usize, const Q: usize, const R: usize> CayleyTable<P, Q, R> {
         
         Self {
             table,
-            dim: Self::DIM,
         }
     }
     
@@ -85,22 +70,23 @@ impl<const P: usize, const Q: usize, const R: usize> CayleyTable<P, Q, R> {
         (sign, result_blade)
     }
     
-    /// Compute sign from reordering basis vectors
+    /// Compute sign from reordering basis vectors using bubble sort logic
     fn compute_reorder_sign(blade_a: usize, blade_b: usize) -> f64 {
         let mut swaps = 0;
-        let mut b = blade_b;
-        
-        while b != 0 {
-            // Get rightmost set bit in b
-            let lowest_b = b & (!b + 1);
-            b ^= lowest_b;
-            
-            // Count how many basis vectors in a are to the right of this one
-            let mask = lowest_b - 1;
-            let count = (blade_a & mask).count_ones();
-            swaps += count;
+
+        // For each bit in blade_b, count how many bits in blade_a are to its left
+        // This represents swaps needed to move blade_a bits past blade_b bits
+        for i in 0..32 {  // Assuming max 32 dimensions
+            if (blade_b >> i) & 1 == 1 {
+                // Count bits in blade_a that are to the left (higher index) than position i
+                for j in (i+1)..32 {
+                    if (blade_a >> j) & 1 == 1 {
+                        swaps += 1;
+                    }
+                }
+            }
         }
-        
+
         if swaps % 2 == 0 { 1.0 } else { -1.0 }
     }
     

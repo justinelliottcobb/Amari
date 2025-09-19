@@ -45,7 +45,6 @@
 //! let magnitude = norm!(a);        // ‖·‖
 //! ```
 
-use crate::Multivector;
 
 /// Geometric product: a ⊗ b
 /// 
@@ -200,8 +199,7 @@ macro_rules! unit {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::{Vector, Bivector, basis::MultivectorBuilder};
+    use crate::{Vector, basis::MultivectorBuilder};
     use approx::assert_relative_eq;
     
     #[test]
