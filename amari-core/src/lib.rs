@@ -521,15 +521,15 @@ impl<const P: usize, const Q: usize, const R: usize> Multivector<P, Q, R> {
             let dual_index = i ^ pseudoscalar_index;
             
             // Calculate the sign based on the number of swaps needed
-            let grade_i = i.count_ones() as usize;
-            let grade_dual = dual_index.count_ones() as usize;
+            let _grade_i = i.count_ones() as usize;
+            let _grade_dual = dual_index.count_ones() as usize;
             
             // Sign depends on the permutation parity
             let mut sign = 1.0;
             
             // Count the number of index swaps needed (simplified calculation)
-            let mut temp_i = i;
-            let mut temp_dual = dual_index;
+            let temp_i = i;
+            let temp_dual = dual_index;
             let mut swaps = 0;
             
             for bit_pos in 0..n {
@@ -794,6 +794,26 @@ impl<const P: usize, const Q: usize, const R: usize> Vector<P, Q, R> {
         let product = self.mv.geometric_product(&other.mv);
         let target_grade = if 2 >= 1 { 2 - 1 } else { 1 - 2 };
         product.grade_projection(target_grade)
+    }
+
+    /// Normalize the vector (return unit vector if possible)
+    pub fn normalize(&self) -> Option<Self> {
+        self.mv.normalize().map(|normalized| Self { mv: normalized })
+    }
+
+    /// Compute the squared norm of the vector
+    pub fn norm_squared(&self) -> f64 {
+        self.mv.norm_squared()
+    }
+
+    /// Compute the reverse (for vectors, this is the same as the original)
+    pub fn reverse(&self) -> Self {
+        Self { mv: self.mv.reverse() }
+    }
+
+    /// Compute the norm (magnitude) of the vector
+    pub fn norm(&self) -> f64 {
+        self.mv.norm()
     }
 }
 

@@ -1,4 +1,4 @@
-use amari_core::{Multivector, Scalar, Vector, Bivector, E};
+use amari_core::{Multivector, Scalar, Vector, Bivector};
 use approx::assert_relative_eq;
 
 mod geometric_product_tests {
@@ -44,7 +44,7 @@ mod geometric_product_tests {
         let e2_e1 = e2.geometric_product(&e1);
         
         // They should be negatives
-        assert_relative_eq!(e1_e2.bivector_part()[0], -e2_e1.bivector_part()[0]);
+        assert_relative_eq!(e1_e2.bivector_type()[0], -e2_e1.bivector_type()[0]);
         
         // And both should be pure bivectors (no scalar/vector parts)
         assert_relative_eq!(e1_e2.scalar_part(), 0.0);
