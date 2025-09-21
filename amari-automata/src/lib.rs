@@ -22,17 +22,17 @@
 //! ## Usage
 //!
 //! ```rust
-//! use amari_automata::{GeometricCA, InverseDesigner, SelfAssembler};
+//! use amari_automata::{GeometricCA, Evolvable};
 //! use amari_core::Multivector;
 //!
-//! // Create a geometric cellular automaton
-//! let mut ca = GeometricCA::<3, 0, 0>::new(64, 64);
+//! // Create a 2D geometric cellular automaton
+//! let mut ca = GeometricCA::<3, 0, 0>::new_2d(64, 64);
 //!
-//! // Set initial configuration with multivector cells
-//! ca.set_cell(32, 32, Multivector::basis_vector(0));
+//! // Set initial configuration with multivector cells using 2D coordinates
+//! ca.set_cell_2d(32, 32, Multivector::basis_vector(0)).unwrap();
 //!
 //! // Evolve the system
-//! ca.step();
+//! ca.step().unwrap();
 //! ```
 
 #![no_std]
