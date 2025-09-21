@@ -377,20 +377,28 @@ mod tests {
     
     #[test]
     fn test_amari_chentsov_tensor() {
+        // Create three linearly independent vectors to ensure non-zero tensor value
         // Test with e1, e2, e3 which should give determinant = 1
         let x = MultivectorBuilder::<3, 0, 0>::new()
-            .e(1, 1.0)
+            .e(1, 1.0)  // e1
             .build();
 
         let y = MultivectorBuilder::<3, 0, 0>::new()
-            .e(2, 1.0)
+            .e(2, 1.0)  // e2
             .build();
 
         let z = MultivectorBuilder::<3, 0, 0>::new()
-            .e(3, 1.0)
+            .e(3, 1.0)  // e3
             .build();
 
         let tensor_value = amari_chentsov_tensor(&x, &y, &z);
+
+        // For x = e1, y = e2, z = e3, the scalar triple product should be 1
+        // T(e1, e2, e3) = det([1,0,0; 0,1,0; 0,0,1]) = 1
         assert!((tensor_value - 1.0).abs() < 1e-10, "Expected 1.0, got {}", tensor_value);
+
+        // Test with different ordering to verify anti-symmetry
+        let tensor_value_reversed = amari_chentsov_tensor(&y, &x, &z);
+        assert!((tensor_value_reversed + 1.0).abs() < 1e-10, "Should be -1.0 due to swap");
     }
 }
