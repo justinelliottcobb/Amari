@@ -61,9 +61,10 @@ fn bench_tensor_computation_scaling(c: &mut Criterion) {
                         .zip(y_batch.iter())
                         .zip(z_batch.iter())
                         .map(|((x, y), z)| {
-                            // Add WASM call overhead simulation
-                            std::thread::sleep(Duration::from_nanos(100));
-                            amari_chentsov_tensor(x, y, z)
+                            // Simulate WASM call overhead with deterministic computation
+                            let overhead_work = (x.norm_squared() + y.norm_squared() + z.norm_squared()) * 0.001;
+                            let result = amari_chentsov_tensor(x, y, z);
+                            criterion::black_box(overhead_work + result)
                         })
                         .collect();
                 });
