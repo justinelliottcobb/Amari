@@ -469,7 +469,6 @@ impl<T: Float> MultiDualMultivector<T> {
 mod tests {
     use super::*;
     use approx::assert_relative_eq;
-    use alloc::vec::Vec;
     use alloc::vec;
     
     #[test]

@@ -221,7 +221,6 @@ pub fn tropical_convex_hull<T: Float>(points: &[TropicalMultivector<T, 2>]) -> V
 mod tests {
     use super::*;
     use approx::assert_relative_eq;
-    use alloc::vec::Vec;
     use alloc::vec;
     
     #[test]

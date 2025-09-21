@@ -231,7 +231,6 @@ pub fn dropout<T: Float>(
 mod tests {
     use super::*;
     use approx::assert_relative_eq;
-    use alloc::vec::Vec;
     use alloc::vec;
     
     #[test]
