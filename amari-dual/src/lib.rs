@@ -444,6 +444,8 @@ impl<T: Float> AutoDiffContext<T> {
 mod tests {
     use super::*;
     use approx::assert_relative_eq;
+    use alloc::vec::Vec;
+    use alloc::vec;
     
     #[test]
     fn test_dual_arithmetic() {
