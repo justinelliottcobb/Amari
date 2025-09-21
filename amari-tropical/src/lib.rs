@@ -505,12 +505,8 @@ mod tests {
     
     #[test]
     fn test_tropical_multivector() {
-        let mut c1 = Vec::with_capacity(4);
-        c1.push(1.0); c1.push(2.0); c1.push(3.0); c1.push(4.0);
-        let mv1 = TropicalMultivector::<f64, 2>::from_coefficients(c1);
-        let mut c2 = Vec::with_capacity(4);
-        c2.push(0.5); c2.push(1.5); c2.push(2.5); c2.push(3.5);
-        let mv2 = TropicalMultivector::<f64, 2>::from_coefficients(c2);
+        let mv1 = TropicalMultivector::<f64, 2>::from_coefficients(Vec::from([1.0, 2.0, 3.0, 4.0]));
+        let mv2 = TropicalMultivector::<f64, 2>::from_coefficients(Vec::from([0.5, 1.5, 2.5, 3.5]));
         
         let product = mv1.geometric_product(&mv2);
         
@@ -524,16 +520,11 @@ mod tests {
     
     #[test]
     fn test_tropical_matrix() {
-        let mut row1 = Vec::with_capacity(3);
-        row1.push(0.0); row1.push(-1.0); row1.push(-2.0);
-        let mut row2 = Vec::with_capacity(3);
-        row2.push(-1.0); row2.push(0.0); row2.push(-1.0);
-        let mut row3 = Vec::with_capacity(3);
-        row3.push(-2.0); row3.push(-1.0); row3.push(0.0);
-        let mut log_probs = Vec::with_capacity(3);
-        log_probs.push(row1);
-        log_probs.push(row2);
-        log_probs.push(row3);
+        let log_probs = vec![
+            Vec::from([0.0, -1.0, -2.0]),
+            Vec::from([-1.0, 0.0, -1.0]),
+            Vec::from([-2.0, -1.0, 0.0]),
+        ];
         
         let matrix = TropicalMatrix::from_log_probs(&log_probs);
         let det = matrix.determinant();
@@ -550,10 +541,11 @@ mod tests {
     #[test]
     fn test_viterbi_equivalence() {
         // Tropical multiplication chain should equal Viterbi path probability
-        let mut transitions = Vec::with_capacity(3);
-        transitions.push(TropicalNumber::from_log_prob(-0.5));
-        transitions.push(TropicalNumber::from_log_prob(-1.0));
-        transitions.push(TropicalNumber::from_log_prob(-0.3));
+        let transitions = Vec::from([
+            TropicalNumber::from_log_prob(-0.5),
+            TropicalNumber::from_log_prob(-1.0),
+            TropicalNumber::from_log_prob(-0.3),
+        ]);
         
         let path_prob = transitions.into_iter().fold(TropicalNumber::ONE, |acc, x| acc * x);
         
