@@ -9,18 +9,18 @@ pub fn softmax<T: Float>(inputs: &[DualNumber<T>]) -> Vec<DualNumber<T>> {
     if inputs.is_empty() {
         return Vec::new();
     }
-    
+
     // Find max for numerical stability
     let max_val = inputs.iter().map(|x| x.real).fold(inputs[0].real, |a, b| a.max(b));
-    
+
     // Compute exp(x - max) for each input
     let exp_vals: Vec<DualNumber<T>> = inputs.iter()
         .map(|&x| (x - DualNumber::constant(max_val)).exp())
         .collect();
-    
+
     // Compute sum of exponentials
     let sum = exp_vals.iter().fold(DualNumber::constant(T::zero()), |acc, &x| acc + x);
-    
+
     // Divide each by the sum
     exp_vals.into_iter().map(|exp_val| exp_val / sum).collect()
 }
@@ -235,21 +235,29 @@ mod tests {
     
     #[test]
     fn test_softmax() {
-        let inputs = vec![
-            DualNumber::variable(1.0),
-            DualNumber::variable(2.0),
-            DualNumber::variable(3.0),
-        ];
-        
-        let result = softmax(&inputs);
-        
-        // Check that probabilities sum to 1
-        let sum = result.iter().fold(DualNumber::constant(0.0), |acc, &x| acc + x);
-        assert_relative_eq!(sum.real, 1.0, epsilon = 1e-10);
-        
-        // Check that derivatives exist
-        for prob in &result {
-            assert!(prob.dual.abs() > 0.0);
+        let logits = vec![1.0, 2.0, 3.0];
+
+        // Test partial derivatives one at a time
+        for i in 0..logits.len() {
+            let inputs: Vec<DualNumber<f64>> = logits.iter().enumerate()
+                .map(|(j, &x)| {
+                    if i == j {
+                        DualNumber::variable(x)  // dual part = 1 for variable we're differentiating
+                    } else {
+                        DualNumber::constant(x)  // dual part = 0 for other variables
+                    }
+                })
+                .collect();
+
+            let result = softmax(&inputs);
+
+            // Check that probabilities sum to 1
+            let sum = result.iter().fold(DualNumber::constant(0.0), |acc, &x| acc + x);
+            assert_relative_eq!(sum.real, 1.0, epsilon = 1e-10);
+
+            // At least one probability should have non-zero derivative
+            let has_nonzero_derivative = result.iter().any(|prob| prob.dual.abs() > 1e-12);
+            assert!(has_nonzero_derivative, "No non-zero derivatives found for input {}", i);
         }
     }
     
@@ -273,42 +281,66 @@ mod tests {
     
     #[test]
     fn test_cross_entropy_loss() {
-        let predictions = vec![
-            DualNumber::variable(1.0),
-            DualNumber::variable(2.0),
-            DualNumber::variable(3.0),
-        ];
-        
+        let logits = vec![1.0, 2.0, 3.0];
         let targets = vec![0.0, 0.0, 1.0]; // One-hot encoded
-        
-        let loss = cross_entropy_loss(&predictions, &targets);
-        
-        // Loss should be positive
-        assert!(loss.real > 0.0);
-        
-        // Should have gradient
-        assert!(loss.dual.abs() > 0.0);
+
+        // Test partial derivatives one at a time
+        for i in 0..logits.len() {
+            let predictions: Vec<DualNumber<f64>> = logits.iter().enumerate()
+                .map(|(j, &x)| {
+                    if i == j {
+                        DualNumber::variable(x)  // dual part = 1 for variable we're differentiating
+                    } else {
+                        DualNumber::constant(x)  // dual part = 0 for other variables
+                    }
+                })
+                .collect();
+
+            let loss = cross_entropy_loss(&predictions, &targets);
+
+            // Loss should be positive
+            assert!(loss.real > 0.0);
+
+            // Should have gradient with respect to at least some inputs
+            if targets[i] == 0.0 {
+                // For inputs not corresponding to target class, gradient should be positive (softmax probability)
+                assert!(loss.dual > 0.0, "Expected positive gradient for non-target input {}", i);
+            } else {
+                // For input corresponding to target class, gradient should be negative (softmax probability - 1)
+                assert!(loss.dual < 0.0, "Expected negative gradient for target input {}", i);
+            }
+        }
     }
     
     #[test]
     fn test_kl_divergence() {
-        let p_logits = vec![
-            DualNumber::variable(1.0),
-            DualNumber::variable(1.0),
-        ];
-        
-        let q_logits = vec![
-            DualNumber::constant(2.0),
-            DualNumber::constant(0.5),
-        ];
-        
-        let kl = kl_divergence(&p_logits, &q_logits);
-        
-        // KL divergence should be non-negative
-        assert!(kl.real >= 0.0);
-        
-        // Should have gradient with respect to p
-        assert!(kl.dual.abs() > 0.0);
+        let p_values = vec![1.0, 1.0];
+        let q_values = vec![2.0, 0.5];
+
+        // Test partial derivatives with respect to p logits one at a time
+        for i in 0..p_values.len() {
+            let p_logits: Vec<DualNumber<f64>> = p_values.iter().enumerate()
+                .map(|(j, &x)| {
+                    if i == j {
+                        DualNumber::variable(x)  // dual part = 1 for variable we're differentiating
+                    } else {
+                        DualNumber::constant(x)  // dual part = 0 for other variables
+                    }
+                })
+                .collect();
+
+            let q_logits: Vec<DualNumber<f64>> = q_values.iter()
+                .map(|&x| DualNumber::constant(x))
+                .collect();
+
+            let kl = kl_divergence(&p_logits, &q_logits);
+
+            // KL divergence should be non-negative
+            assert!(kl.real >= 0.0);
+
+            // Should have gradient with respect to p
+            assert!(kl.dual.abs() > 0.0, "Expected non-zero gradient for p variable {}", i);
+        }
     }
     
     #[test]
@@ -325,34 +357,42 @@ mod tests {
     
     #[test]
     fn test_layer_norm() {
-        let inputs = vec![
-            DualNumber::variable(1.0),
-            DualNumber::variable(2.0),
-            DualNumber::variable(3.0),
-        ];
-        
-        let gamma = vec![
-            DualNumber::constant(1.0),
-            DualNumber::constant(1.0),
-            DualNumber::constant(1.0),
-        ];
-        
-        let beta = vec![
-            DualNumber::constant(0.0),
-            DualNumber::constant(0.0),
-            DualNumber::constant(0.0),
-        ];
-        
-        let result = layer_norm(&inputs, &gamma, &beta, 1e-5);
-        
-        // Check that normalized values have mean ≈ 0
-        let mean = result.iter().fold(DualNumber::constant(0.0), |acc, &x| acc + x) 
-                 / DualNumber::constant(3.0);
-        assert_relative_eq!(mean.real, 0.0, epsilon = 1e-10);
-        
-        // Check that all outputs have derivatives
-        for output in &result {
-            assert!(output.dual.abs() > 0.0);
+        let input_values = vec![1.0, 2.0, 3.0];
+
+        // Test partial derivatives with respect to inputs one at a time
+        for i in 0..input_values.len() {
+            let inputs: Vec<DualNumber<f64>> = input_values.iter().enumerate()
+                .map(|(j, &x)| {
+                    if i == j {
+                        DualNumber::variable(x)  // dual part = 1 for variable we're differentiating
+                    } else {
+                        DualNumber::constant(x)  // dual part = 0 for other variables
+                    }
+                })
+                .collect();
+
+            let gamma = vec![
+                DualNumber::constant(1.0),
+                DualNumber::constant(1.0),
+                DualNumber::constant(1.0),
+            ];
+
+            let beta = vec![
+                DualNumber::constant(0.0),
+                DualNumber::constant(0.0),
+                DualNumber::constant(0.0),
+            ];
+
+            let result = layer_norm(&inputs, &gamma, &beta, 1e-5);
+
+            // Check that normalized values have mean ≈ 0
+            let mean = result.iter().fold(DualNumber::constant(0.0), |acc, &x| acc + x)
+                     / DualNumber::constant(3.0);
+            assert_relative_eq!(mean.real, 0.0, epsilon = 1e-10);
+
+            // At least one output should have non-zero derivative
+            let has_nonzero_derivative = result.iter().any(|output| output.dual.abs() > 1e-12);
+            assert!(has_nonzero_derivative, "No non-zero derivatives found for input {}", i);
         }
     }
 }
