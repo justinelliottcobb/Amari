@@ -5,10 +5,10 @@
 //! a mathematical foundation for understanding CA dynamics.
 
 use crate::{AutomataError, AutomataResult};
-use amari_core::{Multivector, CayleyTable};
-use alloc::vec::Vec;
-use alloc::string::String;
 use alloc::collections::BTreeMap;
+use alloc::string::String;
+use alloc::vec::Vec;
+use amari_core::{CayleyTable, Multivector};
 
 // Missing types needed by lib.rs imports (simplified implementations)
 
@@ -20,7 +20,9 @@ pub struct GroupElement {
 
 impl GroupElement {
     pub fn identity() -> Self {
-        Self { representation: Multivector::scalar(1.0) }
+        Self {
+            representation: Multivector::scalar(1.0),
+        }
     }
 
     pub fn to_multivector(&self) -> Multivector<3, 0, 0> {
@@ -36,10 +38,11 @@ pub struct Generator {
 
 impl Generator {
     pub fn rotation() -> Self {
-        Self { operation: Multivector::basis_vector(0) }
+        Self {
+            operation: Multivector::basis_vector(0),
+        }
     }
 }
-
 
 /// Graph-based Cayley navigator
 #[derive(Clone, Debug)]
@@ -55,7 +58,9 @@ impl Default for CayleyGraphNavigator {
 
 impl CayleyGraphNavigator {
     pub fn new() -> Self {
-        Self { graph: BTreeMap::new() }
+        Self {
+            graph: BTreeMap::new(),
+        }
     }
 }
 
@@ -101,7 +106,6 @@ pub struct CayleyGraph<const P: usize, const Q: usize, const R: usize> {
     /// Cached Cayley table for performance
     cayley_table: Option<CayleyTable<P, Q, R>>,
 }
-
 
 /// Navigator for traversing Cayley graphs
 pub struct CayleyNavigator<const P: usize, const Q: usize, const R: usize> {
@@ -346,7 +350,9 @@ impl<const P: usize, const Q: usize, const R: usize> CayleyNavigator<P, Q, R> {
 
     /// Get current state
     pub fn current_state(&self) -> Option<&Multivector<P, Q, R>> {
-        self.graph.get_node(self.current_node).map(|node| &node.state)
+        self.graph
+            .get_node(self.current_node)
+            .map(|node| &node.state)
     }
 
     /// Get path history

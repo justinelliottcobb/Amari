@@ -4,11 +4,11 @@
 //! patterns. Uses dual numbers for automatic differentiation through CA evolution,
 //! enabling gradient-based optimization.
 
-use crate::{AutomataError, AutomataResult, InverseDesignable};
 use crate::geometric_ca::GeometricCA;
+use crate::{AutomataError, AutomataResult, InverseDesignable};
+use alloc::vec::Vec;
 use amari_core::Multivector;
 use amari_dual::{DualMultivector, DualNumber};
-use alloc::vec::Vec;
 use num_traits::Float;
 
 // Additional types needed by tests (simplified implementations)
@@ -22,7 +22,9 @@ pub struct TargetPattern {
 
 impl TargetPattern {
     pub fn from_multivectors(data: &[Multivector<3, 0, 0>]) -> Self {
-        Self { data: data.to_vec() }
+        Self {
+            data: data.to_vec(),
+        }
     }
 }
 
@@ -113,12 +115,7 @@ pub struct Target<const P: usize, const Q: usize, const R: usize> {
 
 impl<T: Float, const P: usize, const Q: usize, const R: usize> InverseDesigner<T, P, Q, R> {
     /// Create a new inverse designer
-    pub fn new(
-        width: usize,
-        height: usize,
-        target_steps: usize,
-        learning_rate: T,
-    ) -> Self {
+    pub fn new(width: usize, height: usize, target_steps: usize, learning_rate: T) -> Self {
         Self {
             template_ca: GeometricCA::new_2d(width, height),
             target_steps,
@@ -222,7 +219,9 @@ impl<T: Float, const P: usize, const Q: usize, const R: usize> InverseDesigner<T
 
         for dy in -1i32..=1 {
             for dx in -1i32..=1 {
-                if dx == 0 && dy == 0 { continue; }
+                if dx == 0 && dy == 0 {
+                    continue;
+                }
 
                 let nx = x as i32 + dx;
                 let ny = y as i32 + dy;
@@ -318,7 +317,9 @@ impl<T: Float, const P: usize, const Q: usize, const R: usize> InverseDesignable
     fn fitness(&self, config: &Self::Configuration, target: &Self::Target) -> f64 {
         // Simulate without gradients for efficiency
         if let Ok(evolved) = self.simulate_with_gradients(config) {
-            self.compute_loss(&evolved, target).to_f64().unwrap_or(f64::INFINITY)
+            self.compute_loss(&evolved, target)
+                .to_f64()
+                .unwrap_or(f64::INFINITY)
         } else {
             f64::INFINITY
         }

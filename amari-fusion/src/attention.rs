@@ -1,10 +1,10 @@
 //! Attention mechanisms using Tropical-Dual-Clifford algebra
 
 use crate::TropicalDualClifford;
-use amari_core::Multivector;
-use amari_dual::{DualNumber, functions::softmax};
-use amari_tropical::TropicalNumber;
 use alloc::vec::Vec;
+use amari_core::Multivector;
+use amari_dual::{functions::softmax, DualNumber};
+use amari_tropical::TropicalNumber;
 use num_traits::Float;
 
 /// Attention head using all three algebraic systems
@@ -28,7 +28,7 @@ impl<T: Float> AttentionHead<T> {
     /// Create new attention head with random initialization
     pub fn new(d_model: usize, d_head: usize) -> Self {
         let scale = T::from(1.0 / (d_model as f64).sqrt()).unwrap();
-        
+
         Self {
             w_q: TropicalDualClifford::random_with_scale(scale),
             w_k: TropicalDualClifford::random_with_scale(scale),
@@ -38,17 +38,17 @@ impl<T: Float> AttentionHead<T> {
             d_head,
         }
     }
-    
+
     /// Compute attention scores using tropical algebra for efficiency
     pub fn compute_attention_tropical(
         &self,
         queries: &[TropicalNumber<T>],
         keys: &[TropicalNumber<T>],
-        mask: Option<&[bool]>
+        mask: Option<&[bool]>,
     ) -> Vec<TropicalNumber<T>> {
         let seq_len = queries.len().min(keys.len());
         let mut scores = Vec::with_capacity(seq_len * seq_len);
-        
+
         // Compute Q·K^T in tropical space (becomes addition)
         for i in 0..seq_len {
             for j in 0..seq_len {
@@ -64,79 +64,85 @@ impl<T: Float> AttentionHead<T> {
                 scores.push(score);
             }
         }
-        
+
         // Apply tropical softmax (efficient max-based operation)
         self.tropical_softmax(&scores, seq_len)
     }
-    
+
     /// Tropical softmax using max-plus algebra
-    fn tropical_softmax(&self, logits: &[TropicalNumber<T>], seq_len: usize) -> Vec<TropicalNumber<T>> {
+    fn tropical_softmax(
+        &self,
+        logits: &[TropicalNumber<T>],
+        seq_len: usize,
+    ) -> Vec<TropicalNumber<T>> {
         let mut result = Vec::with_capacity(logits.len());
-        
+
         for i in 0..seq_len {
             let start_idx = i * seq_len;
             let row = &logits[start_idx..start_idx + seq_len];
-            
+
             // Find max in tropical space (becomes standard max)
-            let max_val = row.iter().fold(TropicalNumber::neg_infinity(), |acc, &x| acc.tropical_add(x));
-            
+            let max_val = row.iter().fold(TropicalNumber::neg_infinity(), |acc, &x| {
+                acc.tropical_add(x)
+            });
+
             // Normalize by subtracting max (tropical division)
             for &score in row {
                 let normalized = TropicalNumber(score.0 - max_val.0);
                 result.push(normalized);
             }
         }
-        
+
         result
     }
-    
+
     /// Compute exact attention using dual numbers for gradients
     pub fn compute_attention_dual(
         &self,
         queries: &[DualNumber<T>],
         keys: &[DualNumber<T>],
         values: &[DualNumber<T>],
-        mask: Option<&[bool]>
+        mask: Option<&[bool]>,
     ) -> Vec<DualNumber<T>> {
         let seq_len = queries.len();
         let mut attention_scores = Vec::with_capacity(seq_len * seq_len);
-        
+
         // Compute scaled dot-product attention scores
         for i in 0..seq_len {
             for j in 0..seq_len {
                 let mut score = DualNumber::constant(T::zero());
-                
+
                 // Dot product in dual space (preserves gradients)
                 for k in 0..self.d_head.min(queries.len()) {
                     let q_idx = i * self.d_head + k;
                     let k_idx = j * self.d_head + k;
-                    
+
                     if q_idx < queries.len() && k_idx < keys.len() {
                         score = score + queries[q_idx] * keys[k_idx];
                     }
                 }
-                
+
                 // Scale by temperature
                 score = score * self.temperature;
-                
+
                 // Apply mask if provided
                 if let Some(mask) = mask {
                     if !mask[i * seq_len + j] {
                         score = DualNumber::constant(T::neg_infinity());
                     }
                 }
-                
+
                 attention_scores.push(score);
             }
         }
-        
+
         // Apply softmax with automatic differentiation
         let mut result = Vec::with_capacity(values.len());
         for i in 0..seq_len {
             let start_idx = i * seq_len;
             let row_scores = &attention_scores[start_idx..start_idx + seq_len];
             let attention_weights = softmax(row_scores);
-            
+
             // Compute weighted sum of values
             let mut weighted_output = DualNumber::constant(T::zero());
             for (j, &weight) in attention_weights.iter().enumerate() {
@@ -146,78 +152,77 @@ impl<T: Float> AttentionHead<T> {
             }
             result.push(weighted_output);
         }
-        
+
         result
     }
-    
+
     /// Geometric attention using Clifford algebra for rotational invariance
     pub fn compute_attention_clifford(
         &self,
         query_mv: &Multivector<3, 0, 0>,
         key_mv: &Multivector<3, 0, 0>,
-        value_mv: &Multivector<3, 0, 0>
+        value_mv: &Multivector<3, 0, 0>,
     ) -> Multivector<3, 0, 0> {
         // Simplified geometric attention using scalar product
         let alignment = query_mv.scalar_product(key_mv);
         let norm_product = query_mv.norm() * key_mv.norm();
-        
+
         let attention_strength = if norm_product > 0.0 {
             (alignment / norm_product).clamp(0.0, 1.0)
         } else {
             0.0
         };
-        
+
         // Scale value by attention strength
         value_mv.clone() * attention_strength
     }
-    
+
     /// Multi-head self-attention using all three systems
     pub fn multi_head_attention(
         &self,
         input: &TropicalDualClifford<T, 8>,
-        mask: Option<&[bool]>
+        mask: Option<&[bool]>,
     ) -> TropicalDualClifford<T, 8> {
         // Phase 1: Fast approximation using tropical algebra
         let tropical_queries = input.extract_tropical_features();
         let tropical_keys = tropical_queries.clone();
-        let tropical_attention = self.compute_attention_tropical(&tropical_queries, &tropical_keys, mask);
-        
+        let tropical_attention =
+            self.compute_attention_tropical(&tropical_queries, &tropical_keys, mask);
+
         // Phase 2: Exact computation with gradients using dual numbers
         let dual_queries = input.extract_dual_features();
         let dual_keys = dual_queries.clone();
         let dual_values = dual_queries.clone();
-        let dual_attention = self.compute_attention_dual(&dual_queries, &dual_keys, &dual_values, mask);
-        
+        let dual_attention =
+            self.compute_attention_dual(&dual_queries, &dual_keys, &dual_values, mask);
+
         // Phase 3: Geometric refinement using Clifford algebra
         let query_mv = input.clifford.clone();
         let key_mv = input.clifford.clone();
         let value_mv = input.clifford.clone();
         let clifford_attention = self.compute_attention_clifford(&query_mv, &key_mv, &value_mv);
-        
+
         // Combine results from all three systems
         TropicalDualClifford::from_components(
             tropical_attention.into_iter().take(8).collect(),
             dual_attention.into_iter().take(8).collect(),
-            clifford_attention
+            clifford_attention,
         )
     }
-    
+
     /// Attention pattern analysis using geometric structure
-    pub fn analyze_attention_patterns(
-        &self,
-        attention_weights: &[T]
-    ) -> AttentionAnalysis<T> {
+    pub fn analyze_attention_patterns(&self, attention_weights: &[T]) -> AttentionAnalysis<T> {
         let seq_len = (attention_weights.len() as f64).sqrt() as usize;
-        
+
         // Compute entropy (information content)
         let entropy = self.compute_attention_entropy(attention_weights);
-        
+
         // Compute sparsity (concentration)
         let sparsity = self.compute_attention_sparsity(attention_weights);
-        
+
         // Analyze geometric patterns
         let geometric_coherence = self.compute_geometric_coherence(attention_weights, seq_len);
-        
+
         AttentionAnalysis {
             entropy,
             sparsity,
@@ -226,9 +231,10 @@ impl<T: Float> AttentionHead<T> {
             effective_range: self.compute_effective_range(attention_weights),
         }
     }
-    
+
     fn compute_attention_entropy(&self, weights: &[T]) -> T {
-        weights.iter()
+        weights
+            .iter()
             .filter(|&&w| w > T::zero())
             .map(|&w| {
                 let log_w = w.ln();
@@ -236,18 +242,18 @@ impl<T: Float> AttentionHead<T> {
             })
             .fold(T::zero(), |acc, x| acc + x)
     }
-    
+
     fn compute_attention_sparsity(&self, weights: &[T]) -> T {
         let max_weight = weights.iter().copied().fold(T::zero(), T::max);
         let threshold = max_weight * T::from(0.1).unwrap();
         let active_count = weights.iter().filter(|&&w| w > threshold).count();
         T::from(active_count).unwrap() / T::from(weights.len()).unwrap()
     }
-    
+
     fn compute_geometric_coherence(&self, weights: &[T], seq_len: usize) -> T {
         let mut coherence = T::zero();
         let mut count = T::zero();
-        
+
         for i in 0..seq_len {
             for j in 1..seq_len {
                 if i + j < seq_len {
@@ -261,21 +267,21 @@ impl<T: Float> AttentionHead<T> {
                 }
             }
         }
-        
+
         if count > T::zero() {
             T::one() - (coherence / count)
         } else {
             T::zero()
         }
     }
-    
+
     fn compute_effective_range(&self, weights: &[T]) -> T {
         let total_weight: T = weights.iter().copied().fold(T::zero(), |acc, x| acc + x);
         let threshold = total_weight * T::from(0.95).unwrap();
-        
+
         let mut cumulative = T::zero();
         let mut range = 0;
-        
+
         for &weight in weights {
             cumulative = cumulative + weight;
             range += 1;
@@ -283,7 +289,7 @@ impl<T: Float> AttentionHead<T> {
                 break;
             }
         }
-        
+
         T::from(range).unwrap() / T::from(weights.len()).unwrap()
     }
 }
@@ -301,27 +307,31 @@ pub struct AttentionAnalysis<T: Float> {
 impl<T: Float> AttentionAnalysis<T> {
     /// Check if attention pattern is healthy
     pub fn is_healthy(&self) -> bool {
-        let entropy_ok = self.entropy > T::from(0.5).unwrap() && self.entropy < T::from(3.0).unwrap();
-        let sparsity_ok = self.sparsity > T::from(0.1).unwrap() && self.sparsity < T::from(0.8).unwrap();
+        let entropy_ok =
+            self.entropy > T::from(0.5).unwrap() && self.entropy < T::from(3.0).unwrap();
+        let sparsity_ok =
+            self.sparsity > T::from(0.1).unwrap() && self.sparsity < T::from(0.8).unwrap();
         let coherence_ok = self.geometric_coherence > T::from(0.3).unwrap();
-        
+
         entropy_ok && sparsity_ok && coherence_ok
     }
-    
+
     /// Get overall attention quality score
     pub fn quality_score(&self) -> T {
-        let entropy_score = if self.entropy > T::from(1.0).unwrap() && self.entropy < T::from(2.0).unwrap() {
-            T::one()
-        } else {
-            T::from(0.5).unwrap()
-        };
-        
-        let sparsity_score = if self.sparsity > T::from(0.2).unwrap() && self.sparsity < T::from(0.6).unwrap() {
-            T::one()
-        } else {
-            T::from(0.5).unwrap()
-        };
-        
+        let entropy_score =
+            if self.entropy > T::from(1.0).unwrap() && self.entropy < T::from(2.0).unwrap() {
+                T::one()
+            } else {
+                T::from(0.5).unwrap()
+            };
+
+        let sparsity_score =
+            if self.sparsity > T::from(0.2).unwrap() && self.sparsity < T::from(0.6).unwrap() {
+                T::one()
+            } else {
+                T::from(0.5).unwrap()
+            };
+
         (entropy_score + self.geometric_coherence + sparsity_score) / T::from(3.0).unwrap()
     }
 }
@@ -340,11 +350,11 @@ impl<T: Float> MultiHeadAttention<T> {
     pub fn new(d_model: usize, num_heads: usize) -> Self {
         let d_head = d_model / num_heads;
         let mut heads = Vec::with_capacity(num_heads);
-        
+
         for _ in 0..num_heads {
             heads.push(AttentionHead::new(d_model, d_head));
         }
-        
+
         Self {
             heads,
             num_heads,
@@ -352,36 +362,40 @@ impl<T: Float> MultiHeadAttention<T> {
             d_head,
         }
     }
-    
+
     /// Forward pass through all attention heads
     pub fn forward(
         &self,
         input: &TropicalDualClifford<T, 8>,
-        mask: Option<&[bool]>
+        mask: Option<&[bool]>,
     ) -> TropicalDualClifford<T, 8> {
         // Compute attention for each head
-        let head_outputs: Vec<TropicalDualClifford<T, 8>> = self.heads
+        let head_outputs: Vec<TropicalDualClifford<T, 8>> = self
+            .heads
             .iter()
             .map(|head| head.multi_head_attention(input, mask))
             .collect();
-        
+
         // Concatenate and project head outputs
         self.combine_heads(&head_outputs)
     }
-    
+
     /// Combine outputs from multiple attention heads
-    fn combine_heads(&self, head_outputs: &[TropicalDualClifford<T, 8>]) -> TropicalDualClifford<T, 8> {
+    fn combine_heads(
+        &self,
+        head_outputs: &[TropicalDualClifford<T, 8>],
+    ) -> TropicalDualClifford<T, 8> {
         // Simple average combination - could be more sophisticated
         let mut combined = TropicalDualClifford::zero();
-        
+
         for output in head_outputs {
             combined = combined.add(output);
         }
-        
+
         let scale = T::from(1.0 / self.num_heads as f64).unwrap();
         combined.scale(scale)
     }
-    
+
     /// Analyze attention patterns across all heads
     pub fn analyze_all_heads(&self, attention_weights: &[Vec<T>]) -> Vec<AttentionAnalysis<T>> {
         self.heads
@@ -396,14 +410,14 @@ impl<T: Float> MultiHeadAttention<T> {
 mod tests {
     use super::*;
     use approx::assert_relative_eq;
-    
+
     #[test]
     fn test_attention_head_creation() {
         let head = AttentionHead::<f64>::new(512, 64);
         assert_eq!(head.d_head, 64);
         assert!(head.temperature.real > 0.0);
     }
-    
+
     #[test]
     fn test_tropical_attention() {
         let head = AttentionHead::<f64>::new(4, 2);
@@ -413,18 +427,15 @@ mod tests {
             TropicalNumber(3.0),
         ];
         let keys = queries.clone();
-        
+
         let result = head.compute_attention_tropical(&queries, &keys, None);
         assert!(!result.is_empty());
     }
-    
+
     #[test]
     fn test_dual_attention() {
         let head = AttentionHead::<f64>::new(4, 2);
-        let queries = vec![
-            DualNumber::variable(1.0),
-            DualNumber::variable(2.0),
-        ];
+        let queries = vec![DualNumber::variable(1.0), DualNumber::variable(2.0)];
         let keys = queries.clone();
         let values = queries.clone();
 
@@ -436,24 +447,24 @@ mod tests {
             assert!(output.dual.abs() > 0.0);
         }
     }
-    
+
     #[test]
     fn test_attention_analysis() {
         let head = AttentionHead::<f64>::new(4, 2);
         let weights = vec![0.7, 0.2, 0.1, 0.0];
-        
+
         let analysis = head.analyze_attention_patterns(&weights);
         assert!(analysis.entropy > 0.0);
         assert!(analysis.sparsity > 0.0);
         assert!(analysis.peak_attention == 0.7);
     }
-    
+
     #[test]
     fn test_multi_head_attention() {
         let mha = MultiHeadAttention::<f64>::new(512, 8);
         assert_eq!(mha.num_heads, 8);
         assert_eq!(mha.d_head, 64);
-        
+
         let input = TropicalDualClifford::random();
         let output = mha.forward(&input, None);
         assert!(!output.is_zero());

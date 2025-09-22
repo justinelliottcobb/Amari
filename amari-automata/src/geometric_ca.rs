@@ -5,8 +5,8 @@
 //! the geometric product, outer product, and inner product operations.
 
 use crate::{AutomataError, AutomataResult, Evolvable};
-use amari_core::{Multivector, CayleyTable};
 use alloc::vec::Vec;
+use amari_core::{CayleyTable, Multivector};
 
 /// Cell state for geometric cellular automata
 pub type CellState<const P: usize, const Q: usize, const R: usize> = Multivector<P, Q, R>;
@@ -266,7 +266,12 @@ impl<const P: usize, const Q: usize, const R: usize> GeometricCA<P, Q, R> {
     }
 
     /// Set a cell to a specific multivector value using 2D coordinates
-    pub fn set_cell_2d(&mut self, x: usize, y: usize, value: Multivector<P, Q, R>) -> AutomataResult<()> {
+    pub fn set_cell_2d(
+        &mut self,
+        x: usize,
+        y: usize,
+        value: Multivector<P, Q, R>,
+    ) -> AutomataResult<()> {
         if x >= self.width || y >= self.height {
             return Err(AutomataError::InvalidCoordinates(x, y));
         }
@@ -310,7 +315,11 @@ impl<const P: usize, const Q: usize, const R: usize> GeometricCA<P, Q, R> {
                 if idx >= self.size {
                     return false;
                 }
-                let actual = if self.grid[idx].magnitude() > 0.5 { 1 } else { 0 };
+                let actual = if self.grid[idx].magnitude() > 0.5 {
+                    1
+                } else {
+                    0
+                };
                 if actual != expected {
                     return false;
                 }
@@ -352,7 +361,9 @@ impl<const P: usize, const Q: usize, const R: usize> GeometricCA<P, Q, R> {
     /// Convert to pattern for comparison
     pub fn as_pattern(&self) -> crate::TargetPattern {
         // Convert P,Q,R multivectors to 3,0,0 for TargetPattern
-        let converted: Vec<Multivector<3, 0, 0>> = self.grid.iter()
+        let converted: Vec<Multivector<3, 0, 0>> = self
+            .grid
+            .iter()
             .map(|mv| Multivector::scalar(mv.scalar_part()))
             .collect();
         crate::TargetPattern::from_multivectors(&converted)
@@ -372,7 +383,11 @@ impl<const P: usize, const Q: usize, const R: usize> GeometricCA<P, Q, R> {
     /// Check connectivity
     pub fn connected_components(&self) -> usize {
         // Simplified implementation
-        if self.grid.iter().any(|mv| mv.magnitude() > 0.1) { 1 } else { 0 }
+        if self.grid.iter().any(|mv| mv.magnitude() > 0.1) {
+            1
+        } else {
+            0
+        }
     }
 
     /// Count holes
@@ -407,7 +422,6 @@ impl<const P: usize, const Q: usize, const R: usize> GeometricCA<P, Q, R> {
             }
         }
     }
-
 }
 
 impl<const P: usize, const Q: usize, const R: usize> Evolvable for GeometricCA<P, Q, R> {
@@ -444,14 +458,18 @@ impl<const P: usize, const Q: usize, const R: usize> GeometricCA<P, Q, R> {
 
         if self.height == 1 {
             // 1D neighborhood
-            let left = if index > 0 { index - 1 } else {
+            let left = if index > 0 {
+                index - 1
+            } else {
                 match self.boundary {
                     BoundaryCondition::Periodic => self.size - 1,
                     _ => index,
                 }
             };
 
-            let right = if index < self.size - 1 { index + 1 } else {
+            let right = if index < self.size - 1 {
+                index + 1
+            } else {
                 match self.boundary {
                     BoundaryCondition::Periodic => 0,
                     _ => index,
@@ -469,7 +487,9 @@ impl<const P: usize, const Q: usize, const R: usize> GeometricCA<P, Q, R> {
 
             for dy in -1..=1 {
                 for dx in -1..=1 {
-                    if dx == 0 && dy == 0 { continue; } // Skip center cell
+                    if dx == 0 && dy == 0 {
+                        continue;
+                    } // Skip center cell
 
                     let nx = x as i32 + dx;
                     let ny = y as i32 + dy;
@@ -492,7 +512,9 @@ impl<const P: usize, const Q: usize, const R: usize> GeometricCA<P, Q, R> {
 
 impl<const P: usize, const Q: usize, const R: usize> CARule<P, Q, R> {
     /// Create a custom rule with given function
-    pub fn custom(rule_fn: fn(&Multivector<P, Q, R>, &[Multivector<P, Q, R>]) -> Multivector<P, Q, R>) -> Self {
+    pub fn custom(
+        rule_fn: fn(&Multivector<P, Q, R>, &[Multivector<P, Q, R>]) -> Multivector<P, Q, R>,
+    ) -> Self {
         Self {
             rule_fn,
             rule_type: RuleType::Geometric,
@@ -503,16 +525,20 @@ impl<const P: usize, const Q: usize, const R: usize> CARule<P, Q, R> {
     pub fn geometric_simple() -> Self {
         Self {
             rule_fn: |center, neighbors| {
-                neighbors.iter().fold(center.clone(), |acc, n| {
-                    acc.geometric_product(n)
-                })
+                neighbors
+                    .iter()
+                    .fold(center.clone(), |acc, n| acc.geometric_product(n))
             },
             rule_type: RuleType::Geometric,
         }
     }
 
     /// Apply rule to center and neighbors
-    pub fn apply(&self, center: &Multivector<P, Q, R>, neighbors: &[Multivector<P, Q, R>]) -> Multivector<P, Q, R> {
+    pub fn apply(
+        &self,
+        center: &Multivector<P, Q, R>,
+        neighbors: &[Multivector<P, Q, R>],
+    ) -> Multivector<P, Q, R> {
         (self.rule_fn)(center, neighbors)
     }
 
@@ -545,9 +571,9 @@ impl<const P: usize, const Q: usize, const R: usize> CARule<P, Q, R> {
     pub fn reversible() -> Self {
         Self {
             rule_fn: |center, neighbors| {
-                let sum: Multivector<P, Q, R> = neighbors.iter().fold(center.clone(), |acc, n| {
-                    acc.geometric_product(n)
-                });
+                let sum: Multivector<P, Q, R> = neighbors
+                    .iter()
+                    .fold(center.clone(), |acc, n| acc.geometric_product(n));
                 sum
             },
             rule_type: RuleType::Reversible,
@@ -575,7 +601,9 @@ impl<const P: usize, const Q: usize, const R: usize> CARule<P, Q, R> {
         Self {
             rule_fn: |center, neighbors| {
                 let original_grade = center.highest_grade();
-                let sum = neighbors.iter().fold(center.clone(), |acc, n| acc + n.clone());
+                let sum = neighbors
+                    .iter()
+                    .fold(center.clone(), |acc, n| acc + n.clone());
                 sum.grade_projection(original_grade)
             },
             rule_type: RuleType::GradePreserving,
@@ -586,7 +614,9 @@ impl<const P: usize, const Q: usize, const R: usize> CARule<P, Q, R> {
     pub fn conservative() -> Self {
         Self {
             rule_fn: |center, neighbors| {
-                let total: Multivector<P, Q, R> = neighbors.iter().fold(center.clone(), |acc, n| acc + n.clone());
+                let total: Multivector<P, Q, R> = neighbors
+                    .iter()
+                    .fold(center.clone(), |acc, n| acc + n.clone());
                 total * (1.0 / (neighbors.len() + 1) as f64)
             },
             rule_type: RuleType::Conservative,
@@ -597,7 +627,9 @@ impl<const P: usize, const Q: usize, const R: usize> CARule<P, Q, R> {
     pub fn group_based(_group_name: &str) -> Self {
         Self {
             rule_fn: |center, neighbors| {
-                neighbors.iter().fold(center.clone(), |acc, n| acc.geometric_product(n))
+                neighbors
+                    .iter()
+                    .fold(center.clone(), |acc, n| acc.geometric_product(n))
             },
             rule_type: RuleType::Geometric,
         }
@@ -645,9 +677,14 @@ trait HighestGrade {
 impl<const P: usize, const Q: usize, const R: usize> HighestGrade for Multivector<P, Q, R> {
     fn highest_grade(&self) -> usize {
         // Simplified implementation
-        if self.scalar_part() != 0.0 { 0 }
-        else if self.grade_projection(1).magnitude() > 0.0 { 1 }
-        else if self.grade_projection(2).magnitude() > 0.0 { 2 }
-        else { 3 }
+        if self.scalar_part() != 0.0 {
+            0
+        } else if self.grade_projection(1).magnitude() > 0.0 {
+            1
+        } else if self.grade_projection(2).magnitude() > 0.0 {
+            2
+        } else {
+            3
+        }
     }
 }

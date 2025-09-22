@@ -3,9 +3,9 @@
 //! Comprehensive benchmarks for WebGPU, WebAssembly, and edge computing
 //! performance across different device types and workload sizes.
 
-use criterion::{criterion_group, criterion_main, Criterion, BenchmarkId, Throughput};
 use amari_core::Multivector;
 use amari_info_geom::amari_chentsov_tensor;
+use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
 use std::time::Duration;
 
 /// Benchmark CPU vs GPU tensor computation scaling
@@ -20,56 +20,45 @@ fn bench_tensor_computation_scaling(c: &mut Criterion) {
         group.throughput(Throughput::Elements(batch_size as u64));
 
         // CPU baseline
-        group.bench_with_input(
-            BenchmarkId::new("cpu", batch_size),
-            &batch_size,
-            |b, _| {
-                b.iter(|| {
-                    let _results: Vec<f64> = x_batch
-                        .iter()
-                        .zip(y_batch.iter())
-                        .zip(z_batch.iter())
-                        .map(|((x, y), z)| amari_chentsov_tensor(x, y, z))
-                        .collect();
-                });
-            },
-        );
+        group.bench_with_input(BenchmarkId::new("cpu", batch_size), &batch_size, |b, _| {
+            b.iter(|| {
+                let _results: Vec<f64> = x_batch
+                    .iter()
+                    .zip(y_batch.iter())
+                    .zip(z_batch.iter())
+                    .map(|((x, y), z)| amari_chentsov_tensor(x, y, z))
+                    .collect();
+            });
+        });
 
         // GPU computation (when available)
         if let Ok(rt) = tokio::runtime::Runtime::new() {
-            group.bench_with_input(
-                BenchmarkId::new("gpu", batch_size),
-                &batch_size,
-                |b, _| {
-                    b.to_async(&rt).iter(|| async {
-                        // Placeholder for GPU computation
-                        compute_tensor_batch_gpu(&x_batch, &y_batch, &z_batch).await
-                    });
-                },
-            );
+            group.bench_with_input(BenchmarkId::new("gpu", batch_size), &batch_size, |b, _| {
+                b.to_async(&rt).iter(|| async {
+                    // Placeholder for GPU computation
+                    compute_tensor_batch_gpu(&x_batch, &y_batch, &z_batch).await
+                });
+            });
         }
 
         // WebAssembly computation
-        group.bench_with_input(
-            BenchmarkId::new("wasm", batch_size),
-            &batch_size,
-            |b, _| {
-                b.iter(|| {
-                    // Simulated WASM computation with some overhead
-                    let _results: Vec<f64> = x_batch
-                        .iter()
-                        .zip(y_batch.iter())
-                        .zip(z_batch.iter())
-                        .map(|((x, y), z)| {
-                            // Simulate WASM call overhead with deterministic computation
-                            let overhead_work = (x.norm_squared() + y.norm_squared() + z.norm_squared()) * 0.001;
-                            let result = amari_chentsov_tensor(x, y, z);
-                            criterion::black_box(overhead_work + result)
-                        })
-                        .collect();
-                });
-            },
-        );
+        group.bench_with_input(BenchmarkId::new("wasm", batch_size), &batch_size, |b, _| {
+            b.iter(|| {
+                // Simulated WASM computation with some overhead
+                let _results: Vec<f64> = x_batch
+                    .iter()
+                    .zip(y_batch.iter())
+                    .zip(z_batch.iter())
+                    .map(|((x, y), z)| {
+                        // Simulate WASM call overhead with deterministic computation
+                        let overhead_work =
+                            (x.norm_squared() + y.norm_squared() + z.norm_squared()) * 0.001;
+                        let result = amari_chentsov_tensor(x, y, z);
+                        criterion::black_box(overhead_work + result)
+                    })
+                    .collect();
+            });
+        });
     }
 
     group.finish();
@@ -244,10 +233,10 @@ fn bench_edge_device_simulation(c: &mut Criterion) {
     let mut group = c.benchmark_group("edge_device_simulation");
 
     let device_types = vec![
-        ("mobile", "Mobile device simulation", 0.5),      // 50% performance
-        ("iot", "IoT device simulation", 0.2),            // 20% performance
-        ("edge_server", "Edge server simulation", 2.0),   // 200% performance
-        ("workstation", "Workstation simulation", 4.0),   // 400% performance
+        ("mobile", "Mobile device simulation", 0.5), // 50% performance
+        ("iot", "IoT device simulation", 0.2),       // 20% performance
+        ("edge_server", "Edge server simulation", 2.0), // 200% performance
+        ("workstation", "Workstation simulation", 4.0), // 400% performance
     ];
 
     let (x_batch, y_batch, z_batch) = create_tensor_batch(500);
@@ -456,7 +445,13 @@ fn bench_adaptive_workload_distribution(c: &mut Criterion) {
 
 // Helper functions
 
-fn create_tensor_batch(size: usize) -> (Vec<Multivector<3, 0, 0>>, Vec<Multivector<3, 0, 0>>, Vec<Multivector<3, 0, 0>>) {
+fn create_tensor_batch(
+    size: usize,
+) -> (
+    Vec<Multivector<3, 0, 0>>,
+    Vec<Multivector<3, 0, 0>>,
+    Vec<Multivector<3, 0, 0>>,
+) {
     let mut x_batch = Vec::with_capacity(size);
     let mut y_batch = Vec::with_capacity(size);
     let mut z_batch = Vec::with_capacity(size);

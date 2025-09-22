@@ -4,11 +4,13 @@
 //! general self-assembly framework with UI-specific constraints, layout rules,
 //! and component types.
 
-use crate::self_assembly::{Component, SelfAssembler, ComponentType, UIComponentType, Assembly, AssemblyConfig};
+use crate::self_assembly::{
+    Assembly, AssemblyConfig, Component, ComponentType, SelfAssembler, UIComponentType,
+};
 use crate::{AutomataError, AutomataResult, SelfAssembling};
-use amari_core::{Multivector, Vector};
-use alloc::vec::Vec;
 use alloc::string::{String, ToString};
+use alloc::vec::Vec;
+use amari_core::{Multivector, Vector};
 
 // Missing types needed by lib.rs imports (simplified implementations)
 
@@ -26,7 +28,9 @@ impl Default for LayoutConstraint {
 
 impl LayoutConstraint {
     pub fn new() -> Self {
-        Self { constraint_type: "default".to_string() }
+        Self {
+            constraint_type: "default".to_string(),
+        }
     }
 }
 
@@ -44,7 +48,9 @@ impl Default for Layout {
 
 impl Layout {
     pub fn new() -> Self {
-        Self { components: Vec::new() }
+        Self {
+            components: Vec::new(),
+        }
     }
 }
 
@@ -266,11 +272,7 @@ impl<const P: usize, const Q: usize, const R: usize> UIComponent<P, Q, R> {
         let (ml, mt, mr, mb) = self.margin;
         let (pl, pt, pr, pb) = self.padding;
 
-        (
-            w + ml + mr + pl + pr,
-            h + mt + mb + pt + pb,
-            d,
-        )
+        (w + ml + mr + pl + pr, h + mt + mb + pt + pb, d)
     }
 
     /// Check layout compatibility with another component
@@ -282,10 +284,10 @@ impl<const P: usize, const Q: usize, const R: usize> UIComponent<P, Q, R> {
             (ComponentType::UIElement(a), ComponentType::UIElement(b)) => {
                 matches!(
                     (a, b),
-                    (UIComponentType::Button, UIComponentType::Label) |
-                    (UIComponentType::Label, UIComponentType::Button) |
-                    (UIComponentType::Input, UIComponentType::Label) |
-                    (UIComponentType::Label, UIComponentType::Input)
+                    (UIComponentType::Button, UIComponentType::Label)
+                        | (UIComponentType::Label, UIComponentType::Button)
+                        | (UIComponentType::Input, UIComponentType::Label)
+                        | (UIComponentType::Label, UIComponentType::Input)
                 )
             }
             _ => false,
@@ -355,8 +357,7 @@ impl<const P: usize, const Q: usize, const R: usize> UIAssembly<P, Q, R> {
     /// Get component at position
     pub fn component_at_position(&self, x: f64, y: f64) -> Option<usize> {
         for (i, rect) in self.layout_rects.iter().enumerate() {
-            if x >= rect.x && x <= rect.x + rect.width &&
-               y >= rect.y && y <= rect.y + rect.height {
+            if x >= rect.x && x <= rect.x + rect.width && y >= rect.y && y <= rect.y + rect.height {
                 return Some(i);
             }
         }
@@ -391,7 +392,10 @@ impl<const P: usize, const Q: usize, const R: usize> UIAssembler<P, Q, R> {
     }
 
     /// Assemble UI components with layout computation
-    pub fn assemble_ui(&self, components: &[UIComponent<P, Q, R>]) -> AutomataResult<UIAssembly<P, Q, R>> {
+    pub fn assemble_ui(
+        &self,
+        components: &[UIComponent<P, Q, R>],
+    ) -> AutomataResult<UIAssembly<P, Q, R>> {
         let mut assembly = UIAssembly::new();
 
         // Add all components
@@ -403,7 +407,9 @@ impl<const P: usize, const Q: usize, const R: usize> UIAssembler<P, Q, R> {
         for i in 0..components.len() {
             for j in (i + 1)..components.len() {
                 if components[i].layout_compatible(&components[j]) {
-                    let affinity = self.base_assembler.affinity(&components[i].base, &components[j].base);
+                    let affinity = self
+                        .base_assembler
+                        .affinity(&components[i].base, &components[j].base);
                     if affinity > 0.1 {
                         assembly.base.connect(i, j)?;
                     }
@@ -446,12 +452,12 @@ impl LayoutRect {
 
     /// Check if this rectangle overlaps with another
     pub fn overlaps(&self, other: &LayoutRect) -> bool {
-        !(self.x + self.width < other.x ||
-          other.x + other.width < self.x ||
-          self.y + self.height < other.y ||
-          other.y + other.height < self.y ||
-          self.z + self.depth < other.z ||
-          other.z + other.depth < self.z)
+        !(self.x + self.width < other.x
+            || other.x + other.width < self.x
+            || self.y + self.height < other.y
+            || other.y + other.height < self.y
+            || self.z + self.depth < other.z
+            || other.z + other.depth < self.z)
     }
 
     /// Get center point
@@ -530,7 +536,11 @@ impl LayoutEngine {
 
     /// Set the current layout algorithm
     pub fn set_algorithm(&mut self, algorithm: LayoutAlgorithm) {
-        if let Some(index) = self.algorithms.iter().position(|a| core::mem::discriminant(a) == core::mem::discriminant(&algorithm)) {
+        if let Some(index) = self
+            .algorithms
+            .iter()
+            .position(|a| core::mem::discriminant(a) == core::mem::discriminant(&algorithm))
+        {
             self.current_algorithm = index;
         }
     }

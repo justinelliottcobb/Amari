@@ -5,9 +5,9 @@
 //! represent UI elements that automatically arrange themselves.
 
 use crate::{AutomataError, AutomataResult, SelfAssembling};
-use amari_core::{Multivector, Vector, Bivector};
-use alloc::vec::Vec;
 use alloc::string::{String, ToString};
+use alloc::vec::Vec;
+use amari_core::{Bivector, Multivector, Vector};
 
 // Missing types needed by lib.rs imports (simplified implementations to avoid duplicates with existing code below)
 
@@ -83,7 +83,9 @@ impl Default for Shape {
 
 impl Shape {
     pub fn new() -> Self {
-        Self { boundary: Vec::new() }
+        Self {
+            boundary: Vec::new(),
+        }
     }
 }
 
@@ -101,7 +103,9 @@ impl Default for AssemblyRule {
 
 impl AssemblyRule {
     pub fn new() -> Self {
-        Self { affinity_threshold: 0.5 }
+        Self {
+            affinity_threshold: 0.5,
+        }
     }
 }
 
@@ -142,7 +146,9 @@ impl Default for SelfAssembly {
 
 impl SelfAssembly {
     pub fn new() -> Self {
-        Self { components: Vec::new() }
+        Self {
+            components: Vec::new(),
+        }
     }
 }
 
@@ -286,14 +292,14 @@ impl<const P: usize, const Q: usize, const R: usize> Component<P, Q, R> {
             (ComponentType::Basic, _) | (_, ComponentType::Basic) => true,
 
             // Corners connect to edges and junctions
-            (ComponentType::Corner, ComponentType::Edge) |
-            (ComponentType::Edge, ComponentType::Corner) |
-            (ComponentType::Corner, ComponentType::Junction) |
-            (ComponentType::Junction, ComponentType::Corner) => true,
+            (ComponentType::Corner, ComponentType::Edge)
+            | (ComponentType::Edge, ComponentType::Corner)
+            | (ComponentType::Corner, ComponentType::Junction)
+            | (ComponentType::Junction, ComponentType::Corner) => true,
 
             // Edges connect to junctions
-            (ComponentType::Edge, ComponentType::Junction) |
-            (ComponentType::Junction, ComponentType::Edge) => true,
+            (ComponentType::Edge, ComponentType::Junction)
+            | (ComponentType::Junction, ComponentType::Edge) => true,
 
             // UI elements have their own connection rules
             (ComponentType::UIElement(_), ComponentType::UIElement(_)) => true,
@@ -347,7 +353,8 @@ impl<const P: usize, const Q: usize, const R: usize> Assembly<P, Q, R> {
         // Sum pairwise interaction energies
         for i in 0..self.components.len() {
             for &j in &self.connections[i] {
-                if i < j { // Count each pair only once
+                if i < j {
+                    // Count each pair only once
                     let energy = self.interaction_energy(i, j);
                     total_energy += energy;
                 }

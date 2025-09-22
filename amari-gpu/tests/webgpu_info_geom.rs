@@ -3,8 +3,8 @@
 //! This module contains tests for GPU-accelerated information geometry operations,
 //! focusing on edge computing capabilities with WebAssembly integration.
 
-use amari_gpu::{GpuCliffordAlgebra, GpuInfoGeometry, GpuError};
 use amari_core::Multivector;
+use amari_gpu::{GpuCliffordAlgebra, GpuError, GpuInfoGeometry};
 use amari_info_geom::amari_chentsov_tensor;
 
 /// Test GPU-accelerated Amari-Chentsov tensor computation
@@ -133,8 +133,10 @@ async fn test_gpu_bregman_divergence_scaling() -> Result<(), GpuError> {
 
         // Performance should scale sublinearly with batch size due to parallelization
         if batch_size >= 1000 {
-            assert!(gpu_time.as_millis() < batch_size as u128 / 10,
-                   "GPU should provide significant speedup for large batches");
+            assert!(
+                gpu_time.as_millis() < batch_size as u128 / 10,
+                "GPU should provide significant speedup for large batches"
+            );
         }
     }
 
@@ -173,9 +175,12 @@ async fn test_wasm_typed_array_integration() -> Result<(), GpuError> {
         let z_components = &typed_array_data[offset + 6..offset + 9];
 
         // Manual scalar triple product computation
-        let expected = x_components[0] * (y_components[1] * z_components[2] - y_components[2] * z_components[1])
-                     - x_components[1] * (y_components[0] * z_components[2] - y_components[2] * z_components[0])
-                     + x_components[2] * (y_components[0] * z_components[1] - y_components[1] * z_components[0]);
+        let expected = x_components[0]
+            * (y_components[1] * z_components[2] - y_components[2] * z_components[1])
+            - x_components[1]
+                * (y_components[0] * z_components[2] - y_components[2] * z_components[0])
+            + x_components[2]
+                * (y_components[0] * z_components[1] - y_components[1] * z_components[0]);
 
         assert!((tensor_results[i] - expected).abs() < 1e-10);
     }
@@ -188,9 +193,9 @@ async fn test_wasm_typed_array_integration() -> Result<(), GpuError> {
 async fn test_edge_computing_device_fallback() -> Result<(), GpuError> {
     // Test different compute device preferences
     let devices = [
-        ("high-performance", false),  // May fall back to software in CI
-        ("low-power", false),         // May fall back to software in CI
-        ("fallback", false),          // Explicitly requests CPU fallback
+        ("high-performance", false), // May fall back to software in CI
+        ("low-power", false),        // May fall back to software in CI
+        ("fallback", false),         // Explicitly requests CPU fallback
     ];
 
     for (device_type, _should_use_gpu) in devices {
@@ -200,7 +205,11 @@ async fn test_edge_computing_device_fallback() -> Result<(), GpuError> {
 
                 // In CI environments, even GPU requests may fall back to software rendering
                 // Just verify that the device works regardless of whether it's GPU or CPU
-                println!("Device type '{}' initialized as GPU: {}", device_type, device_info.is_gpu());
+                println!(
+                    "Device type '{}' initialized as GPU: {}",
+                    device_type,
+                    device_info.is_gpu()
+                );
 
                 // Test a computation to ensure it works
                 let x = create_test_vector_e1();
@@ -212,7 +221,10 @@ async fn test_edge_computing_device_fallback() -> Result<(), GpuError> {
             }
             Err(GpuError::InitializationError(_)) => {
                 // Expected in environments without WebGPU support
-                println!("Device type '{}' failed to initialize (expected in some environments)", device_type);
+                println!(
+                    "Device type '{}' failed to initialize (expected in some environments)",
+                    device_type
+                );
                 continue;
             }
             Err(e) => return Err(e),
@@ -257,10 +269,16 @@ async fn test_memory_efficiency_large_batches() -> Result<(), GpuError> {
         let memory_increase = memory_after - memory_before;
         let expected_memory = batch_size as u64 * 4 * 8; // 4 f64 values per computation
 
-        assert!(memory_increase < expected_memory * 2,
-               "Memory usage should be reasonable for batch size {}", batch_size);
+        assert!(
+            memory_increase < expected_memory * 2,
+            "Memory usage should be reasonable for batch size {}",
+            batch_size
+        );
 
-        println!("Batch {}: Memory increase {} bytes", batch_size, memory_increase);
+        println!(
+            "Batch {}: Memory increase {} bytes",
+            batch_size, memory_increase
+        );
     }
 
     Ok(())
@@ -286,7 +304,13 @@ fn create_test_vector_e3() -> Multivector<3, 0, 0> {
     mv
 }
 
-fn create_tensor_batch(size: usize) -> (Vec<Multivector<3, 0, 0>>, Vec<Multivector<3, 0, 0>>, Vec<Multivector<3, 0, 0>>) {
+fn create_tensor_batch(
+    size: usize,
+) -> (
+    Vec<Multivector<3, 0, 0>>,
+    Vec<Multivector<3, 0, 0>>,
+    Vec<Multivector<3, 0, 0>>,
+) {
     let mut x_batch = Vec::with_capacity(size);
     let mut y_batch = Vec::with_capacity(size);
     let mut z_batch = Vec::with_capacity(size);
