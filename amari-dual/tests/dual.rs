@@ -1,5 +1,4 @@
 use amari_dual::{DualNumber, DualMultivector};
-use approx::assert_relative_eq;
 
 mod dual_tests {
     use super::*;

@@ -74,7 +74,7 @@ jobs:
           wasm-pack build --target web --out-dir pkg --scope amari
 
       - name: Upload WASM artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: wasm-package
           path: amari-wasm/pkg/

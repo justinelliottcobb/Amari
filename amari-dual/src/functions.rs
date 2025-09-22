@@ -128,7 +128,7 @@ pub fn attention<T: Float>(
     let mut scores = Vec::new();
     for query in queries {
         let mut score = DualNumber::constant(T::zero());
-        for (i, key) in keys.iter().enumerate() {
+        for (_i, key) in keys.iter().enumerate() {
             score = score + *query * *key;
         }
         scores.push(score * scale);
@@ -141,7 +141,7 @@ pub fn attention<T: Float>(
     let mut output = Vec::new();
     for weight in weights {
         let mut weighted_value = DualNumber::constant(T::zero());
-        for (i, value) in values.iter().enumerate() {
+        for (_i, value) in values.iter().enumerate() {
             weighted_value = weighted_value + weight * *value;
         }
         output.push(weighted_value);

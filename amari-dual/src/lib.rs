@@ -10,7 +10,6 @@ extern crate alloc;
 use alloc::vec::Vec;
 use core::ops::{Add, Sub, Mul, Div, Neg};
 use num_traits::{Float, Zero, One};
-use amari_core::Multivector;
 
 pub mod multivector;
 pub mod functions;
@@ -415,7 +414,7 @@ impl<T: Float> AutoDiffContext<T> {
         let mut gradient = Vec::with_capacity(self.n_vars);
         let mut value = T::zero();
         
-        for (i, var) in self.variables.iter().enumerate() {
+        for (i, _var) in self.variables.iter().enumerate() {
             // Set up dual number for i-th partial derivative
             let mut inputs = Vec::with_capacity(self.variables.len());
             for _ in 0..self.variables.len() {

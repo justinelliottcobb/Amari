@@ -1,9 +1,9 @@
 //! Dual number multivectors for automatic differentiation in geometric algebra
 
-use crate::{DualNumber, MultiDual};
+use crate::DualNumber;
 use amari_core::Multivector;
 use alloc::vec::Vec;
-use num_traits::{Float, Zero, One};
+use num_traits::{Float, Zero};
 
 /// Multivector with dual number coefficients for automatic differentiation
 #[derive(Clone, Debug)]
@@ -172,7 +172,7 @@ impl<T: Float, const P: usize, const Q: usize, const R: usize> DualMultivector<T
         
         for i in 0..Self::BASIS_COUNT {
             let grade = i.count_ones() as usize;
-            let sign = if (grade * (grade - 1) / 2) % 2 == 0 { 1.0 } else { -1.0 };
+            let sign = if grade == 0 || (grade * (grade - 1) / 2) % 2 == 0 { 1.0 } else { -1.0 };
             
             if sign > 0.0 {
                 result.coefficients[i] = self.coefficients[i];
