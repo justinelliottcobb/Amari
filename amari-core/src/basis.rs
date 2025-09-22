@@ -36,16 +36,16 @@ pub struct MultivectorBuilder<const P: usize, const Q: usize, const R: usize> {
     coefficients: Vec<f64>,
 }
 
+impl<const P: usize, const Q: usize, const R: usize> Default for MultivectorBuilder<P, Q, R> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<const P: usize, const Q: usize, const R: usize> MultivectorBuilder<P, Q, R> {
     pub fn new() -> Self {
         Self {
-            coefficients: {
-                let mut v = Vec::with_capacity(Multivector::<P, Q, R>::BASIS_COUNT);
-                for _ in 0..Multivector::<P, Q, R>::BASIS_COUNT {
-                    v.push(0.0);
-                }
-                v
-            },
+            coefficients: vec![0.0; Multivector::<P, Q, R>::BASIS_COUNT],
         }
     }
     

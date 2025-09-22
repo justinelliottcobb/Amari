@@ -148,9 +148,9 @@ impl<const P: usize, const Q: usize, const R: usize> Rotor<P, Q, R> {
         let one_minus_t = 1.0 - t;
 
         // Linear interpolation of coefficients
-        let mut result_coeffs = vec![0.0; 8];
-        for i in 0..8 {
-            result_coeffs[i] = one_minus_t * self.as_slice()[i] + t * other.as_slice()[i];
+        let mut result_coeffs = [0.0; 8];
+        for (i, coeff) in result_coeffs.iter_mut().enumerate().take(8) {
+            *coeff = one_minus_t * self.as_slice()[i] + t * other.as_slice()[i];
         }
 
         let mut result_mv = Multivector::zero();

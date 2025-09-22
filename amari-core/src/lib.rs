@@ -234,11 +234,7 @@ impl<const P: usize, const Q: usize, const R: usize> Multivector<P, Q, R> {
         for (grade_a, mv_a) in self_grades.iter().enumerate() {
             for (grade_b, mv_b) in rhs_grades.iter().enumerate() {
                 if !mv_a.is_zero() && !mv_b.is_zero() {
-                    let target_grade = if grade_a >= grade_b { 
-                        grade_a - grade_b 
-                    } else { 
-                        grade_b - grade_a 
-                    };
+                    let target_grade = grade_a.abs_diff(grade_b);
                     let product = mv_a.geometric_product(mv_b);
                     let projected = product.grade_projection(target_grade);
                     result = result + projected;
@@ -287,7 +283,7 @@ impl<const P: usize, const Q: usize, const R: usize> Multivector<P, Q, R> {
         if grade == 0 {
             return 1.0;
         }
-        if (grade * (grade - 1) / 2) % 2 == 0 {
+        if (grade * (grade - 1) / 2).is_multiple_of(2) {
             1.0
         } else {
             -1.0

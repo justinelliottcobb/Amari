@@ -14,6 +14,12 @@ pub struct CayleyTable<const P: usize, const Q: usize, const R: usize> {
     table: Vec<CayleyEntry>,
 }
 
+impl<const P: usize, const Q: usize, const R: usize> Default for CayleyTable<P, Q, R> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<const P: usize, const Q: usize, const R: usize> CayleyTable<P, Q, R> {
     const DIM: usize = P + Q + R;
     const BASIS_COUNT: usize = 1 << Self::DIM;
