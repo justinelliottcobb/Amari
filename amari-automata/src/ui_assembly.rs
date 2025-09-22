@@ -6,7 +6,7 @@
 
 use crate::self_assembly::{Component, SelfAssembler, ComponentType, UIComponentType, Assembly, AssemblyConfig};
 use crate::{AutomataError, AutomataResult, SelfAssembling};
-use amari_core::{Multivector, Vector, Bivector};
+use amari_core::{Multivector, Vector};
 use alloc::vec::Vec;
 use alloc::string::{String, ToString};
 
@@ -16,6 +16,12 @@ use alloc::string::{String, ToString};
 #[derive(Clone, Debug)]
 pub struct LayoutConstraint {
     pub constraint_type: String,
+}
+
+impl Default for LayoutConstraint {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl LayoutConstraint {
@@ -30,6 +36,12 @@ pub struct Layout {
     pub components: Vec<UIComponent<3, 0, 0>>,
 }
 
+impl Default for Layout {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Layout {
     pub fn new() -> Self {
         Self { components: Vec::new() }
@@ -39,7 +51,6 @@ impl Layout {
 /// Type alias for default UIAssembler (for lib.rs import)
 // Note: This creates an alias for the parameterized version - find the actual struct name
 // pub type UIAssemblerDefault = UIAssembler<3, 0, 0>;
-
 /// UI-specific component with additional layout properties
 #[derive(Debug, Clone)]
 pub struct UIComponent<const P: usize, const Q: usize, const R: usize> {
@@ -153,8 +164,10 @@ pub struct UIAssembler<const P: usize, const Q: usize, const R: usize> {
     /// Base assembler
     base_assembler: SelfAssembler<P, Q, R>,
     /// UI-specific configuration
+    #[allow(dead_code)]
     ui_config: UIAssemblyConfig,
     /// Layout engine
+    #[allow(dead_code)]
     layout_engine: LayoutEngine,
 }
 
@@ -277,6 +290,12 @@ impl<const P: usize, const Q: usize, const R: usize> UIComponent<P, Q, R> {
             }
             _ => false,
         }
+    }
+}
+
+impl<const P: usize, const Q: usize, const R: usize> Default for UIAssembly<P, Q, R> {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -445,6 +464,12 @@ impl LayoutRect {
     }
 }
 
+impl Default for LayoutTree {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl LayoutTree {
     /// Create a new layout tree
     pub fn new() -> Self {
@@ -480,6 +505,12 @@ impl LayoutTree {
 
         self.nodes[parent].children.push(child);
         Ok(())
+    }
+}
+
+impl Default for LayoutEngine {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

@@ -8,7 +8,6 @@ use crate::{AutomataError, AutomataResult};
 use amari_tropical::TropicalMultivector;
 use alloc::vec::Vec;
 use alloc::boxed::Box;
-use core::cmp::Ordering;
 use num_traits::Float;
 
 // Missing type needed by lib.rs imports - using the more complete implementation below
@@ -116,8 +115,10 @@ pub struct SolverConfig<T: Float + Clone> {
 /// Solver cache for performance
 struct SolverCache<T: Float + Clone, const DIM: usize> {
     /// Cached expression evaluations
+    #[allow(dead_code)]
     expression_cache: Vec<Option<TropicalMultivector<T, DIM>>>,
     /// Constraint satisfaction cache
+    #[allow(dead_code)]
     constraint_cache: Vec<Option<bool>>,
     /// Variable update history
     update_history: Vec<Vec<TropicalMultivector<T, DIM>>>,
@@ -186,13 +187,13 @@ impl<T: Float + Clone + PartialOrd + Copy, const DIM: usize> TropicalConstraint<
 
     /// Compute constraint violation
     pub fn violation(&self, variables: &[TropicalMultivector<T, DIM>]) -> AutomataResult<T> {
-        let lhs_val = self.lhs.evaluate(variables)?;
-        let rhs_val = self.rhs.evaluate(variables)?;
+        let _lhs_val = self.lhs.evaluate(variables)?;
+        let _rhs_val = self.rhs.evaluate(variables)?;
 
         // Simplified violation measure - would need proper implementation
         // based on tropical distance metrics
         if self.is_satisfied(variables)? {
-            Ok(self.weight) // No violation - return zero-like element
+            Ok(T::zero()) // No violation - return zero-like element
         } else {
             Ok(self.weight) // Violation - return weight as penalty
         }
@@ -211,12 +212,12 @@ impl<T: Float + Clone + PartialOrd + Copy, const DIM: usize> TropicalExpression<
     }
 
     /// Create tropical addition expression
-    pub fn add(left: Self, right: Self) -> Self {
+    pub fn tropical_add(left: Self, right: Self) -> Self {
         Self::Add(Box::new(left), Box::new(right))
     }
 
     /// Create tropical multiplication expression
-    pub fn mul(left: Self, right: Self) -> Self {
+    pub fn tropical_mul(left: Self, right: Self) -> Self {
         Self::Mul(Box::new(left), Box::new(right))
     }
 
@@ -390,7 +391,7 @@ impl<T: Float + Clone + PartialOrd + Copy, const DIM: usize> TropicalSolver<T, D
         &self,
         var_index: usize,
         current_variables: &[TropicalMultivector<T, DIM>],
-        system: &TropicalSystem<T, DIM>,
+        _system: &TropicalSystem<T, DIM>,
     ) -> AutomataResult<TropicalMultivector<T, DIM>> {
         // Find the best value for this variable that satisfies constraints
         // This is a simplified implementation

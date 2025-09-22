@@ -8,7 +8,6 @@ use crate::{AutomataError, AutomataResult};
 use amari_core::{Multivector, CayleyTable};
 use alloc::vec::Vec;
 use alloc::string::String;
-use alloc::boxed::Box;
 use alloc::collections::BTreeMap;
 
 // Missing types needed by lib.rs imports (simplified implementations)
@@ -46,6 +45,12 @@ impl Generator {
 #[derive(Clone, Debug)]
 pub struct CayleyGraphNavigator {
     pub graph: BTreeMap<String, Vec<String>>,
+}
+
+impl Default for CayleyGraphNavigator {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl CayleyGraphNavigator {
@@ -255,7 +260,7 @@ impl<const P: usize, const Q: usize, const R: usize> CayleyGraph<P, Q, R> {
         let generator = &self.generators[generator_idx];
 
         // Use cached table if available
-        if let Some(ref table) = self.cayley_table {
+        if let Some(ref _table) = self.cayley_table {
             // For simplicity, fall back to direct computation
             // In practice, would use the table for specific cases
             Ok(state.geometric_product(generator))

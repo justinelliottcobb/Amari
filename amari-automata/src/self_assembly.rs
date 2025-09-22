@@ -17,6 +17,12 @@ pub struct Polyomino {
     pub cells: Vec<(usize, usize)>,
 }
 
+impl Default for Polyomino {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Polyomino {
     pub fn new() -> Self {
         Self { cells: Vec::new() }
@@ -33,6 +39,12 @@ pub struct TileSet {
     pub tiles: Vec<Polyomino>,
 }
 
+impl Default for TileSet {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl TileSet {
     pub fn new() -> Self {
         Self { tiles: Vec::new() }
@@ -43,6 +55,12 @@ impl TileSet {
 #[derive(Clone, Debug)]
 pub struct WangTileSet {
     pub tiles: Vec<Polyomino>,
+}
+
+impl Default for WangTileSet {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl WangTileSet {
@@ -57,6 +75,12 @@ pub struct Shape {
     pub boundary: Vec<(f64, f64)>,
 }
 
+impl Default for Shape {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Shape {
     pub fn new() -> Self {
         Self { boundary: Vec::new() }
@@ -67,6 +91,12 @@ impl Shape {
 #[derive(Clone, Debug)]
 pub struct AssemblyRule {
     pub affinity_threshold: f64,
+}
+
+impl Default for AssemblyRule {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl AssemblyRule {
@@ -86,6 +116,12 @@ pub enum AssemblyConstraint {
     Custom(String),
 }
 
+impl Default for AssemblyConstraint {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl AssemblyConstraint {
     pub fn new() -> Self {
         Self::Custom("default".to_string())
@@ -96,6 +132,12 @@ impl AssemblyConstraint {
 #[derive(Clone, Debug)]
 pub struct SelfAssembly {
     pub components: Vec<Component<3, 0, 0>>,
+}
+
+impl Default for SelfAssembly {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl SelfAssembly {
@@ -180,6 +222,7 @@ pub struct SelfAssembler<const P: usize, const Q: usize, const R: usize> {
     /// Assembly configuration
     config: AssemblyConfig,
     /// Cached affinity matrix
+    #[allow(dead_code)]
     affinity_cache: Vec<Vec<f64>>,
     /// Assembly space bounds
     bounds: (Vector<P, Q, R>, Vector<P, Q, R>),
@@ -257,6 +300,12 @@ impl<const P: usize, const Q: usize, const R: usize> Component<P, Q, R> {
 
             _ => false,
         }
+    }
+}
+
+impl<const P: usize, const Q: usize, const R: usize> Default for Assembly<P, Q, R> {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -373,6 +422,7 @@ impl<const P: usize, const Q: usize, const R: usize> SelfAssembler<P, Q, R> {
     }
 
     /// Precompute affinity matrix for given components
+    #[allow(dead_code)]
     fn precompute_affinities(&mut self, components: &[Component<P, Q, R>]) {
         let n = components.len();
         self.affinity_cache = vec![vec![0.0; n]; n];

@@ -5,11 +5,10 @@
 //! enabling gradient-based optimization.
 
 use crate::{AutomataError, AutomataResult, InverseDesignable};
-use crate::geometric_ca::{GeometricCA, CARule};
+use crate::geometric_ca::GeometricCA;
 use amari_core::Multivector;
 use amari_dual::{DualMultivector, DualNumber};
 use alloc::vec::Vec;
-use alloc::string::String;
 use num_traits::Float;
 
 // Additional types needed by tests (simplified implementations)
@@ -17,6 +16,7 @@ use num_traits::Float;
 /// Pattern for test compatibility
 #[derive(Clone, Debug)]
 pub struct TargetPattern {
+    #[allow(dead_code)]
     data: Vec<Multivector<3, 0, 0>>,
 }
 
@@ -29,6 +29,7 @@ impl TargetPattern {
 /// Constraint for test compatibility
 #[derive(Clone, Debug)]
 pub struct TropicalConstraint {
+    #[allow(dead_code)]
     value: f64,
 }
 
@@ -41,6 +42,7 @@ impl TropicalConstraint {
 /// Objective for test compatibility
 #[derive(Clone, Debug)]
 pub struct Objective {
+    #[allow(dead_code)]
     target: f64,
 }
 
@@ -52,7 +54,14 @@ impl Objective {
 
 /// CA-specific inverse designer (simplified for tests)
 pub struct InverseCADesigner {
+    #[allow(dead_code)]
     tolerance: f64,
+}
+
+impl Default for InverseCADesigner {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl InverseCADesigner {
@@ -68,6 +77,7 @@ pub struct InverseDesigner<T: Float, const P: usize, const Q: usize, const R: us
     /// Number of evolution steps to target
     target_steps: usize,
     /// Learning rate for gradient descent
+    #[allow(dead_code)]
     learning_rate: T,
     /// Maximum optimization iterations
     max_iterations: usize,
@@ -162,6 +172,7 @@ impl<T: Float, const P: usize, const Q: usize, const R: usize> InverseDesigner<T
         let width = grid[0].len();
         let mut new_grid = vec![vec![DualMultivector::zero(); width]; height];
 
+        #[allow(clippy::needless_range_loop)]
         for y in 0..height {
             for x in 0..width {
                 new_grid[y][x] = self.evolve_dual_cell(grid, x, y, rule)?;
@@ -249,7 +260,7 @@ impl<T: Float, const P: usize, const Q: usize, const R: usize> InverseDesigner<T
     }
 
     /// Generate random initial configuration
-    pub fn random_configuration(&self, seed: u64) -> Configuration<P, Q, R> {
+    pub fn random_configuration(&self, _seed: u64) -> Configuration<P, Q, R> {
         // For now, return a simple configuration
         // In practice, would use proper random number generation
         let (width, height) = self.template_ca.dimensions();
@@ -274,7 +285,7 @@ impl<T: Float, const P: usize, const Q: usize, const R: usize> InverseDesignable
     type Configuration = Configuration<P, Q, R>;
 
     fn find_seed(&self, target: &Self::Target) -> AutomataResult<Self::Configuration> {
-        let mut config = self.random_configuration(42);
+        let config = self.random_configuration(42);
         let mut best_fitness = T::infinity();
 
         for _iteration in 0..self.max_iterations {

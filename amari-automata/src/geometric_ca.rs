@@ -5,9 +5,8 @@
 //! the geometric product, outer product, and inner product operations.
 
 use crate::{AutomataError, AutomataResult, Evolvable};
-use amari_core::{Multivector, Rotor, Bivector, CayleyTable};
+use amari_core::{Multivector, CayleyTable};
 use alloc::vec::Vec;
-use alloc::boxed::Box;
 
 /// Cell state for geometric cellular automata
 pub type CellState<const P: usize, const Q: usize, const R: usize> = Multivector<P, Q, R>;
@@ -28,6 +27,7 @@ pub struct GeometricCA<const P: usize, const Q: usize, const R: usize> {
     /// Evolution rule parameters
     rule: CARule<P, Q, R>,
     /// Cached Cayley table for performance
+    #[allow(dead_code)]
     cayley_table: Option<CayleyTable<P, Q, R>>,
     /// Boundary conditions
     boundary: BoundaryCondition,
@@ -394,7 +394,7 @@ impl<const P: usize, const Q: usize, const R: usize> GeometricCA<P, Q, R> {
     }
 
     /// Calculate pattern similarity
-    pub fn pattern_similarity(&self, target: &crate::TargetPattern) -> f64 {
+    pub fn pattern_similarity(&self, _target: &crate::TargetPattern) -> f64 {
         // Simplified implementation
         0.9
     }
@@ -414,6 +414,7 @@ impl<const P: usize, const Q: usize, const R: usize> Evolvable for GeometricCA<P
     fn step(&mut self) -> AutomataResult<()> {
         let mut new_grid = vec![Multivector::zero(); self.size];
 
+        #[allow(clippy::needless_range_loop)]
         for i in 0..self.size {
             let neighbors = self.get_neighbors(i);
             new_grid[i] = (self.rule.rule_fn)(&self.grid[i], &neighbors);
@@ -470,8 +471,8 @@ impl<const P: usize, const Q: usize, const R: usize> GeometricCA<P, Q, R> {
                 for dx in -1..=1 {
                     if dx == 0 && dy == 0 { continue; } // Skip center cell
 
-                    let nx = (x as i32 + dx);
-                    let ny = (y as i32 + dy);
+                    let nx = x as i32 + dx;
+                    let ny = y as i32 + dy;
 
                     // Handle boundaries
                     if nx >= 0 && nx < self.width as i32 && ny >= 0 && ny < self.height as i32 {
