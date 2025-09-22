@@ -427,10 +427,14 @@ mod tests {
         ];
         let keys = queries.clone();
         let values = queries.clone();
-        
+
         let result = head.compute_attention_dual(&queries, &keys, &values, None);
-        assert_eq!(result.len(), 1);
-        assert!(result[0].dual.abs() > 0.0);
+        assert_eq!(result.len(), 2); // Should match sequence length
+
+        // Both outputs should have gradients
+        for output in &result {
+            assert!(output.dual.abs() > 0.0);
+        }
     }
     
     #[test]
