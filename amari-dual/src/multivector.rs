@@ -172,7 +172,7 @@ impl<T: Float, const P: usize, const Q: usize, const R: usize> DualMultivector<T
         
         for i in 0..Self::BASIS_COUNT {
             let grade = i.count_ones() as usize;
-            let sign = if grade == 0 || (grade * (grade - 1) / 2) % 2 == 0 { 1.0 } else { -1.0 };
+            let sign = if grade == 0 || (grade * (grade - 1) / 2).is_multiple_of(2) { 1.0 } else { -1.0 };
             
             if sign > 0.0 {
                 result.coefficients[i] = self.coefficients[i];
@@ -433,9 +433,9 @@ impl<T: Float> MultiDualMultivector<T> {
         }
         
         // Set up identity jacobian
-        for i in 0..basis_count {
+        for (i, row) in jacobian.iter_mut().enumerate().take(basis_count) {
             if i < n_vars {
-                jacobian[i][i] = T::one();
+                row[i] = T::one();
             }
         }
         
