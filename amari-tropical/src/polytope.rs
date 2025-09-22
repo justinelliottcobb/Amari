@@ -276,6 +276,7 @@ impl<T: Float> TropicalHyperplane<T> {
 mod tests {
     use super::*;
     use approx::assert_relative_eq;
+    use alloc::vec;
     
     #[test]
     fn test_tropical_polytope_creation() {

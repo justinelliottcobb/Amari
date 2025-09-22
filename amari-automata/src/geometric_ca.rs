@@ -75,6 +75,11 @@ impl<const P: usize, const Q: usize, const R: usize> GeometricCA<P, Q, R> {
         }
     }
 
+    /// Create a new 1D geometric cellular automaton (alias for backward compatibility)
+    pub fn new_1d(size: usize) -> Self {
+        Self::new(size)
+    }
+
     /// Create a new 2D geometric cellular automaton
     pub fn new_2d(width: usize, height: usize) -> Self {
         let size = width * height;
@@ -251,11 +256,21 @@ impl<const P: usize, const Q: usize, const R: usize> GeometricCA<P, Q, R> {
         }
     }
 
-    /// Set a cell to a specific multivector value
+    /// Set a cell to a specific multivector value using linear index
     pub fn set_cell(&mut self, index: usize, value: Multivector<P, Q, R>) -> AutomataResult<()> {
         if index >= self.size {
             return Err(AutomataError::InvalidCoordinates(index, 0));
         }
+        self.grid[index] = value;
+        Ok(())
+    }
+
+    /// Set a cell to a specific multivector value using 2D coordinates
+    pub fn set_cell_2d(&mut self, x: usize, y: usize, value: Multivector<P, Q, R>) -> AutomataResult<()> {
+        if x >= self.width || y >= self.height {
+            return Err(AutomataError::InvalidCoordinates(x, y));
+        }
+        let index = y * self.width + x;
         self.grid[index] = value;
         Ok(())
     }

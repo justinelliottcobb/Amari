@@ -469,6 +469,7 @@ impl<T: Float> MultiDualMultivector<T> {
 mod tests {
     use super::*;
     use approx::assert_relative_eq;
+    use alloc::vec;
     
     #[test]
     fn test_dual_multivector_creation() {

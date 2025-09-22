@@ -231,6 +231,7 @@ pub fn dropout<T: Float>(
 mod tests {
     use super::*;
     use approx::assert_relative_eq;
+    use alloc::vec;
     
     #[test]
     fn test_softmax() {

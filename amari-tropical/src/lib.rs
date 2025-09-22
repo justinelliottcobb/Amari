@@ -483,6 +483,7 @@ impl<T: Float> TropicalMatrix<T> {
 mod tests {
     use super::*;
     use approx::assert_relative_eq;
+    use alloc::vec;
     
     #[test]
     fn test_tropical_number_operations() {
@@ -504,8 +505,8 @@ mod tests {
     
     #[test]
     fn test_tropical_multivector() {
-        let mv1 = TropicalMultivector::<f64, 2>::from_coefficients(vec![1.0, 2.0, 3.0, 4.0]);
-        let mv2 = TropicalMultivector::<f64, 2>::from_coefficients(vec![0.5, 1.5, 2.5, 3.5]);
+        let mv1 = TropicalMultivector::<f64, 2>::from_coefficients(Vec::from([1.0, 2.0, 3.0, 4.0]));
+        let mv2 = TropicalMultivector::<f64, 2>::from_coefficients(Vec::from([0.5, 1.5, 2.5, 3.5]));
         
         let product = mv1.geometric_product(&mv2);
         
@@ -520,9 +521,9 @@ mod tests {
     #[test]
     fn test_tropical_matrix() {
         let log_probs = vec![
-            vec![0.0, -1.0, -2.0],
-            vec![-1.0, 0.0, -1.0],
-            vec![-2.0, -1.0, 0.0],
+            Vec::from([0.0, -1.0, -2.0]),
+            Vec::from([-1.0, 0.0, -1.0]),
+            Vec::from([-2.0, -1.0, 0.0]),
         ];
         
         let matrix = TropicalMatrix::from_log_probs(&log_probs);
@@ -540,11 +541,11 @@ mod tests {
     #[test]
     fn test_viterbi_equivalence() {
         // Tropical multiplication chain should equal Viterbi path probability
-        let transitions = vec![
+        let transitions = Vec::from([
             TropicalNumber::from_log_prob(-0.5),
             TropicalNumber::from_log_prob(-1.0),
             TropicalNumber::from_log_prob(-0.3),
-        ];
+        ]);
         
         let path_prob = transitions.into_iter().fold(TropicalNumber::ONE, |acc, x| acc * x);
         

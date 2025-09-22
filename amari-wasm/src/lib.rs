@@ -1,7 +1,7 @@
 //! WASM bindings for the Amari geometric algebra library
 
 use wasm_bindgen::prelude::*;
-use amari_core::{Multivector, rotor::Rotor};
+use amari_core::{Multivector, Bivector, rotor::Rotor};
 
 /// Console logging utility
 #[wasm_bindgen]
