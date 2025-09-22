@@ -20,6 +20,12 @@ pub struct WasmMultivector {
     inner: Multivector<3, 0, 0>, // Default to 3D Euclidean for now
 }
 
+impl Default for WasmMultivector {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[wasm_bindgen]
 impl WasmMultivector {
     /// Create a new zero multivector
@@ -66,6 +72,7 @@ impl WasmMultivector {
     #[wasm_bindgen(js_name = getCoefficients)]
     pub fn get_coefficients(&self) -> Vec<f64> {
         let mut coeffs = vec![0.0; 8];
+        #[allow(clippy::needless_range_loop)]
         for i in 0..8 {
             coeffs[i] = self.inner.get(i);
         }
@@ -188,7 +195,7 @@ impl BatchOperations {
     pub fn batch_geometric_product(a_batch: &[f64], b_batch: &[f64]) -> Result<Vec<f64>, JsValue> {
         let batch_size = a_batch.len() / 8;
         
-        if a_batch.len() % 8 != 0 || b_batch.len() % 8 != 0 {
+        if !a_batch.len().is_multiple_of(8) || !b_batch.len().is_multiple_of(8) {
             return Err(JsValue::from_str("Batch arrays must have length divisible by 8"));
         }
         
