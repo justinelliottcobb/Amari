@@ -19,7 +19,8 @@ criterion = "0.5"
 fastrand = "2.0"
 
 [features]
-default = []
+default = ["std"]
+std = []
 serialize = ["serde"]
 
 [[bench]]

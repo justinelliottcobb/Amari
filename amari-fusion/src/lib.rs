@@ -11,7 +11,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 extern crate alloc;
-use alloc::vec::{self, Vec};
+use alloc::vec::Vec;
 
 use amari_core::Multivector;
 use amari_tropical::{TropicalNumber, TropicalMultivector, TropicalMatrix};

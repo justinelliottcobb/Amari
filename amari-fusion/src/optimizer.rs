@@ -310,6 +310,19 @@ impl<T: Float, const DIM: usize> OptimizationResult<T, DIM> {
     pub fn is_successful(&self) -> bool {
         self.converged && self.improvement().map(|imp| imp > T::zero()).unwrap_or(false)
     }
+
+    /// Check if optimization result is OK (converged successfully)
+    pub fn is_ok(&self) -> bool {
+        self.converged
+    }
+
+    /// Unwrap the optimization result, panicking if not converged
+    pub fn unwrap(self) -> TropicalDualClifford<T, DIM> {
+        if !self.converged {
+            panic!("Optimization did not converge");
+        }
+        self.optimal_point
+    }
 }
 
 /// Errors that can occur during optimization
@@ -440,10 +453,9 @@ mod tests {
         
         let result = optimizer.optimize(&initial_point, objective);
         assert!(result.is_ok());
-        
-        let opt_result = result.unwrap();
-        assert!(opt_result.iterations > 0);
-        assert!(!opt_result.convergence_history.is_empty());
+
+        assert!(result.iterations > 0);
+        assert!(!result.convergence_history.is_empty());
     }
     
     #[test]

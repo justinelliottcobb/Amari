@@ -61,6 +61,11 @@ impl<T: Float> TropicalNumber<T> {
     pub fn is_one(&self) -> bool {
         self.0.is_zero()
     }
+
+    /// Check if this is infinite (either positive or negative)
+    pub fn is_infinity(&self) -> bool {
+        self.0.is_infinite()
+    }
     
     /// Tropical addition (max operation)
     pub fn tropical_add(self, other: Self) -> Self {
