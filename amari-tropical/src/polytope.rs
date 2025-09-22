@@ -52,11 +52,7 @@ impl<T: Float> TropicalPolytope<T> {
         }
         
         Self {
-            vertices: {
-                let mut v = Vec::with_capacity(1);
-                v.push(coeffs);
-                v
-            },
+            vertices: vec![coeffs],
             dimension: 1 << DIM,
         }
     }
@@ -82,7 +78,7 @@ impl<T: Float> TropicalPolytope<T> {
                 
                 // Simplified extremality test
                 let mut dominates = true;
-                for (i, (&v, &o)) in vertex.iter().zip(other.iter()).enumerate() {
+                for (&v, &o) in vertex.iter().zip(other.iter()) {
                     if v.value() < o.value() {
                         dominates = false;
                         break;
@@ -118,7 +114,7 @@ impl<T: Float> TropicalPolytope<T> {
         // Simplified membership test
         for vertex in &self.vertices {
             let mut all_dominated = true;
-            for (i, (&p, &v)) in point.iter().zip(vertex.iter()).enumerate() {
+            for (&p, &v) in point.iter().zip(vertex.iter()) {
                 if p.value() > v.value() + T::epsilon() {
                     all_dominated = false;
                     break;
@@ -159,7 +155,7 @@ impl<T: Float> TropicalPolytope<T> {
                 }
                 
                 let mut normal = Vec::new();
-                for (k, (&v, &o)) in vertex.iter().zip(other.iter()).enumerate() {
+                for (&v, &o) in vertex.iter().zip(other.iter()) {
                     // Tropical subtraction for normal computation
                     normal.push(TropicalNumber::new(v.value() - o.value()));
                 }
@@ -188,7 +184,7 @@ impl<T: Float> TropicalPolytope<T> {
         for v1 in &self.vertices {
             for v2 in &other.vertices {
                 let mut sum_vertex = Vec::new();
-                for (i, (&a, &b)) in v1.iter().zip(v2.iter()).enumerate() {
+                for (&a, &b) in v1.iter().zip(v2.iter()) {
                     // Tropical addition is max
                     sum_vertex.push(a + b);
                 }
@@ -254,7 +250,7 @@ impl<T: Float> TropicalHyperplane<T> {
     pub fn evaluate(&self, point: &[TropicalNumber<T>]) -> TropicalNumber<T> {
         let mut result = self.offset;
         
-        for (i, (&coord, &normal_comp)) in point.iter().zip(self.normal.iter()).enumerate() {
+        for (&coord, &normal_comp) in point.iter().zip(self.normal.iter()) {
             result = result + (coord * normal_comp);
         }
         

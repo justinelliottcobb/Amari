@@ -35,11 +35,7 @@ impl<T: Float> TropicalViterbi<T> {
         let mut trellis = TropicalMatrix::new(n_states, n_obs);
         let mut path = Vec::with_capacity(n_states);
         for _ in 0..n_states {
-            let mut row = Vec::with_capacity(n_obs);
-            for _ in 0..n_obs {
-                row.push(0);
-            }
-            path.push(row);
+            path.push(vec![0; n_obs]);
         }
         
         // Initialize first column (tropical style)
@@ -49,7 +45,9 @@ impl<T: Float> TropicalViterbi<T> {
         }
         
         // Forward pass using tropical operations
+        #[allow(clippy::needless_range_loop)]
         for t in 1..n_obs {
+            #[allow(clippy::needless_range_loop)]
             for curr_state in 0..n_states {
                 let mut best_prob = TropicalNumber::zero();
                 let mut best_prev = 0;
@@ -86,9 +84,7 @@ impl<T: Float> TropicalViterbi<T> {
         
         // Backtrack to find optimal path
         let mut optimal_path = Vec::with_capacity(n_obs);
-        for _ in 0..n_obs {
-            optimal_path.push(0);
-        }
+        optimal_path.extend(vec![0; n_obs]);
         optimal_path[n_obs - 1] = best_final_state;
         
         for t in (0..n_obs-1).rev() {
@@ -111,6 +107,7 @@ impl<T: Float> TropicalViterbi<T> {
         }
         
         // Forward recursion using tropical operations
+        #[allow(clippy::needless_range_loop)]
         for t in 1..n_obs {
             for state in 0..n_states {
                 let mut prob_sum = TropicalNumber::zero();

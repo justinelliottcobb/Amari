@@ -9,7 +9,7 @@
 extern crate alloc;
 use alloc::vec::Vec;
 use core::ops::{Add, Mul, Neg};
-use num_traits::{Float, Zero, One};
+use num_traits::Float;
 
 pub mod polytope;
 pub mod viterbi;
@@ -296,14 +296,11 @@ impl<T: Float, const DIM: usize> TropicalMultivector<T, DIM> {
         let mut current_probs = Vec::with_capacity(num_states);
         let mut prev_states = Vec::with_capacity(sequence_length);
         for _ in 0..sequence_length {
-            let mut row = Vec::with_capacity(num_states);
-            for _ in 0..num_states {
-                row.push(0);
-            }
-            prev_states.push(row);
+            prev_states.push(vec![0; num_states]);
         }
         
         // Initialize with first observation
+        #[allow(clippy::needless_range_loop)]
         for i in 0..num_states {
             let init_prob = TropicalNumber::from_log_prob(initial_probs[i]);
             let emit_prob = emissions.data[i][0]; // First observation
@@ -311,9 +308,11 @@ impl<T: Float, const DIM: usize> TropicalMultivector<T, DIM> {
         }
         
         // Forward pass through sequence
+        #[allow(clippy::needless_range_loop)]
         for t in 1..sequence_length {
             let mut new_probs = Vec::with_capacity(num_states);
             
+            #[allow(clippy::needless_range_loop)]
             for curr_state in 0..num_states {
                 let mut best_prob = TropicalNumber::zero(); // -infinity
                 let mut best_prev = 0;
