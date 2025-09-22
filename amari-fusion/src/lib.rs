@@ -34,6 +34,7 @@ pub struct TropicalDualClifford<T: Float, const DIM: usize> {
 }
 
 impl<T: Float, const DIM: usize> TropicalDualClifford<T, DIM> {
+    #[allow(dead_code)]
     const BASIS_COUNT: usize = 1 << DIM;
     
     /// Create zero TDC object
@@ -373,7 +374,7 @@ impl<T: Float> TropicalDualDistribution<T> {
         let mut sequence = Vec::with_capacity(length);
         
         // Simplified sequence generation
-        for i in 0..length {
+        for _i in 0..length {
             let max_component = self.logits.tropical.support().into_iter()
                 .max_by(|&a, &b| {
                     self.logits.tropical.get(a).value()
@@ -416,6 +417,12 @@ impl<T: Float> TropicalDualDistribution<T> {
 /// Builder for constructing TDC objects
 pub struct TropicalDualCliffordBuilder<T: Float, const DIM: usize> {
     logits: Vec<T>,
+}
+
+impl<T: Float, const DIM: usize> Default for TropicalDualCliffordBuilder<T, DIM> {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl<T: Float, const DIM: usize> TropicalDualCliffordBuilder<T, DIM> {

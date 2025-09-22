@@ -2,7 +2,7 @@
 
 use crate::TropicalDualClifford;
 use amari_core::Multivector;
-use amari_dual::{DualNumber, functions::{softmax, attention}};
+use amari_dual::{DualNumber, functions::softmax};
 use amari_tropical::TropicalNumber;
 use alloc::vec::Vec;
 use num_traits::Float;
@@ -162,7 +162,7 @@ impl<T: Float> AttentionHead<T> {
         let norm_product = query_mv.norm() * key_mv.norm();
         
         let attention_strength = if norm_product > 0.0 {
-            (alignment / norm_product).max(0.0).min(1.0)
+            (alignment / norm_product).clamp(0.0, 1.0)
         } else {
             0.0
         };

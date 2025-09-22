@@ -1,8 +1,8 @@
 //! Optimization using combined tropical-dual-clifford algebra
 
-use crate::{TropicalDualClifford, EvaluationResult};
+use crate::TropicalDualClifford;
 use amari_dual::DualNumber;
-use alloc::vec::{self, Vec};
+use alloc::vec::Vec;
 use num_traits::Float;
 
 /// Optimizer that leverages all three algebraic systems
@@ -147,7 +147,7 @@ impl<T: Float> TropicalDualOptimizer<T> {
             }
             
             // Apply updates
-            current = self.apply_gradient_update(&current, &velocity)?;
+            current = self.apply_gradient_update(&current, velocity)?;
             
             if iteration > 10 && history.len() >= 2 {
                 let improvement = (history[history.len()-2] - history[history.len()-1]).abs();
@@ -183,7 +183,7 @@ impl<T: Float> TropicalDualOptimizer<T> {
     fn compute_gradient<F, const DIM: usize>(
         &self,
         point: &TropicalDualClifford<T, DIM>,
-        objective: &F,
+        _objective: &F,
     ) -> Vec<T>
     where
         F: Fn(&TropicalDualClifford<T, DIM>) -> DualNumber<T>,
@@ -192,7 +192,7 @@ impl<T: Float> TropicalDualOptimizer<T> {
         
         // Compute gradients by perturbing each component
         for i in 0..DIM.min(8) { // Limit to manageable size
-            let mut perturbed = point.clone();
+            let perturbed = point.clone();
             
             // Create a small perturbation using dual numbers
             let current_coeff = perturbed.dual.get(i);
@@ -360,7 +360,9 @@ pub mod llm_optimizers {
     /// Optimizer for prompt optimization
     pub struct PromptOptimizer<T: Float> {
         base_optimizer: TropicalDualOptimizer<T>,
+        #[allow(dead_code)]
         vocab_size: usize,
+        #[allow(dead_code)]
         max_length: usize,
     }
     

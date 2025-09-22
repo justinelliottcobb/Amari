@@ -1,10 +1,9 @@
 //! LLM evaluation metrics using Tropical-Dual-Clifford algebra
 
-use crate::{TropicalDualClifford, optimizer::OptimizationResult};
-use amari_core::Multivector;
-use amari_dual::{DualNumber, functions::{softmax, cross_entropy_loss, kl_divergence}};
-use amari_tropical::{TropicalNumber, TropicalMultivector};
-use alloc::vec::{self, Vec};
+use crate::TropicalDualClifford;
+use amari_dual::{DualNumber, functions::cross_entropy_loss};
+use amari_tropical::TropicalNumber;
+use alloc::vec::Vec;
 use num_traits::Float;
 use core::fmt;
 
@@ -272,7 +271,7 @@ impl<T: Float> LLMEvaluator<T> {
             let curr_mv = &predictions[i].clifford;
             
             // Compute geometric similarity using scalar product
-            let similarity = prev_mv.scalar_product(&curr_mv);
+            let similarity = prev_mv.scalar_product(curr_mv);
             let norm_product = prev_mv.norm() * curr_mv.norm();
             
             // Coherence based on normalized similarity
@@ -583,6 +582,12 @@ pub struct ModelComparison {
     pub total_cases: usize,
 }
 
+impl Default for ModelComparison {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ModelComparison {
     pub fn new() -> Self {
         Self {
@@ -629,11 +634,11 @@ impl<T: Float> Default for EvaluationThresholds<T> {
 
 impl<T: Float> fmt::Display for EvaluationMetrics<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Evaluation Metrics:\n")?;
-        write!(f, "  Perplexity: {:.2}\n", self.dual_perplexity.real.to_f64().unwrap_or(0.0))?;
-        write!(f, "  Coherence: {:.3}\n", self.clifford_coherence.to_f64().unwrap_or(0.0))?;
-        write!(f, "  BLEU: {:.3}\n", self.bleu_components.overall_score().to_f64().unwrap_or(0.0))?;
-        write!(f, "  Attention Quality: {:.3}\n", self.attention_quality.to_f64().unwrap_or(0.0))?;
+        writeln!(f, "Evaluation Metrics:")?;
+        writeln!(f, "  Perplexity: {:.2}", self.dual_perplexity.real.to_f64().unwrap_or(0.0))?;
+        writeln!(f, "  Coherence: {:.3}", self.clifford_coherence.to_f64().unwrap_or(0.0))?;
+        writeln!(f, "  BLEU: {:.3}", self.bleu_components.overall_score().to_f64().unwrap_or(0.0))?;
+        writeln!(f, "  Attention Quality: {:.3}", self.attention_quality.to_f64().unwrap_or(0.0))?;
         write!(f, "  Overall Score: {:.3}", self.overall_score().to_f64().unwrap_or(0.0))
     }
 }
