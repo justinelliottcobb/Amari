@@ -24,6 +24,7 @@ pub struct GpuCliffordAlgebra {
     queue: wgpu::Queue,
     compute_pipeline: wgpu::ComputePipeline,
     cayley_buffer: wgpu::Buffer,
+    #[allow(dead_code)]
     dim: usize,
     basis_count: usize,
 }
@@ -411,7 +412,9 @@ pub struct GpuInfoGeometry {
     device: wgpu::Device,
     queue: wgpu::Queue,
     tensor_pipeline: wgpu::ComputePipeline,
+    #[allow(dead_code)]
     fisher_pipeline: wgpu::ComputePipeline,
+    #[allow(dead_code)]
     divergence_pipeline: wgpu::ComputePipeline,
 }
 
@@ -781,7 +784,7 @@ impl GpuInfoGeometry {
             });
             compute_pass.set_pipeline(&self.tensor_pipeline);
             compute_pass.set_bind_group(0, &bind_group, &[]);
-            let workgroup_count = (batch_size + 63) / 64; // 64 threads per workgroup
+            let workgroup_count = batch_size.div_ceil(64); // 64 threads per workgroup
             compute_pass.dispatch_workgroups(workgroup_count as u32, 1, 1);
         }
 
@@ -844,6 +847,7 @@ impl GpuInfoGeometry {
 /// GPU device information for edge computing
 pub struct GpuDeviceInfo {
     is_gpu: bool,
+    #[allow(dead_code)]
     description: String,
 }
 
