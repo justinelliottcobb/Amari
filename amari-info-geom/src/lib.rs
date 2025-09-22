@@ -102,6 +102,7 @@ pub trait AlphaConnection<T: Parameter> {
 /// Dually flat manifold with e-connection and m-connection
 pub struct DuallyFlatManifold {
     dimension: usize,
+    #[allow(dead_code)]
     alpha: f64,
 }
 
@@ -232,10 +233,9 @@ pub fn kl_divergence(
     // where ψ is the log partition function
     
     let eta_diff = eta_p - eta_q;
-    let bracket_term = eta_diff.scalar_product(mu_p);
-    
+
     // For simplicity, assume log partition functions cancel in relative computation
-    bracket_term
+    eta_diff.scalar_product(mu_p)
 }
 
 /// Compute the Amari-Chentsov tensor at a point
@@ -258,14 +258,12 @@ pub fn amari_chentsov_tensor(
 
     // Compute the symmetric trilinear form
     // For 3D Euclidean space, this is related to the scalar triple product
-    let tensor_value = x_vec[0] * y_vec[1] * z_vec[2]
+    x_vec[0] * y_vec[1] * z_vec[2]
                      + x_vec[1] * y_vec[2] * z_vec[0]
                      + x_vec[2] * y_vec[0] * z_vec[1]
                      - x_vec[2] * y_vec[1] * z_vec[0]
                      - x_vec[1] * y_vec[0] * z_vec[2]
-                     - x_vec[0] * y_vec[2] * z_vec[1];
-
-    tensor_value
+                     - x_vec[0] * y_vec[2] * z_vec[1]
 }
 
 /// α-connection factory
