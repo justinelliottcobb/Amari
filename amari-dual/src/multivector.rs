@@ -326,10 +326,12 @@ impl<T: Float, const P: usize, const Q: usize, const R: usize> DualMultivector<T
     ///
     /// # Example
     /// ```
-    /// let input = DualMultivector::from_scalar(2.0);
-    /// let (value, gradient) = input.forward_mode_ad(|x| x * x + x);
-    /// // value = 6.0 (2^2 + 2)
-    /// // gradient contains derivative = 5.0 (2*2 + 1)
+    /// use amari_dual::DualMultivector;
+    /// let input = DualMultivector::<f64, 3, 0, 0>::scalar(2.0);
+    /// let (value, gradient) = input.forward_mode_ad(|x| {
+    ///     x.geometric_product(&x)  // x^2 in geometric algebra
+    /// });
+    /// // Computes geometric square and its derivative
     /// ```
     ///
     /// # How it works
