@@ -361,9 +361,9 @@ mod tests {
         ];
         
         let value = hyperplane.evaluate(&point);
-        
-        // Should compute max(0, 2*1, 1*(-1)) = max(0, 2, -1) = 2
-        assert_relative_eq!(value.value(), 2.0, epsilon = 1e-10);
+
+        // Should compute max(0, 2+1, 1+(-1)) = max(0, 3, 0) = 3 (tropical arithmetic)
+        assert_relative_eq!(value.value(), 3.0, epsilon = 1e-10);
     }
     
     #[test]
