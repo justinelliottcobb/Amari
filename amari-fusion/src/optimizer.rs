@@ -116,7 +116,7 @@ impl<T: Float> TropicalDualOptimizer<T> {
         &self,
         initial: &TropicalDualClifford<T, DIM>,
         objective: &F,
-        velocity: &mut Vec<T>,
+        velocity: &mut [T],
         history: &mut Vec<T>,
     ) -> Result<TropicalDualClifford<T, DIM>, OptimizationError>
     where
