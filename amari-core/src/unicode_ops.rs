@@ -24,20 +24,20 @@
 //!
 //! ```rust
 //! use amari_core::{Multivector, Vector, Bivector};
-//! use amari_core::unicode_ops::*;
+//! use amari_core::{geo, wedge, dot, rev, dual, norm};
 //!
 //! let a = Vector::<3, 0, 0>::e1();
 //! let b = Vector::<3, 0, 0>::e2();
 //!
 //! // Traditional syntax
 //! let geometric = a.geometric_product(&b);
-//! let wedge = a.outer_product(&b);
+//! let wedge_traditional = a.outer_product(&b);
 //! let inner = a.inner_product(&b);
 //!
-//! // Unicode-inspired DSL syntax  
-//! let geometric = geo!(a, b);      // ⊗
-//! let wedge = wedge!(a, b);        // ∧
-//! let inner = dot!(a, b);          // •
+//! // Unicode-inspired DSL syntax
+//! let geometric2 = geo!(a, b);      // ⊗
+//! let wedge2 = wedge!(a, b);        // ∧
+//! let inner2 = dot!(a, b);          // •
 //!
 //! // Unary operations
 //! let reversed = rev!(a);          // †

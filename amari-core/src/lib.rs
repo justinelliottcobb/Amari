@@ -815,6 +815,12 @@ impl<const P: usize, const Q: usize, const R: usize> Vector<P, Q, R> {
     pub fn norm(&self) -> f64 {
         self.mv.norm()
     }
+
+    /// Hodge dual of the vector
+    /// Maps vectors to bivectors in 3D space
+    pub fn hodge_dual(&self) -> Bivector<P, Q, R> {
+        Bivector { mv: self.mv.hodge_dual() }
+    }
 }
 
 /// Bivector type - wrapper around Multivector with only grade 2
