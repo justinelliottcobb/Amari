@@ -480,9 +480,10 @@ impl GpuInfoGeometry {
 
     /// Create with specific device preference for edge computing
     pub async fn new_with_device_preference(device_type: &str) -> Result<Self, GpuError> {
-        let power_preference = match device_type {
-            "high-performance" => wgpu::PowerPreference::HighPerformance,
-            "low-power" => wgpu::PowerPreference::LowPower,
+        let (power_preference, force_fallback) = match device_type {
+            "high-performance" => (wgpu::PowerPreference::HighPerformance, false),
+            "low-power" => (wgpu::PowerPreference::LowPower, false),
+            "fallback" => (wgpu::PowerPreference::None, true),
             _ => return Err(GpuError::InitializationError("Invalid device type".to_string())),
         };
 
@@ -492,7 +493,7 @@ impl GpuInfoGeometry {
             .request_adapter(&wgpu::RequestAdapterOptions {
                 power_preference,
                 compatible_surface: None,
-                force_fallback_adapter: device_type == "fallback",
+                force_fallback_adapter: force_fallback,
             })
             .await
             .ok_or_else(|| GpuError::InitializationError("No suitable adapter found".to_string()))?;
