@@ -1,0 +1,94 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., 0.1.0)'
+        required: true
+        type: string
+
+jobs:
+  build-and-publish:
+    name: Build and Publish to NPM
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: Install wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+      - name: Build WASM packages
+        run: |
+          cd amari-wasm
+          # Build for different targets
+          wasm-pack build --target web --out-dir pkg --scope amari
+          wasm-pack build --target nodejs --out-dir pkg-node --scope amari
+          wasm-pack build --target bundler --out-dir pkg-bundler --scope amari
+
+      - name: Configure package version
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          cd amari-wasm
+          npm version ${{ github.event.inputs.version }} --no-git-tag-version
+
+      - name: Publish to NPM
+        run: |
+          cd amari-wasm/pkg
+          npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            amari-wasm/pkg/*.wasm
+            amari-wasm/pkg/*.js
+            amari-wasm/pkg/*.d.ts
+          generate_release_notes: true
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish-crates:
+    name: Publish to crates.io
+    runs-on: ubuntu-latest
+    needs: build-and-publish
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Login to crates.io
+        run: cargo login ${{ secrets.CRATES_TOKEN }}
+
+      - name: Publish crates in order
+        run: |
+          # Publish in dependency order
+          cargo publish -p amari-core --allow-dirty || true
+          sleep 10
+          cargo publish -p amari-tropical --allow-dirty || true
+          cargo publish -p amari-dual --allow-dirty || true
+          cargo publish -p amari-info-geom --allow-dirty || true
+          sleep 10
+          cargo publish -p amari-gpu --allow-dirty || true
+          cargo publish -p amari-fusion --allow-dirty || true
+          cargo publish -p amari-wasm --allow-dirty || true
+          cargo publish -p amari-automata --allow-dirty || true
