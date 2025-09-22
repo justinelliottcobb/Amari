@@ -2,7 +2,7 @@
 
 use amari_core::Multivector;
 use amari_dual::{DualNumber, functions::{softmax, cross_entropy_loss}};
-use amari_tropical::{TropicalNumber, TropicalMultivector, viterbi::ViterbiDecoder};
+use amari_tropical::{TropicalNumber, TropicalMultivector, viterbi::TropicalViterbi};
 use amari_fusion::TropicalDualClifford;
 use approx::assert_relative_eq;
 
@@ -184,8 +184,8 @@ fn test_tropical_dp_consistency() {
     let observations = vec![0, 1, 2];
     
     // Tropical Viterbi
-    let decoder = ViterbiDecoder::new(&transitions, &emissions);
-    let tropical_path = decoder.decode(&observations);
+    let decoder = TropicalViterbi::new(transitions.clone(), emissions.clone());
+    let (tropical_path, _prob) = decoder.decode(&observations);
     
     // Standard Viterbi in log space
     let standard_path = standard_viterbi(&transitions, &emissions, &observations);

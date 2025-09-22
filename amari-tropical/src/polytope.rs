@@ -5,7 +5,7 @@
 
 use crate::{TropicalNumber, TropicalMultivector, TropicalMatrix};
 use alloc::vec::Vec;
-use num_traits::{Float, Zero, One};
+use num_traits::Float;
 
 /// A tropical polytope representing attention patterns
 #[derive(Clone, Debug)]

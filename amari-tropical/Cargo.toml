@@ -15,5 +15,6 @@ approx = { workspace = true }
 criterion = "0.5"
 
 [features]
-default = []
+default = ["std"]
+std = []
 serialize = ["serde"]

@@ -5,7 +5,7 @@
 
 use crate::{TropicalNumber, TropicalMatrix, TropicalMultivector};
 use alloc::vec::Vec;
-use num_traits::{Float, Zero, One};
+use num_traits::Float;
 
 /// Viterbi decoder using tropical algebra
 pub struct TropicalViterbi<T: Float> {
