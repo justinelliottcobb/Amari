@@ -1,5 +1,7 @@
 import { useState, useCallback } from "react";
 import { Card, CardHeader, CardBody, Button, Code } from "jadis";
+import { ErrorBoundary } from "./ErrorBoundary";
+import { safeExecute, validateNumbers, validateArray } from "~/utils/safeExecution";
 
 interface CodePlaygroundProps {
   initialCode?: string;
@@ -32,16 +34,33 @@ export function CodePlayground({
     setError(null);
     setOutput("");
 
-    try {
-      const result = await onRun(code);
-      setOutput(result.output);
-      if (result.error) {
-        setError(result.error);
+    const executionResult = await safeExecute(
+      async () => {
+        const result = await onRun(code);
+        return result;
+      },
+      {
+        timeout: 15000,
+        retries: 1,
+        fallback: () => ({
+          output: "Code execution timed out or failed. This might be due to infinite loops, heavy computations, or syntax errors.",
+          error: "Execution timeout"
+        })
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
-    } finally {
-      setIsRunning(false);
+    );
+
+    setIsRunning(false);
+
+    if (executionResult.success && executionResult.data) {
+      setOutput(executionResult.data.output);
+      if (executionResult.data.error) {
+        setError(executionResult.data.error);
+      }
+      if (executionResult.fallbackUsed) {
+        setError("Execution failed - fallback message shown");
+      }
+    } else {
+      setError(executionResult.error || "Unknown execution error");
     }
   }, [code, onRun]);
 
@@ -72,8 +91,9 @@ export function CodePlayground({
   const lineNumbers = showLineNumbers && code.split('\n').map((_, i) => i + 1);
 
   return (
-    <Card>
-      <CardHeader>
+    <ErrorBoundary>
+      <Card>
+        <CardHeader>
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-lg font-semibold">{title}</h3>
@@ -145,6 +165,7 @@ export function CodePlayground({
         )}
       </CardBody>
     </Card>
+    </ErrorBoundary>
   );
 }
 

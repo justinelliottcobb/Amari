@@ -9,7 +9,14 @@
     "dev": "remix vite:dev",
     "lint": "eslint --ignore-path .gitignore --cache --cache-location ./node_modules/.cache/eslint .",
     "start": "remix-serve ./build/server/index.js",
-    "typecheck": "tsc"
+    "typecheck": "tsc",
+    "docker:build": "docker build -t amari-examples-suite .",
+    "docker:run": "docker run -p 3000:3000 amari-examples-suite",
+    "deploy:staging": "./deploy.sh staging",
+    "deploy:production": "./deploy.sh production",
+    "deploy:local": "docker-compose up -d",
+    "deploy:stop": "docker-compose down",
+    "health": "curl -f http://localhost:3000/ || exit 1"
   },
   "dependencies": {
     "@remix-run/node": "^2.12.1",
