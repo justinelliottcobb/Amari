@@ -4,6 +4,11 @@ version.workspace = true
 authors.workspace = true
 edition.workspace = true
 license.workspace = true
+description = "GPU acceleration for mathematical computations"
+repository = "https://github.com/justinelliottcobb/Amari"
+homepage = "https://github.com/justinelliottcobb/Amari"
+keywords = ["gpu-computing", "webgpu", "parallel", "performance", "mathematics"]
+categories = ["mathematics", "science", "algorithms"]
 
 [dependencies]
 amari-core = { path = "../amari-core" }
