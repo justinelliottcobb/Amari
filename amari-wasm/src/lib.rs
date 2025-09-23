@@ -205,7 +205,9 @@ impl BatchOperations {
     pub fn batch_geometric_product(a_batch: &[f64], b_batch: &[f64]) -> Result<Vec<f64>, JsValue> {
         let batch_size = a_batch.len() / MULTIVECTOR_COEFFICIENTS;
 
-        if !a_batch.len().is_multiple_of(MULTIVECTOR_COEFFICIENTS) || !b_batch.len().is_multiple_of(MULTIVECTOR_COEFFICIENTS) {
+        if !a_batch.len().is_multiple_of(MULTIVECTOR_COEFFICIENTS)
+            || !b_batch.len().is_multiple_of(MULTIVECTOR_COEFFICIENTS)
+        {
             return Err(JsValue::from_str(
                 "Batch arrays must have length divisible by multivector coefficients",
             ));

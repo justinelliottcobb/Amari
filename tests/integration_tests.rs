@@ -1,10 +1,7 @@
 //! Integration tests for consistency across algebraic systems
 
 use amari_core::Multivector;
-use amari_dual::{
-    functions::softmax,
-    DualNumber,
-};
+use amari_dual::{functions::softmax, DualNumber};
 use amari_fusion::TropicalDualClifford;
 use amari_tropical::{viterbi::TropicalViterbi, TropicalMultivector, TropicalNumber};
 use approx::assert_relative_eq;
@@ -55,10 +52,8 @@ fn test_gradient_consistency() {
 
     // Efficient multivariate automatic differentiation using vectorized approach
     // Compute all partial derivatives in a single forward pass using the chain rule
-    let dual_inputs: Vec<DualNumber<f64>> = inputs
-        .iter()
-        .map(|&x| DualNumber::variable(x))
-        .collect();
+    let dual_inputs: Vec<DualNumber<f64>> =
+        inputs.iter().map(|&x| DualNumber::variable(x)).collect();
 
     // Get softmax probabilities with gradients
     let softmax_outputs = softmax(&dual_inputs);
