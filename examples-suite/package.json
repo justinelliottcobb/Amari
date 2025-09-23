@@ -1,0 +1,52 @@
+{
+  "name": "amari-examples-suite",
+  "version": "0.1.0",
+  "description": "Interactive API examples for the Amari Mathematical Computing Library",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "remix vite:build",
+    "dev": "remix vite:dev",
+    "lint": "eslint --ignore-path .gitignore --cache --cache-location ./node_modules/.cache/eslint .",
+    "start": "remix-serve ./build/server/index.js",
+    "typecheck": "tsc",
+    "docker:build": "docker build -t amari-examples-suite .",
+    "docker:run": "docker run -p 3000:3000 amari-examples-suite",
+    "deploy:staging": "./deploy.sh staging",
+    "deploy:production": "./deploy.sh production",
+    "deploy:local": "docker-compose up -d",
+    "deploy:stop": "docker-compose down",
+    "deploy:netlify": "npm run build && netlify deploy --prod --dir=build/client",
+    "preview:netlify": "npm run build && netlify deploy --dir=build/client",
+    "health": "curl -f http://localhost:3000/ || exit 1"
+  },
+  "dependencies": {
+    "@amari/core": "file:../amari-wasm",
+    "@remix-run/node": "^2.12.1",
+    "@remix-run/react": "^2.12.1",
+    "@remix-run/serve": "^2.12.1",
+    "isbot": "^4.1.0",
+    "jadis-ui": "^0.1.1-1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@remix-run/dev": "^2.12.1",
+    "@types/react": "^18.2.20",
+    "@types/react-dom": "^18.2.7",
+    "@webgpu/types": "^0.1.65",
+    "eslint": "^8.38.0",
+    "eslint-import-resolver-typescript": "^3.6.1",
+    "eslint-plugin-import": "^2.28.1",
+    "eslint-plugin-jsx-a11y": "^6.7.1",
+    "eslint-plugin-react": "^7.33.2",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "netlify-cli": "^17.0.0",
+    "typescript": "^5.1.6",
+    "vite": "^5.1.0",
+    "vite-tsconfig-paths": "^4.2.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
