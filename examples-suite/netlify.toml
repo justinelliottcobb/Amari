@@ -1,6 +1,6 @@
 [build]
   publish = "dist"
-  command = "npm run build"
+  command = "rm -rf dist && npm run build"
 
 [build.environment]
   NODE_VERSION = "20"
@@ -12,13 +12,13 @@
   status = 200
 
 [context.production]
-  command = "npm ci && npm run build"
+  command = "npm ci && rm -rf dist && npm run build"
 
 [context.deploy-preview]
-  command = "npm ci && npm run build"
+  command = "npm ci && rm -rf dist && npm run build"
 
 [context.branch-deploy]
-  command = "npm ci && npm run build"
+  command = "npm ci && rm -rf dist && npm run build"
 
 # Headers for security and performance
 [[headers]]
@@ -46,6 +46,3 @@
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 
-# Functions (if needed for API endpoints)
-[functions]
-  directory = "netlify/functions"

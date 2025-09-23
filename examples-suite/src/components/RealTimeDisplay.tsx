@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Card, CardHeader, CardBody, Button } from "jadis-ui";
 import { ErrorBoundary } from "./ErrorBoundary";
-import { safeExecute, validateNumbers } from "~/utils/safeExecution";
+import { safeExecute, validateNumbers } from "../utils/safeExecution";
 
 interface Point3D {
   x: number;

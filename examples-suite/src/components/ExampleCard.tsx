@@ -1,6 +1,6 @@
 import { Card, CardHeader, CardBody, H3, P, Button, Code } from "jadis-ui";
 import { useState } from "react";
-import { safeExecute, globalPerformanceMonitor } from "~/utils/safeExecution";
+import { safeExecute, globalPerformanceMonitor } from "../utils/safeExecution";
 import { ErrorBoundary } from "./ErrorBoundary";
 
 interface ExampleCardProps {

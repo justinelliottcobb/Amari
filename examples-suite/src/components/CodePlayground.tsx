@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import { Card, CardHeader, CardBody, Button, Code } from "jadis-ui";
 import { ErrorBoundary } from "./ErrorBoundary";
-import { safeExecute, validateNumbers, validateArray } from "~/utils/safeExecution";
+import { safeExecute, validateNumbers, validateArray } from "../utils/safeExecution";
 
 interface CodePlaygroundProps {
   initialCode?: string;
