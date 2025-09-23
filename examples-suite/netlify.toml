@@ -1,6 +1,7 @@
 [build]
+  base = "."
   publish = "dist"
-  command = "rm -rf dist && npm run build"
+  command = "rm -rf dist build && npm run build && ls -la dist/ && echo 'Build complete - deploying from dist/'"
 
 [build.environment]
   NODE_VERSION = "20"
@@ -12,13 +13,13 @@
   status = 200
 
 [context.production]
-  command = "npm ci && rm -rf dist && npm run build"
+  command = "npm ci && rm -rf dist build && npm run build && ls -la dist/"
 
 [context.deploy-preview]
-  command = "npm ci && rm -rf dist && npm run build"
+  command = "npm ci && rm -rf dist build && npm run build && ls -la dist/"
 
 [context.branch-deploy]
-  command = "npm ci && rm -rf dist && npm run build"
+  command = "npm ci && rm -rf dist build && npm run build && ls -la dist/"
 
 # Headers for security and performance
 [[headers]]
