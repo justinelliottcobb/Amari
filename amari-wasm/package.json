@@ -1,0 +1,47 @@
+{
+  "name": "@amari/core",
+  "version": "0.1.0",
+  "description": "Advanced mathematical computing library with geometric algebra, tropical algebra, and automatic differentiation for JavaScript/TypeScript",
+  "main": "pkg/amari_wasm.js",
+  "module": "pkg/amari_wasm_bg.js",
+  "types": "pkg/amari_wasm.d.ts",
+  "files": [
+    "pkg/"
+  ],
+  "scripts": {
+    "build": "wasm-pack build --target web --out-dir pkg --scope amari",
+    "build:node": "wasm-pack build --target nodejs --out-dir pkg-node --scope amari",
+    "build:bundler": "wasm-pack build --target bundler --out-dir pkg-bundler --scope amari",
+    "test": "wasm-pack test --headless --firefox",
+    "prepublishOnly": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/justinelliottcobb/Amari.git"
+  },
+  "keywords": [
+    "wasm",
+    "geometric-algebra",
+    "clifford-algebra",
+    "tropical-algebra",
+    "automatic-differentiation",
+    "mathematics",
+    "webassembly",
+    "linear-algebra",
+    "multivector",
+    "rotor"
+  ],
+  "author": "Justin Elliott Cobb",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/justinelliottcobb/Amari/issues"
+  },
+  "homepage": "https://github.com/justinelliottcobb/Amari#readme",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "engines": {
+    "node": ">=14"
+  }
+}

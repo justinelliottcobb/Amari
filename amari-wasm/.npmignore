@@ -1,0 +1,38 @@
+# Source files
+src/
+target/
+Cargo.toml
+Cargo.lock
+
+# Build artifacts not needed
+pkg-node/
+pkg-bundler/
+
+# Development files
+tests/
+examples/
+benches/
+.github/
+
+# Documentation source
+*.md
+!README.md
+
+# Git files
+.git/
+.gitignore
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build scripts
+build.rs
+wasm-pack.log

@@ -4,12 +4,11 @@
 //! patterns. Uses dual numbers for automatic differentiation through CA evolution,
 //! enabling gradient-based optimization.
 
+use crate::geometric_ca::GeometricCA;
 use crate::{AutomataError, AutomataResult, InverseDesignable};
-use crate::geometric_ca::{GeometricCA, CARule};
+use alloc::vec::Vec;
 use amari_core::Multivector;
 use amari_dual::{DualMultivector, DualNumber};
-use alloc::vec::Vec;
-use alloc::string::String;
 use num_traits::Float;
 
 // Additional types needed by tests (simplified implementations)
@@ -17,18 +16,22 @@ use num_traits::Float;
 /// Pattern for test compatibility
 #[derive(Clone, Debug)]
 pub struct TargetPattern {
+    #[allow(dead_code)]
     data: Vec<Multivector<3, 0, 0>>,
 }
 
 impl TargetPattern {
     pub fn from_multivectors(data: &[Multivector<3, 0, 0>]) -> Self {
-        Self { data: data.to_vec() }
+        Self {
+            data: data.to_vec(),
+        }
     }
 }
 
 /// Constraint for test compatibility
 #[derive(Clone, Debug)]
 pub struct TropicalConstraint {
+    #[allow(dead_code)]
     value: f64,
 }
 
@@ -41,6 +44,7 @@ impl TropicalConstraint {
 /// Objective for test compatibility
 #[derive(Clone, Debug)]
 pub struct Objective {
+    #[allow(dead_code)]
     target: f64,
 }
 
@@ -52,7 +56,14 @@ impl Objective {
 
 /// CA-specific inverse designer (simplified for tests)
 pub struct InverseCADesigner {
+    #[allow(dead_code)]
     tolerance: f64,
+}
+
+impl Default for InverseCADesigner {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl InverseCADesigner {
@@ -68,6 +79,7 @@ pub struct InverseDesigner<T: Float, const P: usize, const Q: usize, const R: us
     /// Number of evolution steps to target
     target_steps: usize,
     /// Learning rate for gradient descent
+    #[allow(dead_code)]
     learning_rate: T,
     /// Maximum optimization iterations
     max_iterations: usize,
@@ -103,12 +115,7 @@ pub struct Target<const P: usize, const Q: usize, const R: usize> {
 
 impl<T: Float, const P: usize, const Q: usize, const R: usize> InverseDesigner<T, P, Q, R> {
     /// Create a new inverse designer
-    pub fn new(
-        width: usize,
-        height: usize,
-        target_steps: usize,
-        learning_rate: T,
-    ) -> Self {
+    pub fn new(width: usize, height: usize, target_steps: usize, learning_rate: T) -> Self {
         Self {
             template_ca: GeometricCA::new_2d(width, height),
             target_steps,
@@ -162,6 +169,7 @@ impl<T: Float, const P: usize, const Q: usize, const R: usize> InverseDesigner<T
         let width = grid[0].len();
         let mut new_grid = vec![vec![DualMultivector::zero(); width]; height];
 
+        #[allow(clippy::needless_range_loop)]
         for y in 0..height {
             for x in 0..width {
                 new_grid[y][x] = self.evolve_dual_cell(grid, x, y, rule)?;
@@ -211,7 +219,9 @@ impl<T: Float, const P: usize, const Q: usize, const R: usize> InverseDesigner<T
 
         for dy in -1i32..=1 {
             for dx in -1i32..=1 {
-                if dx == 0 && dy == 0 { continue; }
+                if dx == 0 && dy == 0 {
+                    continue;
+                }
 
                 let nx = x as i32 + dx;
                 let ny = y as i32 + dy;
@@ -249,7 +259,7 @@ impl<T: Float, const P: usize, const Q: usize, const R: usize> InverseDesigner<T
     }
 
     /// Generate random initial configuration
-    pub fn random_configuration(&self, seed: u64) -> Configuration<P, Q, R> {
+    pub fn random_configuration(&self, _seed: u64) -> Configuration<P, Q, R> {
         // For now, return a simple configuration
         // In practice, would use proper random number generation
         let (width, height) = self.template_ca.dimensions();
@@ -274,7 +284,7 @@ impl<T: Float, const P: usize, const Q: usize, const R: usize> InverseDesignable
     type Configuration = Configuration<P, Q, R>;
 
     fn find_seed(&self, target: &Self::Target) -> AutomataResult<Self::Configuration> {
-        let mut config = self.random_configuration(42);
+        let config = self.random_configuration(42);
         let mut best_fitness = T::infinity();
 
         for _iteration in 0..self.max_iterations {
@@ -307,7 +317,9 @@ impl<T: Float, const P: usize, const Q: usize, const R: usize> InverseDesignable
     fn fitness(&self, config: &Self::Configuration, target: &Self::Target) -> f64 {
         // Simulate without gradients for efficiency
         if let Ok(evolved) = self.simulate_with_gradients(config) {
-            self.compute_loss(&evolved, target).to_f64().unwrap_or(f64::INFINITY)
+            self.compute_loss(&evolved, target)
+                .to_f64()
+                .unwrap_or(f64::INFINITY)
         } else {
             f64::INFINITY
         }

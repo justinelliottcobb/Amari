@@ -39,34 +39,38 @@
 
 #[macro_use]
 extern crate alloc;
-use alloc::vec::Vec;
-use alloc::string::String;
-use alloc::boxed::Box;
-
-// Need core for format! macro in no_std
-use alloc::format;
 
 // Re-export dependencies for convenience
-pub use amari_core::{Multivector, Vector, Bivector};
-pub use amari_tropical::TropicalMultivector;
+pub use amari_core::{Bivector, Multivector, Vector};
 pub use amari_dual::DualMultivector;
+pub use amari_tropical::TropicalMultivector;
 
 // Core modules
+pub mod cayley_navigation;
 pub mod geometric_ca;
 pub mod inverse_design;
 pub mod self_assembly;
-pub mod cayley_navigation;
-pub mod ui_assembly;
 pub mod tropical_solver;
+pub mod ui_assembly;
 
 // Re-export main types
-pub use geometric_ca::{GeometricCA, CARule, CellState, RuleType};
-pub use inverse_design::{InverseDesigner, InverseCADesigner, TargetPattern, TropicalConstraint, Objective};
-pub use self_assembly::{SelfAssembler, SelfAssembly, Polyomino, TileSet, AssemblyRule, WangTileSet, Shape, AssemblyConstraint, Assembly, Component, AssemblyConfig, ComponentType, UIComponentType};
-pub use cayley_navigation::{DefaultCayleyNavigator, CayleyNavigator, CayleyGraphNavigator, GroupElement, Generator, CayleyGraph};
-pub use ui_assembly::{UIAssembler, UIComponent, LayoutConstraint, Layout, UIAssemblyConfig};
-pub use tropical_solver::{TropicalSolver, TropicalSystem, ConstraintType, SolverConfig, TropicalExpression};
-pub use inverse_design::{Target, Configuration};
+pub use cayley_navigation::{
+    CayleyGraph, CayleyGraphNavigator, CayleyNavigator, DefaultCayleyNavigator, Generator,
+    GroupElement,
+};
+pub use geometric_ca::{CARule, CellState, GeometricCA, RuleType};
+pub use inverse_design::{Configuration, Target};
+pub use inverse_design::{
+    InverseCADesigner, InverseDesigner, Objective, TargetPattern, TropicalConstraint,
+};
+pub use self_assembly::{
+    Assembly, AssemblyConfig, AssemblyConstraint, AssemblyRule, Component, ComponentType,
+    Polyomino, SelfAssembler, SelfAssembly, Shape, TileSet, UIComponentType, WangTileSet,
+};
+pub use tropical_solver::{
+    ConstraintType, SolverConfig, TropicalExpression, TropicalSolver, TropicalSystem,
+};
+pub use ui_assembly::{Layout, LayoutConstraint, UIAssembler, UIAssemblyConfig, UIComponent};
 
 /// Common error types for the automata system
 #[derive(Debug, Clone, PartialEq)]

@@ -5,9 +5,9 @@
 //! represent UI elements that automatically arrange themselves.
 
 use crate::{AutomataError, AutomataResult, SelfAssembling};
-use amari_core::{Multivector, Vector, Bivector};
-use alloc::vec::Vec;
 use alloc::string::{String, ToString};
+use alloc::vec::Vec;
+use amari_core::{Bivector, Multivector, Vector};
 
 // Missing types needed by lib.rs imports (simplified implementations to avoid duplicates with existing code below)
 
@@ -15,6 +15,12 @@ use alloc::string::{String, ToString};
 #[derive(Clone, Debug)]
 pub struct Polyomino {
     pub cells: Vec<(usize, usize)>,
+}
+
+impl Default for Polyomino {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl Polyomino {
@@ -33,6 +39,12 @@ pub struct TileSet {
     pub tiles: Vec<Polyomino>,
 }
 
+impl Default for TileSet {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl TileSet {
     pub fn new() -> Self {
         Self { tiles: Vec::new() }
@@ -43,6 +55,12 @@ impl TileSet {
 #[derive(Clone, Debug)]
 pub struct WangTileSet {
     pub tiles: Vec<Polyomino>,
+}
+
+impl Default for WangTileSet {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl WangTileSet {
@@ -57,9 +75,17 @@ pub struct Shape {
     pub boundary: Vec<(f64, f64)>,
 }
 
+impl Default for Shape {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Shape {
     pub fn new() -> Self {
-        Self { boundary: Vec::new() }
+        Self {
+            boundary: Vec::new(),
+        }
     }
 }
 
@@ -69,9 +95,17 @@ pub struct AssemblyRule {
     pub affinity_threshold: f64,
 }
 
+impl Default for AssemblyRule {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl AssemblyRule {
     pub fn new() -> Self {
-        Self { affinity_threshold: 0.5 }
+        Self {
+            affinity_threshold: 0.5,
+        }
     }
 }
 
@@ -86,6 +120,12 @@ pub enum AssemblyConstraint {
     Custom(String),
 }
 
+impl Default for AssemblyConstraint {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl AssemblyConstraint {
     pub fn new() -> Self {
         Self::Custom("default".to_string())
@@ -98,9 +138,17 @@ pub struct SelfAssembly {
     pub components: Vec<Component<3, 0, 0>>,
 }
 
+impl Default for SelfAssembly {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl SelfAssembly {
     pub fn new() -> Self {
-        Self { components: Vec::new() }
+        Self {
+            components: Vec::new(),
+        }
     }
 }
 
@@ -180,6 +228,7 @@ pub struct SelfAssembler<const P: usize, const Q: usize, const R: usize> {
     /// Assembly configuration
     config: AssemblyConfig,
     /// Cached affinity matrix
+    #[allow(dead_code)]
     affinity_cache: Vec<Vec<f64>>,
     /// Assembly space bounds
     bounds: (Vector<P, Q, R>, Vector<P, Q, R>),
@@ -243,20 +292,26 @@ impl<const P: usize, const Q: usize, const R: usize> Component<P, Q, R> {
             (ComponentType::Basic, _) | (_, ComponentType::Basic) => true,
 
             // Corners connect to edges and junctions
-            (ComponentType::Corner, ComponentType::Edge) |
-            (ComponentType::Edge, ComponentType::Corner) |
-            (ComponentType::Corner, ComponentType::Junction) |
-            (ComponentType::Junction, ComponentType::Corner) => true,
+            (ComponentType::Corner, ComponentType::Edge)
+            | (ComponentType::Edge, ComponentType::Corner)
+            | (ComponentType::Corner, ComponentType::Junction)
+            | (ComponentType::Junction, ComponentType::Corner) => true,
 
             // Edges connect to junctions
-            (ComponentType::Edge, ComponentType::Junction) |
-            (ComponentType::Junction, ComponentType::Edge) => true,
+            (ComponentType::Edge, ComponentType::Junction)
+            | (ComponentType::Junction, ComponentType::Edge) => true,
 
             // UI elements have their own connection rules
             (ComponentType::UIElement(_), ComponentType::UIElement(_)) => true,
 
             _ => false,
         }
+    }
+}
+
+impl<const P: usize, const Q: usize, const R: usize> Default for Assembly<P, Q, R> {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -298,7 +353,8 @@ impl<const P: usize, const Q: usize, const R: usize> Assembly<P, Q, R> {
         // Sum pairwise interaction energies
         for i in 0..self.components.len() {
             for &j in &self.connections[i] {
-                if i < j { // Count each pair only once
+                if i < j {
+                    // Count each pair only once
                     let energy = self.interaction_energy(i, j);
                     total_energy += energy;
                 }
@@ -373,6 +429,7 @@ impl<const P: usize, const Q: usize, const R: usize> SelfAssembler<P, Q, R> {
     }
 
     /// Precompute affinity matrix for given components
+    #[allow(dead_code)]
     fn precompute_affinities(&mut self, components: &[Component<P, Q, R>]) {
         let n = components.len();
         self.affinity_cache = vec![vec![0.0; n]; n];

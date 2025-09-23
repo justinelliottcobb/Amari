@@ -24,20 +24,20 @@
 //!
 //! ```rust
 //! use amari_core::{Multivector, Vector, Bivector};
-//! use amari_core::unicode_ops::*;
+//! use amari_core::{geo, wedge, dot, rev, dual, norm};
 //!
 //! let a = Vector::<3, 0, 0>::e1();
 //! let b = Vector::<3, 0, 0>::e2();
 //!
 //! // Traditional syntax
 //! let geometric = a.geometric_product(&b);
-//! let wedge = a.outer_product(&b);
+//! let wedge_traditional = a.outer_product(&b);
 //! let inner = a.inner_product(&b);
 //!
-//! // Unicode-inspired DSL syntax  
-//! let geometric = geo!(a, b);      // ⊗
-//! let wedge = wedge!(a, b);        // ∧
-//! let inner = dot!(a, b);          // •
+//! // Unicode-inspired DSL syntax
+//! let geometric2 = geo!(a, b);      // ⊗
+//! let wedge2 = wedge!(a, b);        // ∧
+//! let inner2 = dot!(a, b);          // •
 //!
 //! // Unary operations
 //! let reversed = rev!(a);          // †
@@ -45,9 +45,8 @@
 //! let magnitude = norm!(a);        // ‖·‖
 //! ```
 
-
 /// Geometric product: a ⊗ b
-/// 
+///
 /// The fundamental product in geometric algebra that combines
 /// both inner and outer products. Also known as the Clifford product.
 #[macro_export]
@@ -58,7 +57,7 @@ macro_rules! geo {
 }
 
 /// Wedge/outer product: a ∧ b
-/// 
+///
 /// Creates higher-grade elements from lower-grade ones.
 /// Anticommutative: a ∧ b = -(b ∧ a)
 #[macro_export]
@@ -69,7 +68,7 @@ macro_rules! wedge {
 }
 
 /// Inner product: a • b
-/// 
+///
 /// Symmetric product that reduces grade.
 /// Commutative for vectors: a • b = b • a
 #[macro_export]
@@ -80,7 +79,7 @@ macro_rules! dot {
 }
 
 /// Left contraction: a ⌟ b
-/// 
+///
 /// Generalized inner product where the grade of the result
 /// is |grade(b) - grade(a)|
 #[macro_export]
@@ -91,7 +90,7 @@ macro_rules! lcon {
 }
 
 /// Right contraction: a ⌞ b  
-/// 
+///
 /// Generalized inner product where the grade of the result
 /// is |grade(a) - grade(b)|
 #[macro_export]
@@ -102,7 +101,7 @@ macro_rules! rcon {
 }
 
 /// Hodge dual: ⋆a
-/// 
+///
 /// Maps k-vectors to (n-k)-vectors in n-dimensional space.
 /// Essential for electromagnetic field theory and differential forms.
 #[macro_export]
@@ -113,7 +112,7 @@ macro_rules! dual {
 }
 
 /// Reverse/conjugate: a†
-/// 
+///
 /// Reverses the order of basis vectors in each term.
 /// Important for defining magnitudes and inverses.
 #[macro_export]
@@ -124,7 +123,7 @@ macro_rules! rev {
 }
 
 /// Grade projection: ⟨a⟩ₖ
-/// 
+///
 /// Extracts the k-grade part of a multivector.
 /// Grade 0 = scalar, 1 = vector, 2 = bivector, etc.
 #[macro_export]
@@ -135,7 +134,7 @@ macro_rules! grade {
 }
 
 /// Magnitude/norm: ‖a‖
-/// 
+///
 /// Euclidean magnitude of the multivector.
 /// Computed as sqrt(a† ⊗ a) for the scalar part.
 #[macro_export]
@@ -199,101 +198,101 @@ macro_rules! unit {
 
 #[cfg(test)]
 mod tests {
-    use crate::{Vector, basis::MultivectorBuilder};
+    use crate::{basis::MultivectorBuilder, Vector};
     use approx::assert_relative_eq;
-    
+
     #[test]
     fn test_unicode_geometric_product() {
         let a = Vector::<3, 0, 0>::e1();
         let b = Vector::<3, 0, 0>::e2();
-        
+
         // Unicode-inspired syntax
         let unicode_result = geo!(a, b);
-        
+
         // Traditional syntax
         let traditional_result = a.geometric_product(&b);
-        
+
         // Should be identical
         for i in 0..8 {
             assert_relative_eq!(unicode_result.get(i), traditional_result.get(i));
         }
     }
-    
+
     #[test]
     fn test_unicode_wedge_product() {
         let e1 = Vector::<3, 0, 0>::e1();
         let e2 = Vector::<3, 0, 0>::e2();
-        
+
         let wedge_result = wedge!(e1, e2);
         let traditional = e1.outer_product(&e2);
-        
+
         // Should produce e12 bivector
         assert_relative_eq!(wedge_result.bivector_part().magnitude(), 1.0);
-        
+
         // Should match traditional syntax
         for i in 0..8 {
             assert_relative_eq!(wedge_result.get(i), traditional.get(i));
         }
     }
-    
+
     #[test]
     fn test_unicode_inner_product() {
         let a = Vector::<3, 0, 0>::from_components(3.0, 4.0, 0.0);
         let b = Vector::<3, 0, 0>::from_components(1.0, 1.0, 0.0);
-        
+
         let inner_result = dot!(a, b);
         let traditional = a.inner_product(&b);
-        
+
         // Should be scalar: 3*1 + 4*1 = 7
         assert_relative_eq!(inner_result.scalar_part(), 7.0);
-        
+
         // Should match traditional
         for i in 0..8 {
             assert_relative_eq!(inner_result.get(i), traditional.get(i));
         }
     }
-    
+
     #[test]
     fn test_unicode_unary_operations() {
         let mv = MultivectorBuilder::<3, 0, 0>::new()
             .scalar(1.0)
             .e(1, 2.0)
-            .e(3, 3.0)  // e12
+            .e(3, 3.0) // e12
             .build();
-        
+
         // Test reverse
         let reversed = rev!(mv);
         let traditional_reverse = mv.reverse();
-        
+
         for i in 0..8 {
             assert_relative_eq!(reversed.get(i), traditional_reverse.get(i));
         }
-        
+
         // Test magnitude
         let magnitude = norm!(mv);
         let traditional_magnitude = mv.magnitude();
-        
+
         assert_relative_eq!(magnitude, traditional_magnitude);
     }
-    
+
     #[test]
     fn test_unicode_grade_projection() {
         let mv = MultivectorBuilder::<3, 0, 0>::new()
             .scalar(1.0)
             .e(1, 2.0)
             .e(2, 3.0)
-            .e(3, 4.0)  // e12
+            .e(3, 4.0) // e12
             .build();
-        
+
         // Test grade projections
         let grade0 = grade!(mv, 0);
         let grade1 = grade!(mv, 1);
         let grade2 = grade!(mv, 2);
-        
+
         let traditional_grade0 = mv.grade_projection(0);
         let traditional_grade1 = mv.grade_projection(1);
         let traditional_grade2 = mv.grade_projection(2);
-        
+
         // Should match traditional syntax
         for i in 0..8 {
             assert_relative_eq!(grade0.get(i), traditional_grade0.get(i));
@@ -301,50 +300,50 @@ mod tests {
             assert_relative_eq!(grade2.get(i), traditional_grade2.get(i));
         }
     }
-    
+
     #[test]
     fn test_extended_unicode_operations() {
         let a = Vector::<3, 0, 0>::e1();
         let b = Vector::<3, 0, 0>::e2();
-        
+
         // Test commutator [a,b]
         let commutator_result = commutator!(a, b);
-        
+
         // For orthogonal vectors, [e1,e2] should be related to e12
         assert!(commutator_result.bivector_part().magnitude() > 0.0);
-        
+
         // Test unit vector
         let v = Vector::<3, 0, 0>::from_components(3.0, 4.0, 0.0);
         let unit_result = unit!(v);
-        
+
         // Should be unit magnitude
         assert_relative_eq!(unit_result.norm(), 1.0, epsilon = 1e-10);
-        
+
         // Test squared magnitude
         let squared_mag = norm_squared!(v);
-        let expected = 3.0*3.0 + 4.0*4.0;
+        let expected = 3.0 * 3.0 + 4.0 * 4.0;
         assert_relative_eq!(squared_mag, expected);
     }
-    
+
     #[test]
     fn test_unicode_mathematical_identities() {
         let a = Vector::<3, 0, 0>::from_components(1.0, 2.0, 3.0);
         let b = Vector::<3, 0, 0>::from_components(4.0, 5.0, 6.0);
-        
+
         // Test geometric product decomposition: a⊗b = a•b + a∧b
         let geometric = geo!(a, b);
         let inner = dot!(a, b);
         let outer = wedge!(a, b);
         let decomposed = inner + outer;
-        
+
         for i in 0..8 {
             assert_relative_eq!(geometric.get(i), decomposed.get(i), epsilon = 1e-10);
         }
-        
+
         // Test reverse property: (a⊗b)† = b†⊗a†
         let left_side = rev!(geometric);
         let right_side = geo!(rev!(b), rev!(a));
-        
+
         for i in 0..8 {
             assert_relative_eq!(left_side.get(i), right_side.get(i), epsilon = 1e-10);
         }

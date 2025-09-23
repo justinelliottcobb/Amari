@@ -5,10 +5,9 @@
 //! turns MAX-SAT problems into linear programming.
 
 use crate::{AutomataError, AutomataResult};
-use amari_tropical::TropicalMultivector;
-use alloc::vec::Vec;
 use alloc::boxed::Box;
-use core::cmp::Ordering;
+use alloc::vec::Vec;
+use amari_tropical::TropicalMultivector;
 use num_traits::Float;
 
 // Missing type needed by lib.rs imports - using the more complete implementation below
@@ -47,9 +46,15 @@ pub enum TropicalExpression<T: Float + Clone, const DIM: usize> {
     /// Constant value
     Constant(TropicalMultivector<T, DIM>),
     /// Tropical addition (max)
-    Add(Box<TropicalExpression<T, DIM>>, Box<TropicalExpression<T, DIM>>),
+    Add(
+        Box<TropicalExpression<T, DIM>>,
+        Box<TropicalExpression<T, DIM>>,
+    ),
     /// Tropical multiplication (addition)
-    Mul(Box<TropicalExpression<T, DIM>>, Box<TropicalExpression<T, DIM>>),
+    Mul(
+        Box<TropicalExpression<T, DIM>>,
+        Box<TropicalExpression<T, DIM>>,
+    ),
     /// Scalar multiplication
     Scale(T, Box<TropicalExpression<T, DIM>>),
 }
@@ -116,8 +121,10 @@ pub struct SolverConfig<T: Float + Clone> {
 /// Solver cache for performance
 struct SolverCache<T: Float + Clone, const DIM: usize> {
     /// Cached expression evaluations
+    #[allow(dead_code)]
     expression_cache: Vec<Option<TropicalMultivector<T, DIM>>>,
     /// Constraint satisfaction cache
+    #[allow(dead_code)]
     constraint_cache: Vec<Option<bool>>,
     /// Variable update history
     update_history: Vec<Vec<TropicalMultivector<T, DIM>>>,
@@ -158,10 +165,7 @@ impl<T: Float + Clone + PartialOrd + Copy, const DIM: usize> TropicalConstraint<
     }
 
     /// Evaluate constraint satisfaction
-    pub fn is_satisfied(
-        &self,
-        variables: &[TropicalMultivector<T, DIM>],
-    ) -> AutomataResult<bool> {
+    pub fn is_satisfied(&self, variables: &[TropicalMultivector<T, DIM>]) -> AutomataResult<bool> {
         let lhs_val = self.lhs.evaluate(variables)?;
         let rhs_val = self.rhs.evaluate(variables)?;
 
@@ -186,13 +190,13 @@ impl<T: Float + Clone + PartialOrd + Copy, const DIM: usize> TropicalConstraint<
 
     /// Compute constraint violation
     pub fn violation(&self, variables: &[TropicalMultivector<T, DIM>]) -> AutomataResult<T> {
-        let lhs_val = self.lhs.evaluate(variables)?;
-        let rhs_val = self.rhs.evaluate(variables)?;
+        let _lhs_val = self.lhs.evaluate(variables)?;
+        let _rhs_val = self.rhs.evaluate(variables)?;
 
         // Simplified violation measure - would need proper implementation
         // based on tropical distance metrics
         if self.is_satisfied(variables)? {
-            Ok(self.weight) // No violation - return zero-like element
+            Ok(T::zero()) // No violation - return zero-like element
         } else {
             Ok(self.weight) // Violation - return weight as penalty
         }
@@ -211,12 +215,12 @@ impl<T: Float + Clone + PartialOrd + Copy, const DIM: usize> TropicalExpression<
     }
 
     /// Create tropical addition expression
-    pub fn add(left: Self, right: Self) -> Self {
+    pub fn tropical_add(left: Self, right: Self) -> Self {
         Self::Add(Box::new(left), Box::new(right))
     }
 
     /// Create tropical multiplication expression
-    pub fn mul(left: Self, right: Self) -> Self {
+    pub fn tropical_mul(left: Self, right: Self) -> Self {
         Self::Mul(Box::new(left), Box::new(right))
     }
 
@@ -294,7 +298,12 @@ impl<T: Float + Clone + PartialOrd + Copy, const DIM: usize> TropicalSystem<T, D
     }
 
     /// Set bounds for a variable
-    pub fn set_variable_bounds(&mut self, index: usize, lower: Option<T>, upper: Option<T>) -> AutomataResult<()> {
+    pub fn set_variable_bounds(
+        &mut self,
+        index: usize,
+        lower: Option<T>,
+        upper: Option<T>,
+    ) -> AutomataResult<()> {
         if index >= self.num_variables {
             return Err(AutomataError::InvalidCoordinates(index, self.num_variables));
         }
@@ -305,7 +314,10 @@ impl<T: Float + Clone + PartialOrd + Copy, const DIM: usize> TropicalSystem<T, D
     /// Check if a solution satisfies all constraints
     pub fn is_feasible(&self, solution: &[TropicalMultivector<T, DIM>]) -> AutomataResult<bool> {
         if solution.len() != self.num_variables {
-            return Err(AutomataError::InvalidCoordinates(solution.len(), self.num_variables));
+            return Err(AutomataError::InvalidCoordinates(
+                solution.len(),
+                self.num_variables,
+            ));
         }
 
         for constraint in &self.constraints {
@@ -320,7 +332,10 @@ impl<T: Float + Clone + PartialOrd + Copy, const DIM: usize> TropicalSystem<T, D
     /// Compute total constraint violation
     pub fn total_violation(&self, solution: &[TropicalMultivector<T, DIM>]) -> AutomataResult<T> {
         if solution.len() != self.num_variables {
-            return Err(AutomataError::InvalidCoordinates(solution.len(), self.num_variables));
+            return Err(AutomataError::InvalidCoordinates(
+                solution.len(),
+                self.num_variables,
+            ));
         }
 
         // This would need proper implementation with tropical arithmetic
@@ -339,7 +354,10 @@ impl<T: Float + Clone + PartialOrd + Copy, const DIM: usize> TropicalSolver<T, D
     }
 
     /// Solve the tropical constraint system
-    pub fn solve(&mut self, system: &TropicalSystem<T, DIM>) -> AutomataResult<TropicalSolution<T, DIM>> {
+    pub fn solve(
+        &mut self,
+        system: &TropicalSystem<T, DIM>,
+    ) -> AutomataResult<TropicalSolution<T, DIM>> {
         // Initialize variables with neutral elements
         let mut variables = vec![TropicalMultivector::zero(); system.num_variables];
 
@@ -390,7 +408,7 @@ impl<T: Float + Clone + PartialOrd + Copy, const DIM: usize> TropicalSolver<T, D
         &self,
         var_index: usize,
         current_variables: &[TropicalMultivector<T, DIM>],
-        system: &TropicalSystem<T, DIM>,
+        _system: &TropicalSystem<T, DIM>,
     ) -> AutomataResult<TropicalMultivector<T, DIM>> {
         // Find the best value for this variable that satisfies constraints
         // This is a simplified implementation
@@ -468,7 +486,9 @@ trait ApproxEqual<T> {
     fn approx_equal(&self, other: &Self) -> bool;
 }
 
-impl<T: Float + Clone, const DIM: usize> ApproxEqual<TropicalMultivector<T, DIM>> for TropicalMultivector<T, DIM> {
+impl<T: Float + Clone, const DIM: usize> ApproxEqual<TropicalMultivector<T, DIM>>
+    for TropicalMultivector<T, DIM>
+{
     fn approx_equal(&self, _other: &Self) -> bool {
         // Simplified implementation - would need proper tropical comparison
         true
