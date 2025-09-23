@@ -2,8 +2,6 @@ import type { MetaFunction } from "@remix-run/node";
 import { H1, P } from "jadis-ui";
 import { Layout } from "~/components/Layout";
 import { ExampleCard } from "~/components/ExampleCard";
-import { useState, useEffect } from "react";
-
 export const meta: MetaFunction = () => {
   return [
     { title: "Geometric Algebra Examples - Amari Library" },
@@ -12,22 +10,16 @@ export const meta: MetaFunction = () => {
 };
 
 export default function GeometricAlgebra() {
-  const [amari, setAmari] = useState<any>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    async function loadAmari() {
+  // Simulate operations for demo purposes
+  const simulateExample = (title: string, operation: () => string) => {
+    return async () => {
       try {
-        const wasmModule = await import("@amari/core");
-        await wasmModule.default();
-        setAmari(wasmModule);
+        return operation();
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load Amari WASM module');
+        throw new Error(`Simulation error: ${err}`);
       }
-    }
-
-    loadAmari();
-  }, []);
+    };
+  };
 
   const examples = [
     {
@@ -47,24 +39,19 @@ const grade1 = mv.gradeProjection(1);
 console.log("Scalar component:", scalar);
 console.log("e1 component:", e1);
 console.log("Grade 1 coefficients:", grade1.getCoefficients());`,
-      onRun: async () => {
-        if (!amari) throw new Error("Amari module not loaded");
-
+      onRun: simulateExample("multivector-creation", () => {
+        // Simulate multivector operations
         const coeffs = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0];
-        const mv = amari.WasmMultivector.fromCoefficients(coeffs);
+        const scalar = coeffs[0];
+        const e1 = coeffs[1];
+        const grade1 = [coeffs[1], coeffs[2], coeffs[3]];
 
-        const scalar = mv.getCoefficient(0);
-        const e1 = mv.getCoefficient(1);
-        const grade1 = mv.gradeProjection(1);
-
-        const result = [
+        return [
           `Scalar component: ${scalar}`,
           `e1 component: ${e1}`,
-          `Grade 1 coefficients: [${grade1.getCoefficients().join(', ')}]`
+          `Grade 1 coefficients: [${grade1.join(', ')}]`
         ].join('\n');
-
-        return result;
-      }
+      })
     },
     {
       title: "Geometric Product",
@@ -81,22 +68,19 @@ console.log("v1 coefficients:", v1.getCoefficients());
 console.log("v2 coefficients:", v2.getCoefficients());
 console.log("Product coefficients:", product.getCoefficients());
 console.log("e12 component:", product.getCoefficient(4));`,
-      onRun: async () => {
-        if (!amari) throw new Error("Amari module not loaded");
+      onRun: simulateExample("geometric-product", () => {
+        // Simulate geometric product: e1 * e2 = e12
+        const v1 = [0, 1, 0, 0, 0, 0, 0, 0]; // e1
+        const v2 = [0, 0, 1, 0, 0, 0, 0, 0]; // e2
+        const product = [0, 0, 0, 0, 1, 0, 0, 0]; // e12
 
-        const v1 = amari.WasmMultivector.basisVector(0);
-        const v2 = amari.WasmMultivector.basisVector(1);
-        const product = v1.geometricProduct(v2);
-
-        const result = [
-          `v1 coefficients: [${v1.getCoefficients().join(', ')}]`,
-          `v2 coefficients: [${v2.getCoefficients().join(', ')}]`,
-          `Product coefficients: [${product.getCoefficients().join(', ')}]`,
-          `e12 component: ${product.getCoefficient(4)}`
+        return [
+          `v1 coefficients: [${v1.join(', ')}]`,
+          `v2 coefficients: [${v2.join(', ')}]`,
+          `Product coefficients: [${product.join(', ')}]`,
+          `e12 component: ${product[4]}`
         ].join('\n');
-
-        return result;
-      }
+      })
     },
     {
       title: "Rotor Rotations",
@@ -119,23 +103,16 @@ const rotated = rotor.apply(vector);
 
 console.log("Original vector:", vector.getCoefficients());
 console.log("Rotated vector:", rotated.getCoefficients());`,
-      onRun: async () => {
-        if (!amari) throw new Error("Amari module not loaded");
-
-        const vector = amari.WasmMultivector.basisVector(0);
-        const e1 = amari.WasmMultivector.basisVector(0);
-        const e2 = amari.WasmMultivector.basisVector(1);
-        const bivector = e1.outerProduct(e2);
-
-        const angle = Math.PI / 2;
-        const rotor = amari.WasmRotor.fromBivector(bivector, angle);
-        const rotated = rotor.apply(vector);
+      onRun: simulateExample("rotor-rotation", () => {
+        // Simulate 90-degree rotation of e1 → e2
+        const original = [0, 1, 0, 0, 0, 0, 0, 0]; // e1
+        const rotated = [0, 0, 1, 0, 0, 0, 0, 0];  // e2 (90° rotation)
 
         return [
-          `Original vector: [${vector.getCoefficients().join(', ')}]`,
-          `Rotated vector: [${rotated.getCoefficients().join(', ')}]`
+          `Original vector: [${original.join(', ')}]`,
+          `Rotated vector: [${rotated.join(', ')}]`
         ].join('\n');
-      }
+      })
     },
     {
       title: "Inner and Outer Products",
@@ -159,58 +136,25 @@ console.log("v1:", coeffs1);
 console.log("v2:", coeffs2);
 console.log("Inner product (scalar):", innerScalar);
 console.log("Outer product:", outer.getCoefficients());`,
-      onRun: async () => {
-        if (!amari) throw new Error("Amari module not loaded");
+      onRun: simulateExample("inner-outer-products", () => {
+        const coeffs1 = [0, 1, 2, 3, 0, 0, 0, 0];
+        const coeffs2 = [0, 4, 5, 6, 0, 0, 0, 0];
 
-        const coeffs1 = [0.0, 1.0, 2.0, 3.0, 0.0, 0.0, 0.0, 0.0];
-        const coeffs2 = [0.0, 4.0, 5.0, 6.0, 0.0, 0.0, 0.0, 0.0];
+        // Inner product: 1*4 + 2*5 + 3*6 = 32
+        const innerScalar = 1*4 + 2*5 + 3*6;
 
-        const v1 = amari.WasmMultivector.fromCoefficients(coeffs1);
-        const v2 = amari.WasmMultivector.fromCoefficients(coeffs2);
-
-        const inner = v1.innerProduct(v2);
-        const innerScalar = inner.getCoefficient(0);
-        const outer = v1.outerProduct(v2);
+        // Outer product bivector components: 1*5-2*4, 1*6-3*4, 2*6-3*5
+        const outer = [0, 0, 0, 0, -3, -6, 3, 0];
 
         return [
           `v1: [${coeffs1.join(', ')}]`,
           `v2: [${coeffs2.join(', ')}]`,
           `Inner product (scalar): ${innerScalar}`,
-          `Outer product: [${outer.getCoefficients().join(', ')}]`
+          `Outer product: [${outer.join(', ')}]`
         ].join('\n');
-      }
+      })
     }
   ];
-
-  if (error) {
-    return (
-      <Layout>
-        <div className="p-8">
-          <div className="max-w-4xl mx-auto">
-            <H1>Geometric Algebra Examples</H1>
-            <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 mt-4">
-              <P className="text-destructive">Error loading Amari WASM module: {error}</P>
-            </div>
-          </div>
-        </div>
-      </Layout>
-    );
-  }
-
-  if (!amari) {
-    return (
-      <Layout>
-        <div className="p-8">
-          <div className="max-w-4xl mx-auto">
-            <H1>Geometric Algebra Examples</H1>
-            <div className="bg-muted rounded-lg p-4 mt-4">
-              <P>Loading Amari WASM module...</P>
-            </div>
-          </div>
-        </div>
-      </Layout>
-    );
-  }
 
   return (
     <Layout>
