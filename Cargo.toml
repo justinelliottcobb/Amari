@@ -5,6 +5,11 @@ authors.workspace = true
 edition.workspace = true
 license.workspace = true
 rust-version.workspace = true
+description = "Advanced mathematical computing library with geometric algebra, tropical algebra, and automatic differentiation"
+repository = "https://github.com/justinelliottcobb/Amari"
+homepage = "https://github.com/justinelliottcobb/Amari"
+keywords = ["mathematics", "geometric-algebra", "tropical-algebra", "automatic-differentiation", "wasm"]
+categories = ["mathematics", "science", "algorithms"]
 
 [dependencies]
 amari-core = { path = "amari-core" }

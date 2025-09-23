@@ -4,6 +4,11 @@ version.workspace = true
 authors.workspace = true
 edition.workspace = true
 license.workspace = true
+description = "WebAssembly bindings for Amari mathematical computing library"
+repository = "https://github.com/justinelliottcobb/Amari"
+homepage = "https://github.com/justinelliottcobb/Amari"
+keywords = ["wasm", "webassembly", "geometric-algebra", "mathematics", "javascript"]
+categories = ["mathematics", "science", "wasm", "web-programming"]
 
 [lib]
 crate-type = ["cdylib"]
