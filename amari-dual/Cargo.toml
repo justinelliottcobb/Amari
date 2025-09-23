@@ -4,11 +4,6 @@ version.workspace = true
 authors.workspace = true
 edition.workspace = true
 license.workspace = true
-description = "Dual number automatic differentiation"
-repository = "https://github.com/justinelliottcobb/Amari"
-homepage = "https://github.com/justinelliottcobb/Amari"
-keywords = ["automatic-differentiation", "dual-numbers", "calculus", "mathematics", "derivatives"]
-categories = ["mathematics", "science", "algorithms"]
 
 [dependencies]
 amari-core = { path = "../amari-core" }
