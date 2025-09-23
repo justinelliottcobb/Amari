@@ -81,14 +81,27 @@ jobs:
 
       - name: Publish crates in order
         run: |
+          # Function to publish crates with proper error handling
+          publish_crate() {
+            CRATE=$1
+            echo "Publishing $CRATE..."
+            set +e
+            OUTPUT=$(cargo publish -p "$CRATE" --allow-dirty 2>&1)
+            STATUS=$?
+            set -e
+            if [ $STATUS -ne 0 ]; then
+              echo "$OUTPUT" | grep -q "already uploaded" && echo "$CRATE already published, continuing..." || (echo "$OUTPUT" && exit $STATUS)
+            fi
+          }
+
           # Publish in dependency order
-          cargo publish -p amari-core --allow-dirty || true
+          publish_crate amari-core
           sleep 10
-          cargo publish -p amari-tropical --allow-dirty || true
-          cargo publish -p amari-dual --allow-dirty || true
-          cargo publish -p amari-info-geom --allow-dirty || true
+          publish_crate amari-tropical
+          publish_crate amari-dual
+          publish_crate amari-info-geom
           sleep 10
-          cargo publish -p amari-gpu --allow-dirty || true
-          cargo publish -p amari-fusion --allow-dirty || true
-          cargo publish -p amari-wasm --allow-dirty || true
-          cargo publish -p amari-automata --allow-dirty || true
+          publish_crate amari-gpu
+          publish_crate amari-fusion
+          publish_crate amari-wasm
+          publish_crate amari-automata

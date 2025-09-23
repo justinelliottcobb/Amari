@@ -3,6 +3,10 @@
 use amari_core::{rotor::Rotor, Bivector, Multivector};
 use wasm_bindgen::prelude::*;
 
+/// Number of coefficients in a 3D Clifford algebra multivector (2^3 = 8)
+/// Basis elements: 1, e1, e2, e3, e12, e13, e23, e123
+const MULTIVECTOR_COEFFICIENTS: usize = 8;
+
 /// Console logging utility
 #[wasm_bindgen]
 extern "C" {
@@ -39,7 +43,7 @@ impl WasmMultivector {
     /// Create from a Float64Array of coefficients
     #[wasm_bindgen(js_name = fromCoefficients)]
     pub fn from_coefficients(coefficients: &[f64]) -> Result<WasmMultivector, JsValue> {
-        if coefficients.len() != 8 {
+        if coefficients.len() != MULTIVECTOR_COEFFICIENTS {
             return Err(JsValue::from_str(
                 "3D Clifford algebra requires exactly 8 coefficients",
             ));
@@ -75,9 +79,9 @@ impl WasmMultivector {
     /// Get coefficients as a Float64Array
     #[wasm_bindgen(js_name = getCoefficients)]
     pub fn get_coefficients(&self) -> Vec<f64> {
-        let mut coeffs = vec![0.0; 8];
+        let mut coeffs = vec![0.0; MULTIVECTOR_COEFFICIENTS];
         #[allow(clippy::needless_range_loop)]
-        for i in 0..8 {
+        for i in 0..MULTIVECTOR_COEFFICIENTS {
             coeffs[i] = self.inner.get(i);
         }
         coeffs
@@ -199,11 +203,11 @@ impl BatchOperations {
     /// Batch geometric product: compute a[i] * b[i] for all i
     #[wasm_bindgen(js_name = batchGeometricProduct)]
     pub fn batch_geometric_product(a_batch: &[f64], b_batch: &[f64]) -> Result<Vec<f64>, JsValue> {
-        let batch_size = a_batch.len() / 8;
+        let batch_size = a_batch.len() / MULTIVECTOR_COEFFICIENTS;
 
-        if !a_batch.len().is_multiple_of(8) || !b_batch.len().is_multiple_of(8) {
+        if !a_batch.len().is_multiple_of(MULTIVECTOR_COEFFICIENTS) || !b_batch.len().is_multiple_of(MULTIVECTOR_COEFFICIENTS) {
             return Err(JsValue::from_str(
-                "Batch arrays must have length divisible by 8",
+                "Batch arrays must have length divisible by multivector coefficients",
             ));
         }
 
@@ -214,14 +218,14 @@ impl BatchOperations {
         let mut result = Vec::with_capacity(a_batch.len());
 
         for i in 0..batch_size {
-            let start = i * 8;
-            let end = start + 8;
+            let start = i * MULTIVECTOR_COEFFICIENTS;
+            let end = start + MULTIVECTOR_COEFFICIENTS;
 
             let a = Multivector::<3, 0, 0>::from_coefficients(a_batch[start..end].to_vec());
             let b = Multivector::<3, 0, 0>::from_coefficients(b_batch[start..end].to_vec());
             let product = a.geometric_product(&b);
 
-            for j in 0..8 {
+            for j in 0..MULTIVECTOR_COEFFICIENTS {
                 result.push(product.get(j));
             }
         }

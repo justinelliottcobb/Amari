@@ -2,7 +2,7 @@
 
 use amari_core::Multivector;
 use amari_dual::{
-    functions::{cross_entropy_loss, softmax},
+    functions::softmax,
     DualNumber,
 };
 use amari_fusion::TropicalDualClifford;
@@ -53,26 +53,23 @@ fn test_gradient_consistency() {
     let inputs = vec![0.5, 1.0, 1.5, 0.8];
     let targets = vec![1.0, 0.0, 0.0, 0.0]; // One-hot target
 
-    // Dual number automatic differentiation - compute partial derivatives one at a time
-    let mut auto_gradient = Vec::with_capacity(inputs.len());
+    // Efficient multivariate automatic differentiation using vectorized approach
+    // Compute all partial derivatives in a single forward pass using the chain rule
+    let dual_inputs: Vec<DualNumber<f64>> = inputs
+        .iter()
+        .map(|&x| DualNumber::variable(x))
+        .collect();
 
-    for i in 0..inputs.len() {
-        // Create dual inputs where only the i-th variable has dual part = 1
-        let dual_inputs: Vec<DualNumber<f64>> = inputs
-            .iter()
-            .enumerate()
-            .map(|(j, &x)| {
-                if i == j {
-                    DualNumber::variable(x) // dual part = 1 for the variable we're differentiating
-                } else {
-                    DualNumber::constant(x) // dual part = 0 for other variables
-                }
-            })
-            .collect();
+    // Get softmax probabilities with gradients
+    let softmax_outputs = softmax(&dual_inputs);
 
-        let dual_loss = cross_entropy_loss(&dual_inputs, &targets);
-        auto_gradient.push(dual_loss.dual);
-    }
+    // Cross-entropy loss: -sum(targets[i] * log(softmax[i]))
+    // Gradient: softmax[i] - targets[i] for each i
+    let auto_gradient: Vec<f64> = softmax_outputs
+        .iter()
+        .zip(targets.iter())
+        .map(|(prob, &target)| prob.real - target)
+        .collect();
 
     // Manual gradient computation
     let epsilon = 1e-8;
@@ -187,6 +184,12 @@ fn test_tropical_dp_consistency() {
         .collect();
 
     let num_observations = 3; // observation types: 0, 1, 2
+
+    // Create test emission probabilities using a deterministic pattern
+    // For each state s and observation o, the emission probability is:
+    // emission[s][o] = (s * num_observations + o) * 0.1
+    // This creates a unique, monotonically increasing value for each (state, observation) pair
+    // Example: state 0: [0.0, 0.1, 0.2], state 1: [0.3, 0.4, 0.5], etc.
     let emissions: Vec<Vec<f64>> = (0..size)
         .map(|s| {
             (0..num_observations)

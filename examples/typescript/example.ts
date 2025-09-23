@@ -15,6 +15,17 @@ import init, {
   tropical_multiply
 } from '@amari/core';
 
+// Common multivector coefficient arrays (8 coefficients for 3D Clifford algebra)
+// Basis elements: 1, e1, e2, e3, e12, e13, e23, e123
+const UNIT_X_VECTOR = new Float64Array([0, 1, 0, 0, 0, 0, 0, 0]); // e1
+const UNIT_Y_VECTOR = new Float64Array([0, 0, 1, 0, 0, 0, 0, 0]); // e2
+const UNIT_Z_VECTOR = new Float64Array([0, 0, 0, 1, 0, 0, 0, 0]); // e3
+const UNIT_SCALAR = new Float64Array([1, 0, 0, 0, 0, 0, 0, 0]);   // 1
+
+// Example vectors for demonstrations
+const SAMPLE_VECTOR_1 = new Float64Array([1, 2, 3, 0, 0, 0, 0, 0]); // 1 + 2e1 + 3e2
+const SAMPLE_VECTOR_2 = new Float64Array([4, 5, 6, 0, 0, 0, 0, 0]); // 4 + 5e1 + 6e2
+
 async function main() {
   // Initialize the WASM module
   await init();
@@ -32,8 +43,8 @@ async function main() {
   const e3 = WasmMultivector.basis_vector(2);
 
   // Geometric product
-  const v1 = WasmMultivector.from_coefficients(new Float64Array([1, 2, 3, 0, 0, 0, 0, 0]));
-  const v2 = WasmMultivector.from_coefficients(new Float64Array([4, 5, 6, 0, 0, 0, 0, 0]));
+  const v1 = WasmMultivector.from_coefficients(SAMPLE_VECTOR_1);
+  const v2 = WasmMultivector.from_coefficients(SAMPLE_VECTOR_2);
   const product = v1.geometric_product(v2);
 
   console.log(`v1 = ${v1.to_string()}`);
@@ -50,8 +61,8 @@ async function main() {
   const axis = e3;
   const rotor = WasmRotor.from_axis_angle(axis, angle);
 
-  // Apply rotation to a vector
-  const vector = WasmMultivector.from_coefficients(new Float64Array([1, 0, 0, 0, 0, 0, 0, 0]));
+  // Apply rotation to a vector (unit scalar in this case)
+  const vector = WasmMultivector.from_coefficients(UNIT_SCALAR);
   const rotated = rotor.rotate_vector(vector);
 
   console.log(`Original vector: ${vector.to_string()}`);
