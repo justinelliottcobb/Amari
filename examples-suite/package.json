@@ -16,6 +16,8 @@
     "deploy:production": "./deploy.sh production",
     "deploy:local": "docker-compose up -d",
     "deploy:stop": "docker-compose down",
+    "deploy:netlify": "npm run build && netlify deploy --prod --dir=build/client",
+    "preview:netlify": "npm run build && netlify deploy --dir=build/client",
     "health": "curl -f http://localhost:3000/ || exit 1"
   },
   "dependencies": {
@@ -38,6 +40,7 @@
     "eslint-plugin-jsx-a11y": "^6.7.1",
     "eslint-plugin-react": "^7.33.2",
     "eslint-plugin-react-hooks": "^4.6.0",
+    "netlify-cli": "^17.0.0",
     "typescript": "^5.1.6",
     "vite": "^5.1.0",
     "vite-tsconfig-paths": "^4.2.1"

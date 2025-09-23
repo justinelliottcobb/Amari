@@ -16,7 +16,25 @@ npm run deploy:local
 
 ## Deployment Options
 
-### 1. Docker (Recommended)
+### 1. Netlify (Recommended for Static Hosting)
+
+#### Automatic Deployment
+- **GitHub Integration**: Automatic deploys on push to main/master
+- **Preview Deployments**: All PRs get preview URLs
+- **Global CDN**: Optimized worldwide performance
+- **SSL Certificates**: Automatic HTTPS setup
+
+```bash
+# Manual deployment
+npm run deploy:netlify
+
+# Preview deployment
+npm run preview:netlify
+```
+
+**Setup**: See [NETLIFY_SETUP.md](./NETLIFY_SETUP.md) for complete configuration guide.
+
+### 2. Docker (Recommended for Full-Stack Hosting)
 
 #### Single Container
 ```bash
@@ -39,7 +57,7 @@ docker-compose --profile production up -d
 npm run deploy:stop
 ```
 
-### 2. Automated Deployment Script
+### 3. Automated Deployment Script
 
 #### Staging Environment
 ```bash
@@ -51,18 +69,20 @@ npm run deploy:staging
 npm run deploy:production
 ```
 
-### 3. GitHub Actions CI/CD
+### 4. GitHub Actions CI/CD
 
 The repository includes automated deployment workflows:
 
+- **Netlify Deploy**: Automatic static site deployment
+- **Docker Build & Push**: Container images for infrastructure deployment
 - **Test Pipeline**: Runs on all PRs and pushes
-- **Build & Push**: Creates Docker images for main/master branches
-- **Deploy**: Automatically deploys to staging/production
+- **Preview Deployments**: Branch and PR previews
 
 #### Workflow Triggers
-- `push` to `main` → Deploy to staging
-- `push` to `master` → Deploy to production
-- Manual trigger via `workflow_dispatch`
+- `push` to `main` → Deploy to Netlify + staging
+- `push` to `master` → Deploy to Netlify + production
+- `push` to `feature/api-examples-suite` → Deploy to Netlify preview
+- Pull requests → Preview deployments
 
 ## Configuration
 
@@ -226,20 +246,33 @@ docker-compose up -d --scale examples-suite=3
 
 ## Platform-Specific Deployment
 
+### Netlify (Static Site Hosting)
+- **Automatic builds** from GitHub
+- **Global CDN** with edge caching
+- **Preview deployments** for PRs
+- **Custom domains** with SSL
+- **Form handling** and serverless functions
+- **Analytics** and performance monitoring
+
+Setup: See [NETLIFY_SETUP.md](./NETLIFY_SETUP.md)
+
 ### AWS
 - ECS with Docker images
 - ALB for load balancing
 - CloudWatch for monitoring
+- S3 + CloudFront for static hosting
 
 ### Google Cloud
 - Cloud Run for serverless
 - GKE for Kubernetes
 - Cloud Build for CI/CD
+- Firebase Hosting for static sites
 
 ### Azure
 - Container Instances
 - App Service
 - Azure DevOps pipelines
+- Static Web Apps
 
 ### Kubernetes
 ```yaml
