@@ -4,6 +4,11 @@ version.workspace = true
 authors.workspace = true
 edition.workspace = true
 license.workspace = true
+description = "Fusion system for combining algebraic structures"
+repository = "https://github.com/justinelliottcobb/Amari"
+homepage = "https://github.com/justinelliottcobb/Amari"
+keywords = ["fusion-system", "algebraic-structures", "mathematics", "composition", "category-theory"]
+categories = ["mathematics", "science", "algorithms"]
 
 [dependencies]
 amari-core = { path = "../amari-core" }
