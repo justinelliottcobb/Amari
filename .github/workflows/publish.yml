@@ -271,7 +271,7 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           cd amari-wasm
-          npm publish
+          npm publish --ignore-scripts
 
       - name: Skip npm publish (version exists)
         if: steps.npm-version-check.outputs.version-exists == 'true'
