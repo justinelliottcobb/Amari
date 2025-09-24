@@ -213,7 +213,7 @@ jobs:
           wasm-pack build --target bundler --out-dir pkg-bundler --scope amari
 
       - name: Upload WASM artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: wasm-packages
           path: |
@@ -237,7 +237,7 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
 
       - name: Download WASM artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: wasm-packages
           path: amari-wasm/
