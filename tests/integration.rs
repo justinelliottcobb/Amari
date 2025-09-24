@@ -1,4 +1,6 @@
+#[allow(unused_imports)]
 use amari_core::Multivector;
+#[allow(unused_imports)]
 use amari_dual::DualMultivector;
 use amari_fusion::TropicalDualClifford;
 use amari_tropical::TropicalMultivector;

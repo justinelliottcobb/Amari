@@ -234,7 +234,7 @@ fn standard_viterbi(
     // Fill DP table
     for t in 1..seq_len {
         for curr_state in 0..num_states {
-            for (prev_state, transition) in transitions.iter().enumerate().take(num_states) {
+            for (prev_state, _transition) in transitions.iter().enumerate().take(num_states) {
                 let emission_score = if curr_state < emissions.len()
                     && observations[t] < emissions[curr_state].len()
                 {

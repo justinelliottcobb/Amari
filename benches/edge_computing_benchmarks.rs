@@ -34,9 +34,9 @@ fn bench_tensor_computation_scaling(c: &mut Criterion) {
         // GPU computation (when available)
         if let Ok(rt) = tokio::runtime::Runtime::new() {
             group.bench_with_input(BenchmarkId::new("gpu", batch_size), &batch_size, |b, _| {
-                b.to_async(&rt).iter(|| async {
-                    // Placeholder for GPU computation
-                    compute_tensor_batch_gpu(&x_batch, &y_batch, &z_batch).await
+                b.iter(|| {
+                    // Placeholder for GPU computation (sync version)
+                    rt.block_on(compute_tensor_batch_gpu(&x_batch, &y_batch, &z_batch))
                 });
             });
         }
