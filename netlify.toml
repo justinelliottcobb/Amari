@@ -1,6 +1,6 @@
 [build]
-  base = "."
-  publish = "dist"
+  base = "examples-suite"
+  publish = "examples-suite/dist"
   command = "rm -rf dist build && npm run build && ls -la dist/ && echo 'Build complete - deploying from dist/'"
 
 [build.environment]
