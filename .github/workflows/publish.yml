@@ -252,12 +252,30 @@ jobs:
             npm version $VERSION --no-git-tag-version
           fi
 
+      - name: Check if version exists on npm
+        id: npm-version-check
+        run: |
+          cd amari-wasm
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          if npm view @amari/core@$PACKAGE_VERSION version 2>/dev/null; then
+            echo "version-exists=true" >> $GITHUB_OUTPUT
+            echo "Version $PACKAGE_VERSION already exists on npm"
+          else
+            echo "version-exists=false" >> $GITHUB_OUTPUT
+            echo "Version $PACKAGE_VERSION does not exist, proceeding with publish"
+          fi
+
       - name: Publish to npm
+        if: steps.npm-version-check.outputs.version-exists == 'false'
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           cd amari-wasm
           npm publish
+
+      - name: Skip npm publish (version exists)
+        if: steps.npm-version-check.outputs.version-exists == 'true'
+        run: echo "Skipping npm publish - version already exists"
 
   update-examples:
     name: Update Examples Suite
