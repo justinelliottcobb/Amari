@@ -25,7 +25,7 @@ fi
 
 # Update workspace version
 echo "📝 Updating workspace version to $VERSION"
-sed -i "s/version = \".*\"/version = \"$VERSION\"/" Cargo.toml
+sed -i "0,/^version = /s/^version = \".*\"/version = \"$VERSION\"/" Cargo.toml
 
 # Update amari-wasm package.json version
 echo "📝 Updating amari-wasm package.json version to $VERSION"
