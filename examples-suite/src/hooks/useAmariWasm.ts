@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import init, * as amari from '@justinelliottcobb/amari-core/pkg/amari_wasm.js';
+// @ts-ignore - Import WASM file directly
+import wasmUrl from '@justinelliottcobb/amari-core/pkg/amari_wasm_bg.wasm?url';
 
 interface AmariModule {
   ready: boolean;
@@ -17,8 +19,8 @@ export function useAmariWasm(): AmariModule {
 
     async function loadWasm() {
       try {
-        // Initialize the WASM module
-        await init();
+        // Initialize the WASM module with explicit URL
+        await init(wasmUrl);
 
         if (!cancelled) {
           setAmariModule(amari);

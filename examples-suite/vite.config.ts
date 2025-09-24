@@ -13,6 +13,13 @@ export default defineConfig(({ mode }) => {
     server: {
       hmr: true,
       allowedHosts: env.VITE_ALLOWED_HOST ? [env.VITE_ALLOWED_HOST, 'localhost'] : undefined,
+      fs: {
+        allow: ['..', '.'],
+      },
+    },
+    assetsInclude: ['**/*.wasm'],
+    optimizeDeps: {
+      exclude: ['@justinelliottcobb/amari-core']
     },
   };
 });
