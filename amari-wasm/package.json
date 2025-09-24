@@ -1,5 +1,5 @@
 {
-  "name": "@amari/core",
+  "name": "@justinelliottcobb/amari-core",
   "version": "0.1.1",
   "description": "Advanced mathematical computing library with geometric algebra, tropical algebra, and automatic differentiation for JavaScript/TypeScript",
   "main": "pkg/amari_wasm.js",
@@ -9,9 +9,9 @@
     "pkg/"
   ],
   "scripts": {
-    "build": "wasm-pack build --target web --out-dir pkg --scope amari",
-    "build:node": "wasm-pack build --target nodejs --out-dir pkg-node --scope amari",
-    "build:bundler": "wasm-pack build --target bundler --out-dir pkg-bundler --scope amari",
+    "build": "wasm-pack build --target web --out-dir pkg --scope justinelliottcobb",
+    "build:node": "wasm-pack build --target nodejs --out-dir pkg-node --scope justinelliottcobb",
+    "build:bundler": "wasm-pack build --target bundler --out-dir pkg-bundler --scope justinelliottcobb",
     "test": "wasm-pack test --headless --firefox",
     "prepublishOnly": "npm run build"
   },

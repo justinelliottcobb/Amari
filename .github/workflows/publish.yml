@@ -208,9 +208,9 @@ jobs:
       - name: Build WASM package
         run: |
           cd amari-wasm
-          wasm-pack build --target web --out-dir pkg --scope amari
-          wasm-pack build --target nodejs --out-dir pkg-node --scope amari
-          wasm-pack build --target bundler --out-dir pkg-bundler --scope amari
+          wasm-pack build --target web --out-dir pkg --scope justinelliottcobb
+          wasm-pack build --target nodejs --out-dir pkg-node --scope justinelliottcobb
+          wasm-pack build --target bundler --out-dir pkg-bundler --scope justinelliottcobb
 
       - name: Upload WASM artifacts
         uses: actions/upload-artifact@v4
@@ -257,7 +257,8 @@ jobs:
         run: |
           cd amari-wasm
           PACKAGE_VERSION=$(node -p "require('./package.json').version")
-          if npm view @amari/core@$PACKAGE_VERSION version 2>/dev/null; then
+          PACKAGE_NAME=$(node -p "require('./package.json').name")
+          if npm view $PACKAGE_NAME@$PACKAGE_VERSION version 2>/dev/null; then
             echo "version-exists=true" >> $GITHUB_OUTPUT
             echo "Version $PACKAGE_VERSION already exists on npm"
           else
@@ -307,8 +308,8 @@ jobs:
             VERSION="latest"
           fi
 
-          # Update package.json to use published @amari/core
-          npm install @amari/core@$VERSION
+          # Update package.json to use published package
+          npm install @justinelliottcobb/amari-core@$VERSION
 
           # Update examples to import from npm package instead of simulated operations
           # This will be done in a follow-up commit
@@ -331,7 +332,7 @@ jobs:
 
           # Create PR
           gh pr create \
-            --title "Update examples suite to use published @amari/core" \
-            --body "This PR updates the examples suite to use the published @amari/core npm package instead of simulated operations, providing authentic mathematical functionality." \
+            --title "Update examples suite to use published @justinelliottcobb/amari-core" \
+            --body "This PR updates the examples suite to use the published @justinelliottcobb/amari-core npm package instead of simulated operations, providing authentic mathematical functionality." \
             --base feature/api-examples-suite \
             --head update-examples-with-published-library
