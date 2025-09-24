@@ -4,6 +4,11 @@ version.workspace = true
 authors.workspace = true
 edition.workspace = true
 license.workspace = true
+description = "Tropical (max-plus) algebra implementation"
+repository = "https://github.com/justinelliottcobb/Amari"
+homepage = "https://github.com/justinelliottcobb/Amari"
+keywords = ["tropical-algebra", "max-plus", "semiring", "mathematics", "optimization"]
+categories = ["mathematics", "science", "algorithms"]
 
 [dependencies]
 amari-core = { path = "../amari-core" }

@@ -4,6 +4,11 @@ version.workspace = true
 authors.workspace = true
 edition.workspace = true
 license.workspace = true
+description = "Core geometric algebra and mathematical structures"
+repository = "https://github.com/justinelliottcobb/Amari"
+homepage = "https://github.com/justinelliottcobb/Amari"
+keywords = ["geometric-algebra", "clifford-algebra", "mathematics", "linear-algebra", "multivector"]
+categories = ["mathematics", "science", "algorithms"]
 
 [dependencies]
 num-traits = { workspace = true }
