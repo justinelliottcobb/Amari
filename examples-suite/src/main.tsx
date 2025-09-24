@@ -2,7 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import { ThemeProvider } from 'jadis-ui'
-// CSS temporarily removed to isolate React error #31
+// CSS import will be added once we resolve the path issue
 
 import App from './App'
 import { GeometricAlgebra } from './pages/GeometricAlgebra'
