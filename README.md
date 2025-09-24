@@ -122,7 +122,7 @@ const rotor = Rotor.fromBivector(e12, Math.PI / 2);
 const rotated = rotor.apply(e1); // e1 → e2
 ```
 
-## 🔧 Building
+## Building
 
 ### Prerequisites
 
@@ -317,7 +317,7 @@ cargo test --workspace --features "parallel"
 cargo test --workspace --features "proptest"
 ```
 
-## 📖 Documentation
+## Documentation
 
 ```bash
 # Generate and open docs
@@ -360,7 +360,7 @@ cd amari
 ./build.sh --examples
 ```
 
-## 📄 License
+## License
 
 This project is licensed under either of:
 
@@ -369,13 +369,13 @@ This project is licensed under either of:
 
 at your option.
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - Inspired by the geometric algebra community and research in Information Geometry
 - Built with modern Rust performance idioms and WebAssembly best practices
 - Named after Shun-ichi Amari's contributions to Information Geometry
 
-## 📞 Support
+## Support
 
 - **Issues**: [GitHub Issues](https://github.com/your-username/amari/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/your-username/amari/discussions)
