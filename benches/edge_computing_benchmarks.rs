@@ -242,6 +242,7 @@ fn bench_edge_device_simulation(c: &mut Criterion) {
     let (x_batch, y_batch, z_batch) = create_tensor_batch(500);
 
     for (device, description, performance_factor) in device_types {
+        let performance_factor: f64 = performance_factor;
         group.bench_function(BenchmarkId::new(device, description), |b| {
             b.iter(|| {
                 // Simulate device performance by adding delay

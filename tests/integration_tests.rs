@@ -3,13 +3,13 @@
 use amari_core::Multivector;
 use amari_dual::{functions::softmax, DualNumber};
 use amari_fusion::TropicalDualClifford;
-use amari_tropical::{viterbi::TropicalViterbi, TropicalMultivector, TropicalNumber};
+use amari_tropical::{viterbi::TropicalViterbi, TropicalNumber};
 use approx::assert_relative_eq;
 
 /// Test consistency between tropical and standard softmax
 #[test]
 fn test_softmax_consistency() {
-    let logits = vec![1.0, 2.0, 3.0, 0.5, 1.5];
+    let logits = [1.0, 2.0, 3.0, 0.5, 1.5];
 
     // Standard softmax using dual numbers
     let dual_logits: Vec<DualNumber<f64>> =
@@ -148,7 +148,7 @@ fn test_tdc_self_consistency() {
     let tdc = TropicalDualClifford::<f64, 8>::from_logits(&logits);
 
     // Test that transformations preserve essential properties
-    let identity_transform = TropicalDualClifford::from_logits(&vec![0.0; 8]);
+    let identity_transform = TropicalDualClifford::from_logits(&[0.0; 8]);
     let transformed = tdc.transform(&identity_transform);
 
     // Should be close to original for identity-like transform
@@ -225,16 +225,16 @@ fn standard_viterbi(
     let mut path = vec![vec![0; num_states]; seq_len];
 
     // Initialize first column
-    for state in 0..num_states {
-        if observations[0] < emissions[state].len() {
-            dp[0][state] = emissions[state][observations[0]];
+    for (state, emission) in emissions.iter().enumerate().take(num_states) {
+        if observations[0] < emission.len() {
+            dp[0][state] = emission[observations[0]];
         }
     }
 
     // Fill DP table
     for t in 1..seq_len {
         for curr_state in 0..num_states {
-            for prev_state in 0..num_states {
+            for (prev_state, transition) in transitions.iter().enumerate().take(num_states) {
                 let emission_score = if curr_state < emissions.len()
                     && observations[t] < emissions[curr_state].len()
                 {
@@ -351,9 +351,9 @@ fn test_conversion_consistency() {
     let dual_coeffs = clifford_to_dual::<f64>(&mv);
 
     // Should preserve coefficient values
-    for i in 0..8 {
-        assert_relative_eq!(dual_coeffs[i].real, mv.get(i), epsilon = 1e-10);
-        assert_relative_eq!(dual_coeffs[i].dual, 1.0, epsilon = 1e-10); // Variables have unit derivative
+    for (i, coeff) in dual_coeffs.iter().enumerate().take(8) {
+        assert_relative_eq!(coeff.real, mv.get(i), epsilon = 1e-10);
+        assert_relative_eq!(coeff.dual, 1.0, epsilon = 1e-10); // Variables have unit derivative
     }
 }
 

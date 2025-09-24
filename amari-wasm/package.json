@@ -1,6 +1,6 @@
 {
   "name": "@amari/core",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Advanced mathematical computing library with geometric algebra, tropical algebra, and automatic differentiation for JavaScript/TypeScript",
   "main": "pkg/amari_wasm.js",
   "module": "pkg/amari_wasm_bg.js",

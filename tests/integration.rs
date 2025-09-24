@@ -22,7 +22,7 @@ fn test_tropical_dual_clifford_consistency() {
         result
     });
     assert!(value > 0.0);
-    assert!(gradient.value().as_slice().len() > 0);
+    assert!(!gradient.value().as_slice().is_empty());
 }
 
 #[test]

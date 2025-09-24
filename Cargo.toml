@@ -21,6 +21,8 @@ amari-automata = { path = "amari-automata" }
 
 [dev-dependencies]
 approx.workspace = true
+criterion = "0.5"
+tokio = { version = "1.0", features = ["full"] }
 
 [[test]]
 name = "integration"
@@ -31,7 +33,7 @@ members = ["amari-core", "amari-wasm", "amari-gpu", "amari-info-geom", "amari-tr
 resolver = "2"
 
 [workspace.package]
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Amari Contributors"]
 edition = "2021"
 license = "MIT OR Apache-2.0"
@@ -43,7 +45,7 @@ rayon = "1.8"
 thiserror = "1.0"
 num-traits = "0.2"
 approx = "0.5"
-serde = { version = "1.0", features = ["derive"], optional = true }
+serde = { version = "1.0", features = ["derive"] }
 
 [profile.release]
 opt-level = 3
