@@ -7,9 +7,9 @@ authors = ["Elliott Hall <elliott@example.com>"]
 license = "MIT OR Apache-2.0"
 
 [dependencies]
-amari-core = { path = "../amari-core" }
-amari-tropical = { path = "../amari-tropical" }
-amari-dual = { path = "../amari-dual" }
+amari-core = { path = "../amari-core", version = "0.1" }
+amari-tropical = { path = "../amari-tropical", version = "0.1" }
+amari-dual = { path = "../amari-dual", version = "0.1" }
 num-traits = "0.2"
 serde = { version = "1.0", features = ["derive"], optional = true }
 

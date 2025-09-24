@@ -11,7 +11,7 @@ keywords = ["information-geometry", "statistics", "manifolds", "fisher-metric", 
 categories = ["mathematics", "science", "algorithms"]
 
 [dependencies]
-amari-core = { path = "../amari-core" }
+amari-core = { path = "../amari-core", version = "0.1" }
 num-traits = { workspace = true }
 thiserror = { workspace = true }
 approx = { workspace = true }

@@ -12,12 +12,12 @@ keywords = ["mathematics", "geometric-algebra", "tropical-algebra", "automatic-d
 categories = ["mathematics", "science", "algorithms"]
 
 [dependencies]
-amari-core = { path = "amari-core" }
-amari-tropical = { path = "amari-tropical" }
-amari-dual = { path = "amari-dual" }
-amari-fusion = { path = "amari-fusion" }
-amari-info-geom = { path = "amari-info-geom" }
-amari-automata = { path = "amari-automata" }
+amari-core = { path = "amari-core", version = "0.1" }
+amari-tropical = { path = "amari-tropical", version = "0.1" }
+amari-dual = { path = "amari-dual", version = "0.1" }
+amari-fusion = { path = "amari-fusion", version = "0.1" }
+amari-info-geom = { path = "amari-info-geom", version = "0.1" }
+amari-automata = { path = "amari-automata", version = "0.1" }
 
 [dev-dependencies]
 approx.workspace = true
