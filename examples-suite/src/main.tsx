@@ -4,6 +4,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import { ThemeProvider } from 'jadis-ui'
 import '../public/jadis-ui.css'
 
+
 import App from './App'
 import { GeometricAlgebra } from './pages/GeometricAlgebra'
 import { TropicalAlgebra } from './pages/TropicalAlgebra'

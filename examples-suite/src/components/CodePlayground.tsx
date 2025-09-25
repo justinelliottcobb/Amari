@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { Card, CardHeader, CardBody, Button, Code } from "jadis-ui";
+import { Card, CardHeader, CardBody, Button, CodeBlock, TextArea, H3, P } from "jadis-ui";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { safeExecute, validateNumbers, validateArray } from "../utils/safeExecution";
 
@@ -94,19 +94,18 @@ export function CodePlayground({
     <ErrorBoundary>
       <Card>
         <CardHeader>
-        <div className="flex items-center justify-between">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
-            <h3 className="text-lg font-semibold">{title}</h3>
+            <H3>{title}</H3>
             {description && (
-              <p className="text-sm text-muted-foreground mt-1">{description}</p>
+              <P style={{ fontSize: '0.875rem', marginTop: '0.25rem', opacity: 0.7 }}>{description}</P>
             )}
           </div>
           {onRun && (
-            <div className="flex gap-2">
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
               <Button
                 onClick={runCode}
                 disabled={isRunning}
-                size="sm"
                 title="Run code (Ctrl/Cmd + Enter)"
               >
                 {isRunning ? 'Running...' : 'Run'}
@@ -114,7 +113,6 @@ export function CodePlayground({
               <Button
                 onClick={() => setCode(initialCode)}
                 variant="outline"
-                size="sm"
                 title="Reset to initial code"
               >
                 Reset
@@ -124,43 +122,31 @@ export function CodePlayground({
         </div>
       </CardHeader>
       <CardBody>
-        <div className="relative">
-          <div className="flex">
-            {showLineNumbers && (
-              <div className="select-none pr-3 text-right text-xs text-muted-foreground">
-                {lineNumbers && lineNumbers.map(n => (
-                  <div key={n}>{n}</div>
-                ))}
-              </div>
-            )}
-            <textarea
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              onKeyDown={handleKeyDown}
-              className={`flex-1 ${height} p-3 font-mono text-sm bg-muted rounded-lg border border-border focus:ring-2 focus:ring-primary focus:border-primary resize-none`}
-              spellCheck={false}
-              placeholder="Enter your code here..."
-            />
-          </div>
+        <div>
+          <TextArea
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            onKeyDown={handleKeyDown}
+            style={{
+              fontFamily: 'monospace',
+              fontSize: '0.875rem',
+              minHeight: height === 'h-64' ? '16rem' : '10rem'
+            }}
+            spellCheck={false}
+            placeholder="Enter your code here..."
+          />
         </div>
 
         {/* Output Section */}
         {(output || error) && (
-          <div className="mt-4">
-            <h4 className="text-sm font-semibold mb-2">Output:</h4>
-            {error ? (
-              <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3">
-                <Code className="text-sm text-destructive whitespace-pre-wrap">
-                  {error}
-                </Code>
-              </div>
-            ) : (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                <Code className="text-sm text-green-700 whitespace-pre-wrap">
-                  {output}
-                </Code>
-              </div>
-            )}
+          <div style={{ marginTop: '1rem' }}>
+            <h4 style={{ fontSize: '0.875rem', fontWeight: '600', marginBottom: '0.5rem' }}>Output:</h4>
+            <CodeBlock
+              language="text"
+              variant={error ? 'error' : 'success'}
+            >
+              {error || output}
+            </CodeBlock>
           </div>
         )}
       </CardBody>
@@ -201,40 +187,51 @@ export function InlinePlayground({
   };
 
   return (
-    <div className="my-3 border border-border rounded-lg overflow-hidden">
-      <div className="bg-muted px-3 py-2 flex items-center justify-between">
-        <span className="text-xs text-muted-foreground font-mono">{language}</span>
-        <div className="flex gap-2">
-          <Button
-            onClick={runInlineCode}
-            size="sm"
-            variant="ghost"
-            className="h-6 px-2 text-xs"
-          >
-            Run
-          </Button>
-          <Button
-            onClick={() => setIsExpanded(!isExpanded)}
-            size="sm"
-            variant="ghost"
-            className="h-6 px-2 text-xs"
-          >
-            {isExpanded ? 'Collapse' : 'Expand'}
-          </Button>
+    <Card style={{ marginTop: '0.75rem', marginBottom: '0.75rem' }}>
+      <CardHeader style={{ padding: '0.75rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span style={{ fontSize: '0.75rem', fontFamily: 'monospace', opacity: 0.7 }}>{language}</span>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <Button
+              onClick={runInlineCode}
+              variant="ghost"
+              style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}
+            >
+              Run
+            </Button>
+            <Button
+              onClick={() => setIsExpanded(!isExpanded)}
+              variant="ghost"
+              style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}
+            >
+              {isExpanded ? 'Collapse' : 'Expand'}
+            </Button>
+          </div>
         </div>
-      </div>
-
-      <div className={`transition-all duration-200 ${isExpanded ? 'max-h-96' : 'max-h-24'} overflow-auto`}>
-        <pre className="p-3 text-xs">
-          <code>{code}</code>
-        </pre>
-      </div>
-
-      {output && (
-        <div className="border-t border-border bg-background p-3">
-          <pre className="text-xs text-muted-foreground">{output}</pre>
+      </CardHeader>
+      <CardBody style={{ padding: '0' }}>
+        <div style={{
+          transition: 'all 0.2s',
+          maxHeight: isExpanded ? '24rem' : '6rem',
+          overflow: 'auto'
+        }}>
+          <CodeBlock
+            language={language}
+            showLineNumbers={true}
+            showCopyButton={true}
+          >
+            {code}
+          </CodeBlock>
         </div>
-      )}
-    </div>
+
+        {output && (
+          <div style={{ borderTop: '1px solid var(--border)', padding: '0.75rem' }}>
+            <CodeBlock language="text" variant="muted">
+              {output}
+            </CodeBlock>
+          </div>
+        )}
+      </CardBody>
+    </Card>
   );
 }

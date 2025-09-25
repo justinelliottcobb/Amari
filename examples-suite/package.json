@@ -16,7 +16,7 @@
   "dependencies": {
     "@justinelliottcobb/amari-core": "^0.1.0",
     "@vitejs/plugin-react": "^4.0.0",
-    "jadis-ui": "^0.1.1-1",
+    "jadis-ui": "^0.1.1-2",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-router": "^7.0.1",
