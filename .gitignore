@@ -14,3 +14,5 @@ pkg/
 wasm-pack.log
 .vscode/
 .idea/
+# Local Netlify folder
+.netlify

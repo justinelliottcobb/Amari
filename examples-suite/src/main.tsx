@@ -2,7 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import { ThemeProvider } from 'jadis-ui'
-import '../public/jadis-ui.css'
+import '../node_modules/jadis-ui/dist/index.css'
 
 
 import App from './App'
