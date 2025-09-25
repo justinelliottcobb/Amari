@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Button, H3, Card, CardBody } from "jadis-ui";
+import { Button, H3, Card, CardBody, P, Strong, Grid, GridItem, Navbar, NavbarNav } from "jadis-ui";
 
 interface NavSection {
   title: string;
@@ -84,29 +84,36 @@ export function Navigation() {
   const location = useLocation();
 
   return (
-    <nav className="w-80 h-screen overflow-y-auto bg-background border-r border-border p-6">
-      <div className="mb-8">
-        <Link to="/" className="block">
+    <nav style={{ height: '100vh', overflowY: 'auto', padding: '1.5rem' }}>
+      <div style={{ marginBottom: '2rem' }}>
+        <Link to="/">
           <H3>Amari Library</H3>
-          <p className="text-sm text-muted-foreground">Mathematical Computing Examples</p>
+          <P>Mathematical Computing Examples</P>
         </Link>
       </div>
 
-      <div className="space-y-6">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         {navigationSections.map((section) => (
           <div key={section.title}>
-            <h4 className="font-semibold text-sm uppercase tracking-wider text-muted-foreground mb-3">
+            <Strong style={{ fontSize: '0.875rem', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.75rem', display: 'block' }}>
               {section.title}
-            </h4>
-            <div className="space-y-2">
+            </Strong>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               {section.items.map((item) => {
                 const isActive = location.pathname === item.href;
                 return (
-                  <Card key={item.href} className={`transition-all duration-200 ${isActive ? 'ring-2 ring-primary' : 'hover:shadow-md'}`}>
-                    <CardBody className="p-3">
-                      <Link to={item.href} className="block">
-                        <div className="font-medium text-sm mb-1">{item.title}</div>
-                        <div className="text-xs text-muted-foreground">{item.description}</div>
+                  <Card key={item.href} style={{
+                    transition: 'all 0.2s',
+                    ...(isActive ? { outline: '2px solid var(--primary)' } : {})
+                  }}>
+                    <CardBody style={{ padding: '0.75rem' }}>
+                      <Link to={item.href}>
+                        <div style={{ fontWeight: 500, fontSize: '0.875rem', marginBottom: '0.25rem' }}>
+                          {item.title}
+                        </div>
+                        <div style={{ fontSize: '0.75rem', opacity: 0.7 }}>
+                          {item.description}
+                        </div>
                       </Link>
                     </CardBody>
                   </Card>
@@ -122,23 +129,23 @@ export function Navigation() {
 
 export function MobileNavigation() {
   return (
-    <div className="lg:hidden bg-background border-b border-border p-4">
-      <details className="group">
-        <summary className="flex items-center justify-between cursor-pointer">
+    <div style={{ padding: '1rem', borderBottom: '1px solid var(--border)' }}>
+      <details>
+        <summary style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}>
           <H3>Navigation</H3>
-          <span className="transition-transform group-open:rotate-180">
+          <span style={{ transition: 'transform 0.2s' }}>
             ▼
           </span>
         </summary>
-        <div className="mt-4 space-y-4">
+        <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {navigationSections.map((section) => (
             <div key={section.title}>
-              <h4 className="font-semibold text-sm uppercase tracking-wider text-muted-foreground mb-2">
+              <Strong style={{ fontSize: '0.875rem', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.5rem', display: 'block' }}>
                 {section.title}
-              </h4>
-              <div className="grid grid-cols-1 gap-2">
+              </Strong>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 {section.items.map((item) => (
-                  <Button key={item.href} href={item.href} className="text-left justify-start">
+                  <Button key={item.href} href={item.href} style={{ textAlign: 'left', justifyContent: 'flex-start' }}>
                     {item.title}
                   </Button>
                 ))}

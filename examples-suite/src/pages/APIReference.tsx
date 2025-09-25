@@ -1,4 +1,4 @@
-import { H1, P, Card, CardHeader, CardBody, Button, Code } from "jadis-ui";
+import { H1, P, Card, CardHeader, CardBody, Button, CodeBlock, H2, H3, H4, StatusBadge } from "jadis-ui";
 import { RealTimeVisualization } from "../components/RealTimeDisplay";
 import { useState } from "react";
 
@@ -186,222 +186,226 @@ export function APIReference() {
   const currentSection = apiSections.find(section => section.id === activeSection);
 
   return (
-<div className="p-8">
-        <div className="max-w-6xl mx-auto">
-          <H1>API Reference</H1>
-          <P className="text-lg text-muted-foreground mb-6">
-            Complete documentation with real-time mathematical visualizations
-          </P>
+    <div style={{ padding: '2rem' }}>
+      <div style={{ maxWidth: '1536px', margin: '0 auto' }}>
+        <H1>API Reference</H1>
+        <P style={{ fontSize: '1.125rem', marginBottom: '1.5rem', opacity: 0.7 }}>
+          Complete documentation with real-time mathematical visualizations
+        </P>
 
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            {/* Navigation Sidebar */}
-            <div className="lg:col-span-1">
+        <div style={{ display: 'flex', flexDirection: 'row', gap: '1.5rem' }}>
+          {/* Navigation Sidebar */}
+          <div style={{ minWidth: '280px', maxWidth: '320px' }}>
+            <Card>
+              <CardHeader>
+                <H3>API Sections</H3>
+              </CardHeader>
+              <CardBody>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  {apiSections.map((section) => (
+                    <Button
+                      key={section.id}
+                      onClick={() => setActiveSection(section.id)}
+                      variant={activeSection === section.id ? 'default' : 'outline'}
+                      style={{ width: '100%', justifyContent: 'flex-start', textAlign: 'left' }}
+                    >
+                      <div>
+                        <div style={{ fontWeight: '500' }}>{section.title}</div>
+                        <div style={{ fontSize: '0.75rem', opacity: 0.7 }}>
+                          {section.methods.length} methods
+                        </div>
+                      </div>
+                    </Button>
+                  ))}
+                </div>
+              </CardBody>
+            </Card>
+
+            <Card style={{ marginTop: '1.5rem' }}>
+              <CardHeader>
+                <H3>Live Visualizations</H3>
+              </CardHeader>
+              <CardBody>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  <Button
+                    onClick={() => toggleVisualization('rotor')}
+                    variant={visualizations.rotor ? 'default' : 'outline'}
+                    style={{ width: '100%' }}
+                  >
+                    Rotor Evolution
+                  </Button>
+                  <Button
+                    onClick={() => toggleVisualization('tropical')}
+                    variant={visualizations.tropical ? 'default' : 'outline'}
+                    style={{ width: '100%' }}
+                  >
+                    Tropical Convergence
+                  </Button>
+                  <Button
+                    onClick={() => toggleVisualization('dual')}
+                    variant={visualizations.dual ? 'default' : 'outline'}
+                    style={{ width: '100%' }}
+                  >
+                    Dual Number AD
+                  </Button>
+                  <Button
+                    onClick={() => toggleVisualization('fisher')}
+                    variant={visualizations.fisher ? 'default' : 'outline'}
+                    style={{ width: '100%' }}
+                  >
+                    Fisher Information
+                  </Button>
+                </div>
+              </CardBody>
+            </Card>
+          </div>
+
+          {/* Main Content */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', flex: 1 }}>
+            {/* Real-time Visualizations */}
+            {visualizations.rotor && (
+              <RealTimeVisualization
+                title="Rotor Evolution"
+                description="Real-time visualization of geometric rotor rotations"
+                type="rotor"
+                isRunning={visualizations.rotor}
+                onToggle={() => toggleVisualization('rotor')}
+              />
+            )}
+
+            {visualizations.tropical && (
+              <RealTimeVisualization
+                title="Tropical Convergence"
+                description="Live tropical algebra convergence to maximum value"
+                type="tropical"
+                isRunning={visualizations.tropical}
+                onToggle={() => toggleVisualization('tropical')}
+              />
+            )}
+
+            {visualizations.dual && (
+              <RealTimeVisualization
+                title="Dual Number Automatic Differentiation"
+                description="Real-time function and derivative computation"
+                type="dual"
+                isRunning={visualizations.dual}
+                onToggle={() => toggleVisualization('dual')}
+              />
+            )}
+
+            {visualizations.fisher && (
+              <RealTimeVisualization
+                title="Fisher Information Matrix"
+                description="Live Fisher information evolution on probability simplex"
+                type="fisher"
+                isRunning={visualizations.fisher}
+                onToggle={() => toggleVisualization('fisher')}
+              />
+            )}
+
+            {/* API Documentation */}
+            {currentSection && (
               <Card>
                 <CardHeader>
-                  <h3 className="text-lg font-semibold">API Sections</h3>
+                  <H2>{currentSection.title}</H2>
+                  <P style={{ opacity: 0.7 }}>{currentSection.description}</P>
                 </CardHeader>
                 <CardBody>
-                  <div className="space-y-2">
-                    {apiSections.map((section) => (
-                      <Button
-                        key={section.id}
-                        onClick={() => setActiveSection(section.id)}
-                        variant={activeSection === section.id ? 'default' : 'outline'}
-                        className="w-full justify-start text-left"
-                        size="sm"
-                      >
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+                    {currentSection.methods.map((method, index) => (
+                      <div key={index} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                         <div>
-                          <div className="font-medium">{section.title}</div>
-                          <div className="text-xs opacity-70">
-                            {section.methods.length} methods
-                          </div>
+                          <H3 style={{ marginBottom: '0.5rem' }}>{method.name}</H3>
+                          <CodeBlock
+                            language="typescript"
+                            showCopyButton={true}
+                            style={{ marginBottom: '0.75rem', width: '100%' }}
+                          >
+                            {method.signature}
+                          </CodeBlock>
+                          <P style={{ fontSize: '0.875rem', marginBottom: '0.75rem', opacity: 0.7 }}>
+                            {method.description}
+                          </P>
                         </div>
-                      </Button>
+
+                        {method.parameters && (
+                          <div>
+                            <H4 style={{ fontSize: '0.875rem', marginBottom: '0.5rem' }}>Parameters:</H4>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                              {method.parameters.map((param, i) => (
+                                <div key={i} style={{ display: 'flex', gap: '1rem', fontSize: '0.875rem' }}>
+                                  <StatusBadge variant="muted">
+                                    {param.name}: {param.type}
+                                  </StatusBadge>
+                                  <span style={{ opacity: 0.7 }}>
+                                    {param.description}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {method.returns && (
+                          <div>
+                            <H4 style={{ fontSize: '0.875rem', marginBottom: '0.25rem' }}>Returns:</H4>
+                            <P style={{ fontSize: '0.875rem', opacity: 0.7 }}>{method.returns}</P>
+                          </div>
+                        )}
+
+                        <div>
+                          <H4 style={{ fontSize: '0.875rem', marginBottom: '0.5rem' }}>Example:</H4>
+                          <CodeBlock
+                            language="javascript"
+                            showLineNumbers={true}
+                            showCopyButton={true}
+                            style={{ width: '100%' }}
+                          >
+                            {method.example}
+                          </CodeBlock>
+                        </div>
+
+                        {index < currentSection.methods.length - 1 && (
+                          <hr style={{ border: 'none', borderTop: '1px solid var(--border)' }} />
+                        )}
+                      </div>
                     ))}
                   </div>
                 </CardBody>
               </Card>
+            )}
 
-              <Card className="mt-6">
-                <CardHeader>
-                  <h3 className="text-lg font-semibold">Live Visualizations</h3>
-                </CardHeader>
-                <CardBody>
-                  <div className="space-y-2">
-                    <Button
-                      onClick={() => toggleVisualization('rotor')}
-                      variant={visualizations.rotor ? 'default' : 'outline'}
-                      size="sm"
-                      className="w-full"
-                    >
-                      Rotor Evolution
-                    </Button>
-                    <Button
-                      onClick={() => toggleVisualization('tropical')}
-                      variant={visualizations.tropical ? 'default' : 'outline'}
-                      size="sm"
-                      className="w-full"
-                    >
-                      Tropical Convergence
-                    </Button>
-                    <Button
-                      onClick={() => toggleVisualization('dual')}
-                      variant={visualizations.dual ? 'default' : 'outline'}
-                      size="sm"
-                      className="w-full"
-                    >
-                      Dual Number AD
-                    </Button>
-                    <Button
-                      onClick={() => toggleVisualization('fisher')}
-                      variant={visualizations.fisher ? 'default' : 'outline'}
-                      size="sm"
-                      className="w-full"
-                    >
-                      Fisher Information
-                    </Button>
+            {/* Quick Reference */}
+            <Card>
+              <CardHeader>
+                <H3>Quick Reference</H3>
+              </CardHeader>
+              <CardBody>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div>
+                    <H4 style={{ fontSize: '0.875rem', marginBottom: '0.5rem' }}>Common Patterns</H4>
+                    <ul style={{ fontSize: '0.875rem', opacity: 0.7, listStyle: 'none', padding: 0 }}>
+                      <li>• Create basis vectors for geometric operations</li>
+                      <li>• Use tropical operations for efficient approximations</li>
+                      <li>• Apply dual numbers for automatic gradients</li>
+                      <li>• Combine systems with TDC for neural networks</li>
+                    </ul>
                   </div>
-                </CardBody>
-              </Card>
-            </div>
-
-            {/* Main Content */}
-            <div className="lg:col-span-3 space-y-6">
-              {/* Real-time Visualizations */}
-              {visualizations.rotor && (
-                <RealTimeVisualization
-                  title="Rotor Evolution"
-                  description="Real-time visualization of geometric rotor rotations"
-                  type="rotor"
-                  isRunning={visualizations.rotor}
-                  onToggle={() => toggleVisualization('rotor')}
-                />
-              )}
-
-              {visualizations.tropical && (
-                <RealTimeVisualization
-                  title="Tropical Convergence"
-                  description="Live tropical algebra convergence to maximum value"
-                  type="tropical"
-                  isRunning={visualizations.tropical}
-                  onToggle={() => toggleVisualization('tropical')}
-                />
-              )}
-
-              {visualizations.dual && (
-                <RealTimeVisualization
-                  title="Dual Number Automatic Differentiation"
-                  description="Real-time function and derivative computation"
-                  type="dual"
-                  isRunning={visualizations.dual}
-                  onToggle={() => toggleVisualization('dual')}
-                />
-              )}
-
-              {visualizations.fisher && (
-                <RealTimeVisualization
-                  title="Fisher Information Matrix"
-                  description="Live Fisher information evolution on probability simplex"
-                  type="fisher"
-                  isRunning={visualizations.fisher}
-                  onToggle={() => toggleVisualization('fisher')}
-                />
-              )}
-
-              {/* API Documentation */}
-              {currentSection && (
-                <Card>
-                  <CardHeader>
-                    <h2 className="text-xl font-semibold">{currentSection.title}</h2>
-                    <p className="text-muted-foreground">{currentSection.description}</p>
-                  </CardHeader>
-                  <CardBody>
-                    <div className="space-y-8">
-                      {currentSection.methods.map((method, index) => (
-                        <div key={index} className="space-y-4">
-                          <div>
-                            <h3 className="text-lg font-semibold mb-2">{method.name}</h3>
-                            <div className="bg-muted p-3 rounded-lg mb-3">
-                              <Code className="text-sm">{method.signature}</Code>
-                            </div>
-                            <p className="text-sm text-muted-foreground mb-3">
-                              {method.description}
-                            </p>
-                          </div>
-
-                          {method.parameters && (
-                            <div>
-                              <h4 className="font-medium text-sm mb-2">Parameters:</h4>
-                              <div className="space-y-2">
-                                {method.parameters.map((param, i) => (
-                                  <div key={i} className="flex gap-4 text-sm">
-                                    <Code className="text-xs bg-muted px-2 py-1 rounded">
-                                      {param.name}: {param.type}
-                                    </Code>
-                                    <span className="text-muted-foreground">
-                                      {param.description}
-                                    </span>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-
-                          {method.returns && (
-                            <div>
-                              <h4 className="font-medium text-sm mb-1">Returns:</h4>
-                              <p className="text-sm text-muted-foreground">{method.returns}</p>
-                            </div>
-                          )}
-
-                          <div>
-                            <h4 className="font-medium text-sm mb-2">Example:</h4>
-                            <div className="bg-muted p-4 rounded-lg overflow-x-auto">
-                              <Code className="text-sm whitespace-pre">{method.example}</Code>
-                            </div>
-                          </div>
-
-                          {index < currentSection.methods.length - 1 && (
-                            <hr className="border-border" />
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </CardBody>
-                </Card>
-              )}
-
-              {/* Quick Reference */}
-              <Card>
-                <CardHeader>
-                  <h3 className="text-lg font-semibold">Quick Reference</h3>
-                </CardHeader>
-                <CardBody>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <h4 className="font-medium text-sm mb-2">Common Patterns</h4>
-                      <ul className="text-sm space-y-1 text-muted-foreground">
-                        <li>• Create basis vectors for geometric operations</li>
-                        <li>• Use tropical operations for efficient approximations</li>
-                        <li>• Apply dual numbers for automatic gradients</li>
-                        <li>• Combine systems with TDC for neural networks</li>
-                      </ul>
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-sm mb-2">Performance Tips</h4>
-                      <ul className="text-sm space-y-1 text-muted-foreground">
-                        <li>• Batch operations when possible</li>
-                        <li>• Use WebGPU for large computations</li>
-                        <li>• Prefer tropical approximations for softmax</li>
-                        <li>• Cache multivector calculations</li>
-                      </ul>
-                    </div>
+                  <div>
+                    <H4 style={{ fontSize: '0.875rem', marginBottom: '0.5rem' }}>Performance Tips</H4>
+                    <ul style={{ fontSize: '0.875rem', opacity: 0.7, listStyle: 'none', padding: 0 }}>
+                      <li>• Batch operations when possible</li>
+                      <li>• Use WebGPU for large computations</li>
+                      <li>• Prefer tropical approximations for softmax</li>
+                      <li>• Cache multivector calculations</li>
+                    </ul>
                   </div>
-                </CardBody>
-              </Card>
-            </div>
+                </div>
+              </CardBody>
+            </Card>
           </div>
         </div>
       </div>
-);
+    </div>
+  );
 }

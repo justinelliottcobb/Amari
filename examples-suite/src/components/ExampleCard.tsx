@@ -1,4 +1,4 @@
-import { Card, CardHeader, CardBody, H3, P, Button, Code } from "jadis-ui";
+import { Card, CardHeader, CardBody, H3, P, Button, CodeBlock, StatusBadge } from "jadis-ui";
 import { useState } from "react";
 import { safeExecute, globalPerformanceMonitor } from "../utils/safeExecution";
 import { ErrorBoundary } from "./ErrorBoundary";
@@ -68,21 +68,21 @@ export function ExampleCard({
 
   return (
     <ErrorBoundary>
-      <Card className="mb-6">
+      <Card style={{ marginBottom: '1.5rem' }}>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
               <H3>{title}</H3>
-              <div className="flex items-center gap-2 mt-1">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.25rem' }}>
                 {category && (
-                  <span className="inline-block bg-primary/10 text-primary text-xs px-2 py-1 rounded-full">
+                  <StatusBadge variant="info">
                     {category}
-                  </span>
+                  </StatusBadge>
                 )}
                 {performanceInfo && (
-                  <span className="inline-block bg-blue-50 text-blue-700 text-xs px-2 py-1 rounded-full">
+                  <StatusBadge variant="success">
                     {performanceInfo}
-                  </span>
+                  </StatusBadge>
                 )}
               </div>
             </div>
@@ -90,39 +90,41 @@ export function ExampleCard({
               <Button
                 onClick={handleRun}
                 disabled={isRunning}
-                size="sm"
               >
                 {isRunning ? 'Running...' : 'Run'}
               </Button>
             )}
           </div>
-          <P className="text-sm text-muted-foreground mt-2">{description}</P>
+          <P style={{ fontSize: '0.875rem', marginTop: '0.5rem', opacity: 0.7 }}>{description}</P>
         </CardHeader>
         <CardBody>
-          <div className="space-y-4">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {/* Code Section */}
             <div>
-              <h4 className="text-sm font-semibold mb-2">Code:</h4>
-              <div className="bg-muted p-4 rounded-lg overflow-x-auto">
-                <Code className="text-sm whitespace-pre-wrap">{code}</Code>
-              </div>
+              <h4 style={{ fontSize: '0.875rem', fontWeight: '600', marginBottom: '0.5rem' }}>Code:</h4>
+              <CodeBlock
+                language="javascript"
+                showLineNumbers={true}
+                showCopyButton={true}
+                style={{ width: '100%' }}
+              >
+                {code}
+              </CodeBlock>
             </div>
 
             {/* Result Section */}
             {(result || error) && (
               <div>
-                <h4 className="text-sm font-semibold mb-2">
+                <h4 style={{ fontSize: '0.875rem', fontWeight: '600', marginBottom: '0.5rem' }}>
                   {error ? 'Error:' : 'Result:'}
                 </h4>
-                <div className={`p-4 rounded-lg overflow-x-auto ${
-                  error ? 'bg-destructive/10 border border-destructive/20' : 'bg-green-50 border border-green-200'
-                }`}>
-                  <Code className={`text-sm whitespace-pre-wrap ${
-                    error ? 'text-destructive' : 'text-green-700'
-                  }`}>
-                    {error || result}
-                  </Code>
-                </div>
+                <CodeBlock
+                  language="text"
+                  variant={error ? 'error' : 'success'}
+                  style={{ width: '100%' }}
+                >
+                  {error || result}
+                </CodeBlock>
               </div>
             )}
           </div>

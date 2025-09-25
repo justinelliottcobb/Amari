@@ -1,3 +1,4 @@
+import { PageLayout, Sidebar, Grid, GridItem } from "jadis-ui";
 import { Navigation, MobileNavigation } from "./Navigation";
 
 interface LayoutProps {
@@ -6,21 +7,19 @@ interface LayoutProps {
 
 export function Layout({ children }: LayoutProps) {
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row">
-      {/* Mobile Navigation */}
-      <MobileNavigation />
-
-      {/* Desktop Navigation */}
-      <div className="hidden lg:block">
-        <Navigation />
-      </div>
-
-      {/* Main Content */}
-      <main className="flex-1 overflow-x-hidden">
-        <div className="h-full">
-          {children}
-        </div>
-      </main>
-    </div>
+    <PageLayout>
+      <Grid columns={2} gap="none">
+        <GridItem span={1}>
+          <Sidebar>
+            <Navigation />
+          </Sidebar>
+        </GridItem>
+        <GridItem span={1}>
+          <main>
+            {children}
+          </main>
+        </GridItem>
+      </Grid>
+    </PageLayout>
   );
 }
