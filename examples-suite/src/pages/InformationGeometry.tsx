@@ -249,6 +249,190 @@ console.log("• Enables efficient computation via coordinate duality");`,
       })
     },
     {
+      title: "Amari-Chentsov Tensor Computation",
+      description: "Compute the fundamental tensor that defines α-connections in information geometry",
+      category: "Advanced Theory",
+      code: `// Amari-Chentsov Tensor: T(∂ᵢ, ∂ⱼ, ∂ₖ) = E[∂ᵢ log p · ∂ⱼ log p · ∂ₖ log p]
+// This 3rd-order tensor defines the α-connection family and geometric structure
+
+function amariChentsovTensor(probabilities) {
+  const n = probabilities.length;
+
+  // Initialize 3rd-order tensor T[i][j][k]
+  const tensor = Array(n).fill().map(() =>
+    Array(n).fill().map(() => Array(n).fill(0))
+  );
+
+  // For multinomial distribution: ∂ᵢ log p = δᵢₖ/pₖ - 1
+  // where δᵢₖ is the Kronecker delta
+
+  for (let i = 0; i < n; i++) {
+    for (let j = 0; j < n; j++) {
+      for (let k = 0; k < n; k++) {
+        let tensorValue = 0;
+
+        // E[∂ᵢ log p · ∂ⱼ log p · ∂ₖ log p]
+        // For multinomial: this simplifies based on the expectation
+
+        if (i === j && j === k) {
+          // All three indices equal: T[i,i,i] = (1-2p_i)/(p_i)²
+          tensorValue = (1 - 2 * probabilities[i]) / Math.pow(probabilities[i], 2);
+        } else if (i === j && i !== k) {
+          // Two indices equal: T[i,i,k] = -1/(p_i * p_k)
+          tensorValue = -1 / (probabilities[i] * probabilities[k]);
+        } else if (i === k && i !== j) {
+          // Two indices equal: T[i,j,i] = -1/(p_i * p_j)
+          tensorValue = -1 / (probabilities[i] * probabilities[j]);
+        } else if (j === k && j !== i) {
+          // Two indices equal: T[i,j,j] = -1/(p_i * p_j)
+          tensorValue = -1 / (probabilities[i] * probabilities[j]);
+        } else if (i !== j && j !== k && i !== k) {
+          // All indices different: T[i,j,k] = 1/(p_i * p_j * p_k)
+          tensorValue = 1 / (probabilities[i] * probabilities[j] * probabilities[k]);
+        }
+
+        tensor[i][j][k] = Math.abs(tensorValue) < 1e-12 ? 0 : tensorValue;
+      }
+    }
+  }
+
+  return tensor;
+}
+
+// α-connection coefficients using Amari-Chentsov tensor
+function alphaConnectionCoefficients(tensor, alpha) {
+  const n = tensor.length;
+  const connections = Array(n).fill().map(() =>
+    Array(n).fill().map(() => Array(n).fill(0))
+  );
+
+  for (let i = 0; i < n; i++) {
+    for (let j = 0; j < n; j++) {
+      for (let k = 0; k < n; k++) {
+        // Γᵅ[i,j,k] = (1-α)/2 * T[i,j,k]
+        connections[i][j][k] = ((1 - alpha) / 2) * tensor[i][j][k];
+      }
+    }
+  }
+
+  return connections;
+}
+
+// Example computation
+const probs = [0.5, 0.3, 0.2];
+console.log("Probability distribution:", probs);
+
+const tensor = amariChentsovTensor(probs);
+console.log("\\nAmari-Chentsov Tensor T[i,j,k]:");
+
+// Display key tensor components
+console.log("Diagonal components T[i,i,i]:");
+for (let i = 0; i < probs.length; i++) {
+  console.log(\`  T[\${i},\${i},\${i}] = \${tensor[i][i][i].toFixed(4)}\`);
+}
+
+console.log("\\nOff-diagonal components T[0,1,2]:");
+console.log(\`  T[0,1,2] = \${tensor[0][1][2].toFixed(4)}\`);
+console.log(\`  T[1,0,2] = \${tensor[1][0][2].toFixed(4)}\`);
+
+// α-connection examples
+const alphas = [-1, 0, 1]; // e-connection, Levi-Civita, m-connection
+console.log("\\nα-Connection coefficients:");
+alphas.forEach(alpha => {
+  const conn = alphaConnectionCoefficients(tensor, alpha);
+  const name = alpha === -1 ? "e-connection" :
+               alpha === 0 ? "Levi-Civita" : "m-connection";
+  console.log(\`  \${name} (α=\${alpha}): Γ[0,1,2] = \${conn[0][1][2].toFixed(4)}\`);
+});
+
+console.log("\\nGeometric interpretation:");
+console.log("• Tensor encodes all statistical curvature information");
+console.log("• Defines the unique geometric structure of statistical manifolds");
+console.log("• Foundation for natural gradient descent and efficient optimization");`,
+      onRun: simulateExample(() => {
+        function amariChentsovTensor(probabilities: number[]) {
+          const n = probabilities.length;
+          const tensor = Array(n).fill(null).map(() =>
+            Array(n).fill(null).map(() => Array(n).fill(0))
+          );
+
+          for (let i = 0; i < n; i++) {
+            for (let j = 0; j < n; j++) {
+              for (let k = 0; k < n; k++) {
+                let tensorValue = 0;
+
+                if (i === j && j === k) {
+                  tensorValue = (1 - 2 * probabilities[i]) / Math.pow(probabilities[i], 2);
+                } else if (i === j && i !== k) {
+                  tensorValue = -1 / (probabilities[i] * probabilities[k]);
+                } else if (i === k && i !== j) {
+                  tensorValue = -1 / (probabilities[i] * probabilities[j]);
+                } else if (j === k && j !== i) {
+                  tensorValue = -1 / (probabilities[i] * probabilities[j]);
+                } else if (i !== j && j !== k && i !== k) {
+                  tensorValue = 1 / (probabilities[i] * probabilities[j] * probabilities[k]);
+                }
+
+                tensor[i][j][k] = Math.abs(tensorValue) < 1e-12 ? 0 : tensorValue;
+              }
+            }
+          }
+          return tensor;
+        }
+
+        function alphaConnectionCoefficients(tensor: number[][][], alpha: number) {
+          const n = tensor.length;
+          const connections = Array(n).fill(null).map(() =>
+            Array(n).fill(null).map(() => Array(n).fill(0))
+          );
+
+          for (let i = 0; i < n; i++) {
+            for (let j = 0; j < n; j++) {
+              for (let k = 0; k < n; k++) {
+                connections[i][j][k] = ((1 - alpha) / 2) * tensor[i][j][k];
+              }
+            }
+          }
+          return connections;
+        }
+
+        const probs = [0.5, 0.3, 0.2];
+        const tensor = amariChentsovTensor(probs);
+        const alphas = [-1, 0, 1];
+
+        const results = [
+          `Probability distribution: [${probs.join(', ')}]`,
+          ``,
+          `Amari-Chentsov Tensor T[i,j,k]:`,
+          `Diagonal components T[i,i,i]:`,
+          ...probs.map((_, i) => `  T[${i},${i},${i}] = ${tensor[i][i][i].toFixed(4)}`),
+          ``,
+          `Off-diagonal components T[0,1,2]:`,
+          `  T[0,1,2] = ${tensor[0][1][2].toFixed(4)}`,
+          `  T[1,0,2] = ${tensor[1][0][2].toFixed(4)}`,
+          ``,
+          `α-Connection coefficients:`
+        ];
+
+        alphas.forEach(alpha => {
+          const conn = alphaConnectionCoefficients(tensor, alpha);
+          const name = alpha === -1 ? "e-connection" :
+                       alpha === 0 ? "Levi-Civita" : "m-connection";
+          results.push(`  ${name} (α=${alpha}): Γ[0,1,2] = ${conn[0][1][2].toFixed(4)}`);
+        });
+
+        results.push(
+          ``,
+          `Geometric interpretation:`,
+          `• Tensor encodes all statistical curvature information`,
+          `• Defines the unique geometric structure of statistical manifolds`,
+          `• Foundation for natural gradient descent and efficient optimization`
+        );
+
+        return results.join('\n');
+      })
+    },
+    {
       title: "Statistical Learning Applications",
       description: "Information geometry in machine learning and optimization",
       category: "Applications",

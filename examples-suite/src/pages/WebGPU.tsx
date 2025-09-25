@@ -259,12 +259,40 @@ class AdaptiveCompute {
   }
 
   computeTensor(params) {
-    // Simplified Amari-Chentsov tensor computation
-    return params.map((p, i) =>
-      params.map((q, j) =>
-        params.map((r, k) => p * q * r / (i + j + k + 1))
-      )
+    // Correct Amari-Chentsov tensor computation
+    // T(∂ᵢ, ∂ⱼ, ∂ₖ) = E[∂ᵢ log p · ∂ⱼ log p · ∂ₖ log p]
+    const n = params.length;
+    const tensor = Array(n).fill(null).map(() =>
+      Array(n).fill(null).map(() => Array(n).fill(0))
     );
+
+    for (let i = 0; i < n; i++) {
+      for (let j = 0; j < n; j++) {
+        for (let k = 0; k < n; k++) {
+          let value = 0;
+
+          if (i === j && j === k) {
+            // T[i,i,i] = (1-2p_i)/(p_i)²
+            value = (1 - 2 * params[i]) / Math.pow(params[i], 2);
+          } else if (i === j && i !== k) {
+            // T[i,i,k] = -1/(p_i * p_k)
+            value = -1 / (params[i] * params[k]);
+          } else if (i === k && i !== j) {
+            // T[i,j,i] = -1/(p_i * p_j)
+            value = -1 / (params[i] * params[j]);
+          } else if (j === k && j !== i) {
+            // T[i,j,j] = -1/(p_i * p_j)
+            value = -1 / (params[i] * params[j]);
+          } else if (i !== j && j !== k && i !== k) {
+            // T[i,j,k] = 1/(p_i * p_j * p_k)
+            value = 1 / (params[i] * params[j] * params[k]);
+          }
+
+          tensor[i][j][k] = Math.abs(value) < 1e-12 ? 0 : value;
+        }
+      }
+    }
+    return tensor;
   }
 }
 
@@ -325,11 +353,40 @@ console.log("Tensor shape:", result.tensor.length + "×" + result.tensor[0].leng
           }
 
           computeTensor(params: number[]) {
-            return params.map((p, i) =>
-              params.map((q, j) =>
-                params.map((r, k) => p * q * r / (i + j + k + 1))
-              )
+            // Correct Amari-Chentsov tensor computation
+            // T(∂ᵢ, ∂ⱼ, ∂ₖ) = E[∂ᵢ log p · ∂ⱼ log p · ∂ₖ log p]
+            const n = params.length;
+            const tensor = Array(n).fill(null).map(() =>
+              Array(n).fill(null).map(() => Array(n).fill(0))
             );
+
+            for (let i = 0; i < n; i++) {
+              for (let j = 0; j < n; j++) {
+                for (let k = 0; k < n; k++) {
+                  let value = 0;
+
+                  if (i === j && j === k) {
+                    // T[i,i,i] = (1-2p_i)/(p_i)²
+                    value = (1 - 2 * params[i]) / Math.pow(params[i], 2);
+                  } else if (i === j && i !== k) {
+                    // T[i,i,k] = -1/(p_i * p_k)
+                    value = -1 / (params[i] * params[k]);
+                  } else if (i === k && i !== j) {
+                    // T[i,j,i] = -1/(p_i * p_j)
+                    value = -1 / (params[i] * params[j]);
+                  } else if (j === k && j !== i) {
+                    // T[i,j,j] = -1/(p_i * p_j)
+                    value = -1 / (params[i] * params[j]);
+                  } else if (i !== j && j !== k && i !== k) {
+                    // T[i,j,k] = 1/(p_i * p_j * p_k)
+                    value = 1 / (params[i] * params[j] * params[k]);
+                  }
+
+                  tensor[i][j][k] = Math.abs(value) < 1e-12 ? 0 : value;
+                }
+              }
+            }
+            return tensor;
           }
         }
 
