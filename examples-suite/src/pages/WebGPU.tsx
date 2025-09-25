@@ -564,41 +564,38 @@ for (const workload of workloads) {
   ];
 
   return (
-<div className="p-8">
-        <div className="max-w-4xl mx-auto">
+<div style={{ padding: '2rem' }}>
+        <div>
           <H1>WebGPU Acceleration Examples</H1>
-          <P className="text-lg text-muted-foreground mb-4">
+          <P style={{ fontSize: '1.125rem', opacity: 0.7, marginBottom: '1rem' }}>
             Explore GPU-accelerated mathematical computations with progressive enhancement.
           </P>
 
-          <Card className="mb-8">
+          <Card style={{ marginBottom: '2rem' }}>
             <CardHeader>
-              <h3 className="text-lg font-semibold">WebGPU Status</h3>
+              <h3 style={{ fontSize: '1.125rem', fontWeight: '600' }}>WebGPU Status</h3>
             </CardHeader>
             <CardBody>
-              <div className="flex items-center justify-between mb-4">
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
                 <span>WebGPU Support:</span>
-                <span className={`px-2 py-1 rounded text-sm ${
-                  webgpuSupported === null ? 'bg-gray-100' :
-                  webgpuSupported ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                }`}>
+                <span style={{ padding: '0.25rem 0.5rem', borderRadius: '0.25rem', fontSize: '0.875rem', backgroundColor: webgpuSupported === null ? '#f3f4f6' : webgpuSupported ? '#dcfce7' : '#fee2e2', color: webgpuSupported === null ? 'inherit' : webgpuSupported ? '#166534' : '#991b1b' }}>
                   {webgpuSupported === null ? 'Checking...' :
                    webgpuSupported ? 'Available' : 'Not Available'}
                 </span>
               </div>
-              <P className="text-sm text-muted-foreground mb-4">
+              <P style={{ fontSize: '0.875rem', opacity: 0.7, marginBottom: '1rem' }}>
                 {gpuInfo || 'Checking WebGPU availability...'}
               </P>
 
               {!webgpuSupported && webgpuSupported !== null && (
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                  <h4 className="font-semibold text-sm mb-2">WebGPU Requirements:</h4>
-                  <ul className="text-sm space-y-1">
+                <div style={{ backgroundColor: '#fefce8', border: '1px solid #fde047', borderRadius: '0.5rem', padding: '1rem' }}>
+                  <h4 style={{ fontWeight: '600', fontSize: '0.875rem', marginBottom: '0.5rem' }}>WebGPU Requirements:</h4>
+                  <ul style={{ fontSize: '0.875rem', lineHeight: '1.4' }}>
                     <li>• Chrome 113+ or Firefox 115+ with WebGPU enabled</li>
                     <li>• Compatible graphics drivers</li>
                     <li>• Enable chrome://flags/#enable-unsafe-webgpu (if needed)</li>
                   </ul>
-                  <P className="text-sm mt-2">
+                  <P style={{ fontSize: '0.875rem', marginTop: '0.5rem' }}>
                     Examples will run with CPU simulation when WebGPU is unavailable.
                   </P>
                 </div>
@@ -606,7 +603,7 @@ for (const workload of workloads) {
             </CardBody>
           </Card>
 
-          <div className="space-y-6">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             {examples.map((example, index) => (
               <ExampleCard
                 key={index}
@@ -619,15 +616,15 @@ for (const workload of workloads) {
             ))}
           </div>
 
-          <Card className="mt-8">
+          <Card style={{ marginTop: '2rem' }}>
             <CardHeader>
-              <h3 className="text-lg font-semibold">GPU Acceleration Benefits</h3>
+              <h3 style={{ fontSize: '1.125rem', fontWeight: '600' }}>GPU Acceleration Benefits</h3>
             </CardHeader>
             <CardBody>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem' }}>
                 <div>
-                  <h4 className="font-semibold text-sm mb-2">Performance Gains</h4>
-                  <ul className="text-sm space-y-1">
+                  <h4 style={{ fontWeight: '600', fontSize: '0.875rem', marginBottom: '0.5rem' }}>Performance Gains</h4>
+                  <ul style={{ fontSize: '0.875rem', lineHeight: '1.4' }}>
                     <li>• 10-100x speedup for batch operations</li>
                     <li>• Parallel processing of thousands of elements</li>
                     <li>• Memory bandwidth optimization</li>
@@ -635,8 +632,8 @@ for (const workload of workloads) {
                   </ul>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-sm mb-2">Use Cases</h4>
-                  <ul className="text-sm space-y-1">
+                  <h4 style={{ fontWeight: '600', fontSize: '0.875rem', marginBottom: '0.5rem' }}>Use Cases</h4>
+                  <ul style={{ fontSize: '0.875rem', lineHeight: '1.4' }}>
                     <li>• Geometric algebra batch operations</li>
                     <li>• Information geometry tensor computation</li>
                     <li>• Tropical algebra matrix operations</li>

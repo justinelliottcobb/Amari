@@ -595,30 +595,30 @@ console.log("• Respects geometry of parameter space");`,
   ];
 
   return (
-<div className="p-8">
-        <div className="max-w-4xl mx-auto">
+<div style={{ padding: '2rem' }}>
+        <div>
           <H1>Information Geometry Examples</H1>
-          <P className="text-lg text-muted-foreground mb-4">
+          <P style={{ fontSize: '1.125rem', opacity: 0.7, marginBottom: '1rem' }}>
             Explore Fisher metrics, Bregman divergences, and α-connections on statistical manifolds.
           </P>
 
-          <Card className="mb-8">
+          <Card style={{ marginBottom: '2rem' }}>
             <CardHeader>
-              <h3 className="text-lg font-semibold">What is Information Geometry?</h3>
+              <h3 style={{ fontSize: '1.125rem', fontWeight: '600' }}>What is Information Geometry?</h3>
             </CardHeader>
             <CardBody>
-              <P className="mb-4">
+              <P style={{ marginBottom: '1rem' }}>
                 Information geometry studies statistical models as Riemannian manifolds, providing geometric insights into:
               </P>
-              <ul className="list-disc list-inside space-y-2 text-sm mb-4">
+              <ul style={{ listStyleType: 'disc', listStylePosition: 'inside', fontSize: '0.875rem', lineHeight: '1.5', marginBottom: '1rem' }}>
                 <li><strong>Fisher Information Metric</strong>: Riemannian metric on parameter space</li>
                 <li><strong>α-Connections</strong>: Family of affine connections (-1 ≤ α ≤ 1)</li>
                 <li><strong>Bregman Divergences</strong>: Generalization of squared distance</li>
                 <li><strong>Dually Flat Manifolds</strong>: Special structure with dual coordinate systems</li>
               </ul>
-              <div className="bg-muted p-4 rounded-lg">
-                <h4 className="font-semibold text-sm mb-2">Key Applications:</h4>
-                <ul className="text-sm space-y-1">
+              <div style={{ backgroundColor: 'var(--muted)', padding: '1rem', borderRadius: '0.5rem' }}>
+                <h4 style={{ fontWeight: '600', fontSize: '0.875rem', marginBottom: '0.5rem' }}>Key Applications:</h4>
+                <ul style={{ fontSize: '0.875rem', lineHeight: '1.4' }}>
                   <li>• Natural gradient descent in machine learning</li>
                   <li>• Optimal transport and Wasserstein geometry</li>
                   <li>• Statistical inference and hypothesis testing</li>
@@ -628,7 +628,7 @@ console.log("• Respects geometry of parameter space");`,
             </CardBody>
           </Card>
 
-          <div className="space-y-6">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             {examples.map((example, index) => (
               <ExampleCard
                 key={index}
@@ -641,21 +641,21 @@ console.log("• Respects geometry of parameter space");`,
             ))}
           </div>
 
-          <Card className="mt-8">
+          <Card style={{ marginTop: '2rem' }}>
             <CardHeader>
-              <h3 className="text-lg font-semibold">Amari-Chentsov Tensor</h3>
+              <h3 style={{ fontSize: '1.125rem', fontWeight: '600' }}>Amari-Chentsov Tensor</h3>
             </CardHeader>
             <CardBody>
-              <P className="mb-4">
+              <P style={{ marginBottom: '1rem' }}>
                 The Amari-Chentsov tensor is a fundamental object in information geometry that captures
                 the intrinsic geometric structure of statistical manifolds.
               </P>
-              <div className="bg-muted p-4 rounded-lg">
-                <code className="text-sm">
+              <div style={{ backgroundColor: 'var(--muted)', padding: '1rem', borderRadius: '0.5rem' }}>
+                <code style={{ fontSize: '0.875rem' }}>
                   T(∂ᵢ, ∂ⱼ, ∂ₖ) = E[∂ᵢ log p · ∂ⱼ log p · ∂ₖ log p]
                 </code>
               </div>
-              <P className="mt-4 text-sm text-muted-foreground">
+              <P style={{ marginTop: '1rem', fontSize: '0.875rem', opacity: 0.7 }}>
                 This tensor defines the α-connections and provides the unique geometric structure
                 that makes information geometry so powerful for statistical applications.
               </P>

@@ -715,55 +715,55 @@ console.log("• Maintains mathematical rigor across all representations");`,
   ];
 
   return (
-<div className="p-8">
-        <div className="max-w-4xl mx-auto">
+<div style={{ padding: '2rem' }}>
+        <div>
           <H1>Fusion System Examples</H1>
-          <P className="text-lg text-muted-foreground mb-4">
+          <P style={{ fontSize: '1.125rem', opacity: 0.7, marginBottom: '1rem' }}>
             Explore the TropicalDualClifford fusion system that unifies three exotic number systems.
           </P>
 
-          <Card className="mb-8">
+          <Card style={{ marginBottom: '2rem' }}>
             <CardHeader>
-              <h3 className="text-lg font-semibold">TropicalDualClifford Fusion</h3>
+              <h3 style={{ fontSize: '1.125rem', fontWeight: '600' }}>TropicalDualClifford Fusion</h3>
             </CardHeader>
             <CardBody>
-              <P className="mb-4">
+              <P style={{ marginBottom: '1rem' }}>
                 The TDC fusion system combines three powerful mathematical frameworks:
               </P>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                <div className="bg-muted p-4 rounded-lg">
-                  <h4 className="font-semibold text-sm mb-2">Tropical Algebra</h4>
-                  <ul className="text-sm space-y-1">
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
+                <div style={{ backgroundColor: 'var(--muted)', padding: '1rem', borderRadius: '0.5rem' }}>
+                  <h4 style={{ fontWeight: '600', fontSize: '0.875rem', marginBottom: '0.5rem' }}>Tropical Algebra</h4>
+                  <ul style={{ fontSize: '0.875rem', lineHeight: '1.4' }}>
                     <li>• Max-plus operations</li>
                     <li>• Efficient softmax approximation</li>
                     <li>• Path optimization</li>
                   </ul>
                 </div>
-                <div className="bg-muted p-4 rounded-lg">
-                  <h4 className="font-semibold text-sm mb-2">Dual Numbers</h4>
-                  <ul className="text-sm space-y-1">
+                <div style={{ backgroundColor: 'var(--muted)', padding: '1rem', borderRadius: '0.5rem' }}>
+                  <h4 style={{ fontWeight: '600', fontSize: '0.875rem', marginBottom: '0.5rem' }}>Dual Numbers</h4>
+                  <ul style={{ fontSize: '0.875rem', lineHeight: '1.4' }}>
                     <li>• Automatic differentiation</li>
                     <li>• Exact gradients</li>
                     <li>• No computational graphs</li>
                   </ul>
                 </div>
-                <div className="bg-muted p-4 rounded-lg">
-                  <h4 className="font-semibold text-sm mb-2">Clifford Algebra</h4>
-                  <ul className="text-sm space-y-1">
+                <div style={{ backgroundColor: 'var(--muted)', padding: '1rem', borderRadius: '0.5rem' }}>
+                  <h4 style={{ fontWeight: '600', fontSize: '0.875rem', marginBottom: '0.5rem' }}>Clifford Algebra</h4>
+                  <ul style={{ fontSize: '0.875rem', lineHeight: '1.4' }}>
                     <li>• Geometric structure</li>
                     <li>• Rotational invariance</li>
                     <li>• Vector relationships</li>
                   </ul>
                 </div>
               </div>
-              <P className="text-sm text-muted-foreground">
+              <P style={{ fontSize: '0.875rem', opacity: 0.7 }}>
                 This unified approach maintains consistency across all three representations while
                 enabling dramatic performance improvements for neural network operations.
               </P>
             </CardBody>
           </Card>
 
-          <div className="space-y-6">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             {examples.map((example, index) => (
               <ExampleCard
                 key={index}
@@ -776,15 +776,15 @@ console.log("• Maintains mathematical rigor across all representations");`,
             ))}
           </div>
 
-          <Card className="mt-8">
+          <Card style={{ marginTop: '2rem' }}>
             <CardHeader>
-              <h3 className="text-lg font-semibold">Applications & Benefits</h3>
+              <h3 style={{ fontSize: '1.125rem', fontWeight: '600' }}>Applications & Benefits</h3>
             </CardHeader>
             <CardBody>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem' }}>
                 <div>
-                  <h4 className="font-semibold text-sm mb-2">Neural Network Applications</h4>
-                  <ul className="text-sm space-y-1">
+                  <h4 style={{ fontWeight: '600', fontSize: '0.875rem', marginBottom: '0.5rem' }}>Neural Network Applications</h4>
+                  <ul style={{ fontSize: '0.875rem', lineHeight: '1.4' }}>
                     <li>• Attention mechanism optimization</li>
                     <li>• Efficient transformer implementations</li>
                     <li>• Gradient-aware sequence modeling</li>
@@ -792,8 +792,8 @@ console.log("• Maintains mathematical rigor across all representations");`,
                   </ul>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-sm mb-2">Performance Gains</h4>
-                  <ul className="text-sm space-y-1">
+                  <h4 style={{ fontWeight: '600', fontSize: '0.875rem', marginBottom: '0.5rem' }}>Performance Gains</h4>
+                  <ul style={{ fontSize: '0.875rem', lineHeight: '1.4' }}>
                     <li>• 4-10x speedup over traditional softmax</li>
                     <li>• Reduced memory footprint</li>
                     <li>• Exact gradient computation</li>

@@ -2,27 +2,27 @@ import { H1, H2, P, Card, CardHeader, CardBody, Button } from "jadis-ui";
 
 export function Home() {
   return (
-<div className="p-8">
-        <div className="max-w-4xl mx-auto">
+<div style={{ padding: '2rem' }}>
+        <div>
           <H1>Amari Mathematical Computing Library</H1>
-          <P className="text-lg mb-8 text-muted-foreground">
+          <P style={{ fontSize: '1.125rem', marginBottom: '2rem', opacity: 0.7 }}>
             Interactive API examples and documentation for exotic number systems and algebraic structures
           </P>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
             <Card>
               <CardHeader>
                 <H2>Core Mathematics</H2>
               </CardHeader>
               <CardBody>
-                <P className="mb-4">Explore the fundamental algebraic structures that power the Amari library:</P>
-                <ul className="space-y-2 text-sm">
+                <P style={{ marginBottom: '1rem' }}>Explore the fundamental algebraic structures that power the Amari library:</P>
+                <ul style={{ fontSize: '0.875rem', lineHeight: '1.5' }}>
                   <li>• Geometric Algebra (Clifford Algebra)</li>
                   <li>• Tropical Algebra (Max-Plus Semiring)</li>
                   <li>• Dual Number Automatic Differentiation</li>
                   <li>• Information Geometry</li>
                 </ul>
-                <Button href="/geometric-algebra" className="mt-4">
+                <Button href="/geometric-algebra" style={{ marginTop: '1rem' }}>
                   Start with Geometric Algebra
                 </Button>
               </CardBody>
@@ -33,14 +33,14 @@ export function Home() {
                 <H2>Advanced Systems</H2>
               </CardHeader>
               <CardBody>
-                <P className="mb-4">Discover high-performance computing and integration features:</P>
-                <ul className="space-y-2 text-sm">
+                <P style={{ marginBottom: '1rem' }}>Discover high-performance computing and integration features:</P>
+                <ul style={{ fontSize: '0.875rem', lineHeight: '1.5' }}>
                   <li>• WebGPU Acceleration</li>
                   <li>• TropicalDualClifford Fusion</li>
                   <li>• Cellular Automata</li>
                   <li>• Edge Computing</li>
                 </ul>
-                <Button href="/webgpu" className="mt-4">
+                <Button href="/webgpu" style={{ marginTop: '1rem' }}>
                   Explore WebGPU
                 </Button>
               </CardBody>
@@ -52,11 +52,11 @@ export function Home() {
               <H2>Quick Start</H2>
             </CardHeader>
             <CardBody>
-              <P className="mb-4">
+              <P style={{ marginBottom: '1rem' }}>
                 The Amari library provides a unified framework for mathematical computing with exotic number systems.
                 Each module is designed to work independently or as part of the integrated fusion system.
               </P>
-              <div className="flex gap-4">
+              <div style={{ display: 'flex', gap: '1rem' }}>
                 <Button href="/playground">
                   Interactive Playground
                 </Button>
