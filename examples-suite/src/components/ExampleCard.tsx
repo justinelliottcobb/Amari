@@ -106,6 +106,7 @@ export function ExampleCard({
                 language="javascript"
                 showLineNumbers={true}
                 showCopyButton={true}
+                style={{ width: '100%' }}
               >
                 {code}
               </CodeBlock>
@@ -120,6 +121,7 @@ export function ExampleCard({
                 <CodeBlock
                   language="text"
                   variant={error ? 'error' : 'success'}
+                  style={{ width: '100%' }}
                 >
                   {error || result}
                 </CodeBlock>

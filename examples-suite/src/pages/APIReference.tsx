@@ -319,7 +319,7 @@ export function APIReference() {
                           <CodeBlock
                             language="typescript"
                             showCopyButton={true}
-                            style={{ marginBottom: '0.75rem' }}
+                            style={{ marginBottom: '0.75rem', width: '100%' }}
                           >
                             {method.signature}
                           </CodeBlock>
@@ -359,6 +359,7 @@ export function APIReference() {
                             language="javascript"
                             showLineNumbers={true}
                             showCopyButton={true}
+                            style={{ width: '100%' }}
                           >
                             {method.example}
                           </CodeBlock>
