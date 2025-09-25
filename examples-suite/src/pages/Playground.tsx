@@ -443,11 +443,15 @@ export function Playground() {
                 </CardHeader>
                 <CardBody>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem' }}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem' }}>
                       <span>Amari Module</span>
-                      <span className={`px-2 py-0.5 rounded text-xs ${
-                        amariLoaded ? 'bg-green-100 text-green-800' : 'bg-gray-100'
-                      }`}>
+                      <span style={{
+                        padding: '0.125rem 0.5rem',
+                        borderRadius: '0.25rem',
+                        fontSize: '0.75rem',
+                        backgroundColor: amariLoaded ? '#dcfce7' : '#f3f4f6',
+                        color: amariLoaded ? '#166534' : '#374151'
+                      }}>
                         {amariLoaded ? 'Loaded' : 'Loading...'}
                       </span>
                     </div>

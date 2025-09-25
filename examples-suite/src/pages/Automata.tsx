@@ -28,7 +28,7 @@ export function Automata() {
     return (
       <div style={{ marginTop: '1rem', padding: '1rem', backgroundColor: 'var(--muted)', borderRadius: '0.5rem' }}>
         <h4 style={{ fontSize: '0.875rem', fontWeight: '600', marginBottom: '0.5rem' }}>Grid Visualization:</h4>
-        <div style={{ display: 'grid', gap: '0.25rem' }} style={{ gridTemplateColumns: `repeat(${grid[0].length}, 1fr)` }}>
+        <div style={{ display: 'grid', gap: '0.25rem', gridTemplateColumns: `repeat(${grid[0].length}, 1fr)` }}>
           {grid.flat().map((cell, i) => (
             <div
               key={i}
