@@ -68,7 +68,7 @@ export function ExampleCard({
 
   return (
     <ErrorBoundary>
-      <Card style={{ marginBottom: '1.5rem' }}>
+      <Card style={{ marginBottom: '1.5rem', width: '100%' }}>
         <CardHeader>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
