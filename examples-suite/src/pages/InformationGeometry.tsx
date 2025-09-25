@@ -348,7 +348,39 @@ alphas.forEach(alpha => {
 console.log("\\nGeometric interpretation:");
 console.log("• Tensor encodes all statistical curvature information");
 console.log("• Defines the unique geometric structure of statistical manifolds");
-console.log("• Foundation for natural gradient descent and efficient optimization");`,
+console.log("• Foundation for natural gradient descent and efficient optimization");
+
+// Create heat map visualization
+console.log("\\nTensor Heat Map (k=0 slice):");
+console.log("    j=0     j=1     j=2");
+for (let i = 0; i < probs.length; i++) {
+  let row = \`i=\${i} \`;
+  for (let j = 0; j < probs.length; j++) {
+    const val = tensor[i][j][0];
+    const formatted = val.toFixed(2).padStart(7);
+    row += formatted + " ";
+  }
+  console.log(row);
+}
+
+// ASCII visualization of tensor magnitude
+console.log("\\nTensor Magnitude Visualization (■ = high, · = low):");
+const maxVal = Math.max(...tensor.flat(2).map(Math.abs));
+for (let k = 0; k < probs.length; k++) {
+  console.log(\`\\nSlice k=\${k}:\`);
+  for (let i = 0; i < probs.length; i++) {
+    let row = "";
+    for (let j = 0; j < probs.length; j++) {
+      const magnitude = Math.abs(tensor[i][j][k]) / maxVal;
+      if (magnitude > 0.75) row += "■■ ";
+      else if (magnitude > 0.5) row += "▓▓ ";
+      else if (magnitude > 0.25) row += "▒▒ ";
+      else if (magnitude > 0.1) row += "░░ ";
+      else row += "·· ";
+    }
+    console.log(\`  \${row}\`);
+  }
+}`,
       onRun: simulateExample(() => {
         function amariChentsovTensor(probabilities: number[]) {
           const n = probabilities.length;
@@ -428,6 +460,46 @@ console.log("• Foundation for natural gradient descent and efficient optimizat
           `• Defines the unique geometric structure of statistical manifolds`,
           `• Foundation for natural gradient descent and efficient optimization`
         );
+
+        // Add heat map visualization
+        results.push(``, `Tensor Heat Map (k=0 slice):`, `    j=0     j=1     j=2`);
+        for (let i = 0; i < probs.length; i++) {
+          let row = `i=${i} `;
+          for (let j = 0; j < probs.length; j++) {
+            const val = tensor[i][j][0];
+            const formatted = val.toFixed(2).padStart(7);
+            row += formatted + " ";
+          }
+          results.push(row);
+        }
+
+        // ASCII visualization of tensor magnitude
+        results.push(``, `Tensor Magnitude Visualization (■ = high, · = low):`);
+        const flatTensor = [];
+        for (let i = 0; i < probs.length; i++) {
+          for (let j = 0; j < probs.length; j++) {
+            for (let k = 0; k < probs.length; k++) {
+              flatTensor.push(tensor[i][j][k]);
+            }
+          }
+        }
+        const maxVal = Math.max(...flatTensor.map(Math.abs));
+
+        for (let k = 0; k < probs.length; k++) {
+          results.push(``, `Slice k=${k}:`);
+          for (let i = 0; i < probs.length; i++) {
+            let row = "  ";
+            for (let j = 0; j < probs.length; j++) {
+              const magnitude = Math.abs(tensor[i][j][k]) / maxVal;
+              if (magnitude > 0.75) row += "■■ ";
+              else if (magnitude > 0.5) row += "▓▓ ";
+              else if (magnitude > 0.25) row += "▒▒ ";
+              else if (magnitude > 0.1) row += "░░ ";
+              else row += "·· ";
+            }
+            results.push(row);
+          }
+        }
 
         return results.join('\n');
       })
