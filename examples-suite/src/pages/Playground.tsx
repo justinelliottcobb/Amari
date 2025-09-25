@@ -455,7 +455,7 @@ export function Playground() {
                         {amariLoaded ? 'Loaded' : 'Loading...'}
                       </span>
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem' }}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem' }}>
                       <span>WebAssembly</span>
                       <span style={{ padding: '0.125rem 0.5rem', backgroundColor: '#dcfce7', color: '#166534', borderRadius: '0.25rem', fontSize: '0.75rem' }}>
                         Available
