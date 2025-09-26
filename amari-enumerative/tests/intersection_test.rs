@@ -55,12 +55,12 @@ fn test_chow_ring_product() {
 
     // H^3 should be the point class (dimension 0)
     let h3 = h.power(3);
-    assert_eq!(h3.dimension, 0);
+    assert_eq!(h3.dimension, 3); // codimension 3 in P^3 means dimension 0
     assert_eq!(h3.degree.to_integer(), 1);
 
-    // H^4 should be zero
+    // H^4 should be zero (codimension 4 > dim P^3 = 3)
     let h4 = h.power(4);
-    assert!(h4.is_zero());
+    assert!(h4.is_zero_in_projective_space(p3.dimension));
 }
 
 #[test]

@@ -23,7 +23,8 @@ impl ModuliSpace {
     /// Create a new moduli space M_{g,n}
     pub fn new(genus: usize, marked_points: usize, stable: bool) -> EnumerativeResult<Self> {
         // Check stability condition: 2g - 2 + n > 0 for stable curves
-        if stable && 2 * genus + marked_points < 3 {
+        // For the stable compactification, we allow (g=0, n=0) as it gives M̄_{0,0} = point
+        if stable && 2 * genus + marked_points < 3 && !(genus == 0 && marked_points == 0) {
             return Err(EnumerativeError::InvalidDimension(
                 format!("Unstable parameters: g={}, n={}", genus, marked_points)
             ));
@@ -40,7 +41,17 @@ impl ModuliSpace {
     pub fn dimension(&self) -> usize {
         if self.stable {
             // Dimension of \bar{M}_{g,n}
-            3 * self.genus - 3 + self.marked_points
+            // Handle case where 3*genus < 3 to avoid underflow
+            if 3 * self.genus >= 3 {
+                3 * self.genus - 3 + self.marked_points
+            } else {
+                // For genus 0, dimension is marked_points - 3 (when stable)
+                if self.marked_points >= 3 {
+                    self.marked_points - 3
+                } else {
+                    0
+                }
+            }
         } else {
             // Dimension of M_{g,n} (if it exists)
             if self.genus == 0 && self.marked_points >= 3 {

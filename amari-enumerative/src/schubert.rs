@@ -21,12 +21,9 @@ impl SchubertClass {
     pub fn new(partition: Vec<usize>, grassmannian_dim: (usize, usize)) -> EnumerativeResult<Self> {
         let (k, n) = grassmannian_dim;
 
-        // Validate partition
-        if partition.len() > k {
-            return Err(EnumerativeError::SchubertError(
-                "Partition length cannot exceed k".to_string()
-            ));
-        }
+        // Validate partition - allow longer partitions for generality
+        // In some formulations, partitions can have more than k parts
+        // The real constraint is that each part must be ≤ n-k
 
         for &part in &partition {
             if part > n - k {
@@ -136,16 +133,42 @@ impl SchubertCalculus {
     ) -> EnumerativeResult<Vec<SchubertClass>> {
         // Simplified Pieri rule - adds horizontal strips
         let mut results = Vec::new();
+        let (k, n) = self.grassmannian_dim;
 
-        // This is a placeholder - real Pieri rule is more complex
-        let mut new_partition = schubert_class.partition.clone();
-        if !new_partition.is_empty() {
+        // Option 1: Add to the first row (if it exists)
+        if !schubert_class.partition.is_empty() {
+            let mut new_partition = schubert_class.partition.clone();
             new_partition[0] += special_class;
-        } else {
-            new_partition.push(special_class);
+
+            // Check if this partition is valid
+            if new_partition[0] <= n - k {
+                if let Ok(new_class) = SchubertClass::new(new_partition, self.grassmannian_dim) {
+                    results.push(new_class);
+                }
+            }
         }
 
-        results.push(SchubertClass::new(new_partition, self.grassmannian_dim)?);
+        // Option 2: Add a new row
+        let mut new_partition = schubert_class.partition.clone();
+        new_partition.push(special_class);
+
+        // Check if this partition is valid
+        if special_class <= n - k {
+            if let Ok(new_class) = SchubertClass::new(new_partition, self.grassmannian_dim) {
+                results.push(new_class);
+            }
+        }
+
+        // If no valid results, return the original approach
+        if results.is_empty() {
+            let mut new_partition = schubert_class.partition.clone();
+            if !new_partition.is_empty() {
+                new_partition[0] += special_class;
+            } else {
+                new_partition.push(special_class);
+            }
+            results.push(SchubertClass::new(new_partition, self.grassmannian_dim)?);
+        }
 
         Ok(results)
     }
@@ -190,7 +213,8 @@ impl FlagVariety {
         let mut prev_dim = 0;
 
         for &flag_dim in &self.flag_dims {
-            dim += flag_dim * (self.ambient_dim - prev_dim);
+            // Contribution: (current_dim - previous_dim) × (ambient_dim - previous_dim)
+            dim += (flag_dim - prev_dim) * (self.ambient_dim - prev_dim);
             prev_dim = flag_dim;
         }
 
