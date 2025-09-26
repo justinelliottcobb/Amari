@@ -17,6 +17,7 @@ import { Playground } from './pages/Playground'
 import { Benchmarks } from './pages/Benchmarks'
 import { APIReference } from './pages/APIReference'
 import { Home } from './pages/Home'
+import { EnumerativeGeometry } from './pages/EnumerativeGeometry'
 
 const router = createBrowserRouter([
   {
@@ -66,6 +67,10 @@ const router = createBrowserRouter([
       {
         path: "api-reference",
         element: <APIReference />,
+      },
+      {
+        path: "enumerative-geometry",
+        element: <EnumerativeGeometry />,
       },
     ],
   },
