@@ -36,6 +36,7 @@ pub mod tropical_curves;
 pub mod moduli_space;
 pub mod geometric_algebra;
 pub mod higher_genus;
+pub mod performance;
 
 // Re-export core types
 pub use intersection::{
@@ -49,6 +50,10 @@ pub use tropical_curves::{TropicalCurve, TropicalIntersection, TropicalPoint, Tr
 pub use moduli_space::{ModuliSpace, CurveClass, TautologicalClass};
 pub use geometric_algebra::{GeometricVariety, GeometricSchubertClass, GeometricProjectiveSpace, signatures, quantum_k_theory};
 pub use higher_genus::{HigherGenusCurve, PTInvariant, DTInvariant, AdvancedCurveCounting, JacobianData};
+pub use performance::{
+    FastIntersectionComputer, WasmPerformanceConfig, SparseSchubertMatrix,
+    MemoryPool, CurveBatchProcessor
+};
 
 /// Error types for enumerative geometry computations
 #[derive(Debug, Clone, PartialEq)]
