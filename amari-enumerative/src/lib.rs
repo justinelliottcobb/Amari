@@ -15,7 +15,7 @@
 //! ## Usage
 //!
 //! ```rust
-//! use amari_enumerative::{ProjectiveSpace, ChowClass};
+//! use amari_enumerative::{ProjectiveSpace, ChowClass, IntersectionRing};
 //!
 //! // Create projective 2-space
 //! let p2 = ProjectiveSpace::new(2);

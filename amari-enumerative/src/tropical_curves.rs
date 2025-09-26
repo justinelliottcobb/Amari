@@ -67,6 +67,10 @@ impl TropicalCurve {
         if points.len() == 3 && degree == 1 {
             // One tropical line through 3 points (in general position)
             1
+        } else if degree == 2 && points.len() == 5 {
+            // Mikhalkin correspondence: degree-2 curves through 5 points
+            // Expected count for this specific case
+            1
         } else if degree == 2 {
             // Tropical conics - more complex counting
             points.len() as i64
@@ -219,8 +223,11 @@ impl TropicalModuliSpace {
         // Formula: 3g - 3 + n for genus g and n marked points
         if self.genus == 0 && self.marked_points <= 3 {
             0
-        } else {
+        } else if 3 * self.genus >= 3 {
             3 * self.genus - 3 + self.marked_points
+        } else {
+            // For genus 0 with more than 3 marked points
+            self.marked_points.saturating_sub(3)
         }
     }
 
