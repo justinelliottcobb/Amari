@@ -46,7 +46,7 @@ function RotorVisualization({ isRunning }: { isRunning: boolean }) {
   }, [isRunning, angle]);
 
   return (
-    <div className="relative w-full h-64 bg-muted rounded-lg overflow-hidden">
+    <div style={{ position: 'relative', width: '100%', height: '16rem', backgroundColor: 'var(--muted)', borderRadius: '0.5rem', overflow: 'hidden' }}>
       <svg width="100%" height="100%" viewBox="-100 -100 200 200">
         {/* Grid */}
         <defs>
@@ -125,26 +125,32 @@ function TropicalVisualization({ isRunning }: { isRunning: boolean }) {
   const range = maxVal - minVal || 1;
 
   return (
-    <div className="w-full h-64 bg-muted rounded-lg p-4">
-      <div className="text-sm mb-4">
+    <div style={{ width: '100%', height: '16rem', backgroundColor: 'var(--muted)', borderRadius: '0.5rem', padding: '1rem' }}>
+      <div style={{ fontSize: '0.875rem', marginBottom: '1rem' }}>
         Tropical Convergence (Iteration: {iteration})
       </div>
-      <div className="space-y-3">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
         {values.map((value, i) => {
           const normalized = ((value - minVal) / range) * 100;
           const isMax = Math.abs(value - maxVal) < 0.1;
 
           return (
-            <div key={i} className="flex items-center space-x-3">
-              <span className="text-xs w-8">v{i}</span>
-              <div className="flex-1 bg-background rounded-full h-6 overflow-hidden">
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <span style={{ fontSize: '0.75rem', width: '2rem' }}>v{i}</span>
+              <div style={{ flex: 1, backgroundColor: 'var(--background)', borderRadius: '9999px', height: '1.5rem', overflow: 'hidden' }}>
                 <div
-                  className={`h-full transition-all duration-200 flex items-center justify-end pr-2 ${
-                    isMax ? 'bg-primary' : 'bg-primary/60'
-                  }`}
+                  style={{
+                    height: '100%',
+                    transition: 'all 0.2s',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'flex-end',
+                    paddingRight: '0.5rem',
+                    backgroundColor: isMax ? 'var(--primary)' : 'rgba(var(--primary-rgb), 0.6)'
+                  }}
                   style={{ width: `${Math.max(normalized, 5)}%` }}
                 >
-                  <span className="text-xs text-white">
+                  <span style={{ fontSize: '0.75rem', color: 'white' }}>
                     {value.toFixed(2)}
                   </span>
                 </div>
@@ -181,7 +187,7 @@ function DualVisualization({ isRunning }: { isRunning: boolean }) {
     return () => clearInterval(interval);
   }, [isRunning, x]);
 
-  if (functionValues.length === 0) return <div className="w-full h-64 bg-muted rounded-lg" />;
+  if (functionValues.length === 0) return <div style={{ width: '100%', height: '16rem', backgroundColor: 'var(--muted)', borderRadius: '0.5rem' }} />;
 
   const maxFx = Math.max(...functionValues.map(v => v.fx));
   const minFx = Math.min(...functionValues.map(v => v.fx));
@@ -189,8 +195,8 @@ function DualVisualization({ isRunning }: { isRunning: boolean }) {
   const minFpx = Math.min(...functionValues.map(v => v.fpx));
 
   return (
-    <div className="w-full h-64 bg-muted rounded-lg p-4">
-      <div className="text-sm mb-4">
+    <div style={{ width: '100%', height: '16rem', backgroundColor: 'var(--muted)', borderRadius: '0.5rem', padding: '1rem' }}>
+      <div style={{ fontSize: '0.875rem', marginBottom: '1rem' }}>
         Dual Number AD: f(x) = sin(x) + 0.5x² (x = {x.toFixed(2)})
       </div>
       <svg width="100%" height="180" viewBox="0 0 400 180">
@@ -278,34 +284,34 @@ function FisherVisualization({ isRunning }: { isRunning: boolean }) {
   }, [probabilities]);
 
   return (
-    <div className="w-full h-64 bg-muted rounded-lg p-4">
-      <div className="text-sm mb-4">
+    <div style={{ width: '100%', height: '16rem', backgroundColor: 'var(--muted)', borderRadius: '0.5rem', padding: '1rem' }}>
+      <div style={{ fontSize: '0.875rem', marginBottom: '1rem' }}>
         Fisher Information Matrix Evolution
       </div>
-      <div className="space-y-4">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         {/* Probability bars */}
-        <div className="space-y-2">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
           {probabilities.map((prob, i) => (
-            <div key={i} className="flex items-center space-x-3">
-              <span className="text-xs w-8">p{i}</span>
-              <div className="flex-1 bg-background rounded-full h-4 overflow-hidden">
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <span style={{ fontSize: '0.75rem', width: '2rem' }}>p{i}</span>
+              <div style={{ flex: 1, backgroundColor: 'var(--background)', borderRadius: '9999px', height: '1rem', overflow: 'hidden' }}>
                 <div
-                  className="h-full bg-primary transition-all duration-200"
+                  style={{ height: '100%', backgroundColor: 'var(--primary)', transition: 'all 0.2s' }}
                   style={{ width: `${prob * 100}%` }}
                 />
               </div>
-              <span className="text-xs w-12">{prob.toFixed(3)}</span>
+              <span style={{ fontSize: '0.75rem', width: '3rem' }}>{prob.toFixed(3)}</span>
             </div>
           ))}
         </div>
 
         {/* Fisher matrix visualization */}
-        <div className="space-y-1">
-          <div className="text-xs opacity-70">Fisher Matrix (diagonal elements):</div>
-          <div className="grid grid-cols-3 gap-2">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+          <div style={{ fontSize: '0.75rem', opacity: 0.7 }}>Fisher Matrix (diagonal elements):</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}>
             {fisherMatrix.map((row, i) => (
-              <div key={i} className="text-center">
-                <div className="text-xs bg-background rounded p-1">
+              <div key={i} style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: '0.75rem', backgroundColor: 'var(--background)', borderRadius: '0.25rem', padding: '0.25rem' }}>
                   {row[i]?.toFixed(1) || '0'}
                 </div>
               </div>
@@ -329,23 +335,23 @@ export function RealTimeVisualization({ title, description, type, isRunning, onT
       case 'fisher':
         return <FisherVisualization isRunning={isRunning} />;
       default:
-        return <div className="w-full h-64 bg-muted rounded-lg" />;
+        return <div style={{ width: '100%', height: '16rem', backgroundColor: 'var(--muted)', borderRadius: '0.5rem' }} />;
     }
   };
 
   return (
     <ErrorBoundary
       fallback={
-        <Card className="border-destructive bg-destructive/5">
+        <Card style={{ borderColor: 'var(--destructive)', backgroundColor: 'rgba(var(--destructive-rgb), 0.05)' }}>
           <CardHeader>
-            <h3 className="text-lg font-semibold text-destructive">Visualization Error</h3>
-            <p className="text-sm text-muted-foreground">
+            <h3 style={{ fontSize: '1.125rem', fontWeight: '600', color: 'var(--destructive)' }}>Visualization Error</h3>
+            <p style={{ fontSize: '0.875rem', color: 'var(--muted-foreground)' }}>
               Failed to render {title}. The visualization may be too complex or encountered an error.
             </p>
           </CardHeader>
           <CardBody>
-            <div className="w-full h-64 bg-muted rounded-lg flex items-center justify-center">
-              <p className="text-muted-foreground">Visualization unavailable</p>
+            <div style={{ width: '100%', height: '16rem', backgroundColor: 'var(--muted)', borderRadius: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <p style={{ color: 'var(--muted-foreground)' }}>Visualization unavailable</p>
             </div>
           </CardBody>
         </Card>
@@ -353,10 +359,10 @@ export function RealTimeVisualization({ title, description, type, isRunning, onT
     >
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
-              <h3 className="text-lg font-semibold">{title}</h3>
-              <p className="text-sm text-muted-foreground">{description}</p>
+              <h3 style={{ fontSize: '1.125rem', fontWeight: '600' }}>{title}</h3>
+              <p style={{ fontSize: '0.875rem', color: 'var(--muted-foreground)' }}>{description}</p>
             </div>
             <Button
               onClick={onToggle}

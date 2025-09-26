@@ -26,13 +26,13 @@ export function Automata() {
     if (grid.length === 0) return null;
 
     return (
-      <div className="mt-4 p-4 bg-muted rounded-lg">
-        <h4 className="text-sm font-semibold mb-2">Grid Visualization:</h4>
-        <div className="grid gap-1" style={{ gridTemplateColumns: `repeat(${grid[0].length}, 1fr)` }}>
+      <div style={{ marginTop: '1rem', padding: '1rem', backgroundColor: 'var(--muted)', borderRadius: '0.5rem' }}>
+        <h4 style={{ fontSize: '0.875rem', fontWeight: '600', marginBottom: '0.5rem' }}>Grid Visualization:</h4>
+        <div style={{ display: 'grid', gap: '0.25rem', gridTemplateColumns: `repeat(${grid[0].length}, 1fr)` }}>
           {grid.flat().map((cell, i) => (
             <div
               key={i}
-              className={`w-4 h-4 border ${cell > 0.5 ? 'bg-primary' : 'bg-background'}`}
+              style={{ width: '1rem', height: '1rem', border: '1px solid var(--border)', backgroundColor: cell > 0.5 ? 'var(--primary)' : 'var(--background)' }}
               title={`Cell ${i}: ${cell.toFixed(3)}`}
             />
           ))}
@@ -804,47 +804,47 @@ console.log("Geometric constraints ensure proper component alignment");`,
   ];
 
   return (
-<div className="p-8">
-        <div className="max-w-4xl mx-auto">
+<div style={{ padding: '2rem' }}>
+        <div>
           <H1>Cellular Automata Examples</H1>
-          <P className="text-lg text-muted-foreground mb-4">
+          <P style={{ fontSize: '1.125rem', opacity: 0.7, marginBottom: '1rem' }}>
             Explore geometric cellular automata, rotor evolution, and self-assembling systems.
           </P>
 
-          <Card className="mb-8">
+          <Card style={{ marginBottom: '2rem' }}>
             <CardHeader>
-              <h3 className="text-lg font-semibold">Geometric Cellular Automata</h3>
+              <h3 style={{ fontSize: '1.125rem', fontWeight: '600' }}>Geometric Cellular Automata</h3>
             </CardHeader>
             <CardBody>
-              <P className="mb-4">
+              <P style={{ marginBottom: '1rem' }}>
                 The Amari automata system extends traditional cellular automata with geometric algebra:
               </P>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
                 <div>
-                  <h4 className="font-semibold text-sm mb-2">Traditional CA</h4>
-                  <ul className="text-sm space-y-1">
+                  <h4 style={{ fontWeight: '600', fontSize: '0.875rem', marginBottom: '0.5rem' }}>Traditional CA</h4>
+                  <ul style={{ fontSize: '0.875rem', lineHeight: '1.4' }}>
                     <li>• Binary or discrete states</li>
                     <li>• Simple neighborhood rules</li>
                     <li>• Limited spatial relationships</li>
                   </ul>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-sm mb-2">Geometric CA</h4>
-                  <ul className="text-sm space-y-1">
+                  <h4 style={{ fontWeight: '600', fontSize: '0.875rem', marginBottom: '0.5rem' }}>Geometric CA</h4>
+                  <ul style={{ fontSize: '0.875rem', lineHeight: '1.4' }}>
                     <li>• Multivector cell states</li>
                     <li>• Geometric product evolution</li>
                     <li>• Rich spatial/rotational dynamics</li>
                   </ul>
                 </div>
               </div>
-              <P className="text-sm text-muted-foreground">
+              <P style={{ fontSize: '0.875rem', opacity: 0.7 }}>
                 This enables sophisticated behaviors like rotor-based rotations, self-assembly
                 with geometric constraints, and inverse design for target configurations.
               </P>
             </CardBody>
           </Card>
 
-          <div className="space-y-6">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             {examples.map((example, index) => (
               <div key={index}>
                 <ExampleCard
@@ -861,15 +861,15 @@ console.log("Geometric constraints ensure proper component alignment");`,
             ))}
           </div>
 
-          <Card className="mt-8">
+          <Card style={{ marginTop: '2rem' }}>
             <CardHeader>
-              <h3 className="text-lg font-semibold">Applications & Research Directions</h3>
+              <h3 style={{ fontSize: '1.125rem', fontWeight: '600' }}>Applications & Research Directions</h3>
             </CardHeader>
             <CardBody>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem' }}>
                 <div>
-                  <h4 className="font-semibold text-sm mb-2">Current Applications</h4>
-                  <ul className="text-sm space-y-1">
+                  <h4 style={{ fontWeight: '600', fontSize: '0.875rem', marginBottom: '0.5rem' }}>Current Applications</h4>
+                  <ul style={{ fontSize: '0.875rem', lineHeight: '1.4' }}>
                     <li>• Self-assembling UI components</li>
                     <li>• Geometric pattern generation</li>
                     <li>• Spatial constraint solving</li>
@@ -877,8 +877,8 @@ console.log("Geometric constraints ensure proper component alignment");`,
                   </ul>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-sm mb-2">Research Potential</h4>
-                  <ul className="text-sm space-y-1">
+                  <h4 style={{ fontWeight: '600', fontSize: '0.875rem', marginBottom: '0.5rem' }}>Research Potential</h4>
+                  <ul style={{ fontSize: '0.875rem', lineHeight: '1.4' }}>
                     <li>• Quantum cellular automata simulation</li>
                     <li>• Crystalline growth modeling</li>
                     <li>• Robotic swarm coordination</li>

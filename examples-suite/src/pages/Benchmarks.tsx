@@ -22,38 +22,47 @@ function BarChart({ data, metric }: ChartProps) {
   ));
 
   return (
-    <div className="space-y-3">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
       {data.map((item, index) => {
         const value = metric === 'time' ? item.avgTime : item.opsPerSecond;
         const percentage = (value / maxValue) * 100;
         const isBaseline = index === 0;
 
         return (
-          <div key={item.name} className="space-y-1">
-            <div className="flex items-center justify-between text-sm">
-              <span className="font-medium">{item.name}</span>
-              <span className="text-muted-foreground">
+          <div key={item.name} style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.875rem' }}>
+              <span style={{ fontWeight: '500' }}>{item.name}</span>
+              <span style={{ opacity: 0.7 }}>
                 {metric === 'time'
                   ? `${value.toFixed(3)}ms`
                   : `${value.toFixed(0)} ops/s`}
                 {item.comparison && !isBaseline && (
-                  <span className={`ml-2 text-xs ${
-                    item.comparison > 1 ? 'text-green-600' : 'text-red-600'
-                  }`}>
+                  <span style={{
+                    marginLeft: '0.5rem',
+                    fontSize: '0.75rem',
+                    color: item.comparison > 1 ? 'rgb(34, 197, 94)' : 'rgb(239, 68, 68)'
+                  }}>
                     ({item.comparison.toFixed(2)}x)
                   </span>
                 )}
               </span>
             </div>
-            <div className="w-full bg-muted rounded-full h-6 overflow-hidden">
+            <div style={{ width: '100%', backgroundColor: 'var(--muted)', borderRadius: '9999px', height: '1.5rem', overflow: 'hidden' }}>
               <div
-                className={`h-full rounded-full transition-all duration-500 flex items-center justify-end pr-2 ${
-                  isBaseline ? 'bg-primary/60' : 'bg-primary'
-                }`}
-                style={{ width: `${percentage}%` }}
+                style={{
+                  width: `${percentage}%`,
+                  height: '100%',
+                  borderRadius: '9999px',
+                  transition: 'all 0.5s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'flex-end',
+                  paddingRight: '0.5rem',
+                  backgroundColor: isBaseline ? 'rgba(var(--primary-rgb), 0.6)' : 'var(--primary)'
+                }}
               >
                 {percentage > 20 && (
-                  <span className="text-xs text-white">
+                  <span style={{ fontSize: '0.75rem', color: 'white' }}>
                     {percentage.toFixed(0)}%
                   </span>
                 )}
@@ -394,22 +403,22 @@ export function Benchmarks() {
   }, []);
 
   return (
-<div className="p-8">
-        <div className="max-w-6xl mx-auto">
+<div style={{ padding: '2rem' }}>
+        <div>
           <H1>Performance Benchmarks</H1>
-          <P className="text-lg text-muted-foreground mb-6">
+          <P style={{ fontSize: '1.125rem', opacity: 0.7, marginBottom: '1.5rem' }}>
             Compare performance characteristics of different mathematical operations
           </P>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
             {/* Benchmark Selection */}
-            <div className="lg:col-span-1">
+            <div style={{}}>
               <Card>
                 <CardHeader>
-                  <h3 className="text-lg font-semibold">Benchmark Tests</h3>
+                  <h3 style={{ fontSize: '1.125rem', fontWeight: '600' }}>Benchmark Tests</h3>
                 </CardHeader>
                 <CardBody>
-                  <div className="space-y-2">
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                     {Object.entries(benchmarks).map(([key, benchmark]) => (
                       <Button
                         key={key}
@@ -419,25 +428,25 @@ export function Benchmarks() {
                         }}
                         variant={selectedBenchmark === key ? 'default' : 'outline'}
                         disabled={isRunning}
-                        className="w-full justify-start text-left"
+                        style={{ width: '100%', justifyContent: 'flex-start', textAlign: 'left' }}
                         size="sm"
                       >
                         <div>
-                          <div className="font-medium">{benchmark.name}</div>
-                          <div className="text-xs opacity-70">{benchmark.description}</div>
+                          <div style={{ fontWeight: '500' }}>{benchmark.name}</div>
+                          <div style={{ fontSize: '0.75rem', opacity: 0.7 }}>{benchmark.description}</div>
                         </div>
                       </Button>
                     ))}
                   </div>
 
-                  <div className="mt-6 pt-6 border-t border-border">
-                    <h4 className="font-medium text-sm mb-3">Visualization Options</h4>
-                    <div className="space-y-2">
+                  <div style={{ marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid var(--border)' }}>
+                    <h4 style={{ fontWeight: '500', fontSize: '0.875rem', marginBottom: '0.75rem' }}>Visualization Options</h4>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                       <Button
                         onClick={() => setCurrentMetric('ops')}
                         variant={currentMetric === 'ops' ? 'default' : 'outline'}
                         size="sm"
-                        className="w-full"
+                        style={{ width: '100%' }}
                       >
                         Operations/Second
                       </Button>
@@ -445,7 +454,7 @@ export function Benchmarks() {
                         onClick={() => setCurrentMetric('time')}
                         variant={currentMetric === 'time' ? 'default' : 'outline'}
                         size="sm"
-                        className="w-full"
+                        style={{ width: '100%' }}
                       >
                         Average Time
                       </Button>
@@ -454,30 +463,30 @@ export function Benchmarks() {
                 </CardBody>
               </Card>
 
-              <Card className="mt-6">
+              <Card style={{ marginTop: '1.5rem' }}>
                 <CardHeader>
-                  <h3 className="text-lg font-semibold">System Info</h3>
+                  <h3 style={{ fontSize: '1.125rem', fontWeight: '600' }}>System Info</h3>
                 </CardHeader>
                 <CardBody>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Platform</span>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.875rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ opacity: 0.7 }}>Platform</span>
                       <span>Browser/WASM</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Cores</span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ opacity: 0.7 }}>Cores</span>
                       <span>{navigator.hardwareConcurrency || 'Unknown'}</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Memory</span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ opacity: 0.7 }}>Memory</span>
                       <span>
                         {(navigator as any).deviceMemory
                           ? `${(navigator as any).deviceMemory}GB`
                           : 'Unknown'}
                       </span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">WebGPU</span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ opacity: 0.7 }}>WebGPU</span>
                       <span>{'gpu' in navigator ? 'Available' : 'Not Available'}</span>
                     </div>
                   </div>
@@ -486,15 +495,15 @@ export function Benchmarks() {
             </div>
 
             {/* Results Visualization */}
-            <div className="lg:col-span-2">
+            <div style={{ gridColumn: 'span 2' }}>
               <Card>
                 <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold">
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <h3 style={{ fontSize: '1.125rem', fontWeight: '600' }}>
                       {benchmarks[selectedBenchmark as keyof typeof benchmarks].name} Results
                     </h3>
                     {isRunning && (
-                      <span className="text-sm text-muted-foreground">Running...</span>
+                      <span style={{ fontSize: '0.875rem', color: 'var(--muted-foreground)' }}>Running...</span>
                     )}
                   </div>
                 </CardHeader>
@@ -503,33 +512,33 @@ export function Benchmarks() {
                     <>
                       <BarChart data={results} metric={currentMetric} />
 
-                      <div className="mt-6 pt-6 border-t border-border">
-                        <h4 className="font-medium text-sm mb-3">Detailed Results</h4>
-                        <div className="overflow-x-auto">
-                          <table className="w-full text-sm">
+                      <div style={{ marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid var(--border)' }}>
+                        <h4 style={{ fontWeight: '500', fontSize: '0.875rem', marginBottom: '0.75rem' }}>Detailed Results</h4>
+                        <div style={{ overflowX: 'auto' }}>
+                          <table style={{ width: '100%', fontSize: '0.875rem' }}>
                             <thead>
-                              <tr className="border-b border-border">
-                                <th className="text-left py-2">Method</th>
-                                <th className="text-right py-2">Iterations</th>
-                                <th className="text-right py-2">Total Time</th>
-                                <th className="text-right py-2">Avg Time</th>
-                                <th className="text-right py-2">Ops/Sec</th>
-                                <th className="text-right py-2">Speedup</th>
+                              <tr style={{ borderBottom: '1px solid var(--border)' }}>
+                                <th style={{ textAlign: 'left', padding: '0.5rem 0' }}>Method</th>
+                                <th style={{ textAlign: 'right', padding: '0.5rem 0' }}>Iterations</th>
+                                <th style={{ textAlign: 'right', padding: '0.5rem 0' }}>Total Time</th>
+                                <th style={{ textAlign: 'right', padding: '0.5rem 0' }}>Avg Time</th>
+                                <th style={{ textAlign: 'right', padding: '0.5rem 0' }}>Ops/Sec</th>
+                                <th style={{ textAlign: 'right', padding: '0.5rem 0' }}>Speedup</th>
                               </tr>
                             </thead>
                             <tbody>
                               {results.map((result, index) => (
-                                <tr key={result.name} className="border-b border-border">
-                                  <td className="py-2">{result.name}</td>
-                                  <td className="text-right py-2">{result.iterations.toLocaleString()}</td>
-                                  <td className="text-right py-2">{result.totalTime.toFixed(2)}ms</td>
-                                  <td className="text-right py-2">{result.avgTime.toFixed(4)}ms</td>
-                                  <td className="text-right py-2">{result.opsPerSecond.toFixed(0)}</td>
-                                  <td className="text-right py-2">
+                                <tr key={result.name} style={{ borderBottom: '1px solid var(--border)' }}>
+                                  <td style={{ padding: '0.5rem 0' }}>{result.name}</td>
+                                  <td style={{ textAlign: 'right', padding: '0.5rem 0' }}>{result.iterations.toLocaleString()}</td>
+                                  <td style={{ textAlign: 'right', padding: '0.5rem 0' }}>{result.totalTime.toFixed(2)}ms</td>
+                                  <td style={{ textAlign: 'right', padding: '0.5rem 0' }}>{result.avgTime.toFixed(4)}ms</td>
+                                  <td style={{ textAlign: 'right', padding: '0.5rem 0' }}>{result.opsPerSecond.toFixed(0)}</td>
+                                  <td style={{ textAlign: 'right', padding: '0.5rem 0' }}>
                                     {index === 0 ? (
-                                      <span className="text-muted-foreground">baseline</span>
+                                      <span style={{ opacity: 0.7 }}>baseline</span>
                                     ) : result.comparison ? (
-                                      <span className={result.comparison > 1 ? 'text-green-600' : 'text-red-600'}>
+                                      <span style={{ color: result.comparison > 1 ? 'rgb(34, 197, 94)' : 'rgb(239, 68, 68)' }}>
                                         {result.comparison.toFixed(2)}x
                                       </span>
                                     ) : (
@@ -544,7 +553,7 @@ export function Benchmarks() {
                       </div>
                     </>
                   ) : (
-                    <div className="text-center py-12 text-muted-foreground">
+                    <div style={{ textAlign: 'center', padding: '3rem 0', color: 'var(--muted-foreground)' }}>
                       {isRunning ? 'Running benchmark...' : 'Select a benchmark to see results'}
                     </div>
                   )}
@@ -552,20 +561,20 @@ export function Benchmarks() {
               </Card>
 
               {results.length > 0 && (
-                <Card className="mt-6">
+                <Card style={{ marginTop: '1.5rem' }}>
                   <CardHeader>
-                    <h3 className="text-lg font-semibold">Key Insights</h3>
+                    <h3 style={{ fontSize: '1.125rem', fontWeight: '600' }}>Key Insights</h3>
                   </CardHeader>
                   <CardBody>
-                    <div className="space-y-3">
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                       {results[0].name === 'Matrix Multiplication' && (
                         <>
-                          <p className="text-sm">
+                          <p style={{ fontSize: '0.875rem' }}>
                             <strong>Geometric Product Optimization:</strong> The optimized geometric
                             product achieves {results[1]?.comparison?.toFixed(1)}x speedup by exploiting
                             Clifford algebra symmetries and reducing redundant calculations.
                           </p>
-                          <p className="text-sm">
+                          <p style={{ fontSize: '0.875rem' }}>
                             <strong>SIMD Potential:</strong> Hardware acceleration could provide
                             up to {results[2]?.comparison?.toFixed(1)}x performance improvement
                             for parallel vector operations.
@@ -574,12 +583,12 @@ export function Benchmarks() {
                       )}
                       {results[0].name === 'Traditional Softmax' && (
                         <>
-                          <p className="text-sm">
+                          <p style={{ fontSize: '0.875rem' }}>
                             <strong>Tropical Advantage:</strong> Tropical max-plus operations
                             are {results[1]?.comparison?.toFixed(1)}x faster than softmax by
                             eliminating expensive exponential calculations.
                           </p>
-                          <p className="text-sm">
+                          <p style={{ fontSize: '0.875rem' }}>
                             <strong>Sparse Optimization:</strong> For attention mechanisms,
                             sparse tropical operations focusing on top-k values can achieve
                             {results[2]?.comparison?.toFixed(1)}x speedup with minimal accuracy loss.
@@ -588,12 +597,12 @@ export function Benchmarks() {
                       )}
                       {results[0].name === 'CPU (Sequential)' && (
                         <>
-                          <p className="text-sm">
+                          <p style={{ fontSize: '0.875rem' }}>
                             <strong>Parallelization Impact:</strong> Multi-core CPU processing
                             provides {results[1]?.comparison?.toFixed(1)}x speedup, scaling
                             near-linearly with core count.
                           </p>
-                          <p className="text-sm">
+                          <p style={{ fontSize: '0.875rem' }}>
                             <strong>GPU Acceleration:</strong> WebGPU can deliver
                             {results[2]?.comparison?.toFixed(1)}x performance gains for
                             massively parallel mathematical operations.
@@ -602,12 +611,12 @@ export function Benchmarks() {
                       )}
                       {results[0].name === 'Dense Matrix' && (
                         <>
-                          <p className="text-sm">
+                          <p style={{ fontSize: '0.875rem' }}>
                             <strong>Memory Efficiency:</strong> Sparse representations
                             are {results[1]?.comparison?.toFixed(1)}x more efficient for
                             matrices with low density.
                           </p>
-                          <p className="text-sm">
+                          <p style={{ fontSize: '0.875rem' }}>
                             <strong>Specialized Structures:</strong> Domain-specific compression
                             (like diagonal matrices) can achieve {results[2]?.comparison?.toFixed(1)}x
                             memory reduction.
