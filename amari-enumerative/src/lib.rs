@@ -34,6 +34,7 @@ pub mod schubert;
 pub mod gromov_witten;
 pub mod tropical_curves;
 pub mod moduli_space;
+pub mod geometric_algebra;
 
 // Re-export core types
 pub use intersection::{
@@ -45,6 +46,7 @@ pub use schubert::{SchubertClass, SchubertCalculus, FlagVariety};
 pub use gromov_witten::{GromovWittenInvariant, QuantumCohomology, CurveClass as GWCurveClass};
 pub use tropical_curves::{TropicalCurve, TropicalIntersection, TropicalPoint, TropicalEdge, TropicalModuliSpace};
 pub use moduli_space::{ModuliSpace, CurveClass, TautologicalClass};
+pub use geometric_algebra::{GeometricVariety, GeometricSchubertClass, GeometricProjectiveSpace, signatures, quantum_k_theory};
 
 /// Error types for enumerative geometry computations
 #[derive(Debug, Clone, PartialEq)]
