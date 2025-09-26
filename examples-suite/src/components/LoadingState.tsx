@@ -10,12 +10,19 @@ export function LoadingState({
   className = ""
 }: LoadingStateProps) {
   return (
-    <Card className={className}>
+    <Card style={className ? {} : undefined}>
       <CardBody>
-        <div className="flex items-center justify-center py-8">
-          <div className="flex items-center space-x-3">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-            <span className="text-sm text-muted-foreground">{message}</span>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem 0' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <div style={{
+              width: '1.5rem',
+              height: '1.5rem',
+              border: '2px solid transparent',
+              borderBottom: '2px solid var(--primary)',
+              borderRadius: '50%',
+              animation: 'spin 1s linear infinite'
+            }}></div>
+            <span style={{ fontSize: '0.875rem', color: 'var(--muted-foreground)' }}>{message}</span>
           </div>
         </div>
       </CardBody>
@@ -37,12 +44,12 @@ export function EmptyState({
   className = ""
 }: EmptyStateProps) {
   return (
-    <Card className={className}>
+    <Card style={className ? {} : undefined}>
       <CardBody>
-        <div className="flex flex-col items-center justify-center py-12 text-center">
-          <h3 className="text-lg font-semibold mb-2">{title}</h3>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '3rem 0', textAlign: 'center' }}>
+          <h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '0.5rem' }}>{title}</h3>
           {description && (
-            <p className="text-sm text-muted-foreground mb-4 max-w-md">
+            <p style={{ fontSize: '0.875rem', color: 'var(--muted-foreground)', marginBottom: '1rem', maxWidth: '28rem' }}>
               {description}
             </p>
           )}
@@ -63,18 +70,29 @@ export function NetworkError({
   message = "Failed to load data. Please check your connection."
 }: NetworkErrorProps) {
   return (
-    <Card className="border-destructive bg-destructive/5">
+    <Card style={{ borderColor: 'var(--destructive)', backgroundColor: 'rgba(239, 68, 68, 0.05)' }}>
       <CardHeader>
-        <h3 className="text-lg font-semibold text-destructive">
+        <h3 style={{ fontSize: '1.125rem', fontWeight: '600', color: 'var(--destructive)' }}>
           Network Error
         </h3>
       </CardHeader>
       <CardBody>
-        <p className="text-sm text-muted-foreground mb-4">{message}</p>
+        <p style={{ fontSize: '0.875rem', color: 'var(--muted-foreground)', marginBottom: '1rem' }}>{message}</p>
         {onRetry && (
           <button
             onClick={onRetry}
-            className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm hover:bg-primary/90"
+            style={{
+              padding: '0.5rem 1rem',
+              backgroundColor: 'var(--primary)',
+              color: 'var(--primary-foreground)',
+              borderRadius: '0.375rem',
+              fontSize: '0.875rem',
+              border: 'none',
+              cursor: 'pointer',
+              transition: 'background-color 0.2s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--primary)/90'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--primary)'}
           >
             Retry
           </button>

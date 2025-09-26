@@ -80,6 +80,11 @@ const navigationSections: NavSection[] = [
         title: "API Reference",
         href: "/api-reference",
         description: "Complete function documentation"
+      },
+      {
+        title: "Amari-Chentsov Tensor",
+        href: "/amari-chentsov-tensor",
+        description: "Interactive tensor visualization"
       }
     ]
   }

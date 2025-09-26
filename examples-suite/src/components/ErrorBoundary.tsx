@@ -38,24 +38,36 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       }
 
       return (
-        <Card className="border-destructive bg-destructive/5">
+        <Card style={{ borderColor: 'var(--destructive)', backgroundColor: 'rgba(239, 68, 68, 0.05)' }}>
           <CardHeader>
-            <h3 className="text-lg font-semibold text-destructive">
+            <h3 style={{ fontSize: '1.125rem', fontWeight: '600', color: 'var(--destructive)' }}>
               Something went wrong
             </h3>
           </CardHeader>
           <CardBody>
-            <div className="space-y-4">
-              <p className="text-sm text-muted-foreground">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <p style={{ fontSize: '0.875rem', color: 'var(--muted-foreground)' }}>
                 An unexpected error occurred while rendering this component.
               </p>
 
               {this.state.error && (
-                <details className="text-xs">
-                  <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
+                <details style={{ fontSize: '0.75rem' }}>
+                  <summary style={{
+                    cursor: 'pointer',
+                    color: 'var(--muted-foreground)',
+                    transition: 'color 0.2s'
+                  }}>
                     Error details
                   </summary>
-                  <pre className="mt-2 p-2 bg-muted rounded text-xs overflow-auto">
+                  <pre style={{
+                    marginTop: '0.5rem',
+                    padding: '0.5rem',
+                    backgroundColor: 'var(--muted)',
+                    borderRadius: '0.25rem',
+                    fontSize: '0.75rem',
+                    overflow: 'auto',
+                    whiteSpace: 'pre-wrap'
+                  }}>
                     {this.state.error.message}
                     {this.state.error.stack && `\n\n${this.state.error.stack}`}
                   </pre>

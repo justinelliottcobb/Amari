@@ -18,6 +18,7 @@ import { Benchmarks } from './pages/Benchmarks'
 import { APIReference } from './pages/APIReference'
 import { Home } from './pages/Home'
 import { EnumerativeGeometry } from './pages/EnumerativeGeometry'
+import { AmariChentsovTensorDemo } from './pages/AmariChentsovTensorDemo'
 
 const router = createBrowserRouter([
   {
@@ -71,6 +72,10 @@ const router = createBrowserRouter([
       {
         path: "enumerative-geometry",
         element: <EnumerativeGeometry />,
+      },
+      {
+        path: "amari-chentsov-tensor",
+        element: <AmariChentsovTensorDemo />,
       },
     ],
   },

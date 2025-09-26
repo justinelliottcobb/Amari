@@ -11,10 +11,10 @@ export function GeometricAlgebra() {
 
   if (error) {
     return (
-      <div className="p-8">
-        <div className="max-w-4xl mx-auto">
+      <div style={{ padding: '2rem' }}>
+        <div style={{}}>
           <H1>Geometric Algebra Examples</H1>
-          <P className="text-red-600">Failed to load WASM module: {error}</P>
+          <P style={{ color: '#dc2626' }}>Failed to load WASM module: {error}</P>
         </div>
       </div>
     );
@@ -229,14 +229,14 @@ console.log("Outer product:", outer.getCoefficients());`,
   ];
 
   return (
-<div className="p-8">
-        <div className="max-w-4xl mx-auto">
+<div style={{ padding: '2rem' }}>
+        <div style={{}}>
           <H1>Geometric Algebra Examples</H1>
-          <P className="text-lg text-muted-foreground mb-8">
+          <P style={{ fontSize: '1.125rem', opacity: 0.7, marginBottom: '2rem' }}>
             Explore multivectors, geometric products, and rotors in Clifford algebra with interactive examples.
           </P>
 
-          <div className="space-y-6">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             {examples.map((example, index) => (
               <ExampleCard
                 key={index}

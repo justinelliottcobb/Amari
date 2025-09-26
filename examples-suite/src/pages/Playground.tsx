@@ -296,21 +296,21 @@ export function Playground() {
   }, []);
 
   return (
-<div className="p-8">
-        <div className="max-w-6xl mx-auto">
+<div style={{ padding: '2rem' }}>
+        <div>
           <H1>Interactive Playground</H1>
-          <P className="text-lg text-muted-foreground mb-6">
+          <P style={{ fontSize: '1.125rem', opacity: 0.7, marginBottom: '1.5rem' }}>
             Experiment with Amari mathematical operations in real-time
           </P>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
             {/* Code Editor Section */}
-            <div className="lg:col-span-2">
+            <div style={{ gridColumn: 'span 2' }}>
               <Card>
                 <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold">Code Editor</h3>
-                    <div className="flex gap-2">
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <h3 style={{ fontSize: '1.125rem', fontWeight: '600' }}>Code Editor</h3>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
                       <Button
                         onClick={runCode}
                         disabled={isRunning || !amariLoaded}
@@ -325,32 +325,32 @@ export function Playground() {
                   <textarea
                     value={code}
                     onChange={(e) => setCode(e.target.value)}
-                    className="w-full h-96 p-4 font-mono text-sm bg-muted rounded-lg border border-border focus:ring-2 focus:ring-primary focus:border-primary"
+                    style={{ width: '100%', height: '24rem', padding: '1rem', fontFamily: 'monospace', fontSize: '0.875rem', backgroundColor: 'var(--muted)', borderRadius: '0.5rem', border: '1px solid var(--border)' }}
                     spellCheck={false}
                   />
                 </CardBody>
               </Card>
 
               {/* Output Section */}
-              <Card className="mt-6">
+              <Card style={{ marginTop: '1.5rem' }}>
                 <CardHeader>
-                  <h3 className="text-lg font-semibold">Output</h3>
+                  <h3 style={{ fontSize: '1.125rem', fontWeight: '600' }}>Output</h3>
                 </CardHeader>
                 <CardBody>
                   {error ? (
-                    <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
-                      <Code className="text-sm text-destructive whitespace-pre-wrap">
+                    <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: '0.5rem', padding: '1rem' }}>
+                      <Code style={{ fontSize: '0.875rem', color: 'var(--destructive)', whiteSpace: 'pre-wrap' }}>
                         Error: {error}
                       </Code>
                     </div>
                   ) : output ? (
-                    <div className="bg-muted rounded-lg p-4">
-                      <Code className="text-sm whitespace-pre-wrap">
+                    <div style={{ backgroundColor: 'var(--muted)', borderRadius: '0.5rem', padding: '1rem' }}>
+                      <Code style={{ fontSize: '0.875rem', whiteSpace: 'pre-wrap' }}>
                         {output}
                       </Code>
                     </div>
                   ) : (
-                    <div className="text-muted-foreground text-sm">
+                    <div style={{ opacity: 0.7, fontSize: '0.875rem' }}>
                       No output yet. Click "Run Code" to execute.
                     </div>
                   )}
@@ -362,14 +362,14 @@ export function Playground() {
             <div>
               <Card>
                 <CardHeader>
-                  <h3 className="text-lg font-semibold">Templates</h3>
+                  <h3 style={{ fontSize: '1.125rem', fontWeight: '600' }}>Templates</h3>
                 </CardHeader>
                 <CardBody>
-                  <div className="space-y-3">
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                     <Button
                       onClick={() => loadTemplate('geometric')}
                       variant={selectedTemplate === 'geometric' ? 'default' : 'outline'}
-                      className="w-full justify-start"
+                      style={{ width: '100%', justifyContent: 'flex-start' }}
                       size="sm"
                     >
                       Geometric Algebra
@@ -377,7 +377,7 @@ export function Playground() {
                     <Button
                       onClick={() => loadTemplate('tropical')}
                       variant={selectedTemplate === 'tropical' ? 'default' : 'outline'}
-                      className="w-full justify-start"
+                      style={{ width: '100%', justifyContent: 'flex-start' }}
                       size="sm"
                     >
                       Tropical Algebra
@@ -385,7 +385,7 @@ export function Playground() {
                     <Button
                       onClick={() => loadTemplate('dual')}
                       variant={selectedTemplate === 'dual' ? 'default' : 'outline'}
-                      className="w-full justify-start"
+                      style={{ width: '100%', justifyContent: 'flex-start' }}
                       size="sm"
                     >
                       Dual Numbers AD
@@ -393,7 +393,7 @@ export function Playground() {
                     <Button
                       onClick={() => loadTemplate('fusion')}
                       variant={selectedTemplate === 'fusion' ? 'default' : 'outline'}
-                      className="w-full justify-start"
+                      style={{ width: '100%', justifyContent: 'flex-start' }}
                       size="sm"
                     >
                       TDC Fusion System
@@ -402,15 +402,15 @@ export function Playground() {
                 </CardBody>
               </Card>
 
-              <Card className="mt-6">
+              <Card style={{ marginTop: '1.5rem' }}>
                 <CardHeader>
-                  <h3 className="text-lg font-semibold">Quick Reference</h3>
+                  <h3 style={{ fontSize: '1.125rem', fontWeight: '600' }}>Quick Reference</h3>
                 </CardHeader>
                 <CardBody>
-                  <div className="space-y-3 text-sm">
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.875rem' }}>
                     <div>
-                      <h4 className="font-semibold mb-1">Available Objects</h4>
-                      <ul className="space-y-1 text-xs">
+                      <h4 style={{ fontWeight: '600', marginBottom: '0.25rem' }}>Available Objects</h4>
+                      <ul style={{ fontSize: '0.75rem', lineHeight: '1.4' }}>
                         <li><Code>amari</Code> - WASM module</li>
                         <li><Code>console.log()</Code> - Output</li>
                         <li><Code>performance</Code> - Timing</li>
@@ -418,15 +418,15 @@ export function Playground() {
                     </div>
 
                     <div>
-                      <h4 className="font-semibold mb-1">Return Values</h4>
-                      <p className="text-xs text-muted-foreground">
+                      <h4 style={{ fontWeight: '600', marginBottom: '0.25rem' }}>Return Values</h4>
+                      <p style={{ fontSize: '0.75rem', opacity: 0.7 }}>
                         Return an object to display structured data in the output
                       </p>
                     </div>
 
                     <div>
-                      <h4 className="font-semibold mb-1">Tips</h4>
-                      <ul className="space-y-1 text-xs text-muted-foreground">
+                      <h4 style={{ fontWeight: '600', marginBottom: '0.25rem' }}>Tips</h4>
+                      <ul style={{ fontSize: '0.75rem', opacity: 0.7, lineHeight: '1.4' }}>
                         <li>• Use templates as starting points</li>
                         <li>• Console output appears immediately</li>
                         <li>• Return values show as JSON</li>
@@ -437,23 +437,27 @@ export function Playground() {
                 </CardBody>
               </Card>
 
-              <Card className="mt-6">
+              <Card style={{ marginTop: '1.5rem' }}>
                 <CardHeader>
-                  <h3 className="text-lg font-semibold">Status</h3>
+                  <h3 style={{ fontSize: '1.125rem', fontWeight: '600' }}>Status</h3>
                 </CardHeader>
                 <CardBody>
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem' }}>
                       <span>Amari Module</span>
-                      <span className={`px-2 py-0.5 rounded text-xs ${
-                        amariLoaded ? 'bg-green-100 text-green-800' : 'bg-gray-100'
-                      }`}>
+                      <span style={{
+                        padding: '0.125rem 0.5rem',
+                        borderRadius: '0.25rem',
+                        fontSize: '0.75rem',
+                        backgroundColor: amariLoaded ? '#dcfce7' : '#f3f4f6',
+                        color: amariLoaded ? '#166534' : '#374151'
+                      }}>
                         {amariLoaded ? 'Loaded' : 'Loading...'}
                       </span>
                     </div>
-                    <div className="flex justify-between text-sm">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem' }}>
                       <span>WebAssembly</span>
-                      <span className="px-2 py-0.5 bg-green-100 text-green-800 rounded text-xs">
+                      <span style={{ padding: '0.125rem 0.5rem', backgroundColor: '#dcfce7', color: '#166534', borderRadius: '0.25rem', fontSize: '0.75rem' }}>
                         Available
                       </span>
                     </div>
