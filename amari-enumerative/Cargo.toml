@@ -1,0 +1,26 @@
+[package]
+name = "amari-enumerative"
+version = "0.1.0"
+edition = "2021"
+authors = ["Amari Team"]
+description = "Enumerative geometry capabilities for the Amari library"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/justinelliottcobb/Amari"
+keywords = ["mathematics", "geometry", "enumerative", "intersection", "schubert"]
+categories = ["mathematics", "science"]
+
+[dependencies]
+amari-core = { path = "../amari-core" }
+amari-tropical = { path = "../amari-tropical" }
+num-rational = "0.4"
+num-bigint = "0.4"
+num-traits = "0.2"
+serde = { version = "1.0", features = ["derive"], optional = true }
+
+[features]
+default = []
+serde = ["dep:serde", "num-rational/serde", "num-bigint/serde"]
+
+[dev-dependencies]
+proptest = "1.0"
+criterion = "0.5"
