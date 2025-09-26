@@ -45,19 +45,29 @@ impl HigherGenusCurve {
     /// Compute Riemann-Roch dimension for line bundles
     pub fn riemann_roch_dimension(&self, line_bundle_degree: i64) -> i64 {
         // Riemann-Roch: h⁰(D) - h¹(D) = deg(D) + 1 - g
-        // For general position: h¹(D) = max(0, g - deg(D) - 1 + h⁰(K-D))
-        let rr_euler = line_bundle_degree + 1 - (self.genus as i64);
+        let g = self.genus as i64;
+        let rr_euler = line_bundle_degree + 1 - g;
 
-        if line_bundle_degree >= 2 * (self.genus as i64) - 1 {
+        if line_bundle_degree >= 2 * g - 1 {
             // Vanishing theorem: h¹(D) = 0 for deg(D) ≥ 2g - 1
             rr_euler.max(0)
         } else if line_bundle_degree <= 0 {
             // For degree ≤ 0, h⁰(D) = 0 generically
             0
         } else {
-            // Intermediate case requires more careful analysis
-            let serre_duality_correction = (self.genus as i64).saturating_sub(line_bundle_degree);
-            (rr_euler - serre_duality_correction).max(0)
+            // For canonical degree 2g-2, h⁰ = g
+            if line_bundle_degree == 2 * g - 2 {
+                g
+            } else {
+                // For intermediate degrees, use correct Riemann-Roch formula
+                // h⁰ = max(0, deg + 1 - g - h¹)
+                // For small degrees, h⁰ = 0 by generic position
+                if line_bundle_degree < g {
+                    0
+                } else {
+                    (rr_euler).max(0)
+                }
+            }
         }
     }
 
@@ -68,10 +78,10 @@ impl HigherGenusCurve {
         }
 
         let h0 = self.riemann_roch_dimension(divisor_degree);
-        let h1 = (self.genus as i64) - divisor_degree + h0 - 1;
 
-        if h0 > 0 && h1 > 0 {
-            Some(divisor_degree - 2 * h0 + 2)
+        if h0 > 1 {
+            // Clifford index = deg(D) - 2(h⁰(D) - 1)
+            Some(divisor_degree - 2 * (h0 - 1))
         } else {
             None
         }
@@ -226,6 +236,8 @@ impl ModuliStackData {
         match (self.genus, classes.len()) {
             (2, 1) if classes[0] == "kappa_1" => Ok(Rational64::from(1) / Rational64::from(24)),
             (3, 2) if classes.iter().all(|c| c == "kappa_1") => Ok(Rational64::from(1) / Rational64::from(24)),
+            // For wrong dimensional cases, return 0
+            _ if total_codimension != self.dimension as usize => Ok(Rational64::from(0)),
             _ => Ok(Rational64::from(1)), // Placeholder
         }
     }
@@ -327,16 +339,21 @@ pub struct TorelliMapData {
 impl TorelliMapData {
     pub fn new(genus: usize) -> Self {
         let siegel_dimension = genus * (genus + 1) / 2;
+        let jacobian_locus_dimension = if genus >= 1 {
+            3 * genus - 3
+        } else {
+            0
+        };
         Self {
             genus,
             target_dimension: siegel_dimension,
-            jacobian_locus_dimension: 3 * genus - 3,
+            jacobian_locus_dimension,
         }
     }
 
     /// Check if Torelli map is injective (Torelli theorem)
     pub fn is_torelli_injective(&self) -> bool {
-        self.genus >= 2 // Torelli theorem: injective for g ≥ 2
+        self.genus >= 2 // Torelli theorem: injective for g ≥ 2, false for g = 0, 1
     }
 }
 

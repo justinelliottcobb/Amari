@@ -145,9 +145,9 @@ fn test_torelli_map() {
     assert_eq!(curve.jacobian.torelli_map.genus, 3);
     assert_eq!(curve.jacobian.torelli_map.jacobian_locus_dimension, 6); // 3g - 3
 
-    // Test genus 1 case
+    // Test genus 1 case - Torelli theorem is false for g=1
     let genus1_curve = HigherGenusCurve::new(1, 2);
-    assert!(genus1_curve.jacobian.torelli_map.is_torelli_injective()); // Actually false for g=1, but our simplified version
+    assert!(!genus1_curve.jacobian.torelli_map.is_torelli_injective()); // False for g=1 by Torelli theorem
 }
 
 #[test]
