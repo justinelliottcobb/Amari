@@ -35,6 +35,11 @@ const navigationSections: NavSection[] = [
         title: "Information Geometry",
         href: "/information-geometry",
         description: "Statistical manifolds and Fisher metrics"
+      },
+      {
+        title: "Enumerative Geometry",
+        href: "/enumerative-geometry",
+        description: "Intersection theory and curve counting"
       }
     ]
   },
