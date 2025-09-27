@@ -24,7 +24,7 @@ fn test_riemann_roch_dimension() {
     // Test various divisor degrees
     assert_eq!(curve.riemann_roch_dimension(0), 0);
     assert_eq!(curve.riemann_roch_dimension(1), 0);
-    assert_eq!(curve.riemann_roch_dimension(2), 0); // Canonical divisor
+    assert_eq!(curve.riemann_roch_dimension(2), 2); // Canonical divisor h⁰(K) = g
     assert!(curve.riemann_roch_dimension(4) > 0); // High degree
     assert!(curve.riemann_roch_dimension(10) > 0); // Very high degree
 }
