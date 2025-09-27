@@ -571,7 +571,6 @@ pub mod quantum_k_theory {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use super::signatures::*;
 
     #[test]
     fn test_point_creation() {

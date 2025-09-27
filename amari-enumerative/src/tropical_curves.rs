@@ -3,9 +3,8 @@
 //! This module implements tropical analogues of classical enumerative
 //! geometry, including tropical curve counting and correspondence theorems.
 
-use num_rational::Rational64;
 use std::collections::HashMap;
-use crate::{EnumerativeError, EnumerativeResult};
+use crate::EnumerativeResult;
 
 /// Tropical curve in tropical projective space
 #[derive(Debug, Clone)]

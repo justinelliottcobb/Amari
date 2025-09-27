@@ -9,7 +9,6 @@ use num_rational::Rational64;
 use std::collections::{HashMap, BTreeMap};
 use crate::{EnumerativeError, EnumerativeResult, ChowClass, GromovWittenInvariant};
 use crate::gromov_witten::CurveClass as GWCurveClass;
-use num_traits::Signed;
 
 /// Higher genus curve with sophisticated geometric data
 #[derive(Debug, Clone)]
@@ -65,7 +64,7 @@ impl HigherGenusCurve {
                 // For degrees in range [1, g], use more careful analysis
                 // For Clifford theory, we need to allow some special divisors to have h⁰ > 1
                 // This is a simplified model for testing purposes
-                if line_bundle_degree >= g / 2 + 1 && line_bundle_degree < g {
+                if line_bundle_degree > g / 2 && line_bundle_degree < g {
                     // For middle-range degrees, assume we have special divisors
                     2  // This ensures h⁰ > 1 for Clifford index computation
                 } else if line_bundle_degree >= g {

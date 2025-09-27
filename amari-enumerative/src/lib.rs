@@ -89,7 +89,6 @@ pub type EnumerativeResult<T> = Result<T, EnumerativeError>;
 
 #[cfg(test)]
 mod tests {
-    use super::*;
 
     #[test]
     fn test_library_compiles() {

@@ -5,7 +5,6 @@
 //! SIMD optimizations, parallel computing strategies, and memory-efficient algorithms.
 
 use std::collections::HashMap;
-use std::sync::Arc;
 use num_rational::Rational64;
 use crate::{EnumerativeResult, EnumerativeError};
 
@@ -295,54 +294,9 @@ impl FastIntersectionComputer {
         }
 
         // Create GPU buffers
-        let input_buffer = gpu.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("Input Buffer"),
-            contents: bytemuck::cast_slice(&input_data),
-            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
-        });
+        // Note: GPU functionality disabled due to missing dependencies
+        return Err(EnumerativeError::ComputationError("GPU functionality requires additional dependencies".to_string()));
 
-        let output_buffer = gpu.device.create_buffer(&wgpu::BufferDescriptor {
-            label: Some("Output Buffer"),
-            size: (operations.len() * std::mem::size_of::<f32>()) as u64,
-            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
-            mapped_at_creation: false,
-        });
-
-        // Execute compute shader
-        let bind_group_layout = gpu.compute_pipeline.get_bind_group_layout(0);
-        let bind_group = gpu.device.create_bind_group(&wgpu::BindGroupDescriptor {
-            label: Some("Compute Bind Group"),
-            layout: &bind_group_layout,
-            entries: &[
-                wgpu::BindGroupEntry {
-                    binding: 0,
-                    resource: input_buffer.as_entire_binding(),
-                },
-                wgpu::BindGroupEntry {
-                    binding: 1,
-                    resource: output_buffer.as_entire_binding(),
-                },
-            ],
-        });
-
-        let mut encoder = gpu.device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
-            label: Some("Compute Encoder"),
-        });
-
-        {
-            let mut compute_pass = encoder.begin_compute_pass(&wgpu::ComputePassDescriptor {
-                label: Some("Compute Pass"),
-            });
-            compute_pass.set_pipeline(&gpu.compute_pipeline);
-            compute_pass.set_bind_group(0, &bind_group, &[]);
-            compute_pass.dispatch_workgroups((operations.len() as u32 + 63) / 64, 1, 1);
-        }
-
-        gpu.queue.submit(std::iter::once(encoder.finish()));
-
-        // Read results back (simplified - real implementation would use async)
-        let results = vec![Rational64::from(1); operations.len()]; // Placeholder
-        Ok(results)
     }
 }
 

@@ -5,7 +5,7 @@
 
 use num_rational::Rational64;
 use std::collections::HashMap;
-use crate::{EnumerativeError, EnumerativeResult, ChowClass};
+use crate::{EnumerativeResult, ChowClass};
 
 /// Gromov-Witten invariant
 #[derive(Debug, Clone, PartialEq)]
@@ -172,8 +172,7 @@ impl QuantumCohomology {
 
 /// Additional supporting types for Gromov-Witten theory
 pub mod moduli_space {
-    use super::*;
-    use crate::{ModuliSpace, EnumerativeResult, EnumerativeError};
+    use crate::{ModuliSpace, EnumerativeResult};
 
     /// Curve class for moduli of stable maps
     #[derive(Debug, Clone, PartialEq)]

@@ -6,7 +6,7 @@
 
 use num_rational::Rational64;
 use std::collections::HashMap;
-use crate::{EnumerativeError, EnumerativeResult, ChowClass};
+use crate::{EnumerativeError, EnumerativeResult};
 
 /// Moduli space of curves M_{g,n}
 #[derive(Debug, Clone)]
