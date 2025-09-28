@@ -328,7 +328,7 @@ impl SparseSchubertMatrix {
         if value != Rational64::from(0) {
             let entry_idx = self.entries.len();
             self.entries.push((row, col, value));
-            self.row_index.entry(row).or_insert_with(Vec::new).push(entry_idx);
+            self.row_index.entry(row).or_default().push(entry_idx);
         }
     }
 
@@ -441,6 +441,7 @@ pub struct CurveCountRequest {
 /// Batch processor for curve counting operations
 #[derive(Debug)]
 pub struct CurveBatchProcessor {
+    #[allow(dead_code)]
     config: WasmPerformanceConfig,
     cache_hits: usize,
     cache_misses: usize,
@@ -514,6 +515,7 @@ impl MemoryPool {
 /// Memory allocation handle
 #[derive(Debug)]
 pub struct MemoryAllocation {
+    #[allow(dead_code)]
     size: usize,
 }
 

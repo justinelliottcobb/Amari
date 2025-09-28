@@ -106,6 +106,12 @@ pub struct QuantumCohomology {
     pub quantum_corrections: HashMap<String, Rational64>,
 }
 
+impl Default for QuantumCohomology {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl QuantumCohomology {
     /// Create a new quantum cohomology ring
     pub fn new() -> Self {

@@ -107,11 +107,7 @@ impl<const P: usize, const Q: usize, const R: usize> GeometricVariety<P, Q, R> {
         let self_dual = self.multivector.hodge_dual();
         let other_dual = other.multivector.hodge_dual();
         let intersection_mv = self_dual.outer_product(&other_dual).hodge_dual();
-        let intersection_dim = if self.dimension + other.dimension >= P + Q + R {
-            0 // Point intersection in general position
-        } else {
-            (P + Q + R) - (self.dimension + other.dimension)
-        };
+        let intersection_dim = (P + Q + R).saturating_sub(self.dimension + other.dimension);
 
         let intersection_degree = self.degree * other.degree;
 
@@ -489,8 +485,7 @@ pub mod quantum_k_theory {
         fn normal_bundle_euler_class(&self, _point: &GeometricVariety<P, Q, R>) -> Rational64 {
             // Simplified normal bundle computation
             // In practice, this depends on the specific torus action
-            let dimension_factor = Rational64::from((P + Q + R) as i64);
-            dimension_factor // Simplified placeholder
+            Rational64::from((P + Q + R) as i64) // Simplified placeholder
         }
 
         /// Quantum cohomology to K-theory correspondence
@@ -518,6 +513,12 @@ pub mod quantum_k_theory {
         pub relations: Vec<String>,
         /// Quantum parameter
         pub quantum_parameter: String,
+    }
+
+    impl<const P: usize, const Q: usize, const R: usize> Default for QuantumKRing<P, Q, R> {
+        fn default() -> Self {
+            Self::new()
+        }
     }
 
     impl<const P: usize, const Q: usize, const R: usize> QuantumKRing<P, Q, R> {

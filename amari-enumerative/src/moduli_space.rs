@@ -46,11 +46,7 @@ impl ModuliSpace {
                 3 * self.genus - 3 + self.marked_points
             } else {
                 // For genus 0, dimension is marked_points - 3 (when stable)
-                if self.marked_points >= 3 {
-                    self.marked_points - 3
-                } else {
-                    0
-                }
+                self.marked_points.saturating_sub(3)
             }
         } else {
             // Dimension of M_{g,n} (if it exists)
@@ -69,7 +65,7 @@ impl ModuliSpace {
         if self.stable {
             2 * self.genus - 2 + self.marked_points > 0
         } else {
-            self.genus >= 0 && self.marked_points >= 0
+            true // genus and marked_points are non-negative by type definition
         }
     }
 

@@ -441,6 +441,12 @@ pub struct ReducedInvariantData {
     pub has_perfect_obstruction_theory: bool,
 }
 
+impl Default for ReducedInvariantData {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ReducedInvariantData {
     pub fn new() -> Self {
         Self {
@@ -460,6 +466,12 @@ pub struct VirtualCycleData {
     pub actual_dimension: i64,
     /// Euler characteristic of obstruction complex
     pub obstruction_euler: Rational64,
+}
+
+impl Default for VirtualCycleData {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl VirtualCycleData {
@@ -532,6 +544,12 @@ pub struct HilbertSchemeData {
     pub is_smooth: bool,
     /// Tangent space dimension
     pub tangent_dimension: i64,
+}
+
+impl Default for HilbertSchemeData {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl HilbertSchemeData {
