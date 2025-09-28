@@ -29,30 +29,36 @@
 //! assert_eq!(intersection.multiplicity(), 12); // 3 * 4 = 12
 //! ```
 
-pub mod intersection;
-pub mod schubert;
-pub mod gromov_witten;
-pub mod tropical_curves;
-pub mod moduli_space;
 pub mod geometric_algebra;
+pub mod gromov_witten;
 pub mod higher_genus;
+pub mod intersection;
+pub mod moduli_space;
 pub mod performance;
+pub mod schubert;
+pub mod tropical_curves;
 
 // Re-export core types
-pub use intersection::{
-    IntersectionRing, ChowClass, IntersectionNumber, ProjectiveSpace,
-    Grassmannian, Constraint, AlgebraicVariety, IntersectionPoint, MockMultivector,
-    QuantumProduct
+pub use geometric_algebra::{
+    quantum_k_theory, signatures, GeometricProjectiveSpace, GeometricSchubertClass,
+    GeometricVariety,
 };
-pub use schubert::{SchubertClass, SchubertCalculus, FlagVariety};
-pub use gromov_witten::{GromovWittenInvariant, QuantumCohomology, CurveClass as GWCurveClass};
-pub use tropical_curves::{TropicalCurve, TropicalIntersection, TropicalPoint, TropicalEdge, TropicalModuliSpace};
-pub use moduli_space::{ModuliSpace, CurveClass, TautologicalClass};
-pub use geometric_algebra::{GeometricVariety, GeometricSchubertClass, GeometricProjectiveSpace, signatures, quantum_k_theory};
-pub use higher_genus::{HigherGenusCurve, PTInvariant, DTInvariant, AdvancedCurveCounting, JacobianData};
+pub use gromov_witten::{CurveClass as GWCurveClass, GromovWittenInvariant, QuantumCohomology};
+pub use higher_genus::{
+    AdvancedCurveCounting, DTInvariant, HigherGenusCurve, JacobianData, PTInvariant,
+};
+pub use intersection::{
+    AlgebraicVariety, ChowClass, Constraint, Grassmannian, IntersectionNumber, IntersectionPoint,
+    IntersectionRing, MockMultivector, ProjectiveSpace, QuantumProduct,
+};
+pub use moduli_space::{CurveClass, ModuliSpace, TautologicalClass};
 pub use performance::{
-    FastIntersectionComputer, WasmPerformanceConfig, SparseSchubertMatrix,
-    MemoryPool, CurveBatchProcessor
+    CurveBatchProcessor, FastIntersectionComputer, MemoryPool, SparseSchubertMatrix,
+    WasmPerformanceConfig,
+};
+pub use schubert::{FlagVariety, SchubertCalculus, SchubertClass};
+pub use tropical_curves::{
+    TropicalCurve, TropicalEdge, TropicalIntersection, TropicalModuliSpace, TropicalPoint,
 };
 
 /// Error types for enumerative geometry computations

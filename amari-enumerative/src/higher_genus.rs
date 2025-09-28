@@ -5,10 +5,10 @@
 //! Pandharipande-Thomas invariants, Donaldson-Thomas invariants, and
 //! higher genus Gromov-Witten theory.
 
-use num_rational::Rational64;
-use std::collections::{HashMap, BTreeMap};
-use crate::{EnumerativeError, EnumerativeResult, ChowClass, GromovWittenInvariant};
 use crate::gromov_witten::CurveClass as GWCurveClass;
+use crate::{ChowClass, EnumerativeError, EnumerativeResult, GromovWittenInvariant};
+use num_rational::Rational64;
+use std::collections::{BTreeMap, HashMap};
 
 /// Higher genus curve with sophisticated geometric data
 #[derive(Debug, Clone)]
@@ -66,7 +66,7 @@ impl HigherGenusCurve {
                 // This is a simplified model for testing purposes
                 if line_bundle_degree > g / 2 && line_bundle_degree < g {
                     // For middle-range degrees, assume we have special divisors
-                    2  // This ensures h⁰ > 1 for Clifford index computation
+                    2 // This ensures h⁰ > 1 for Clifford index computation
                 } else if line_bundle_degree >= g {
                     rr_euler.max(0)
                 } else {
@@ -107,14 +107,18 @@ impl HigherGenusCurve {
     /// Compute Gieseker-Petri theorem violations
     pub fn gieseker_petri_defect(&self, divisor1_deg: i64, divisor2_deg: i64) -> i64 {
         // Simplified Gieseker-Petri computation
-        let expected_codim = self.riemann_roch_dimension(divisor1_deg) *
-                           self.riemann_roch_dimension(divisor2_deg) -
-                           self.riemann_roch_dimension(divisor1_deg + divisor2_deg);
+        let expected_codim = self.riemann_roch_dimension(divisor1_deg)
+            * self.riemann_roch_dimension(divisor2_deg)
+            - self.riemann_roch_dimension(divisor1_deg + divisor2_deg);
         expected_codim.max(0)
     }
 
     /// Compute higher genus Gromov-Witten invariants via virtual localization
-    pub fn virtual_gw_invariant(&self, target_space: &str, insertion_classes: &[ChowClass]) -> EnumerativeResult<Rational64> {
+    pub fn virtual_gw_invariant(
+        &self,
+        target_space: &str,
+        insertion_classes: &[ChowClass],
+    ) -> EnumerativeResult<Rational64> {
         // Virtual fundamental class computation
         let virtual_dimension = self.virtual_dimension(target_space)?;
         let insertion_codimension: usize = insertion_classes.iter().map(|c| c.dimension).sum();
@@ -148,8 +152,20 @@ impl HigherGenusCurve {
         // This depends on the target space and curve class
         let base_obstruction = match target_space {
             "P1" => 0, // P¹ is convex
-            "P2" => if self.degree <= 3 { 0 } else { self.degree - 3 },
-            "P3" => if self.degree <= 4 { 0 } else { (self.degree - 4) * 2 },
+            "P2" => {
+                if self.degree <= 3 {
+                    0
+                } else {
+                    self.degree - 3
+                }
+            }
+            "P3" => {
+                if self.degree <= 4 {
+                    0
+                } else {
+                    (self.degree - 4) * 2
+                }
+            }
             _ => self.degree, // General case
         };
 
@@ -169,7 +185,10 @@ impl HigherGenusCurve {
     }
 
     /// Torus localization contribution
-    fn torus_localization_contribution(&self, insertion_classes: &[ChowClass]) -> EnumerativeResult<Rational64> {
+    fn torus_localization_contribution(
+        &self,
+        insertion_classes: &[ChowClass],
+    ) -> EnumerativeResult<Rational64> {
         let mut contribution = Rational64::from(1);
 
         // Each insertion class contributes via equivariant localization
@@ -212,7 +231,7 @@ impl ModuliStackData {
             for i in 1..=genus {
                 tautological_classes.insert(
                     format!("kappa_{}", i),
-                    ChowClass::new(i, Rational64::from(1))
+                    ChowClass::new(i, Rational64::from(1)),
                 );
             }
         }
@@ -227,10 +246,14 @@ impl ModuliStackData {
 
     /// Compute intersection numbers on moduli space
     pub fn intersection_number(&self, classes: &[String]) -> EnumerativeResult<Rational64> {
-        let total_codimension: usize = classes.iter()
-            .map(|name| self.tautological_classes.get(name)
-                 .map(|c| c.dimension)
-                 .unwrap_or(0))
+        let total_codimension: usize = classes
+            .iter()
+            .map(|name| {
+                self.tautological_classes
+                    .get(name)
+                    .map(|c| c.dimension)
+                    .unwrap_or(0)
+            })
             .sum();
 
         if total_codimension != self.dimension as usize {
@@ -241,7 +264,9 @@ impl ModuliStackData {
         // Real computation requires Witten's conjecture / Kontsevich's theorem
         match (self.genus, classes.len()) {
             (2, 1) if classes[0] == "kappa_1" => Ok(Rational64::from(1) / Rational64::from(24)),
-            (3, 2) if classes.iter().all(|c| c == "kappa_1") => Ok(Rational64::from(1) / Rational64::from(24)),
+            (3, 2) if classes.iter().all(|c| c == "kappa_1") => {
+                Ok(Rational64::from(1) / Rational64::from(24))
+            }
             // For genus 2, κ₁³ = 0 (this is a known result in moduli theory)
             (2, 3) if classes.iter().all(|c| c == "kappa_1") => Ok(Rational64::from(0)),
             // For other overdetermined cases, also return 0
@@ -278,7 +303,7 @@ impl JacobianData {
     pub fn abel_jacobi_map(&self, divisor_degree: i64) -> EnumerativeResult<JacobianElement> {
         if divisor_degree < 0 {
             return Err(EnumerativeError::ComputationError(
-                "Negative degree divisors not supported".to_string()
+                "Negative degree divisors not supported".to_string(),
             ));
         }
 
@@ -291,9 +316,10 @@ impl JacobianData {
     /// Riemann theta function evaluation (symbolic)
     pub fn theta_function(&self, characteristic: &[Rational64]) -> EnumerativeResult<Rational64> {
         if characteristic.len() != 2 * self.dimension {
-            return Err(EnumerativeError::InvalidDimension(
-                format!("Theta characteristic must have length {}", 2 * self.dimension)
-            ));
+            return Err(EnumerativeError::InvalidDimension(format!(
+                "Theta characteristic must have length {}",
+                2 * self.dimension
+            )));
         }
 
         // Simplified theta function computation
@@ -326,10 +352,12 @@ impl ThetaDivisor {
         // Riemann's theorem on theta function zeroes
         let zero_count = 2_i64.pow(self.ambient_dimension as u32 - 1);
 
-        (0..zero_count).map(|i| JacobianElement {
-            degree: 1,
-            jacobian_coordinates: vec![Rational64::from(i); self.ambient_dimension],
-        }).collect()
+        (0..zero_count)
+            .map(|i| JacobianElement {
+                degree: 1,
+                jacobian_coordinates: vec![Rational64::from(i); self.ambient_dimension],
+            })
+            .collect()
     }
 }
 
@@ -347,11 +375,7 @@ pub struct TorelliMapData {
 impl TorelliMapData {
     pub fn new(genus: usize) -> Self {
         let siegel_dimension = genus * (genus + 1) / 2;
-        let jacobian_locus_dimension = if genus >= 1 {
-            3 * genus - 3
-        } else {
-            0
-        };
+        let jacobian_locus_dimension = if genus >= 1 { 3 * genus - 3 } else { 0 };
         Self {
             genus,
             target_dimension: siegel_dimension,
@@ -507,9 +531,21 @@ impl DTInvariant {
     /// Compute DT invariant via torus localization
     pub fn compute_localization(&mut self) -> EnumerativeResult<Rational64> {
         // DT invariants count ideal sheaves with fixed Chern character
-        let ch0 = self.chern_character.get(&0).copied().unwrap_or(Rational64::from(1));
-        let ch1 = self.chern_character.get(&1).copied().unwrap_or(Rational64::from(0));
-        let ch2 = self.chern_character.get(&2).copied().unwrap_or(Rational64::from(0));
+        let ch0 = self
+            .chern_character
+            .get(&0)
+            .copied()
+            .unwrap_or(Rational64::from(1));
+        let ch1 = self
+            .chern_character
+            .get(&1)
+            .copied()
+            .unwrap_or(Rational64::from(0));
+        let ch2 = self
+            .chern_character
+            .get(&2)
+            .copied()
+            .unwrap_or(Rational64::from(0));
 
         // Simplified DT computation via torus fixed points
         self.dt_number = ch0 + ch1 + ch2; // Placeholder computation
@@ -517,7 +553,10 @@ impl DTInvariant {
     }
 
     /// MNOP conjecture relating DT and GW invariants
-    pub fn mnop_correspondence(&self, gw_invariants: &[Rational64]) -> EnumerativeResult<Rational64> {
+    pub fn mnop_correspondence(
+        &self,
+        gw_invariants: &[Rational64],
+    ) -> EnumerativeResult<Rational64> {
         // MNOP conjecture: generating functions are related by a change of variables
         // DT = sum_g GW_g * u^(2g-2) where u is related to the parameter
 
@@ -599,7 +638,7 @@ impl AdvancedCurveCounting {
                     self.target.clone(),
                     curve_class.clone(),
                     genus,
-                    vec![]
+                    vec![],
                 );
                 genus_gw.push(gw.value);
 
@@ -631,7 +670,9 @@ impl AdvancedCurveCounting {
         }
 
         for dt in &self.dt_invariants {
-            let gw_data: Vec<Rational64> = self.gw_invariants.values()
+            let gw_data: Vec<Rational64> = self
+                .gw_invariants
+                .values()
                 .flat_map(|v| v.iter().copied())
                 .collect();
 
@@ -656,10 +697,18 @@ impl AdvancedCurveCounting {
     pub fn summary(&self) -> String {
         let mut summary = format!("Advanced Curve Counting Summary for {}\n", self.target);
         summary.push_str(&format!("Maximum genus: {}\n", self.max_genus));
-        summary.push_str(&format!("GW invariants computed: {}\n",
-                                self.gw_invariants.values().map(|v| v.len()).sum::<usize>()));
-        summary.push_str(&format!("PT invariants computed: {}\n", self.pt_invariants.len()));
-        summary.push_str(&format!("DT invariants computed: {}\n", self.dt_invariants.len()));
+        summary.push_str(&format!(
+            "GW invariants computed: {}\n",
+            self.gw_invariants.values().map(|v| v.len()).sum::<usize>()
+        ));
+        summary.push_str(&format!(
+            "PT invariants computed: {}\n",
+            self.pt_invariants.len()
+        ));
+        summary.push_str(&format!(
+            "DT invariants computed: {}\n",
+            self.dt_invariants.len()
+        ));
 
         if let Ok(mnop_valid) = self.verify_mnop_correspondence() {
             summary.push_str(&format!("MNOP correspondence verified: {}\n", mnop_valid));

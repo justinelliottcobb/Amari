@@ -1,5 +1,5 @@
+use amari_enumerative::tropical_curves::{TropicalEdge, TropicalModuliSpace, TropicalPoint};
 use amari_enumerative::{TropicalCurve, TropicalIntersection};
-use amari_enumerative::tropical_curves::{TropicalPoint, TropicalEdge, TropicalModuliSpace};
 
 #[test]
 fn test_tropical_bezout() {
@@ -19,7 +19,8 @@ fn test_tropical_bezout() {
     let intersection_mult = TropicalIntersection::intersection_multiplicity(
         &curve1_with_structure,
         &curve2_with_structure,
-    ).unwrap();
+    )
+    .unwrap();
 
     // Count with multiplicities - tropical Bézout bound
     let expected_bound = TropicalIntersection::tropical_bezout_bound(2, 3, 2);
@@ -84,7 +85,8 @@ fn test_tropical_intersection_multiplicity() {
     line2.add_vertex(line2_end.clone());
     line2.add_edge(TropicalEdge::new(2, 3, 1, vec![-1.0, 1.0]));
 
-    let intersection_mult = TropicalIntersection::intersection_multiplicity(&line1, &line2).unwrap();
+    let intersection_mult =
+        TropicalIntersection::intersection_multiplicity(&line1, &line2).unwrap();
 
     // Two general tropical lines should intersect with multiplicity 1
     assert!(intersection_mult >= 1);

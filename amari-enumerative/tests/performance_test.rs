@@ -1,8 +1,8 @@
 use amari_enumerative::performance::{
-    FastIntersectionComputer, WasmPerformanceConfig, SparseSchubertMatrix,
-    MemoryPool, CurveBatchProcessor
+    CurveBatchProcessor, FastIntersectionComputer, MemoryPool, SparseSchubertMatrix,
+    WasmPerformanceConfig,
 };
-use amari_enumerative::{ProjectiveSpace, ChowClass};
+use amari_enumerative::{ChowClass, ProjectiveSpace};
 use num_rational::Rational64;
 
 #[test]

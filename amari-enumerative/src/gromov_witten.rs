@@ -3,9 +3,9 @@
 //! This module implements Gromov-Witten theory for counting curves
 //! and computing quantum cohomology rings.
 
+use crate::{ChowClass, EnumerativeResult};
 use num_rational::Rational64;
 use std::collections::HashMap;
-use crate::{EnumerativeResult, ChowClass};
 
 /// Gromov-Witten invariant
 #[derive(Debug, Clone, PartialEq)]
@@ -127,11 +127,7 @@ impl QuantumCohomology {
     }
 
     /// Add a quantum correction
-    pub fn add_quantum_correction(
-        &mut self,
-        key: String,
-        correction: Rational64,
-    ) {
+    pub fn add_quantum_correction(&mut self, key: String, correction: Rational64) {
         self.quantum_corrections.insert(key, correction);
     }
 
@@ -146,7 +142,7 @@ impl QuantumCohomology {
 
         if let (Some(c1), Some(c2)) = (
             self.classical_ring.get(class1),
-            self.classical_ring.get(class2)
+            self.classical_ring.get(class2),
         ) {
             // Classical part
             let classical_product = c1.multiply(c2);
@@ -178,7 +174,7 @@ impl QuantumCohomology {
 
 /// Additional supporting types for Gromov-Witten theory
 pub mod moduli_space {
-    use crate::{ModuliSpace, EnumerativeResult};
+    use crate::{EnumerativeResult, ModuliSpace};
 
     /// Curve class for moduli of stable maps
     #[derive(Debug, Clone, PartialEq)]

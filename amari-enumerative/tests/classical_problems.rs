@@ -21,9 +21,7 @@ fn test_steiner_conic_problem() {
     // Given 5 conics, how many conics are tangent to all 5?
     // Answer: 3264 (Steiner, 1848)
 
-    let conics = (0..5)
-        .map(|i| Conic::example(i))
-        .collect::<Vec<_>>();
+    let conics = (0..5).map(|i| Conic::example(i)).collect::<Vec<_>>();
 
     let count = count_tangent_conics(&conics);
 
@@ -170,13 +168,15 @@ impl Conic {
     pub fn example(index: usize) -> Self {
         // Generate different example conics
         let coeffs = match index {
-            0 => [1.0, 0.0, 1.0, 0.0, 0.0, -1.0], // Unit circle
-            1 => [1.0, 0.0, 0.0, 0.0, -1.0, 0.0],   // Parabola
-            2 => [1.0, 0.0, -1.0, 0.0, 0.0, -1.0],  // Hyperbola
-            3 => [4.0, 0.0, 1.0, 0.0, 0.0, -4.0],   // Ellipse
-            _ => [1.0, 1.0, 1.0, 1.0, 1.0, -1.0],   // General conic
+            0 => [1.0, 0.0, 1.0, 0.0, 0.0, -1.0],  // Unit circle
+            1 => [1.0, 0.0, 0.0, 0.0, -1.0, 0.0],  // Parabola
+            2 => [1.0, 0.0, -1.0, 0.0, 0.0, -1.0], // Hyperbola
+            3 => [4.0, 0.0, 1.0, 0.0, 0.0, -4.0],  // Ellipse
+            _ => [1.0, 1.0, 1.0, 1.0, 1.0, -1.0],  // General conic
         };
-        Self { coefficients: coeffs }
+        Self {
+            coefficients: coeffs,
+        }
     }
 
     pub fn unit_circle() -> Self {
@@ -212,7 +212,9 @@ pub struct Point {
 
 impl Point {
     pub fn new(coords: [f64; 3]) -> Self {
-        Self { coordinates: coords }
+        Self {
+            coordinates: coords,
+        }
     }
 }
 
@@ -224,11 +226,17 @@ pub struct Curve {
 
 impl Curve {
     pub fn line() -> Self {
-        Self { degree: 1, genus: 0 }
+        Self {
+            degree: 1,
+            genus: 0,
+        }
     }
 
     pub fn twisted_cubic() -> Self {
-        Self { degree: 3, genus: 0 }
+        Self {
+            degree: 3,
+            genus: 0,
+        }
     }
 }
 
@@ -305,7 +313,10 @@ pub struct Line {
 
 impl Line {
     pub fn new(p1: Point, p2: Point) -> Self {
-        Self { point1: p1, point2: p2 }
+        Self {
+            point1: p1,
+            point2: p2,
+        }
     }
 
     pub fn is_well_defined(&self) -> bool {
@@ -352,11 +363,12 @@ fn count_polygon_constraint(constraint: Constraint) -> i64 {
     match constraint {
         Constraint::EdgeLengths(lengths) => {
             // For a triangle with sides 3,4,5, there's exactly one (up to congruence)
-            if lengths.len() == 3 &&
-               lengths.iter().all(|&x| x > 0.0) &&
-               lengths[0] + lengths[1] > lengths[2] &&
-               lengths[1] + lengths[2] > lengths[0] &&
-               lengths[0] + lengths[2] > lengths[1] {
+            if lengths.len() == 3
+                && lengths.iter().all(|&x| x > 0.0)
+                && lengths[0] + lengths[1] > lengths[2]
+                && lengths[1] + lengths[2] > lengths[0]
+                && lengths[0] + lengths[2] > lengths[1]
+            {
                 1
             } else {
                 0

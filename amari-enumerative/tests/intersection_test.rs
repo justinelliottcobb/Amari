@@ -1,6 +1,6 @@
 use amari_enumerative::{
-    IntersectionRing, ChowClass, IntersectionNumber,
-    ProjectiveSpace, Grassmannian, Constraint, AlgebraicVariety
+    AlgebraicVariety, ChowClass, Constraint, Grassmannian, IntersectionNumber, IntersectionRing,
+    ProjectiveSpace,
 };
 
 #[test]
@@ -30,7 +30,7 @@ fn test_lines_through_points() {
         vec![
             Constraint::PassesThrough(point1),
             Constraint::PassesThrough(point2),
-        ]
+        ],
     );
 
     assert_eq!(count, 1);
@@ -68,13 +68,13 @@ fn test_intersection_with_geometric_algebra() {
     // Use Clifford algebra to compute intersections
     use amari_enumerative::intersection::MockMultivector;
 
-    let variety = AlgebraicVariety::from_multivector(
-        MockMultivector::from_polynomial("x^2 + y^2 - z^2")
-    );
+    let variety =
+        AlgebraicVariety::from_multivector(MockMultivector::from_polynomial("x^2 + y^2 - z^2"));
 
-    let line = AlgebraicVariety::from_multivector(
-        AlgebraicVariety::line_through_points([0, 0, 0], [1, 1, 1])
-    );
+    let line = AlgebraicVariety::from_multivector(AlgebraicVariety::line_through_points(
+        [0, 0, 0],
+        [1, 1, 1],
+    ));
 
     let intersections = variety.intersect_with(&line);
 

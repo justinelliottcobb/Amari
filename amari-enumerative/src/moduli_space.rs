@@ -4,9 +4,9 @@
 //! the moduli space of curves, stable maps, and intersection numbers
 //! on these spaces.
 
+use crate::{EnumerativeError, EnumerativeResult};
 use num_rational::Rational64;
 use std::collections::HashMap;
-use crate::{EnumerativeError, EnumerativeResult};
 
 /// Moduli space of curves M_{g,n}
 #[derive(Debug, Clone)]
@@ -25,9 +25,10 @@ impl ModuliSpace {
         // Check stability condition: 2g - 2 + n > 0 for stable curves
         // For the stable compactification, we allow (g=0, n=0) as it gives M̄_{0,0} = point
         if stable && 2 * genus + marked_points < 3 && !(genus == 0 && marked_points == 0) {
-            return Err(EnumerativeError::InvalidDimension(
-                format!("Unstable parameters: g={}, n={}", genus, marked_points)
-            ));
+            return Err(EnumerativeError::InvalidDimension(format!(
+                "Unstable parameters: g={}, n={}",
+                genus, marked_points
+            )));
         }
 
         Ok(Self {
@@ -70,7 +71,10 @@ impl ModuliSpace {
     }
 
     /// Compute intersection numbers on the moduli space
-    pub fn intersection_number(&self, classes: &[TautologicalClass]) -> EnumerativeResult<Rational64> {
+    pub fn intersection_number(
+        &self,
+        classes: &[TautologicalClass],
+    ) -> EnumerativeResult<Rational64> {
         // This is highly non-trivial and requires knowledge of the intersection theory
         // of moduli spaces. For now, we provide some basic cases.
 
@@ -200,11 +204,7 @@ pub struct ModuliOfStableMaps {
 
 impl ModuliOfStableMaps {
     /// Create a new moduli space of stable maps
-    pub fn new(
-        domain: ModuliSpace,
-        target: String,
-        curve_class: CurveClass,
-    ) -> Self {
+    pub fn new(domain: ModuliSpace, target: String, curve_class: CurveClass) -> Self {
         Self {
             domain,
             target,
@@ -230,8 +230,8 @@ impl ModuliOfStableMaps {
         let degree = self.curve_class.get_degree("H"); // degree in hyperplane class
         let first_chern_integral = (target_dim + 1) * degree;
 
-        let expected_dim = moduli_dim + first_chern_integral +
-                          (target_dim - 3) * (1 - self.domain.genus as i64);
+        let expected_dim =
+            moduli_dim + first_chern_integral + (target_dim - 3) * (1 - self.domain.genus as i64);
 
         Ok(expected_dim)
     }

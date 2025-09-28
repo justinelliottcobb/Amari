@@ -3,9 +3,9 @@
 //! This module implements Schubert classes and their intersection theory
 //! on Grassmannians and flag varieties.
 
+use crate::{ChowClass, EnumerativeError, EnumerativeResult};
 use num_rational::Rational64;
 use std::collections::HashMap;
-use crate::{EnumerativeError, EnumerativeResult, ChowClass};
 
 /// Schubert class indexed by a Young diagram/partition
 #[derive(Debug, Clone, PartialEq)]
@@ -27,9 +27,11 @@ impl SchubertClass {
 
         for &part in &partition {
             if part > n - k {
-                return Err(EnumerativeError::SchubertError(
-                    format!("Partition entry {} exceeds n-k = {}", part, n - k)
-                ));
+                return Err(EnumerativeError::SchubertError(format!(
+                    "Partition entry {} exceeds n-k = {}",
+                    part,
+                    n - k
+                )));
             }
         }
 
@@ -74,7 +76,10 @@ impl SchubertClass {
     }
 
     /// Giambelli determinant formula
-    pub fn giambelli_determinant(partition: &[usize], grassmannian_dim: (usize, usize)) -> EnumerativeResult<Self> {
+    pub fn giambelli_determinant(
+        partition: &[usize],
+        grassmannian_dim: (usize, usize),
+    ) -> EnumerativeResult<Self> {
         // Simplified implementation - real Giambelli formula involves determinants
         // of matrices of special Schubert classes
         Self::new(partition.to_vec(), grassmannian_dim)
@@ -112,8 +117,9 @@ impl SchubertCalculus {
         }
 
         // Simplified computation - in practice this requires Littlewood-Richardson coefficients
-        let result = if class1.dimension() + class2.dimension() ==
-                         self.grassmannian_dim.0 * (self.grassmannian_dim.1 - self.grassmannian_dim.0) {
+        let result = if class1.dimension() + class2.dimension()
+            == self.grassmannian_dim.0 * (self.grassmannian_dim.1 - self.grassmannian_dim.0)
+        {
             // Expected dimension intersection
             Rational64::from(1)
         } else {
@@ -188,16 +194,16 @@ impl FlagVariety {
     pub fn new(flag_dims: Vec<usize>, ambient_dim: usize) -> EnumerativeResult<Self> {
         // Validate that flag dimensions are increasing
         for i in 1..flag_dims.len() {
-            if flag_dims[i] <= flag_dims[i-1] {
+            if flag_dims[i] <= flag_dims[i - 1] {
                 return Err(EnumerativeError::SchubertError(
-                    "Flag dimensions must be strictly increasing".to_string()
+                    "Flag dimensions must be strictly increasing".to_string(),
                 ));
             }
         }
 
         if flag_dims.last().copied().unwrap_or(0) >= ambient_dim {
             return Err(EnumerativeError::SchubertError(
-                "Largest flag dimension must be less than ambient dimension".to_string()
+                "Largest flag dimension must be less than ambient dimension".to_string(),
             ));
         }
 

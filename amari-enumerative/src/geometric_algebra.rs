@@ -4,8 +4,11 @@
 //! and enumerative geometry computations, enabling geometric representations of
 //! algebraic varieties, Schubert cells, and moduli spaces.
 
+use crate::{
+    ChowClass, EnumerativeError, EnumerativeResult, IntersectionNumber, ProjectiveSpace,
+    SchubertClass,
+};
 use amari_core::{Multivector, Rotor};
-use crate::{ChowClass, SchubertClass, IntersectionNumber, ProjectiveSpace, EnumerativeResult, EnumerativeError};
 use num_rational::Rational64;
 use std::collections::HashMap;
 
@@ -56,9 +59,11 @@ impl<const P: usize, const Q: usize, const R: usize> GeometricVariety<P, Q, R> {
     /// Create a point variety (0-dimensional)
     pub fn point(coordinates: &[f64]) -> EnumerativeResult<Self> {
         if coordinates.len() != P + Q + R {
-            return Err(EnumerativeError::InvalidDimension(
-                format!("Expected {} coordinates, got {}", P + Q + R, coordinates.len())
-            ));
+            return Err(EnumerativeError::InvalidDimension(format!(
+                "Expected {} coordinates, got {}",
+                P + Q + R,
+                coordinates.len()
+            )));
         }
 
         let mut mv = Multivector::zero();
@@ -73,7 +78,7 @@ impl<const P: usize, const Q: usize, const R: usize> GeometricVariety<P, Q, R> {
     pub fn line_through_points(p1: &Self, p2: &Self) -> EnumerativeResult<Self> {
         if p1.dimension != 0 || p2.dimension != 0 {
             return Err(EnumerativeError::InvalidDimension(
-                "Line construction requires point varieties".to_string()
+                "Line construction requires point varieties".to_string(),
             ));
         }
 
@@ -86,12 +91,15 @@ impl<const P: usize, const Q: usize, const R: usize> GeometricVariety<P, Q, R> {
     pub fn plane_through_points(p1: &Self, p2: &Self, p3: &Self) -> EnumerativeResult<Self> {
         if p1.dimension != 0 || p2.dimension != 0 || p3.dimension != 0 {
             return Err(EnumerativeError::InvalidDimension(
-                "Plane construction requires point varieties".to_string()
+                "Plane construction requires point varieties".to_string(),
             ));
         }
 
         // Plane as wedge product of three points
-        let plane_mv = p1.multivector.outer_product(&p2.multivector).outer_product(&p3.multivector);
+        let plane_mv = p1
+            .multivector
+            .outer_product(&p2.multivector)
+            .outer_product(&p3.multivector);
         Ok(Self::new(plane_mv, 2, Rational64::from(1)))
     }
 
@@ -111,7 +119,11 @@ impl<const P: usize, const Q: usize, const R: usize> GeometricVariety<P, Q, R> {
 
         let intersection_degree = self.degree * other.degree;
 
-        Ok(vec![Self::new(intersection_mv, intersection_dim, intersection_degree)])
+        Ok(vec![Self::new(
+            intersection_mv,
+            intersection_dim,
+            intersection_degree,
+        )])
     }
 
     /// Apply a rotor transformation to the variety
@@ -183,7 +195,7 @@ impl<const P: usize, const Q: usize, const R: usize> GeometricSchubertClass<P, Q
     pub fn geometric_intersection(&self, other: &Self) -> EnumerativeResult<Self> {
         if self.grassmannian_dim != other.grassmannian_dim {
             return Err(EnumerativeError::InvalidDimension(
-                "Schubert classes must be on the same Grassmannian".to_string()
+                "Schubert classes must be on the same Grassmannian".to_string(),
             ));
         }
 
@@ -248,18 +260,24 @@ impl<const P: usize, const Q: usize, const R: usize> GeometricProjectiveSpace<P,
         variety2: &GeometricVariety<P, Q, R>,
     ) -> IntersectionNumber {
         // Use geometric product magnitude as intersection multiplicity
-        let intersection_mv = variety1.multivector.geometric_product(&variety2.multivector);
+        let intersection_mv = variety1
+            .multivector
+            .geometric_product(&variety2.multivector);
         let multiplicity = intersection_mv.magnitude();
 
         IntersectionNumber::new(Rational64::from(multiplicity as i64))
     }
 
     /// Create a hyperplane from normal vector
-    pub fn hyperplane_from_normal(&self, normal: &[f64]) -> EnumerativeResult<GeometricVariety<P, Q, R>> {
+    pub fn hyperplane_from_normal(
+        &self,
+        normal: &[f64],
+    ) -> EnumerativeResult<GeometricVariety<P, Q, R>> {
         if normal.len() != P + Q + R {
-            return Err(EnumerativeError::InvalidDimension(
-                format!("Normal vector must have {} components", P + Q + R)
-            ));
+            return Err(EnumerativeError::InvalidDimension(format!(
+                "Normal vector must have {} components",
+                P + Q + R
+            )));
         }
 
         let mut normal_mv = Multivector::zero();
@@ -267,7 +285,11 @@ impl<const P: usize, const Q: usize, const R: usize> GeometricProjectiveSpace<P,
             normal_mv = normal_mv + Multivector::basis_vector(i) * component;
         }
 
-        Ok(GeometricVariety::new(normal_mv, self.projective_space.dimension - 1, Rational64::from(1)))
+        Ok(GeometricVariety::new(
+            normal_mv,
+            self.projective_space.dimension - 1,
+            Rational64::from(1),
+        ))
     }
 }
 
@@ -345,7 +367,10 @@ pub mod quantum_k_theory {
                 for (&deg2, &coeff2) in &other.chern_character {
                     let total_deg = deg1 + deg2;
                     let combined_coeff = coeff1 * coeff2;
-                    *result_class.chern_character.entry(total_deg).or_insert(Rational64::from(0)) += combined_coeff;
+                    *result_class
+                        .chern_character
+                        .entry(total_deg)
+                        .or_insert(Rational64::from(0)) += combined_coeff;
                 }
             }
 
@@ -369,7 +394,10 @@ pub mod quantum_k_theory {
             let total_degree = (self.k_degree + other.k_degree).abs();
 
             // Basic correction: curves of degree d contribute q^d terms
-            if total_degree > 0 && self.has_positive_chern_class() && other.has_positive_chern_class() {
+            if total_degree > 0
+                && self.has_positive_chern_class()
+                && other.has_positive_chern_class()
+            {
                 Ok(total_degree) // Simplified: each positive intersection contributes q^|degree|
             } else {
                 Ok(0) // No quantum correction
@@ -378,7 +406,9 @@ pub mod quantum_k_theory {
 
         /// Check if this class has positive Chern classes (indicating positivity)
         fn has_positive_chern_class(&self) -> bool {
-            self.chern_character.values().any(|&coeff| coeff > Rational64::from(0))
+            self.chern_character
+                .values()
+                .any(|&coeff| coeff > Rational64::from(0))
         }
 
         /// Compute the Chern character in cohomology
@@ -428,7 +458,9 @@ pub mod quantum_k_theory {
                 }
                 result
             } else {
-                self.multivector.inverse().unwrap_or_else(|| self.multivector.clone())
+                self.multivector
+                    .inverse()
+                    .unwrap_or_else(|| self.multivector.clone())
             };
 
             let mut adams_class = Self::new(powered_mv, self.k_degree * k, self.q_power * k);
@@ -457,7 +489,10 @@ pub mod quantum_k_theory {
         }
 
         /// Localization formula for torus-equivariant quantum K-theory
-        pub fn localized_integral(&self, fixed_points: &[GeometricVariety<P, Q, R>]) -> EnumerativeResult<Rational64> {
+        pub fn localized_integral(
+            &self,
+            fixed_points: &[GeometricVariety<P, Q, R>],
+        ) -> EnumerativeResult<Rational64> {
             let mut total = Rational64::from(0);
 
             // Localization: ∫_X ω = Σ_{f∈X^T} ω(f) / e_T(N_f)
@@ -475,7 +510,10 @@ pub mod quantum_k_theory {
         }
 
         /// Evaluate the K-theory class at a fixed point
-        fn evaluate_at_point(&self, point: &GeometricVariety<P, Q, R>) -> EnumerativeResult<Rational64> {
+        fn evaluate_at_point(
+            &self,
+            point: &GeometricVariety<P, Q, R>,
+        ) -> EnumerativeResult<Rational64> {
             // Simplified evaluation: use the geometric degree
             let geometric_eval = point.geometric_degree();
             Ok(Rational64::from(geometric_eval as i64))
@@ -489,7 +527,9 @@ pub mod quantum_k_theory {
         }
 
         /// Quantum cohomology to K-theory correspondence
-        pub fn from_quantum_cohomology(_qh_class: &crate::QuantumCohomology) -> EnumerativeResult<Self> {
+        pub fn from_quantum_cohomology(
+            _qh_class: &crate::QuantumCohomology,
+        ) -> EnumerativeResult<Self> {
             // This implements the correspondence between quantum cohomology and quantum K-theory
             // via the Gamma class and other characteristic classes
 
@@ -624,7 +664,10 @@ mod tests {
 
         let line_bundle = QuantumKClass::<3, 0, 0>::line_bundle(2);
         assert_eq!(line_bundle.k_degree, 0);
-        assert_eq!(*line_bundle.chern_character.get(&1).unwrap(), Rational64::from(2));
+        assert_eq!(
+            *line_bundle.chern_character.get(&1).unwrap(),
+            Rational64::from(2)
+        );
     }
 
     #[test]
@@ -649,7 +692,10 @@ mod tests {
         let adams_2 = line_bundle.adams_operation(2);
 
         // Adams operation ψ² on line bundle with c₁=2 should give 2² = 4
-        assert_eq!(*adams_2.chern_character.get(&1).unwrap(), Rational64::from(4));
+        assert_eq!(
+            *adams_2.chern_character.get(&1).unwrap(),
+            Rational64::from(4)
+        );
     }
 
     #[test]

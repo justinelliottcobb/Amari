@@ -3,8 +3,8 @@
 //! This module implements tropical analogues of classical enumerative
 //! geometry, including tropical curve counting and correspondence theorems.
 
-use std::collections::HashMap;
 use crate::EnumerativeResult;
+use std::collections::HashMap;
 
 /// Tropical curve in tropical projective space
 #[derive(Debug, Clone)]

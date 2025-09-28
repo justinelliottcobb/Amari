@@ -1,7 +1,4 @@
-use amari_enumerative::{
-    Grassmannian, SchubertClass, SchubertCalculus,
-    EnumerativeResult
-};
+use amari_enumerative::{EnumerativeResult, Grassmannian, SchubertCalculus, SchubertClass};
 
 #[test]
 fn test_lines_meeting_four_lines() {
@@ -83,8 +80,8 @@ fn test_schubert_class_basic_properties() {
 
     // Check dimensions
     assert_eq!(sigma_empty.dimension(), 4); // Full dimension of Gr(2,4)
-    assert_eq!(sigma_1.dimension(), 3);     // Codimension 1
-    assert_eq!(sigma_2.dimension(), 2);     // Codimension 2
+    assert_eq!(sigma_1.dimension(), 3); // Codimension 1
+    assert_eq!(sigma_2.dimension(), 2); // Codimension 2
 }
 
 #[test]

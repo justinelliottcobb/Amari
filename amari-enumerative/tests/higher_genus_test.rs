@@ -1,8 +1,7 @@
-use amari_enumerative::{
-    HigherGenusCurve, PTInvariant, DTInvariant, AdvancedCurveCounting,
-    JacobianData, ChowClass
-};
 use amari_enumerative::gromov_witten::CurveClass;
+use amari_enumerative::{
+    AdvancedCurveCounting, ChowClass, DTInvariant, HigherGenusCurve, JacobianData, PTInvariant,
+};
 use num_rational::Rational64;
 use std::collections::BTreeMap;
 
@@ -68,7 +67,7 @@ fn test_virtual_gw_invariant() {
 
     let insertion_classes = vec![
         ChowClass::new(1, Rational64::from(1)),
-        ChowClass::new(1, Rational64::from(1))
+        ChowClass::new(1, Rational64::from(1)),
     ];
 
     let gw_result = curve.virtual_gw_invariant("P2", &insertion_classes);
@@ -88,8 +87,14 @@ fn test_moduli_stack_data() {
     assert!(curve.moduli_stack.tautological_classes.len() > 0);
 
     // Test κ classes
-    assert!(curve.moduli_stack.tautological_classes.contains_key("kappa_1"));
-    assert!(curve.moduli_stack.tautological_classes.contains_key("kappa_2"));
+    assert!(curve
+        .moduli_stack
+        .tautological_classes
+        .contains_key("kappa_1"));
+    assert!(curve
+        .moduli_stack
+        .tautological_classes
+        .contains_key("kappa_2"));
 }
 
 #[test]
@@ -101,7 +106,11 @@ fn test_moduli_space_intersection_numbers() {
     assert!(intersection.is_ok());
 
     // For wrong dimensional classes, should get 0
-    let wrong_classes = vec!["kappa_1".to_string(), "kappa_1".to_string(), "kappa_1".to_string()];
+    let wrong_classes = vec![
+        "kappa_1".to_string(),
+        "kappa_1".to_string(),
+        "kappa_1".to_string(),
+    ];
     let zero_result = curve.moduli_stack.intersection_number(&wrong_classes);
     assert_eq!(zero_result.unwrap(), Rational64::from(0));
 }

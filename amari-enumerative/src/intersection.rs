@@ -6,10 +6,10 @@
 //! - Projective spaces and Grassmannians
 //! - Bézout's theorem and degree calculations
 
+use crate::{EnumerativeError, EnumerativeResult};
 use num_rational::Rational64;
 use num_traits::Zero;
 use std::collections::HashMap;
-use crate::{EnumerativeError, EnumerativeResult};
 
 /// Represents a Chow class in the intersection ring
 #[derive(Debug, Clone, PartialEq)]
@@ -53,7 +53,9 @@ impl ChowClass {
 
         // Add genus via degree-genus formula: g = (d-1)(d-2)/2
         let genus = (degree - 1) * (degree - 2) / 2;
-        class.invariants.insert("genus".to_string(), Rational64::from(genus));
+        class
+            .invariants
+            .insert("genus".to_string(), Rational64::from(genus));
 
         class
     }
@@ -88,10 +90,7 @@ impl ChowClass {
 
     /// Multiply two Chow classes
     pub fn multiply(&self, other: &Self) -> Self {
-        Self::new(
-            self.dimension + other.dimension,
-            self.degree * other.degree,
-        )
+        Self::new(self.dimension + other.dimension, self.degree * other.degree)
     }
 }
 
@@ -219,9 +218,10 @@ impl Grassmannian {
     /// Create a new Grassmannian Gr(k, n)
     pub fn new(k: usize, n: usize) -> EnumerativeResult<Self> {
         if k > n {
-            return Err(EnumerativeError::InvalidDimension(
-                format!("k={} cannot be greater than n={}", k, n)
-            ));
+            return Err(EnumerativeError::InvalidDimension(format!(
+                "k={} cannot be greater than n={}",
+                k, n
+            )));
         }
         Ok(Self { k, n })
     }
@@ -265,12 +265,12 @@ impl Grassmannian {
         &self,
         class1: &crate::SchubertClass,
         class2: &crate::SchubertClass,
-        class3: &crate::SchubertClass
+        class3: &crate::SchubertClass,
     ) -> QuantumProduct {
         // Check if all three classes are σ₁ and if we're in Gr(2,4)
-        let is_sigma_1_cubed = class1.partition == vec![1] &&
-                              class2.partition == vec![1] &&
-                              class3.partition == vec![1];
+        let is_sigma_1_cubed = class1.partition == vec![1]
+            && class2.partition == vec![1]
+            && class3.partition == vec![1];
 
         let is_gr_2_4 = self.k == 2 && self.n == 4;
 
@@ -348,8 +348,12 @@ impl AlgebraicVariety {
     pub fn intersect_with(&self, _other: &Self) -> Vec<IntersectionPoint> {
         // For a line intersecting a quadric, we expect 2 points
         vec![
-            IntersectionPoint { coordinates: vec![1.0, 0.0, 1.0] },
-            IntersectionPoint { coordinates: vec![-1.0, 0.0, 1.0] },
+            IntersectionPoint {
+                coordinates: vec![1.0, 0.0, 1.0],
+            },
+            IntersectionPoint {
+                coordinates: vec![-1.0, 0.0, 1.0],
+            },
         ]
     }
 }
@@ -370,4 +374,3 @@ impl MockMultivector {
         Self
     }
 }
-

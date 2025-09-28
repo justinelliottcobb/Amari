@@ -1,6 +1,6 @@
 use amari_enumerative::{
-    GromovWittenInvariant, QuantumCohomology, GWCurveClass as CurveClass,
-    ProjectiveSpace, ModuliSpace, TautologicalClass
+    GWCurveClass as CurveClass, GromovWittenInvariant, ModuliSpace, ProjectiveSpace,
+    QuantumCohomology, TautologicalClass,
 };
 use num_rational::Rational64;
 
@@ -13,8 +13,8 @@ fn test_lines_on_cubic_surface() {
     let gw_invariant = GromovWittenInvariant::new(
         target,
         line_class,
-        0, // genus
-        vec![] // no marked points
+        0,      // genus
+        vec![], // no marked points
     );
 
     // For cubic surfaces, this should be 27
@@ -95,8 +95,10 @@ fn test_quantum_cohomology_ring() {
     let mut qh = QuantumCohomology::new();
 
     // Add generators
-    qh.add_generator("H".to_string(),
-                    amari_enumerative::ChowClass::linear_subspace(1));
+    qh.add_generator(
+        "H".to_string(),
+        amari_enumerative::ChowClass::linear_subspace(1),
+    );
 
     // Add quantum corrections
     qh.add_quantum_correction("H*H*H".to_string(), Rational64::from(1));
@@ -151,7 +153,7 @@ fn test_moduli_space_dimensions() {
 
 #[test]
 fn test_stable_maps_moduli() {
-    use amari_enumerative::moduli_space::{ModuliOfStableMaps, CurveClass as ModuliCurveClass};
+    use amari_enumerative::moduli_space::{CurveClass as ModuliCurveClass, ModuliOfStableMaps};
 
     let domain = ModuliSpace::new(0, 0, true).unwrap(); // M_{0,0} (point)
     let target = "P2".to_string();

@@ -4,9 +4,9 @@
 //! execution, GPU acceleration via WGPU, and modern web deployment. It includes
 //! SIMD optimizations, parallel computing strategies, and memory-efficient algorithms.
 
-use std::collections::HashMap;
+use crate::{EnumerativeError, EnumerativeResult};
 use num_rational::Rational64;
-use crate::{EnumerativeResult, EnumerativeError};
+use std::collections::HashMap;
 
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
@@ -84,7 +84,10 @@ impl FastIntersectionComputer {
     }
 
     /// Compute intersection numbers with SIMD optimization
-    pub fn fast_intersection_batch(&mut self, operations: &[(i64, i64, i64)]) -> EnumerativeResult<Vec<Rational64>> {
+    pub fn fast_intersection_batch(
+        &mut self,
+        operations: &[(i64, i64, i64)],
+    ) -> EnumerativeResult<Vec<Rational64>> {
         if operations.is_empty() {
             return Ok(Vec::new());
         }
@@ -143,7 +146,10 @@ impl FastIntersectionComputer {
     }
 
     /// SIMD-optimized batch computation
-    fn simd_compute_batch(&mut self, operations: &[(i64, i64, i64)]) -> EnumerativeResult<Vec<Rational64>> {
+    fn simd_compute_batch(
+        &mut self,
+        operations: &[(i64, i64, i64)],
+    ) -> EnumerativeResult<Vec<Rational64>> {
         let batch_size = self.config.batch_size.min(operations.len());
         let mut results = Vec::with_capacity(operations.len());
 
@@ -160,7 +166,10 @@ impl FastIntersectionComputer {
     }
 
     /// SIMD-accelerated intersection computation for a chunk
-    fn simd_intersection_chunk(&mut self, chunk: &[(i64, i64, i64)]) -> EnumerativeResult<Vec<Rational64>> {
+    fn simd_intersection_chunk(
+        &mut self,
+        chunk: &[(i64, i64, i64)],
+    ) -> EnumerativeResult<Vec<Rational64>> {
         // Prepare coefficient vectors for SIMD
         self.coefficient_buffer.clear();
         self.coefficient_buffer.resize(chunk.len() * 8, 0.0);
@@ -212,7 +221,10 @@ impl FastIntersectionComputer {
     }
 
     /// Scalar fallback computation
-    fn scalar_intersection_chunk(&self, chunk: &[(i64, i64, i64)]) -> EnumerativeResult<Vec<Rational64>> {
+    fn scalar_intersection_chunk(
+        &self,
+        chunk: &[(i64, i64, i64)],
+    ) -> EnumerativeResult<Vec<Rational64>> {
         let mut results = Vec::with_capacity(chunk.len());
 
         for &(deg1, deg2, dim) in chunk {
@@ -256,7 +268,9 @@ impl GpuContext {
         let adapter = instance
             .request_adapter(&wgpu::RequestAdapterOptions::default())
             .await
-            .ok_or_else(|| EnumerativeError::ComputationError("No GPU adapter found".to_string()))?;
+            .ok_or_else(|| {
+                EnumerativeError::ComputationError("No GPU adapter found".to_string())
+            })?;
 
         let (device, queue) = adapter
             .request_device(&wgpu::DeviceDescriptor::default(), None)
@@ -286,7 +300,11 @@ impl GpuContext {
 #[cfg(feature = "wgpu")]
 impl FastIntersectionComputer {
     /// GPU-accelerated batch computation
-    fn gpu_compute_batch(&self, gpu: &GpuContext, operations: &[(i64, i64, i64)]) -> EnumerativeResult<Vec<Rational64>> {
+    fn gpu_compute_batch(
+        &self,
+        gpu: &GpuContext,
+        operations: &[(i64, i64, i64)],
+    ) -> EnumerativeResult<Vec<Rational64>> {
         // Convert operations to GPU-friendly format
         let mut input_data = Vec::with_capacity(operations.len() * 4);
         for &(deg1, deg2, dim) in operations {
@@ -295,8 +313,9 @@ impl FastIntersectionComputer {
 
         // Create GPU buffers
         // Note: GPU functionality disabled due to missing dependencies
-        return Err(EnumerativeError::ComputationError("GPU functionality requires additional dependencies".to_string()));
-
+        return Err(EnumerativeError::ComputationError(
+            "GPU functionality requires additional dependencies".to_string(),
+        ));
     }
 }
 
@@ -348,9 +367,11 @@ impl SparseSchubertMatrix {
     /// Sparse matrix-vector multiplication
     pub fn multiply_vector(&self, vector: &[Rational64]) -> EnumerativeResult<Vec<Rational64>> {
         if vector.len() != self.cols {
-            return Err(EnumerativeError::InvalidDimension(
-                format!("Vector length {} != matrix cols {}", vector.len(), self.cols)
-            ));
+            return Err(EnumerativeError::InvalidDimension(format!(
+                "Vector length {} != matrix cols {}",
+                vector.len(),
+                self.cols
+            )));
         }
 
         let mut result = vec![Rational64::from(0); self.rows];
@@ -364,8 +385,8 @@ impl SparseSchubertMatrix {
 
     /// Get memory usage in bytes
     pub fn memory_usage(&self) -> usize {
-        self.entries.len() * std::mem::size_of::<(usize, usize, Rational64)>() +
-        self.row_index.len() * std::mem::size_of::<(usize, Vec<usize>)>()
+        self.entries.len() * std::mem::size_of::<(usize, usize, Rational64)>()
+            + self.row_index.len() * std::mem::size_of::<(usize, Vec<usize>)>()
     }
 }
 
@@ -394,7 +415,10 @@ impl WasmCurveCounting {
     }
 
     /// Count curves with parallel batching
-    pub fn count_curves_batch(&mut self, requests: &[CurveCountRequest]) -> EnumerativeResult<Vec<i64>> {
+    pub fn count_curves_batch(
+        &mut self,
+        requests: &[CurveCountRequest],
+    ) -> EnumerativeResult<Vec<i64>> {
         if requests.is_empty() {
             return Ok(Vec::new());
         }
@@ -458,16 +482,28 @@ impl CurveBatchProcessor {
         }
     }
 
-    pub fn process_with_workers(&mut self, requests: &[CurveCountRequest]) -> EnumerativeResult<Vec<i64>> {
+    pub fn process_with_workers(
+        &mut self,
+        requests: &[CurveCountRequest],
+    ) -> EnumerativeResult<Vec<i64>> {
         self.batch_count += 1;
         // Simulate worker processing
-        Ok(requests.iter().map(|req| req.degree * (req.genus as i64 + 1)).collect())
+        Ok(requests
+            .iter()
+            .map(|req| req.degree * (req.genus as i64 + 1))
+            .collect())
     }
 
-    pub fn process_sequential(&mut self, requests: &[CurveCountRequest]) -> EnumerativeResult<Vec<i64>> {
+    pub fn process_sequential(
+        &mut self,
+        requests: &[CurveCountRequest],
+    ) -> EnumerativeResult<Vec<i64>> {
         self.batch_count += 1;
         // Sequential processing
-        Ok(requests.iter().map(|req| req.degree * (req.genus as i64 + 1)).collect())
+        Ok(requests
+            .iter()
+            .map(|req| req.degree * (req.genus as i64 + 1))
+            .collect())
     }
 
     pub fn cache_hit_rate(&self) -> f64 {
@@ -500,7 +536,9 @@ impl MemoryPool {
 
     pub fn allocate(&mut self, size: usize) -> EnumerativeResult<MemoryAllocation> {
         if self.allocated + size > self.total_size {
-            return Err(EnumerativeError::ComputationError("Memory pool exhausted".to_string()));
+            return Err(EnumerativeError::ComputationError(
+                "Memory pool exhausted".to_string(),
+            ));
         }
 
         self.allocated += size;
@@ -546,7 +584,10 @@ pub fn wasm_log(message: &str) {
 }
 
 /// Benchmark function for performance testing
-pub fn benchmark_intersection_computation(config: WasmPerformanceConfig, operation_count: usize) -> EnumerativeResult<f64> {
+pub fn benchmark_intersection_computation(
+    config: WasmPerformanceConfig,
+    operation_count: usize,
+) -> EnumerativeResult<f64> {
     let start = std::time::Instant::now();
 
     let mut computer = FastIntersectionComputer::new(config);
@@ -602,7 +643,8 @@ impl WasmEnumerativeAPI {
     #[wasm_bindgen]
     pub fn intersection_number(&mut self, deg1: i64, deg2: i64, dim: i64) -> f64 {
         let operations = vec![(deg1, deg2, dim)];
-        let results = self.intersection_computer
+        let results = self
+            .intersection_computer
             .fast_intersection_batch(&operations)
             .unwrap_or_else(|_| vec![Rational64::from(0)]);
 
