@@ -28,6 +28,9 @@ pub mod unicode_ops;
 #[cfg(feature = "phantom-types")]
 pub mod verified;
 
+#[cfg(feature = "formal-verification")]
+pub mod verified_contracts;
+
 pub use cayley::CayleyTable;
 
 /// A multivector in a Clifford algebra Cl(P,Q,R)

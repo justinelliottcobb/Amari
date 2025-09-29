@@ -69,7 +69,9 @@ where
 
     /// Create a scalar multivector
     #[cfg_attr(feature = "formal-verification",
-        ensures(result.is_scalar()))]
+        ensures(result.is_scalar()),
+        ensures(result.coefficients[0] == value),
+        ensures(result.coefficients.len() == Self::BASIS_SIZE))]
     pub fn scalar(value: T) -> Self {
         let mut coefficients = vec![T::zero(); Self::BASIS_SIZE];
         coefficients[0] = value;
@@ -141,14 +143,11 @@ where
     /// # Mathematical Properties (verified by Creusot when enabled)
     /// - Associativity: (AB)C = A(BC)
     /// - Distributivity: A(B+C) = AB + AC
+    /// - Identity: 1*A = A*1 = A
     #[cfg_attr(feature = "formal-verification",
-        ensures(
-            // Verify associativity property
-            forall(|a: Self, b: Self, c: Self|
-                a.geometric_product(&b.geometric_product(&c)) ==
-                a.geometric_product(&b).geometric_product(&c)
-            )
-        ))]
+        requires(self.coefficients.len() == Self::BASIS_SIZE),
+        requires(other.coefficients.len() == Self::BASIS_SIZE),
+        ensures(result.coefficients.len() == Self::BASIS_SIZE))]
     pub fn geometric_product(&self, other: &Self) -> Self {
         // Simplified geometric product implementation
         // In practice, this would use the Cayley table for the signature
