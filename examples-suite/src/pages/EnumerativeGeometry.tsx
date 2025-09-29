@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import {
   Card, CardBody, CardHeader, H1, H2, H3, P, Button, Grid, GridItem,
-  Strong, Code, Table, TableHeader, TableRow, TableHead, TableBody, TableCell,
+  Strong, Code, Table, TableRow, TableHead, TableBody, TableCell,
   TextArea, StatusBadge, Input
 } from 'jadis-ui';
 import { CodePlayground } from '../components/CodePlayground';
@@ -636,12 +636,12 @@ export function EnumerativeGeometry() {
                     </CardHeader>
                     <CardBody>
                       <Table>
-                        <TableHeader>
+                        <TableHead>
                           <TableRow>
-                            <TableHead>Feature</TableHead>
-                            <TableHead>Status</TableHead>
+                            <TableCell>Feature</TableCell>
+                            <TableCell>Status</TableCell>
                           </TableRow>
-                        </TableHeader>
+                        </TableHead>
                         <TableBody>
                           <TableRow>
                             <TableCell><Code>wgpu</Code></TableCell>
@@ -680,14 +680,14 @@ export function EnumerativeGeometry() {
           <CardBody>
             {computationHistory.length > 0 ? (
               <Table>
-                <TableHeader>
+                <TableHead>
                   <TableRow>
-                    <TableHead>Input</TableHead>
-                    <TableHead>Output</TableHead>
-                    <TableHead>Time (ms)</TableHead>
-                    <TableHead>Status</TableHead>
+                    <TableCell>Input</TableCell>
+                    <TableCell>Output</TableCell>
+                    <TableCell>Time (ms)</TableCell>
+                    <TableCell>Status</TableCell>
                   </TableRow>
-                </TableHeader>
+                </TableHead>
                 <TableBody>
                   {computationHistory.map((result, index) => (
                     <TableRow key={index}>
