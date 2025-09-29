@@ -1,0 +1,17 @@
+# Rust toolchain configuration for Amari
+#
+# The project uses stable Rust by default for production builds
+# Nightly is required only for formal verification features with Creusot
+
+[toolchain]
+# Use stable by default
+channel = "stable"
+
+# Components we need
+components = ["rustfmt", "clippy"]
+
+# For formal verification development:
+# To use nightly for Creusot support, run:
+#   cargo +nightly build --features formal-verification
+# Or override locally with:
+#   rustup override set nightly
