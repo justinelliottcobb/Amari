@@ -194,7 +194,7 @@ impl<T: Float, const DIM: usize> TropicalMultivector<T, DIM> {
         self.coefficients
             .get(index)
             .copied()
-            .unwrap_or(TropicalNumber::zero())
+            .unwrap_or(TropicalNumber::tropical_zero())
     }
 
     /// Set coefficient at index
@@ -424,7 +424,7 @@ impl<T: Float> TropicalMatrix<T> {
 
         for i in 0..self.rows {
             for j in 0..other.cols {
-                let mut sum = TropicalNumber::zero();
+                let mut sum = TropicalNumber::tropical_zero();
                 for k in 0..self.cols {
                     // Tropical: (A*B)[i,j] = max_k(A[i,k] + B[k,j])
                     sum = sum + (self.data[i][k] * other.data[k][j]);
