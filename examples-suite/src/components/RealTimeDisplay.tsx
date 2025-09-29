@@ -146,9 +146,9 @@ function TropicalVisualization({ isRunning }: { isRunning: boolean }) {
                     alignItems: 'center',
                     justifyContent: 'flex-end',
                     paddingRight: '0.5rem',
-                    backgroundColor: isMax ? 'var(--primary)' : 'rgba(var(--primary-rgb), 0.6)'
+                    backgroundColor: isMax ? 'var(--primary)' : 'rgba(var(--primary-rgb), 0.6)',
+                    width: `${Math.max(normalized, 5)}%`
                   }}
-                  style={{ width: `${Math.max(normalized, 5)}%` }}
                 >
                   <span style={{ fontSize: '0.75rem', color: 'white' }}>
                     {value.toFixed(2)}
@@ -296,8 +296,7 @@ function FisherVisualization({ isRunning }: { isRunning: boolean }) {
               <span style={{ fontSize: '0.75rem', width: '2rem' }}>p{i}</span>
               <div style={{ flex: 1, backgroundColor: 'var(--background)', borderRadius: '9999px', height: '1rem', overflow: 'hidden' }}>
                 <div
-                  style={{ height: '100%', backgroundColor: 'var(--primary)', transition: 'all 0.2s' }}
-                  style={{ width: `${prob * 100}%` }}
+                  style={{ height: '100%', backgroundColor: 'var(--primary)', transition: 'all 0.2s', width: `${prob * 100}%` }}
                 />
               </div>
               <span style={{ fontSize: '0.75rem', width: '3rem' }}>{prob.toFixed(3)}</span>
