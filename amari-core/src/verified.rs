@@ -239,13 +239,89 @@ where
         K
     }
 
-    // TODO: Outer product implementation requires const generic arithmetic
-    // which has limitations in current Rust. Will implement when stabilized.
-    // /// Outer product of two k-vectors produces a (j+k)-vector
-    // pub fn outer_product<const J: usize>(
-    //     &self,
-    //     other: &KVector<T, J, P, Q, R>
-    // ) -> KVector<T, {K + J}, P, Q, R>
+    /// Inner product with another k-vector (produces a scalar)
+    pub fn inner_product(&self, other: &Self) -> T {
+        // Inner product of k-vectors of same grade
+        self.multivector.coefficients.iter()
+            .zip(&other.multivector.coefficients)
+            .map(|(a, b)| *a * *b)
+            .fold(T::zero(), |acc, x| acc + x)
+    }
+}
+
+// Trait for outer product with specific grade combinations
+// This works around const generic arithmetic limitations
+pub trait OuterProduct<T, const J: usize, const P: usize, const Q: usize, const R: usize>
+where
+    T: Float + Zero + One,
+{
+    type Output;
+    fn outer_product(&self, other: &KVector<T, J, P, Q, R>) -> Self::Output;
+}
+
+// Implement outer product for specific grade combinations
+// Grade 1 ∧ Grade 1 = Grade 2 (vector ∧ vector = bivector)
+impl<T, const P: usize, const Q: usize, const R: usize>
+    OuterProduct<T, 1, P, Q, R> for KVector<T, 1, P, Q, R>
+where
+    T: Float + Zero + One,
+{
+    type Output = KVector<T, 2, P, Q, R>;
+
+    fn outer_product(&self, other: &KVector<T, 1, P, Q, R>) -> Self::Output {
+        let mut coefficients = vec![T::zero(); VerifiedMultivector::<T, P, Q, R>::BASIS_SIZE];
+
+        // Compute outer product for grade-1 vectors
+        for i in 0..VerifiedMultivector::<T, P, Q, R>::DIM {
+            for j in i+1..VerifiedMultivector::<T, P, Q, R>::DIM {
+                let blade_i = 1 << i;
+                let blade_j = 1 << j;
+                let blade_ij = blade_i | blade_j;
+
+                coefficients[blade_ij] =
+                    self.multivector.coefficients[blade_i] *
+                    other.multivector.coefficients[blade_j] -
+                    self.multivector.coefficients[blade_j] *
+                    other.multivector.coefficients[blade_i];
+            }
+        }
+
+        KVector {
+            multivector: VerifiedMultivector {
+                coefficients,
+                _signature: PhantomData,
+            },
+            _grade: PhantomData,
+        }
+    }
+}
+
+// Grade 1 ∧ Grade 2 = Grade 3 (vector ∧ bivector = trivector)
+impl<T, const P: usize, const Q: usize, const R: usize>
+    OuterProduct<T, 2, P, Q, R> for KVector<T, 1, P, Q, R>
+where
+    T: Float + Zero + One,
+{
+    type Output = KVector<T, 3, P, Q, R>;
+
+    fn outer_product(&self, _other: &KVector<T, 2, P, Q, R>) -> Self::Output {
+        // Implementation for vector ∧ bivector
+        todo!("Implement grade 1 ∧ grade 2")
+    }
+}
+
+// Grade 2 ∧ Grade 1 = Grade 3 (bivector ∧ vector = trivector)
+impl<T, const P: usize, const Q: usize, const R: usize>
+    OuterProduct<T, 1, P, Q, R> for KVector<T, 2, P, Q, R>
+where
+    T: Float + Zero + One,
+{
+    type Output = KVector<T, 3, P, Q, R>;
+
+    fn outer_product(&self, _other: &KVector<T, 1, P, Q, R>) -> Self::Output {
+        // Implementation for bivector ∧ vector
+        todo!("Implement grade 2 ∧ grade 1")
+    }
 }
 
 /// A verified rotor with compile-time guarantees
@@ -436,5 +512,28 @@ mod tests {
 
         assert_eq!(bivector.grade(), 2);
         // Grade is guaranteed at compile time
+    }
+
+    #[test]
+    fn test_outer_product_type_safety() {
+        use super::OuterProduct;
+
+        // Create two vectors (grade 1) in 3D Euclidean space
+        let v1 = KVector::<f64, 1, 3, 0, 0>::from_multivector(
+            VerifiedMultivector::basis_vector(0).unwrap()
+        );
+        let v2 = KVector::<f64, 1, 3, 0, 0>::from_multivector(
+            VerifiedMultivector::basis_vector(1).unwrap()
+        );
+
+        // Outer product of two vectors gives a bivector (grade 2)
+        let bivector: KVector<f64, 2, 3, 0, 0> = v1.outer_product(&v2);
+
+        // The type system guarantees this is grade 2
+        assert_eq!(bivector.grade(), 2);
+
+        // The following would not compile due to type mismatch:
+        // let wrong: KVector<f64, 3, 3, 0, 0> = v1.outer_product(&v2);
+        // Error: expected KVector<_, 3, _, _, _>, found KVector<_, 2, _, _, _>
     }
 }
