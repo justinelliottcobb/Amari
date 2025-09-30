@@ -8,6 +8,10 @@ use amari_core::Multivector;
 use num_traits::{Float, Zero};
 use thiserror::Error;
 
+#[cfg(test)]
+pub mod comprehensive_tests;
+pub mod verified_contracts;
+
 // pub mod fisher;
 // pub mod connections;
 // pub mod divergences;
@@ -95,6 +99,7 @@ pub trait AlphaConnection<T: Parameter> {
 }
 
 /// Dually flat manifold with e-connection and m-connection
+#[derive(Clone, Debug)]
 pub struct DuallyFlatManifold {
     dimension: usize,
     #[allow(dead_code)]
@@ -148,6 +153,7 @@ impl DuallyFlatManifold {
 }
 
 /// Fisher Information Matrix
+#[derive(Clone, Debug)]
 pub struct FisherInformationMatrix {
     matrix: Vec<Vec<f64>>,
 }
@@ -171,6 +177,7 @@ impl FisherInformationMatrix {
 }
 
 /// Simplified AlphaConnection implementation for tests
+#[derive(Clone, Debug)]
 pub struct SimpleAlphaConnection {
     alpha: f64,
 }
