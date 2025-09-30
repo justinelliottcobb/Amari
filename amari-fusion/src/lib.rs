@@ -19,8 +19,10 @@ use amari_tropical::{TropicalMatrix, TropicalMultivector, TropicalNumber};
 use num_traits::Float;
 
 pub mod attention;
+pub mod comprehensive_tests;
 pub mod evaluation;
 pub mod optimizer;
+pub mod verified;
 
 /// The unified Tropical-Dual-Clifford structure
 #[derive(Clone, Debug)]
