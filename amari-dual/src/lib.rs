@@ -11,11 +11,104 @@ use alloc::vec::Vec;
 use core::ops::{Add, Div, Mul, Neg, Sub};
 use num_traits::{Float, One, Zero};
 
+pub mod comprehensive_tests;
 pub mod functions;
 pub mod multivector;
+pub mod verified;
 
 // Re-export commonly used types
 pub use multivector::{DualMultivector, MultiDualMultivector};
+
+/// Multi-variable dual number for computing gradients
+#[derive(Clone, Debug, PartialEq)]
+pub struct MultiDualNumber<T: Float> {
+    /// Function value
+    pub real: T,
+    /// Partial derivatives (gradient)
+    pub duals: Vec<T>,
+}
+
+impl<T: Float> MultiDualNumber<T> {
+    /// Create a new multi-dual number
+    pub fn new(real: T, duals: Vec<T>) -> Self {
+        Self { real, duals }
+    }
+
+    /// Create a variable with derivative 1 at the specified index
+    pub fn variable(value: T, num_vars: usize, var_index: usize) -> Self {
+        let mut duals = vec![T::zero(); num_vars];
+        if var_index < num_vars {
+            duals[var_index] = T::one();
+        }
+        Self::new(value, duals)
+    }
+
+    /// Create a constant (all derivatives are zero)
+    pub fn constant(value: T, num_vars: usize) -> Self {
+        Self::new(value, vec![T::zero(); num_vars])
+    }
+
+    /// Get the number of variables
+    pub fn num_vars(&self) -> usize {
+        self.duals.len()
+    }
+
+    /// Square root function
+    pub fn sqrt(&self) -> Self {
+        let sqrt_real = self.real.sqrt();
+        let sqrt_deriv = T::one() / (T::from(2.0).unwrap() * sqrt_real);
+
+        let mut new_duals = Vec::with_capacity(self.duals.len());
+        for &dual in &self.duals {
+            new_duals.push(dual * sqrt_deriv);
+        }
+
+        Self::new(sqrt_real, new_duals)
+    }
+}
+
+impl<T: Float> Add for &MultiDualNumber<T> {
+    type Output = MultiDualNumber<T>;
+
+    fn add(self, other: Self) -> Self::Output {
+        assert_eq!(self.duals.len(), other.duals.len());
+        let mut new_duals = Vec::with_capacity(self.duals.len());
+        for (a, b) in self.duals.iter().zip(other.duals.iter()) {
+            new_duals.push(*a + *b);
+        }
+        MultiDualNumber::new(self.real + other.real, new_duals)
+    }
+}
+
+impl<T: Float> Mul for &MultiDualNumber<T> {
+    type Output = MultiDualNumber<T>;
+
+    fn mul(self, other: Self) -> Self::Output {
+        assert_eq!(self.duals.len(), other.duals.len());
+        let mut new_duals = Vec::with_capacity(self.duals.len());
+        for (a, b) in self.duals.iter().zip(other.duals.iter()) {
+            new_duals.push(*a * other.real + self.real * *b);
+        }
+        MultiDualNumber::new(self.real * other.real, new_duals)
+    }
+}
+
+// Add missing combinations for owned + reference
+impl<T: Float> Add<&MultiDualNumber<T>> for MultiDualNumber<T> {
+    type Output = MultiDualNumber<T>;
+
+    fn add(self, other: &MultiDualNumber<T>) -> Self::Output {
+        &self + other
+    }
+}
+
+impl<T: Float> Mul<&MultiDualNumber<T>> for MultiDualNumber<T> {
+    type Output = MultiDualNumber<T>;
+
+    fn mul(self, other: &MultiDualNumber<T>) -> Self::Output {
+        &self * other
+    }
+}
 
 /// A dual number: a + bε where ε² = 0
 ///
@@ -173,6 +266,48 @@ impl<T: Float> DualNumber<T> {
             self
         } else {
             other
+        }
+    }
+
+    /// Tangent function
+    pub fn tan(self) -> Self {
+        let tan_val = self.real.tan();
+        let sec_squared = T::one() + tan_val * tan_val;
+        Self {
+            real: tan_val,
+            dual: self.dual * sec_squared,
+        }
+    }
+
+    /// Hyperbolic sine
+    pub fn sinh(self) -> Self {
+        let sinh_val = self.real.sinh();
+        Self {
+            real: sinh_val,
+            dual: self.dual * self.real.cosh(),
+        }
+    }
+
+    /// Hyperbolic cosine
+    pub fn cosh(self) -> Self {
+        let cosh_val = self.real.cosh();
+        Self {
+            real: cosh_val,
+            dual: self.dual * self.real.sinh(),
+        }
+    }
+
+    /// Integer power
+    pub fn powi(self, n: i32) -> Self {
+        if n == 0 {
+            return Self::new(T::one(), T::zero());
+        }
+        let real_result = self.real.powi(n);
+        let n_float = T::from(n).unwrap();
+        let dual_result = self.dual * n_float * self.real.powi(n - 1);
+        Self {
+            real: real_result,
+            dual: dual_result,
         }
     }
 }

@@ -132,11 +132,41 @@ impl<T: Float, const P: usize, const Q: usize, const R: usize> DualMultivector<T
         Self::constant_mv(&mv)
     }
 
-    /// Create scalar dual multivector
-    pub fn scalar(value: T) -> Self {
+    /// Create scalar dual multivector from DualNumber
+    pub fn scalar(value: DualNumber<T>) -> Self {
         let mut result = Self::zero();
-        result.coefficients[0] = DualNumber::constant(value);
+        result.coefficients[0] = value;
         result
+    }
+
+    /// Create a basis vector (unit vector in given direction)
+    pub fn basis_vector(index: usize) -> Result<Self, &'static str> {
+        if index >= Self::DIM {
+            return Err("Index out of bounds for basis vector");
+        }
+
+        let mut result = Self::zero();
+        let basis_index = 1 << index; // 2^index for single basis blade
+        if basis_index < Self::BASIS_COUNT {
+            result.coefficients[basis_index] = DualNumber::constant(T::one());
+            Ok(result)
+        } else {
+            Err("Invalid basis vector index")
+        }
+    }
+
+    /// Get the grade of the multivector (highest grade component with non-zero coefficient)
+    pub fn grade(&self) -> usize {
+        let mut highest_grade = 0;
+        for (i, coeff) in self.coefficients.iter().enumerate() {
+            if coeff.real != T::zero() || coeff.dual != T::zero() {
+                let grade = i.count_ones() as usize;
+                if grade > highest_grade {
+                    highest_grade = grade;
+                }
+            }
+        }
+        highest_grade
     }
 
     /// Geometric product with automatic differentiation
@@ -350,8 +380,8 @@ impl<T: Float, const P: usize, const Q: usize, const R: usize> DualMultivector<T
     ///
     /// # Example
     /// ```
-    /// use amari_dual::DualMultivector;
-    /// let input = DualMultivector::<f64, 3, 0, 0>::scalar(2.0);
+    /// use amari_dual::{DualMultivector, DualNumber};
+    /// let input = DualMultivector::<f64, 3, 0, 0>::scalar(DualNumber::constant(2.0));
     /// let (value, gradient) = input.forward_mode_ad(|x| {
     ///     x.geometric_product(&x)  // x^2 in geometric algebra
     /// });
