@@ -43,8 +43,8 @@ mod constructor_tests {
     fn test_from_coefficients() {
         let coeffs = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0];
         let mv = Cl3::from_coefficients(coeffs.clone());
-        for i in 0..8 {
-            assert_eq!(mv.get(i), coeffs[i]);
+        for (i, &coeff) in coeffs.iter().enumerate().take(8) {
+            assert_eq!(mv.get(i), coeff);
         }
     }
 
@@ -52,8 +52,8 @@ mod constructor_tests {
     fn test_from_slice() {
         let coeffs = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0];
         let mv = Cl3::from_slice(&coeffs);
-        for i in 0..8 {
-            assert_eq!(mv.get(i), coeffs[i]);
+        for (i, &coeff) in coeffs.iter().enumerate() {
+            assert_eq!(mv.get(i), coeff);
         }
     }
 }
@@ -268,11 +268,11 @@ mod operation_tests {
         let rev = mv.reverse();
 
         // Scalar and vector parts unchanged, bivector and trivector change sign
-        assert_eq!(rev.get(0), 1.0);  // scalar
-        assert_eq!(rev.get(1), 2.0);  // e1
-        assert_eq!(rev.get(2), 3.0);  // e2
+        assert_eq!(rev.get(0), 1.0); // scalar
+        assert_eq!(rev.get(1), 2.0); // e1
+        assert_eq!(rev.get(2), 3.0); // e2
         assert_eq!(rev.get(3), -4.0); // e1∧e2 (bivector, changes sign)
-        assert_eq!(rev.get(4), 5.0);  // e3 (vector, unchanged)
+        assert_eq!(rev.get(4), 5.0); // e3 (vector, unchanged)
         assert_eq!(rev.get(5), -6.0); // e1∧e3 (bivector, changes sign)
         assert_eq!(rev.get(6), -7.0); // e2∧e3 (bivector, changes sign)
         assert_eq!(rev.get(7), -8.0); // e1∧e2∧e3 (trivector, changes sign)
@@ -933,7 +933,9 @@ mod advanced_operations_tests {
         assert!((rotor.norm() - 1.0).abs() < 1e-10);
 
         // Verify it can rotate vectors (rotor conjugation)
-        let rotated_e1 = rotor.geometric_product(&e1).geometric_product(&rotor.reverse());
+        let rotated_e1 = rotor
+            .geometric_product(&e1)
+            .geometric_product(&rotor.reverse());
 
         // For 45-degree rotation, verify rotation occurred
         // The exact values depend on implementation details, so just verify basic properties

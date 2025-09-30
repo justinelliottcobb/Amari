@@ -3,11 +3,9 @@
 //! This module demonstrates the integration of Creusot formal verification
 //! with concrete geometric algebra operations.
 
-#![cfg(feature = "formal-verification")]
-
-use creusot_contracts::requires;
 use super::verified::VerifiedMultivector;
-use num_traits::{Zero, One, Float};
+use creusot_contracts::requires;
+use num_traits::{Float, One, Zero};
 
 /// Verified scalar multiplication
 #[requires(scalar != T::zero())]
@@ -15,7 +13,7 @@ use num_traits::{Zero, One, Float};
 #[ensures(result.coefficients[0] == scalar * mv.coefficients[0])]
 pub fn verified_scalar_mult<T, const P: usize, const Q: usize, const R: usize>(
     scalar: T,
-    mv: &VerifiedMultivector<T, P, Q, R>
+    mv: &VerifiedMultivector<T, P, Q, R>,
 ) -> VerifiedMultivector<T, P, Q, R>
 where
     T: Float + Zero + One + Copy,
@@ -36,7 +34,7 @@ where
 ))]
 pub fn verified_addition<T, const P: usize, const Q: usize, const R: usize>(
     a: &VerifiedMultivector<T, P, Q, R>,
-    b: &VerifiedMultivector<T, P, Q, R>
+    b: &VerifiedMultivector<T, P, Q, R>,
 ) -> VerifiedMultivector<T, P, Q, R>
 where
     T: Float + Zero + One + Copy,
@@ -48,12 +46,13 @@ where
 #[requires(!mv.coefficients.is_empty())]
 #[ensures(result >= T::zero())]
 pub fn verified_norm<T, const P: usize, const Q: usize, const R: usize>(
-    mv: &VerifiedMultivector<T, P, Q, R>
+    mv: &VerifiedMultivector<T, P, Q, R>,
 ) -> T
 where
     T: Float + Zero + One + Copy,
 {
-    mv.coefficients.iter()
+    mv.coefficients
+        .iter()
         .map(|&c| c * c)
         .fold(T::zero(), |acc, x| acc + x)
         .sqrt()
@@ -63,7 +62,7 @@ where
 #[requires(!mv.coefficients.is_empty())]
 #[ensures(result <= P + Q + R)]
 pub fn verified_grade<T, const P: usize, const Q: usize, const R: usize>(
-    mv: &VerifiedMultivector<T, P, Q, R>
+    mv: &VerifiedMultivector<T, P, Q, R>,
 ) -> usize
 where
     T: Float + Zero + One,
@@ -78,7 +77,7 @@ where
     result.coefficients[i] == mv.coefficients[i]
 ))]
 pub fn verify_scalar_identity<T, const P: usize, const Q: usize, const R: usize>(
-    mv: &VerifiedMultivector<T, P, Q, R>
+    mv: &VerifiedMultivector<T, P, Q, R>,
 ) -> VerifiedMultivector<T, P, Q, R>
 where
     T: Float + Zero + One + Copy,
@@ -94,7 +93,7 @@ where
     result.coefficients[i] == mv.coefficients[i]
 ))]
 pub fn verify_zero_addition<T, const P: usize, const Q: usize, const R: usize>(
-    mv: &VerifiedMultivector<T, P, Q, R>
+    mv: &VerifiedMultivector<T, P, Q, R>,
 ) -> VerifiedMultivector<T, P, Q, R>
 where
     T: Float + Zero + One + Copy,
@@ -111,7 +110,7 @@ where
     (P + Q <= index ==> result.abs() < T::from(0.0001).unwrap())
 )]
 pub fn verify_basis_vector_square<T, const P: usize, const Q: usize, const R: usize>(
-    index: usize
+    index: usize,
 ) -> T
 where
     T: Float + Zero + One + Copy,

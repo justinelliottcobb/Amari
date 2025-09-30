@@ -1,4 +1,5 @@
 //! Benchmarks comparing Tropical-Dual-Clifford algebra performance
+#![allow(clippy::needless_range_loop)]
 
 use amari_core::Multivector;
 use amari_dual::{
@@ -6,7 +7,7 @@ use amari_dual::{
     DualNumber,
 };
 use amari_fusion::TropicalDualClifford;
-use amari_tropical::{viterbi::ViterbiDecoder, TropicalNumber};
+use amari_tropical::{viterbi::TropicalViterbi, TropicalNumber};
 use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
 
 /// Benchmark tropical vs standard softmax computation
@@ -87,8 +88,10 @@ fn benchmark_sequence_decoding(c: &mut Criterion) {
             seq_len,
             |b, _| {
                 b.iter(|| {
-                    let decoder =
-                        ViterbiDecoder::new(black_box(&transitions), black_box(&emissions));
+                    let decoder = TropicalViterbi::new(
+                        black_box(transitions.clone()),
+                        black_box(emissions.clone()),
+                    );
                     let result = decoder.decode(black_box(&observations));
                     black_box(result)
                 });

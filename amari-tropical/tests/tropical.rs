@@ -1,5 +1,4 @@
 use amari_tropical::{TropicalMatrix, TropicalMultivector, TropicalNumber};
-use approx::assert_relative_eq;
 use core::ops::{Add, Mul};
 
 mod tropical_tests {
@@ -46,7 +45,7 @@ mod tropical_tests {
 
     #[test]
     fn test_tropical_softmax_becomes_max() {
-        let logits = vec![1.0, 3.0, 2.0, 5.0, 4.0];
+        let logits = [1.0, 3.0, 2.0, 5.0, 4.0];
         let tropical_logits: Vec<TropicalNumber<f64>> =
             logits.iter().map(|&x| TropicalNumber(x)).collect();
 

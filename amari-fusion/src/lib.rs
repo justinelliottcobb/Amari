@@ -68,7 +68,9 @@ impl<T: Float, const DIM: usize> TropicalDualClifford<T, DIM> {
 
     /// Check if TDC is zero
     pub fn is_zero(&self) -> bool {
-        self.tropical.is_zero() && self.dual.norm().real == T::zero() && self.clifford.norm() == 0.0
+        self.tropical.is_zero()
+            && self.dual.norm().real.abs() < T::epsilon()
+            && self.clifford.norm().abs() < f64::EPSILON
     }
 
     /// Extract tropical features as vector

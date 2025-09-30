@@ -22,9 +22,7 @@ pub mod verified;
 pub mod verified_contracts;
 
 // Re-export phantom types for tropical algebra
-pub use amari_core::verified::{
-    VerifiedMultivector as CoreVerifiedMultivector
-};
+pub use amari_core::verified::VerifiedMultivector as CoreVerifiedMultivector;
 
 /// A number in the tropical (max-plus) semiring
 ///
@@ -548,7 +546,7 @@ mod tests {
 
         // Check support (non-zero elements)
         let support = mv1.support();
-        assert!(support.len() > 0);
+        assert!(!support.is_empty());
     }
 
     #[test]
@@ -832,14 +830,14 @@ mod tests {
 
             // Tropical addition (element-wise max)
             let sum = mv1.tropical_add(&mv2);
-            assert_eq!(sum.get(0).value(), 1.0);   // max(1.0, 0.5)
-            assert_eq!(sum.get(1).value(), 3.0);   // max(2.0, 3.0)
-            assert_eq!(sum.get(2).value(), 3.0);   // max(3.0, 1.5)
-            assert_eq!(sum.get(3).value(), 4.0);   // max(4.0, 2.0)
+            assert_eq!(sum.get(0).value(), 1.0); // max(1.0, 0.5)
+            assert_eq!(sum.get(1).value(), 3.0); // max(2.0, 3.0)
+            assert_eq!(sum.get(2).value(), 3.0); // max(3.0, 1.5)
+            assert_eq!(sum.get(3).value(), 4.0); // max(4.0, 2.0)
 
             // Regular addition (for comparison)
             let add = mv1.add(&mv2);
-            assert_eq!(add.get(0).value(), 1.0);   // Still max operation
+            assert_eq!(add.get(0).value(), 1.0); // Still max operation
         }
 
         #[test]
@@ -907,17 +905,28 @@ mod tests {
             let emissions = TropicalMatrix::<f64>::new(3, 2);
             let initial_probs = vec![-0.5, -1.0];
 
-            let path = TropicalMultivector::<f64, 2>::viterbi(&transitions, &emissions, &initial_probs, 3);
+            let path =
+                TropicalMultivector::<f64, 2>::viterbi(&transitions, &emissions, &initial_probs, 3);
             assert_eq!(path.len(), 3); // Should match sequence length
         }
 
         #[test]
         fn test_zero_detection() {
             // Create a true tropical zero (all negative infinity)
-            let true_zero_mv = TropicalMultivector::<f64, 2>::from_coefficients(vec![f64::NEG_INFINITY, f64::NEG_INFINITY, f64::NEG_INFINITY, f64::NEG_INFINITY]);
+            let true_zero_mv = TropicalMultivector::<f64, 2>::from_coefficients(vec![
+                f64::NEG_INFINITY,
+                f64::NEG_INFINITY,
+                f64::NEG_INFINITY,
+                f64::NEG_INFINITY,
+            ]);
             assert!(true_zero_mv.is_zero());
 
-            let non_zero_mv = TropicalMultivector::<f64, 2>::from_coefficients(vec![1.0, f64::NEG_INFINITY, f64::NEG_INFINITY, f64::NEG_INFINITY]);
+            let non_zero_mv = TropicalMultivector::<f64, 2>::from_coefficients(vec![
+                1.0,
+                f64::NEG_INFINITY,
+                f64::NEG_INFINITY,
+                f64::NEG_INFINITY,
+            ]);
             assert!(!non_zero_mv.is_zero());
         }
     }
@@ -962,15 +971,9 @@ mod tests {
 
         #[test]
         fn test_matrix_multiplication() {
-            let log_probs1 = vec![
-                vec![0.0, -1.0],
-                vec![-0.5, 0.0],
-            ];
+            let log_probs1 = vec![vec![0.0, -1.0], vec![-0.5, 0.0]];
 
-            let log_probs2 = vec![
-                vec![-0.2, -0.8],
-                vec![-0.3, 0.0],
-            ];
+            let log_probs2 = vec![vec![-0.2, -0.8], vec![-0.3, 0.0]];
 
             let m1 = TropicalMatrix::from_log_probs(&log_probs1);
             let m2 = TropicalMatrix::from_log_probs(&log_probs2);
@@ -998,10 +1001,7 @@ mod tests {
             assert!(!det.is_zero());
 
             // Test 2x2 determinant
-            let small_probs = vec![
-                vec![0.0, -1.0],
-                vec![-0.5, 0.0],
-            ];
+            let small_probs = vec![vec![0.0, -1.0], vec![-0.5, 0.0]];
             let small_matrix = TropicalMatrix::from_log_probs(&small_probs);
             let small_det = small_matrix.determinant();
 
@@ -1038,15 +1038,12 @@ mod tests {
             assert_eq!(empty_matrix.cols, 0);
 
             // Single element matrix
-            let single = TropicalMatrix::from_log_probs(&vec![vec![-0.5]]);
+            let single = TropicalMatrix::from_log_probs(&[vec![-0.5]]);
             let det = single.determinant();
             assert_eq!(det.value(), -0.5);
 
             // Matrix with infinities
-            let inf_probs = vec![
-                vec![0.0, f64::NEG_INFINITY],
-                vec![f64::NEG_INFINITY, 0.0],
-            ];
+            let inf_probs = vec![vec![0.0, f64::NEG_INFINITY], vec![f64::NEG_INFINITY, 0.0]];
             let inf_matrix = TropicalMatrix::from_log_probs(&inf_probs);
             let inf_det = inf_matrix.determinant();
             assert_eq!(inf_det.value(), 0.0); // max(0, -∞) = 0
@@ -1054,25 +1051,27 @@ mod tests {
 
         #[test]
         fn test_matrix_properties() {
-            let log_probs = vec![
-                vec![0.0, -1.0],
-                vec![-0.5, 0.0],
-            ];
+            let log_probs = vec![vec![0.0, -1.0], vec![-0.5, 0.0]];
 
             let matrix = TropicalMatrix::from_log_probs(&log_probs);
 
             // Test that matrix operations are consistent
-            let identity_probs = vec![
-                vec![0.0, f64::NEG_INFINITY],
-                vec![f64::NEG_INFINITY, 0.0],
-            ];
+            let identity_probs = vec![vec![0.0, f64::NEG_INFINITY], vec![f64::NEG_INFINITY, 0.0]];
             let identity = TropicalMatrix::from_log_probs(&identity_probs);
 
             let result = matrix.mul(&identity);
 
             // Result should be close to original matrix
-            assert_relative_eq!(result.data[0][0].value(), matrix.data[0][0].value(), epsilon = 1e-10);
-            assert_relative_eq!(result.data[1][1].value(), matrix.data[1][1].value(), epsilon = 1e-10);
+            assert_relative_eq!(
+                result.data[0][0].value(),
+                matrix.data[0][0].value(),
+                epsilon = 1e-10
+            );
+            assert_relative_eq!(
+                result.data[1][1].value(),
+                matrix.data[1][1].value(),
+                epsilon = 1e-10
+            );
         }
     }
 }

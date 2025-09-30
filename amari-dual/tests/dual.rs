@@ -42,7 +42,7 @@ mod dual_tests {
         let product = a.geometric_product(&b);
 
         // Check that we get both value and derivative
-        assert!(product.value().as_slice().len() > 0);
-        assert!(product.derivative().as_slice().len() > 0);
+        assert!(!product.value().as_slice().is_empty());
+        assert!(!product.derivative().as_slice().is_empty());
     }
 }

@@ -3,13 +3,11 @@
 //! This module provides type-safe tropical algebra operations with compile-time
 //! guarantees about mathematical properties and dimensional consistency.
 
-#![cfg(feature = "formal-verification")]
-
 use crate::*;
-use amari_core::verified::{Signature, Dim};
-use std::marker::PhantomData;
-use num_traits::Float;
 use alloc::vec::Vec;
+use amari_core::verified::{Dim, Signature};
+use num_traits::Float;
+use std::marker::PhantomData;
 
 /// Phantom type for tropical semiring properties
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -99,12 +97,20 @@ impl<T: Float + Clone + Copy> VerifiedTropicalNumber<T, MinPlus> {
 
 /// Type-safe tropical multivector with dimensional constraints
 #[derive(Debug, Clone)]
-pub struct VerifiedTropicalMultivector<T: Float + Clone + Copy, const P: usize, const Q: usize, const R: usize, S = MaxPlus> {
+pub struct VerifiedTropicalMultivector<
+    T: Float + Clone + Copy,
+    const P: usize,
+    const Q: usize,
+    const R: usize,
+    S = MaxPlus,
+> {
     coefficients: Vec<VerifiedTropicalNumber<T, S>>,
     _signature: PhantomData<Signature<P, Q, R>>,
 }
 
-impl<T: Float + Clone + Copy, const P: usize, const Q: usize, const R: usize, S> VerifiedTropicalMultivector<T, P, Q, R, S> {
+impl<T: Float + Clone + Copy, const P: usize, const Q: usize, const R: usize, S>
+    VerifiedTropicalMultivector<T, P, Q, R, S>
+{
     pub const DIM: usize = P + Q + R;
     pub const BASIS_SIZE: usize = 1 << Self::DIM;
     pub const SIGNATURE: (usize, usize, usize) = (P, Q, R);
@@ -164,10 +170,14 @@ impl<T: Float + Clone + Copy, const P: usize, const Q: usize, const R: usize, S>
     }
 }
 
-impl<T: Float + Clone + Copy, const P: usize, const Q: usize, const R: usize> VerifiedTropicalMultivector<T, P, Q, R, MaxPlus> {
+impl<T: Float + Clone + Copy, const P: usize, const Q: usize, const R: usize>
+    VerifiedTropicalMultivector<T, P, Q, R, MaxPlus>
+{
     /// Tropical addition (element-wise max)
     pub fn tropical_add(&self, other: &Self) -> Self {
-        let coefficients: Vec<_> = self.coefficients.iter()
+        let coefficients: Vec<_> = self
+            .coefficients
+            .iter()
             .zip(&other.coefficients)
             .map(|(a, b)| a.tropical_add(*b))
             .collect();
@@ -180,7 +190,8 @@ impl<T: Float + Clone + Copy, const P: usize, const Q: usize, const R: usize> Ve
 
     /// Tropical multiplication (tropical geometric product)
     pub fn tropical_mul(&self, other: &Self) -> Self {
-        let mut result = vec![VerifiedTropicalNumber::<T, MaxPlus>::tropical_zero(); Self::BASIS_SIZE];
+        let mut result =
+            vec![VerifiedTropicalNumber::<T, MaxPlus>::tropical_zero(); Self::BASIS_SIZE];
 
         for i in 0..Self::BASIS_SIZE {
             for j in 0..Self::BASIS_SIZE {
@@ -199,20 +210,37 @@ impl<T: Float + Clone + Copy, const P: usize, const Q: usize, const R: usize> Ve
 
     /// Find maximum element (tropical norm)
     pub fn tropical_norm(&self) -> VerifiedTropicalNumber<T, MaxPlus> {
-        self.coefficients.iter()
-            .fold(VerifiedTropicalNumber::<T, MaxPlus>::tropical_zero(), |acc, &x| acc.tropical_add(x))
+        self.coefficients.iter().fold(
+            VerifiedTropicalNumber::<T, MaxPlus>::tropical_zero(),
+            |acc, &x| acc.tropical_add(x),
+        )
     }
 }
 
 /// Type-safe tropical matrix with verified dimensions
 #[derive(Debug, Clone)]
-pub struct VerifiedTropicalMatrix<T: Float + Clone + Copy, const ROWS: usize, const COLS: usize, S = MaxPlus> {
+pub struct VerifiedTropicalMatrix<
+    T: Float + Clone + Copy,
+    const ROWS: usize,
+    const COLS: usize,
+    S = MaxPlus,
+> {
     data: Vec<Vec<VerifiedTropicalNumber<T, S>>>,
     _dimensions: PhantomData<Dim<ROWS>>,
     _columns: PhantomData<Dim<COLS>>,
 }
 
-impl<T: Float + Clone + Copy, const ROWS: usize, const COLS: usize, S> VerifiedTropicalMatrix<T, ROWS, COLS, S> {
+impl<T: Float + Clone + Copy, const ROWS: usize, const COLS: usize, S> Default
+    for VerifiedTropicalMatrix<T, ROWS, COLS, S>
+{
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl<T: Float + Clone + Copy, const ROWS: usize, const COLS: usize, S>
+    VerifiedTropicalMatrix<T, ROWS, COLS, S>
+{
     /// Create new matrix with verified dimensions
     pub fn new() -> Self {
         let mut data = Vec::with_capacity(ROWS);
@@ -246,7 +274,12 @@ impl<T: Float + Clone + Copy, const ROWS: usize, const COLS: usize, S> VerifiedT
     }
 
     /// Set element with bounds checking
-    pub fn set(&mut self, row: usize, col: usize, value: VerifiedTropicalNumber<T, S>) -> Result<(), &'static str> {
+    pub fn set(
+        &mut self,
+        row: usize,
+        col: usize,
+        value: VerifiedTropicalNumber<T, S>,
+    ) -> Result<(), &'static str> {
         if row >= ROWS || col >= COLS {
             return Err("Index out of bounds");
         }
@@ -255,19 +288,22 @@ impl<T: Float + Clone + Copy, const ROWS: usize, const COLS: usize, S> VerifiedT
     }
 }
 
-impl<T: Float + Clone + Copy, const ROWS: usize, const COLS: usize> VerifiedTropicalMatrix<T, ROWS, COLS, MaxPlus> {
+impl<T: Float + Clone + Copy, const ROWS: usize, const COLS: usize>
+    VerifiedTropicalMatrix<T, ROWS, COLS, MaxPlus>
+{
     /// Tropical matrix multiplication with compile-time dimension checking
-    pub fn tropical_mul<const K: usize>(&self, other: &VerifiedTropicalMatrix<T, COLS, K, MaxPlus>)
-        -> VerifiedTropicalMatrix<T, ROWS, K, MaxPlus>
-    {
+    pub fn tropical_mul<const K: usize>(
+        &self,
+        other: &VerifiedTropicalMatrix<T, COLS, K, MaxPlus>,
+    ) -> VerifiedTropicalMatrix<T, ROWS, K, MaxPlus> {
         let mut result = VerifiedTropicalMatrix::<T, ROWS, K, MaxPlus>::new();
 
         for i in 0..ROWS {
             for j in 0..K {
                 let mut sum = VerifiedTropicalNumber::<T, MaxPlus>::tropical_zero();
                 for k in 0..COLS {
-                    let a = self.get(i, k).unwrap_or(VerifiedTropicalNumber::<T, MaxPlus>::tropical_zero());
-                    let b = other.get(k, j).unwrap_or(VerifiedTropicalNumber::<T, MaxPlus>::tropical_zero());
+                    let a = self.get(i, k).unwrap_or_default();
+                    let b = other.get(k, j).unwrap_or_default();
                     sum = sum.tropical_add(a.tropical_mul(b));
                 }
                 result.set(i, j, sum).unwrap();

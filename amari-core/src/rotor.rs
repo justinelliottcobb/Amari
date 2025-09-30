@@ -144,14 +144,53 @@ impl<const P: usize, const Q: usize, const R: usize> Rotor<P, Q, R> {
 
     /// Spherical linear interpolation between rotors
     pub fn slerp(&self, other: &Self, t: f64) -> Self {
-        // Simplified linear interpolation for now
-        // TODO: Implement proper slerp using quaternion formulas
-        let one_minus_t = 1.0 - t;
+        // Proper SLERP implementation for rotors (quaternion-like)
+        // Compute the inner product (dot product) between rotors
+        let mut dot = 0.0;
+        for i in 0..8 {
+            dot += self.as_slice()[i] * other.as_slice()[i];
+        }
 
-        // Linear interpolation of coefficients
+        // Clamp dot product to avoid numerical issues
+        let dot = dot.clamp(-1.0, 1.0);
+
+        // Determine shortest path and handle quaternion double cover
+        let (dot, other_sign) = if dot < 0.0 { (-dot, -1.0) } else { (dot, 1.0) };
+
+        // If rotors are nearly identical, use linear interpolation
+        const EPSILON: f64 = 0.9995;
+        if dot > EPSILON {
+            // Linear interpolation for small angles
+            let mut result_coeffs = [0.0; 8];
+            for (i, coeff) in result_coeffs.iter_mut().enumerate() {
+                *coeff = self.as_slice()[i]
+                    + t * (other_sign * other.as_slice()[i] - self.as_slice()[i]);
+            }
+
+            let mut result_mv = Multivector::zero();
+            for (i, &coeff) in result_coeffs.iter().enumerate() {
+                result_mv.set(i, coeff);
+            }
+            let normalized = result_mv.normalize().unwrap_or(result_mv);
+            return Self {
+                multivector: normalized,
+            };
+        }
+
+        // Calculate angle between rotors
+        let theta = dot.acos();
+        let theta_t = theta * t;
+        let sin_theta = theta.sin();
+        let sin_theta_t = theta_t.sin();
+        let sin_theta_1_t = (theta * (1.0 - t)).sin();
+
+        // Spherical interpolation formula
+        let scale0 = sin_theta_1_t / sin_theta;
+        let scale1 = sin_theta_t / sin_theta;
+
         let mut result_coeffs = [0.0; 8];
-        for (i, coeff) in result_coeffs.iter_mut().enumerate().take(8) {
-            *coeff = one_minus_t * self.as_slice()[i] + t * other.as_slice()[i];
+        for (i, coeff) in result_coeffs.iter_mut().enumerate() {
+            *coeff = scale0 * self.as_slice()[i] + scale1 * other_sign * other.as_slice()[i];
         }
 
         let mut result_mv = Multivector::zero();

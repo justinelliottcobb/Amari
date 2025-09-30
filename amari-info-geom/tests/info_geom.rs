@@ -1,4 +1,4 @@
-use amari_info_geom::{DuallyFlatManifold, FisherInformationMatrix, SimpleAlphaConnection};
+use amari_info_geom::{DuallyFlatManifold, SimpleAlphaConnection};
 use approx::assert_relative_eq;
 
 mod info_geom_tests {

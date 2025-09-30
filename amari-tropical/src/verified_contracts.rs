@@ -3,8 +3,6 @@
 //! This module provides formal specifications for tropical algebraic operations
 //! with simplified contract documentation for mathematical properties verification.
 
-#![cfg(feature = "formal-verification")]
-
 use crate::verified::*;
 use num_traits::Float;
 
@@ -56,8 +54,8 @@ impl<T: Float + Clone + Copy> VerifiedTropicalNumber<T, MinPlus> {
 
 /// Contracts for verified tropical multivectors
 impl<T: Float + Clone + Copy, const P: usize, const Q: usize, const R: usize>
-    VerifiedTropicalMultivector<T, P, Q, R, MaxPlus> {
-
+    VerifiedTropicalMultivector<T, P, Q, R, MaxPlus>
+{
     /// Contract: Multivector addition is commutative
     pub fn tropical_add_commutative(&self, other: &Self) -> Self {
         self.tropical_add(other)
@@ -81,12 +79,12 @@ impl<T: Float + Clone + Copy, const P: usize, const Q: usize, const R: usize>
 
 /// Contracts for verified tropical matrices
 impl<T: Float + Clone + Copy, const ROWS: usize, const COLS: usize>
-    VerifiedTropicalMatrix<T, ROWS, COLS, MaxPlus> {
-
+    VerifiedTropicalMatrix<T, ROWS, COLS, MaxPlus>
+{
     /// Contract: Matrix multiplication dimension compatibility
     pub fn tropical_mul_dimensions<const K: usize>(
         &self,
-        other: &VerifiedTropicalMatrix<T, COLS, K, MaxPlus>
+        other: &VerifiedTropicalMatrix<T, COLS, K, MaxPlus>,
     ) -> VerifiedTropicalMatrix<T, ROWS, K, MaxPlus> {
         self.tropical_mul(other)
     }
@@ -97,8 +95,12 @@ impl<T: Float + Clone + Copy, const ROWS: usize, const COLS: usize>
     }
 
     /// Contract: Matrix element setting is safe
-    pub fn safe_set(&mut self, row: usize, col: usize, value: VerifiedTropicalNumber<T, MaxPlus>)
-        -> Result<(), &'static str> {
+    pub fn safe_set(
+        &mut self,
+        row: usize,
+        col: usize,
+        value: VerifiedTropicalNumber<T, MaxPlus>,
+    ) -> Result<(), &'static str> {
         self.set(row, col, value)
     }
 }
@@ -129,13 +131,13 @@ pub mod semiring_axioms {
 
         // Additive identity
         let zero = VerifiedTropicalNumber::<T, MaxPlus>::tropical_zero();
-        let add_identity = a.tropical_add(zero).value() == a.value()
-            && zero.tropical_add(a).value() == a.value();
+        let add_identity =
+            a.tropical_add(zero).value() == a.value() && zero.tropical_add(a).value() == a.value();
 
         // Multiplicative identity
         let one = VerifiedTropicalNumber::<T, MaxPlus>::tropical_one();
-        let mul_identity = a.tropical_mul(one).value() == a.value()
-            && one.tropical_mul(a).value() == a.value();
+        let mul_identity =
+            a.tropical_mul(one).value() == a.value() && one.tropical_mul(a).value() == a.value();
 
         // Distributivity
         let distrib = a.tropical_mul(b.tropical_add(c)).value()
@@ -144,8 +146,14 @@ pub mod semiring_axioms {
         // Idempotency of addition
         let idempotent = a.tropical_add(a).value() == a.value();
 
-        assoc_add && comm_add && assoc_mul && comm_mul
-            && add_identity && mul_identity && distrib && idempotent
+        assoc_add
+            && comm_add
+            && assoc_mul
+            && comm_mul
+            && add_identity
+            && mul_identity
+            && distrib
+            && idempotent
     }
 
     /// Verify tropical semiring axioms for MinPlus
@@ -166,20 +174,26 @@ pub mod semiring_axioms {
         let comm_mul = a.tropical_mul(b).value() == b.tropical_mul(a).value();
 
         let zero = VerifiedTropicalNumber::<T, MinPlus>::tropical_zero();
-        let add_identity = a.tropical_add(zero).value() == a.value()
-            && zero.tropical_add(a).value() == a.value();
+        let add_identity =
+            a.tropical_add(zero).value() == a.value() && zero.tropical_add(a).value() == a.value();
 
         let one = VerifiedTropicalNumber::<T, MinPlus>::tropical_one();
-        let mul_identity = a.tropical_mul(one).value() == a.value()
-            && one.tropical_mul(a).value() == a.value();
+        let mul_identity =
+            a.tropical_mul(one).value() == a.value() && one.tropical_mul(a).value() == a.value();
 
         let distrib = a.tropical_mul(b.tropical_add(c)).value()
             == a.tropical_mul(b).tropical_add(a.tropical_mul(c)).value();
 
         let idempotent = a.tropical_add(a).value() == a.value();
 
-        assoc_add && comm_add && assoc_mul && comm_mul
-            && add_identity && mul_identity && distrib && idempotent
+        assoc_add
+            && comm_add
+            && assoc_mul
+            && comm_mul
+            && add_identity
+            && mul_identity
+            && distrib
+            && idempotent
     }
 }
 

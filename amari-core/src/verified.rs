@@ -4,11 +4,11 @@
 //! geometric algebra operations using phantom types for compile-time invariants
 //! and Creusot annotations for formal verification.
 
+use num_traits::{Float, One, Zero};
 use std::marker::PhantomData;
-use num_traits::{Zero, One, Float};
 
 #[cfg(feature = "formal-verification")]
-use creusot_contracts::{requires, ensures};
+use creusot_contracts::{ensures, requires};
 
 /// Phantom type encoding the metric signature of a Clifford algebra Cl(p,q,r)
 /// - P: number of positive basis vectors (e_i² = +1)
@@ -127,7 +127,9 @@ where
     #[cfg_attr(feature = "formal-verification",
         ensures(result.coefficients.len() == self.coefficients.len()))]
     pub fn add(&self, other: &Self) -> Self {
-        let coefficients: Vec<T> = self.coefficients.iter()
+        let coefficients: Vec<T> = self
+            .coefficients
+            .iter()
             .zip(&other.coefficients)
             .map(|(a, b)| *a + *b)
             .collect();
@@ -157,8 +159,8 @@ where
             for j in 0..Self::BASIS_SIZE {
                 let sign = self.compute_product_sign(i, j);
                 let target_index = i ^ j; // XOR gives the resulting basis blade
-                result[target_index] = result[target_index] +
-                    self.coefficients[i] * other.coefficients[j] * T::from(sign).unwrap();
+                result[target_index] = result[target_index]
+                    + self.coefficients[i] * other.coefficients[j] * T::from(sign).unwrap();
             }
         }
 
@@ -173,7 +175,11 @@ where
         // Simplified sign computation
         // Full implementation would consider the signature (P,Q,R)
         let swaps = self.count_swaps(blade1, blade2);
-        if swaps % 2 == 0 { 1 } else { -1 }
+        if swaps.is_multiple_of(2) {
+            1
+        } else {
+            -1
+        }
     }
 
     /// Count the number of swaps needed to reorder basis vectors
@@ -205,8 +211,7 @@ where
     _grade: PhantomData<Grade<K>>,
 }
 
-impl<T, const K: usize, const P: usize, const Q: usize, const R: usize>
-    KVector<T, K, P, Q, R>
+impl<T, const K: usize, const P: usize, const Q: usize, const R: usize> KVector<T, K, P, Q, R>
 where
     T: Float + Zero + One,
 {
@@ -241,7 +246,9 @@ where
     /// Inner product with another k-vector (produces a scalar)
     pub fn inner_product(&self, other: &Self) -> T {
         // Inner product of k-vectors of same grade
-        self.multivector.coefficients.iter()
+        self.multivector
+            .coefficients
+            .iter()
             .zip(&other.multivector.coefficients)
             .map(|(a, b)| *a * *b)
             .fold(T::zero(), |acc, x| acc + x)
@@ -260,8 +267,8 @@ where
 
 // Implement outer product for specific grade combinations
 // Grade 1 ∧ Grade 1 = Grade 2 (vector ∧ vector = bivector)
-impl<T, const P: usize, const Q: usize, const R: usize>
-    OuterProduct<T, 1, P, Q, R> for KVector<T, 1, P, Q, R>
+impl<T, const P: usize, const Q: usize, const R: usize> OuterProduct<T, 1, P, Q, R>
+    for KVector<T, 1, P, Q, R>
 where
     T: Float + Zero + One,
 {
@@ -272,16 +279,15 @@ where
 
         // Compute outer product for grade-1 vectors
         for i in 0..VerifiedMultivector::<T, P, Q, R>::DIM {
-            for j in i+1..VerifiedMultivector::<T, P, Q, R>::DIM {
+            for j in i + 1..VerifiedMultivector::<T, P, Q, R>::DIM {
                 let blade_i = 1 << i;
                 let blade_j = 1 << j;
                 let blade_ij = blade_i | blade_j;
 
-                coefficients[blade_ij] =
-                    self.multivector.coefficients[blade_i] *
-                    other.multivector.coefficients[blade_j] -
-                    self.multivector.coefficients[blade_j] *
-                    other.multivector.coefficients[blade_i];
+                coefficients[blade_ij] = self.multivector.coefficients[blade_i]
+                    * other.multivector.coefficients[blade_j]
+                    - self.multivector.coefficients[blade_j]
+                        * other.multivector.coefficients[blade_i];
             }
         }
 
@@ -296,8 +302,8 @@ where
 }
 
 // Grade 1 ∧ Grade 2 = Grade 3 (vector ∧ bivector = trivector)
-impl<T, const P: usize, const Q: usize, const R: usize>
-    OuterProduct<T, 2, P, Q, R> for KVector<T, 1, P, Q, R>
+impl<T, const P: usize, const Q: usize, const R: usize> OuterProduct<T, 2, P, Q, R>
+    for KVector<T, 1, P, Q, R>
 where
     T: Float + Zero + One,
 {
@@ -310,8 +316,8 @@ where
 }
 
 // Grade 2 ∧ Grade 1 = Grade 3 (bivector ∧ vector = trivector)
-impl<T, const P: usize, const Q: usize, const R: usize>
-    OuterProduct<T, 1, P, Q, R> for KVector<T, 2, P, Q, R>
+impl<T, const P: usize, const Q: usize, const R: usize> OuterProduct<T, 1, P, Q, R>
+    for KVector<T, 2, P, Q, R>
 where
     T: Float + Zero + One,
 {
@@ -369,7 +375,7 @@ where
     fn is_even_grade(mv: &VerifiedMultivector<T, P, Q, R>) -> bool {
         for (i, coeff) in mv.coefficients.iter().enumerate() {
             let grade = i.count_ones() as usize;
-            if grade % 2 != 0 && !coeff.is_zero() {
+            if !grade.is_multiple_of(2) && !coeff.is_zero() {
                 return false;
             }
         }
@@ -378,7 +384,8 @@ where
 
     /// Compute the norm of a multivector
     fn compute_norm(mv: &VerifiedMultivector<T, P, Q, R>) -> T {
-        mv.coefficients.iter()
+        mv.coefficients
+            .iter()
             .map(|c| *c * *c)
             .fold(T::zero(), |acc, x| acc + x)
             .sqrt()
@@ -397,9 +404,7 @@ where
         // Normalize to ensure unit norm (should already be close due to properties)
         let norm = Self::compute_norm(&composed);
         let normalized = VerifiedMultivector {
-            coefficients: composed.coefficients.iter()
-                .map(|c| *c / norm)
-                .collect(),
+            coefficients: composed.coefficients.iter().map(|c| *c / norm).collect(),
             _signature: PhantomData,
         };
 
@@ -454,9 +459,10 @@ where
 
     /// Dot product (only defined for same dimension - enforced by types)
     #[cfg_attr(feature = "formal-verification",
-        ensures(result >= T::zero()))]  // For positive-definite metrics
+        ensures(result >= T::zero()))] // For positive-definite metrics
     pub fn dot(&self, other: &Self) -> T {
-        self.data.iter()
+        self.data
+            .iter()
             .zip(&other.data)
             .map(|(a, b)| *a * *b)
             .fold(T::zero(), |acc, x| acc + x)
@@ -465,7 +471,9 @@ where
     /// Add two vectors (same dimension enforced at compile time)
     pub fn add(&self, other: &Self) -> Self {
         Self {
-            data: self.data.iter()
+            data: self
+                .data
+                .iter()
                 .zip(&other.data)
                 .map(|(a, b)| *a + *b)
                 .collect(),
@@ -505,9 +513,8 @@ mod tests {
     #[test]
     fn test_grade_preservation() {
         // Create a bivector (grade 2)
-        let bivector = KVector::<f64, 2, 3, 0, 0>::from_multivector(
-            VerifiedMultivector::scalar(1.0)
-        );
+        let bivector =
+            KVector::<f64, 2, 3, 0, 0>::from_multivector(VerifiedMultivector::scalar(1.0));
 
         assert_eq!(bivector.grade(), 2);
         // Grade is guaranteed at compile time
@@ -519,10 +526,10 @@ mod tests {
 
         // Create two vectors (grade 1) in 3D Euclidean space
         let v1 = KVector::<f64, 1, 3, 0, 0>::from_multivector(
-            VerifiedMultivector::basis_vector(0).unwrap()
+            VerifiedMultivector::basis_vector(0).unwrap(),
         );
         let v2 = KVector::<f64, 1, 3, 0, 0>::from_multivector(
-            VerifiedMultivector::basis_vector(1).unwrap()
+            VerifiedMultivector::basis_vector(1).unwrap(),
         );
 
         // Outer product of two vectors gives a bivector (grade 2)

@@ -305,6 +305,7 @@ mod tests {
     use wasm_bindgen_test::*;
 
     #[wasm_bindgen_test]
+    #[allow(dead_code)]
     fn test_basic_operations() {
         let e1 = WasmMultivector::basis_vector(0).unwrap();
         let e2 = WasmMultivector::basis_vector(1).unwrap();

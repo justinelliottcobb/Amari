@@ -409,7 +409,6 @@ impl<T: Float> MultiHeadAttention<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use approx::assert_relative_eq;
 
     #[test]
     fn test_attention_head_creation() {

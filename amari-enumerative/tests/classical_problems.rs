@@ -1,3 +1,13 @@
+#![allow(
+    unused_imports,
+    unused_variables,
+    unused_mut,
+    clippy::overly_complex_bool_expr,
+    clippy::useless_vec,
+    clippy::assertions_on_constants,
+    clippy::field_reassign_with_default,
+    clippy::redundant_closure
+)]
 use amari_enumerative::*;
 
 #[test]
