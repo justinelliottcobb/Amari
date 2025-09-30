@@ -15,6 +15,7 @@ pub mod comprehensive_tests;
 pub mod functions;
 pub mod multivector;
 pub mod verified;
+pub mod verified_contracts;
 
 // Re-export commonly used types
 pub use multivector::{DualMultivector, MultiDualMultivector};
