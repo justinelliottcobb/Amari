@@ -341,8 +341,12 @@ impl FusionAlgebraLaws {
         let result_norm = transformed.inner.clifford().norm();
 
         // All norms should be finite and non-negative
-        a_norm >= 0.0 && b_norm >= 0.0 && result_norm >= 0.0
-            && !a_norm.is_nan() && !b_norm.is_nan() && !result_norm.is_nan()
+        a_norm >= 0.0
+            && b_norm >= 0.0
+            && result_norm >= 0.0
+            && !a_norm.is_nan()
+            && !b_norm.is_nan()
+            && !result_norm.is_nan()
     }
 
     /// Verify metric properties of fusion distance
@@ -364,7 +368,8 @@ impl FusionAlgebraLaws {
         let d_aa = a.distance(a);
 
         // Non-negativity
-        let non_negative = d_ab >= T::zero() && d_ba >= T::zero() && d_ac >= T::zero() && d_bc >= T::zero();
+        let non_negative =
+            d_ab >= T::zero() && d_ba >= T::zero() && d_ac >= T::zero() && d_bc >= T::zero();
 
         // Symmetry
         let symmetric = (d_ab - d_ba).abs() < T::epsilon();
@@ -500,7 +505,6 @@ impl<T: Float, const DIM: usize> Default for VerifiedContractBuilder<T, DIM> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use approx::assert_relative_eq;
 
     #[test]
     fn test_verified_fusion_creation() {
@@ -550,9 +554,15 @@ mod tests {
         let a = VerifiedContractTropicalDualClifford::<f64, 2>::from_logits(&logits1);
         let b = VerifiedContractTropicalDualClifford::<f64, 2>::from_logits(&logits2);
 
-        assert!(FusionAlgebraLaws::verify_interpolation_properties(&a, &b, 0.0));
-        assert!(FusionAlgebraLaws::verify_interpolation_properties(&a, &b, 0.5));
-        assert!(FusionAlgebraLaws::verify_interpolation_properties(&a, &b, 1.0));
+        assert!(FusionAlgebraLaws::verify_interpolation_properties(
+            &a, &b, 0.0
+        ));
+        assert!(FusionAlgebraLaws::verify_interpolation_properties(
+            &a, &b, 0.5
+        ));
+        assert!(FusionAlgebraLaws::verify_interpolation_properties(
+            &a, &b, 1.0
+        ));
     }
 
     #[test]
