@@ -257,7 +257,7 @@ mod tests {
 
     #[test]
     fn test_softmax() {
-        let logits = vec![1.0, 2.0, 3.0];
+        let logits = [1.0, 2.0, 3.0];
 
         // Test partial derivatives one at a time
         for i in 0..logits.len() {
@@ -311,7 +311,7 @@ mod tests {
 
     #[test]
     fn test_cross_entropy_loss() {
-        let logits = vec![1.0, 2.0, 3.0];
+        let logits = [1.0, 2.0, 3.0];
         let targets = vec![0.0, 0.0, 1.0]; // One-hot encoded
 
         // Test partial derivatives one at a time
@@ -334,7 +334,7 @@ mod tests {
             assert!(loss.real > 0.0);
 
             // Should have gradient with respect to at least some inputs
-            if targets[i] == 0.0 {
+            if targets[i].abs() < f64::EPSILON {
                 // For inputs not corresponding to target class, gradient should be positive (softmax probability)
                 assert!(
                     loss.dual > 0.0,
@@ -354,8 +354,8 @@ mod tests {
 
     #[test]
     fn test_kl_divergence() {
-        let p_values = vec![1.0, 1.0];
-        let q_values = vec![2.0, 0.5];
+        let p_values = [1.0, 1.0];
+        let q_values = [2.0, 0.5];
 
         // Test partial derivatives with respect to p logits one at a time
         for i in 0..p_values.len() {
@@ -402,7 +402,7 @@ mod tests {
 
     #[test]
     fn test_layer_norm() {
-        let input_values = vec![1.0, 2.0, 3.0];
+        let input_values = [1.0, 2.0, 3.0];
 
         // Test partial derivatives with respect to inputs one at a time
         for i in 0..input_values.len() {

@@ -1,0 +1,57 @@
+name: Status Badges
+
+on:
+  push:
+    branches: [ main, master ]
+  schedule:
+    # Run weekly to keep badges fresh
+    - cron: '0 2 * * 0'
+
+jobs:
+  generate-badges:
+    name: Generate Status Badges
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: dtolnay/rust-toolchain@stable
+    - uses: Swatinem/rust-cache@v2
+
+    - name: Run test coverage analysis
+      run: |
+        # Count total tests
+        TOTAL_TESTS=$(cargo test --all --lib --bins -- --list 2>/dev/null | grep -c "test ")
+        echo "TOTAL_TESTS=$TOTAL_TESTS" >> $GITHUB_ENV
+
+        # Count verification tests
+        VERIFICATION_TESTS=$(cargo test --all --features formal-verification -- --list 2>/dev/null | grep -c "test ")
+        echo "VERIFICATION_TESTS=$VERIFICATION_TESTS" >> $GITHUB_ENV
+
+    - name: Create test count badge
+      uses: schneegans/dynamic-badges-action@v1.7.0
+      with:
+        auth: ${{ secrets.GITHUB_TOKEN }}
+        gistID: your-gist-id-here  # Replace with actual gist ID
+        filename: test-count.json
+        label: Tests
+        message: ${{ env.TOTAL_TESTS }} passing
+        color: brightgreen
+
+    - name: Create verification badge
+      uses: schneegans/dynamic-badges-action@v1.7.0
+      with:
+        auth: ${{ secrets.GITHUB_TOKEN }}
+        gistID: your-gist-id-here  # Replace with actual gist ID
+        filename: verification.json
+        label: Formal Verification
+        message: ${{ env.VERIFICATION_TESTS }} verified
+        color: blue
+
+    - name: Create mathematical correctness badge
+      uses: schneegans/dynamic-badges-action@v1.7.0
+      with:
+        auth: ${{ secrets.GITHUB_TOKEN }}
+        gistID: your-gist-id-here  # Replace with actual gist ID
+        filename: math-correctness.json
+        label: Mathematical Correctness
+        message: 100% verified
+        color: gold

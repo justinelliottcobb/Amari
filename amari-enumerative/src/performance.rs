@@ -253,6 +253,7 @@ impl FastIntersectionComputer {
 /// GPU compute context for WGPU acceleration
 #[cfg(feature = "wgpu")]
 #[derive(Debug)]
+#[allow(dead_code)]
 pub struct GpuContext {
     device: wgpu::Device,
     queue: wgpu::Queue,
@@ -302,7 +303,7 @@ impl FastIntersectionComputer {
     /// GPU-accelerated batch computation
     fn gpu_compute_batch(
         &self,
-        gpu: &GpuContext,
+        _gpu: &GpuContext,
         operations: &[(i64, i64, i64)],
     ) -> EnumerativeResult<Vec<Rational64>> {
         // Convert operations to GPU-friendly format
@@ -313,9 +314,9 @@ impl FastIntersectionComputer {
 
         // Create GPU buffers
         // Note: GPU functionality disabled due to missing dependencies
-        return Err(EnumerativeError::ComputationError(
+        Err(EnumerativeError::ComputationError(
             "GPU functionality requires additional dependencies".to_string(),
-        ));
+        ))
     }
 }
 

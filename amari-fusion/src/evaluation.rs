@@ -707,7 +707,6 @@ impl<T: Float> fmt::Display for EvaluationMetrics<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use approx::assert_relative_eq;
 
     #[test]
     fn test_evaluator_creation() {

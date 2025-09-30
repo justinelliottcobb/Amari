@@ -681,7 +681,7 @@ mod tests {
 
         // Check that we get quantum corrections
         assert!(product.q_power >= 0);
-        assert!(product.chern_character.len() > 0);
+        assert!(!product.chern_character.is_empty());
     }
 
     #[test]
@@ -736,7 +736,7 @@ mod tests {
 
         let ring = QuantumKRing::<4, 0, 0>::grassmannian(2, 4);
         assert_eq!(ring.generators.len(), 2); // Tautological sub and quotient bundles
-        assert!(ring.relations.len() > 0);
+        assert!(!ring.relations.is_empty());
     }
 
     #[test]

@@ -212,16 +212,69 @@
 - 🆕 TDD methodology excellent for complex mathematical implementations
 - 🆕 Comprehensive test coverage essential for algebraic geometry algorithms
 
+### Type System Design Patterns
+
+#### Trait-Based Approach vs Phantom Types
+When implementing mathematically rigorous type safety, we use two complementary patterns:
+
+1. **Phantom Types** - For encoding invariants that don't require computation:
+   - Metric signatures: `Signature<const P: usize, const Q: usize, const R: usize>`
+   - Dimensions: `Dim<const D: usize>`
+   - Grade markers: `Grade<const G: usize>`
+
+2. **Trait-Based Pattern** - For operations requiring const generic arithmetic:
+   ```rust
+   // Problem: Rust doesn't support K+J in type position
+   // fn outer_product(...) -> KVector<T, {K+J}, ...>  // ❌ Doesn't compile
+
+   // Solution: Use associated types
+   trait OuterProduct<T, const J: usize, ...> {
+       type Output;  // Encodes K+J relationship
+       fn outer_product(...) -> Self::Output;
+   }
+   ```
+
+   **Benefits:**
+   - Works on stable Rust (no generic_const_exprs needed)
+   - Type-safe grade arithmetic at compile time
+   - Clear, explicit implementations for valid combinations
+   - Zero runtime overhead
+
+   **Use cases in Amari:**
+   - Outer products: `KVector<K> ∧ KVector<J> → KVector<K+J>`
+   - Grade projections with compile-time bounds
+   - Dimension-dependent operations in tensor products
+   - Intersection multiplicities in enumerative geometry
+
+### Formal Verification Initiative
+
+**feature/formal-verification** (Active development):
+- Nightly Rust toolchain configured for Creusot support
+- Phantom types for compile-time mathematical invariants
+- Creusot v0.6 integrated for formal proof annotations
+- Verified module in amari-core with type-safe guarantees
+- Trait-based pattern for const generic arithmetic workarounds
+
+**Verification Architecture:**
+- `VerifiedMultivector<T, P, Q, R>` - Signature-encoded multivectors
+- `KVector<T, K, P, Q, R>` - Grade-specific homogeneous elements
+- `VerifiedRotor<T, P, Q, R>` - Unit norm rotation operators
+- `OuterProduct` trait - Type-safe grade arithmetic
+
 ### Branch History
 **feature/unicode-math-dsl** (Previous work):
 - All Clippy warnings resolved across 6 crates
 - CI/CD pipeline fully unblocked
 
-**feature/enumerative-geometry** (Current work):
+**feature/enumerative-geometry** (Merged to master):
 - d7ab485: fix: resolve clippy linting errors and compilation issues
 - Complete amari-enumerative crate with 95 passing tests
 - Full frontend integration with interactive examples
 - All CI/CD pipeline issues resolved
+
+**feature/formal-verification** (Current work):
+- 8117896: feat: add formal verification framework with phantom types and Creusot
+- 1a6b8dd: feat: implement type-safe outer product using trait pattern
 
 **Progress**:
 - Existing crates: 100% complete (CI/CD ready)

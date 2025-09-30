@@ -14,6 +14,16 @@ use num_traits::Float;
 pub mod polytope;
 pub mod viterbi;
 
+// Phantom types and formal verification modules
+#[cfg(feature = "formal-verification")]
+pub mod verified;
+
+#[cfg(feature = "formal-verification")]
+pub mod verified_contracts;
+
+// Re-export phantom types for tropical algebra
+pub use amari_core::verified::VerifiedMultivector as CoreVerifiedMultivector;
+
 /// A number in the tropical (max-plus) semiring
 ///
 /// Tropical addition is max, tropical multiplication is addition
@@ -182,7 +192,7 @@ impl<T: Float, const DIM: usize> TropicalMultivector<T, DIM> {
         self.coefficients
             .get(index)
             .copied()
-            .unwrap_or(TropicalNumber::zero())
+            .unwrap_or(TropicalNumber::tropical_zero())
     }
 
     /// Set coefficient at index
@@ -412,7 +422,7 @@ impl<T: Float> TropicalMatrix<T> {
 
         for i in 0..self.rows {
             for j in 0..other.cols {
-                let mut sum = TropicalNumber::zero();
+                let mut sum = TropicalNumber::tropical_zero();
                 for k in 0..self.cols {
                     // Tropical: (A*B)[i,j] = max_k(A[i,k] + B[k,j])
                     sum = sum + (self.data[i][k] * other.data[k][j]);
@@ -536,7 +546,7 @@ mod tests {
 
         // Check support (non-zero elements)
         let support = mv1.support();
-        assert!(support.len() > 0);
+        assert!(!support.is_empty());
     }
 
     #[test]
@@ -574,5 +584,494 @@ mod tests {
 
         // Should equal sum of log probabilities
         assert_relative_eq!(path_prob.value(), -1.8, epsilon = 1e-10);
+    }
+
+    // Comprehensive TropicalNumber tests
+    mod tropical_number_tests {
+        use super::*;
+
+        #[test]
+        fn test_tropical_number_constructors() {
+            let n1 = TropicalNumber::new(5.0);
+            assert_eq!(n1.value(), 5.0);
+
+            let zero = TropicalNumber::<f64>::neg_infinity();
+            assert!(zero.is_zero());
+            assert!(zero.is_infinity());
+
+            let one = TropicalNumber::<f64>::zero();
+            assert!(one.is_one());
+            assert!(!one.is_infinity());
+
+            let tropical_zero = TropicalNumber::<f64>::tropical_zero();
+            assert!(tropical_zero.is_zero());
+
+            let tropical_one = TropicalNumber::<f64>::tropical_one();
+            assert!(tropical_one.is_one());
+        }
+
+        #[test]
+        fn test_tropical_number_constants() {
+            assert!(TropicalNumber::<f64>::ZERO.is_zero());
+            assert!(TropicalNumber::<f64>::ONE.is_one());
+            assert_eq!(TropicalNumber::<f64>::ZERO.value(), f64::NEG_INFINITY);
+            assert_eq!(TropicalNumber::<f64>::ONE.value(), 0.0);
+        }
+
+        #[test]
+        fn test_tropical_predicates() {
+            let finite = TropicalNumber::new(3.0);
+            assert!(!finite.is_zero());
+            assert!(!finite.is_one());
+            assert!(!finite.is_infinity());
+
+            let zero = TropicalNumber::new(0.0);
+            assert!(zero.is_one());
+            assert!(!zero.is_zero());
+
+            let pos_inf = TropicalNumber::new(f64::INFINITY);
+            assert!(pos_inf.is_infinity());
+            assert!(!pos_inf.is_zero());
+
+            let neg_inf = TropicalNumber::new(f64::NEG_INFINITY);
+            assert!(neg_inf.is_zero());
+            assert!(neg_inf.is_infinity());
+        }
+
+        #[test]
+        fn test_tropical_arithmetic_properties() {
+            let a = TropicalNumber::new(2.0);
+            let b = TropicalNumber::new(3.0);
+            let c = TropicalNumber::new(1.0);
+
+            // Commutativity
+            assert_eq!(a + b, b + a);
+            assert_eq!(a * b, b * a);
+
+            // Associativity
+            assert_eq!((a + b) + c, a + (b + c));
+            assert_eq!((a * b) * c, a * (b * c));
+
+            // Identity elements
+            assert_eq!(a + TropicalNumber::ZERO, a);
+            assert_eq!(TropicalNumber::ZERO + a, a);
+            assert_eq!(a * TropicalNumber::ONE, a);
+            assert_eq!(TropicalNumber::ONE * a, a);
+
+            // Distributivity: a * (b + c) = (a * b) + (a * c)
+            let left = a * (b + c);
+            let right = (a * b) + (a * c);
+            assert_eq!(left, right);
+        }
+
+        #[test]
+        fn test_tropical_add_operation() {
+            let a = TropicalNumber::new(5.0);
+            let b = TropicalNumber::new(3.0);
+
+            // Tropical add is max
+            let result = a.tropical_add(b);
+            assert_eq!(result.value(), 5.0);
+
+            let result2 = b.tropical_add(a);
+            assert_eq!(result2.value(), 5.0);
+
+            // Test with infinity
+            let inf = TropicalNumber::new(f64::INFINITY);
+            let result3 = a.tropical_add(inf);
+            assert!(result3.value().is_infinite() && result3.value().is_sign_positive());
+        }
+
+        #[test]
+        fn test_tropical_mul_operation() {
+            let a = TropicalNumber::new(2.0);
+            let b = TropicalNumber::new(3.0);
+
+            // Tropical mul is addition
+            let result = a.tropical_mul(b);
+            assert_eq!(result.value(), 5.0);
+
+            // Test with zero (neg infinity)
+            let zero = TropicalNumber::ZERO;
+            let result2 = a.tropical_mul(zero);
+            assert!(result2.is_zero());
+        }
+
+        #[test]
+        fn test_tropical_pow() {
+            let a = TropicalNumber::new(2.0);
+            let result = a.tropical_pow(3.0);
+            assert_eq!(result.value(), 6.0); // 2 * 3 = 6
+
+            let zero = TropicalNumber::ZERO;
+            let result2 = zero.tropical_pow(5.0);
+            assert!(result2.is_zero());
+        }
+
+        #[test]
+        fn test_probability_conversion() {
+            let log_prob = -1.0;
+            let trop = TropicalNumber::from_log_prob(log_prob);
+            assert_eq!(trop.value(), -1.0);
+
+            let prob = trop.to_prob();
+            assert_relative_eq!(prob, (-1.0f64).exp(), epsilon = 1e-10);
+
+            // Test zero conversion
+            let zero = TropicalNumber::ZERO;
+            assert_eq!(zero.to_prob(), 0.0);
+        }
+
+        #[test]
+        fn test_negation() {
+            let a = TropicalNumber::new(3.0);
+            let neg_a = -a;
+            assert_eq!(neg_a.value(), -3.0);
+
+            let zero = TropicalNumber::new(0.0);
+            let neg_zero = -zero;
+            assert_eq!(neg_zero.value(), 0.0);
+        }
+
+        #[test]
+        fn test_operator_overloads() {
+            let a = TropicalNumber::new(4.0);
+            let b = TropicalNumber::new(2.0);
+
+            // Addition operator (tropical add = max)
+            let sum = a + b;
+            assert_eq!(sum.value(), 4.0);
+
+            // Multiplication operator (tropical mul = add)
+            let product = a * b;
+            assert_eq!(product.value(), 6.0);
+
+            // Negation
+            let neg = -a;
+            assert_eq!(neg.value(), -4.0);
+        }
+
+        #[test]
+        fn test_edge_cases() {
+            let inf = TropicalNumber::new(f64::INFINITY);
+            let neg_inf = TropicalNumber::new(f64::NEG_INFINITY);
+            let finite = TropicalNumber::new(1.0);
+
+            // Infinity cases
+            assert_eq!((inf + finite).value(), f64::INFINITY);
+            assert_eq!((inf * finite).value(), f64::INFINITY);
+
+            // Negative infinity cases
+            assert_eq!((neg_inf + finite).value(), 1.0); // max(-∞, 1) = 1
+            assert_eq!((neg_inf * finite).value(), f64::NEG_INFINITY); // -∞ + 1 = -∞
+
+            // NaN handling
+            let nan = TropicalNumber::new(f64::NAN);
+            assert!(nan.value().is_nan());
+        }
+    }
+
+    // Comprehensive TropicalMultivector tests
+    mod tropical_multivector_tests {
+        use super::*;
+
+        #[test]
+        fn test_multivector_constructors() {
+            let zero = TropicalMultivector::<f64, 2>::zero();
+            // The zero() constructor creates multiplicative identities (0.0), not additive identities (-∞)
+            assert!(!zero.is_zero()); // is_zero() checks for all -∞, but zero() creates all 0.0
+
+            let coeffs = vec![1.0, 2.0, 3.0, 4.0];
+            let mv = TropicalMultivector::<f64, 2>::from_coefficients(coeffs.clone());
+
+            for (i, &coeff) in coeffs.iter().enumerate() {
+                assert_eq!(mv.get(i).value(), coeff);
+            }
+        }
+
+        #[test]
+        fn test_from_log_probs() {
+            let log_probs = vec![-1.0, -2.0, -0.5, -3.0];
+            let mv = TropicalMultivector::<f64, 2>::from_log_probs(&log_probs);
+
+            for (i, &log_prob) in log_probs.iter().enumerate() {
+                assert_eq!(mv.get(i).value(), log_prob);
+            }
+        }
+
+        #[test]
+        fn test_get_set_operations() {
+            let mut mv = TropicalMultivector::<f64, 2>::zero();
+
+            let val = TropicalNumber::new(5.0);
+            mv.set(1, val);
+            assert_eq!(mv.get(1), val);
+
+            // Test bounds
+            assert_eq!(mv.get(999).value(), f64::NEG_INFINITY); // Out of bounds returns zero
+        }
+
+        #[test]
+        fn test_max_element() {
+            let coeffs = vec![1.0, 5.0, 2.0, 3.0];
+            let mv = TropicalMultivector::<f64, 2>::from_coefficients(coeffs);
+
+            let max_elem = mv.max_element();
+            assert_eq!(max_elem.value(), 5.0);
+        }
+
+        #[test]
+        fn test_tropical_operations() {
+            let coeffs1 = vec![1.0, 2.0, 3.0, 4.0];
+            let coeffs2 = vec![0.5, 3.0, 1.5, 2.0];
+
+            let mv1 = TropicalMultivector::<f64, 2>::from_coefficients(coeffs1);
+            let mv2 = TropicalMultivector::<f64, 2>::from_coefficients(coeffs2);
+
+            // Tropical addition (element-wise max)
+            let sum = mv1.tropical_add(&mv2);
+            assert_eq!(sum.get(0).value(), 1.0); // max(1.0, 0.5)
+            assert_eq!(sum.get(1).value(), 3.0); // max(2.0, 3.0)
+            assert_eq!(sum.get(2).value(), 3.0); // max(3.0, 1.5)
+            assert_eq!(sum.get(3).value(), 4.0); // max(4.0, 2.0)
+
+            // Regular addition (for comparison)
+            let add = mv1.add(&mv2);
+            assert_eq!(add.get(0).value(), 1.0); // Still max operation
+        }
+
+        #[test]
+        fn test_tropical_scaling() {
+            let coeffs = vec![1.0, 2.0, 3.0, 4.0];
+            let mv = TropicalMultivector::<f64, 2>::from_coefficients(coeffs);
+
+            let scaled = mv.tropical_scale(2.0);
+            assert_eq!(scaled.get(0).value(), 3.0); // 1.0 + 2.0
+            assert_eq!(scaled.get(1).value(), 4.0); // 2.0 + 2.0
+            assert_eq!(scaled.get(2).value(), 5.0); // 3.0 + 2.0
+            assert_eq!(scaled.get(3).value(), 6.0); // 4.0 + 2.0
+
+            let regular_scaled = mv.scale(2.0);
+            assert_eq!(regular_scaled.get(0).value(), 3.0); // Same operation
+        }
+
+        #[test]
+        fn test_support() {
+            let coeffs = vec![f64::NEG_INFINITY, 1.0, f64::NEG_INFINITY, 2.0];
+            let mv = TropicalMultivector::<f64, 2>::from_coefficients(coeffs);
+
+            let support = mv.support();
+            assert_eq!(support, vec![1, 3]); // Only non-negative-infinity elements
+        }
+
+        #[test]
+        fn test_tropical_norm() {
+            let coeffs = vec![1.0, 3.0, 2.0, 4.0];
+            let mv = TropicalMultivector::<f64, 2>::from_coefficients(coeffs);
+
+            let norm = mv.tropical_norm();
+            assert_eq!(norm.value(), 4.0); // Maximum element
+        }
+
+        #[test]
+        fn test_from_logits() {
+            let logits = vec![1.0, 2.0, 0.5, 3.0];
+            let mv = TropicalMultivector::<f64, 2>::from_logits(&logits);
+
+            // Should just copy the logits directly (from_logits calls from_log_probs)
+            assert_eq!(mv.get(0).value(), 1.0);
+            assert_eq!(mv.get(1).value(), 2.0);
+            assert_eq!(mv.get(2).value(), 0.5);
+            assert_eq!(mv.get(3).value(), 3.0);
+        }
+
+        #[test]
+        fn test_geometric_product() {
+            let mv1 = TropicalMultivector::<f64, 2>::from_coefficients(vec![1.0, 2.0, 3.0, 4.0]);
+            let mv2 = TropicalMultivector::<f64, 2>::from_coefficients(vec![0.5, 1.0, 1.5, 2.0]);
+
+            let product = mv1.geometric_product(&mv2);
+
+            // Verify it's not zero and has reasonable structure
+            assert!(!product.is_zero());
+            assert!(!product.max_element().is_zero());
+        }
+
+        #[test]
+        fn test_viterbi() {
+            // Test the static viterbi function exists and works
+            // Note: This is a simplified test since viterbi is complex
+            let transitions = TropicalMatrix::<f64>::new(2, 2);
+            let emissions = TropicalMatrix::<f64>::new(3, 2);
+            let initial_probs = vec![-0.5, -1.0];
+
+            let path =
+                TropicalMultivector::<f64, 2>::viterbi(&transitions, &emissions, &initial_probs, 3);
+            assert_eq!(path.len(), 3); // Should match sequence length
+        }
+
+        #[test]
+        fn test_zero_detection() {
+            // Create a true tropical zero (all negative infinity)
+            let true_zero_mv = TropicalMultivector::<f64, 2>::from_coefficients(vec![
+                f64::NEG_INFINITY,
+                f64::NEG_INFINITY,
+                f64::NEG_INFINITY,
+                f64::NEG_INFINITY,
+            ]);
+            assert!(true_zero_mv.is_zero());
+
+            let non_zero_mv = TropicalMultivector::<f64, 2>::from_coefficients(vec![
+                1.0,
+                f64::NEG_INFINITY,
+                f64::NEG_INFINITY,
+                f64::NEG_INFINITY,
+            ]);
+            assert!(!non_zero_mv.is_zero());
+        }
+    }
+
+    // Comprehensive TropicalMatrix tests
+    mod tropical_matrix_tests {
+        use super::*;
+
+        #[test]
+        fn test_matrix_constructor() {
+            let matrix = TropicalMatrix::<f64>::new(3, 3);
+            assert_eq!(matrix.rows, 3);
+            assert_eq!(matrix.cols, 3);
+            assert_eq!(matrix.data.len(), 3);
+
+            // Should be initialized with multiplicative identity (0.0)
+            for row in &matrix.data {
+                assert_eq!(row.len(), 3);
+                for &val in row {
+                    assert!(val.is_one()); // TropicalNumber::zero() creates multiplicative identity
+                }
+            }
+        }
+
+        #[test]
+        fn test_from_log_probs() {
+            let log_probs = vec![
+                vec![0.0, -1.0, -2.0],
+                vec![-0.5, 0.0, -1.5],
+                vec![-1.0, -0.5, 0.0],
+            ];
+
+            let matrix = TropicalMatrix::from_log_probs(&log_probs);
+            assert_eq!(matrix.rows, 3);
+            assert_eq!(matrix.cols, 3);
+
+            // Check values are correctly set
+            assert_eq!(matrix.data[0][0].value(), 0.0);
+            assert_eq!(matrix.data[0][1].value(), -1.0);
+            assert_eq!(matrix.data[1][0].value(), -0.5);
+        }
+
+        #[test]
+        fn test_matrix_multiplication() {
+            let log_probs1 = vec![vec![0.0, -1.0], vec![-0.5, 0.0]];
+
+            let log_probs2 = vec![vec![-0.2, -0.8], vec![-0.3, 0.0]];
+
+            let m1 = TropicalMatrix::from_log_probs(&log_probs1);
+            let m2 = TropicalMatrix::from_log_probs(&log_probs2);
+
+            let result = m1.mul(&m2);
+            assert_eq!(result.rows, 2);
+            assert_eq!(result.cols, 2);
+
+            // Check first element: max(0 + (-0.2), (-1) + (-0.3)) = max(-0.2, -1.3) = -0.2
+            assert_relative_eq!(result.data[0][0].value(), -0.2, epsilon = 1e-10);
+        }
+
+        #[test]
+        fn test_determinant() {
+            let log_probs = vec![
+                vec![0.0, -1.0, -2.0],
+                vec![-1.0, 0.0, -1.0],
+                vec![-2.0, -1.0, 0.0],
+            ];
+
+            let matrix = TropicalMatrix::from_log_probs(&log_probs);
+            let det = matrix.determinant();
+
+            // Should not be zero (negative infinity)
+            assert!(!det.is_zero());
+
+            // Test 2x2 determinant
+            let small_probs = vec![vec![0.0, -1.0], vec![-0.5, 0.0]];
+            let small_matrix = TropicalMatrix::from_log_probs(&small_probs);
+            let small_det = small_matrix.determinant();
+
+            // det = max(0 + 0, (-1) + (-0.5)) = max(0, -1.5) = 0
+            assert_eq!(small_det.value(), 0.0);
+        }
+
+        #[test]
+        fn test_attention_scores() {
+            let log_probs = vec![
+                vec![0.0, -1.0, -2.0],
+                vec![-0.5, 0.0, -1.0],
+                vec![-1.5, -0.5, 0.0],
+            ];
+
+            let matrix = TropicalMatrix::from_log_probs(&log_probs);
+            let scores = matrix.to_attention_scores();
+
+            assert_eq!(scores.len(), 3);
+            for row in &scores {
+                assert_eq!(row.len(), 3);
+
+                // Each row should sum to approximately 1.0 (attention weights)
+                let sum: f64 = row.iter().sum();
+                assert_relative_eq!(sum, 1.0, epsilon = 1e-6);
+            }
+        }
+
+        #[test]
+        fn test_matrix_edge_cases() {
+            // Empty matrix
+            let empty_matrix = TropicalMatrix::<f64>::new(0, 0);
+            assert_eq!(empty_matrix.rows, 0);
+            assert_eq!(empty_matrix.cols, 0);
+
+            // Single element matrix
+            let single = TropicalMatrix::from_log_probs(&[vec![-0.5]]);
+            let det = single.determinant();
+            assert_eq!(det.value(), -0.5);
+
+            // Matrix with infinities
+            let inf_probs = vec![vec![0.0, f64::NEG_INFINITY], vec![f64::NEG_INFINITY, 0.0]];
+            let inf_matrix = TropicalMatrix::from_log_probs(&inf_probs);
+            let inf_det = inf_matrix.determinant();
+            assert_eq!(inf_det.value(), 0.0); // max(0, -∞) = 0
+        }
+
+        #[test]
+        fn test_matrix_properties() {
+            let log_probs = vec![vec![0.0, -1.0], vec![-0.5, 0.0]];
+
+            let matrix = TropicalMatrix::from_log_probs(&log_probs);
+
+            // Test that matrix operations are consistent
+            let identity_probs = vec![vec![0.0, f64::NEG_INFINITY], vec![f64::NEG_INFINITY, 0.0]];
+            let identity = TropicalMatrix::from_log_probs(&identity_probs);
+
+            let result = matrix.mul(&identity);
+
+            // Result should be close to original matrix
+            assert_relative_eq!(
+                result.data[0][0].value(),
+                matrix.data[0][0].value(),
+                epsilon = 1e-10
+            );
+            assert_relative_eq!(
+                result.data[1][1].value(),
+                matrix.data[1][1].value(),
+                epsilon = 1e-10
+            );
+        }
     }
 }

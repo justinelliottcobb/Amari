@@ -23,3 +23,5 @@ criterion = "0.5"
 default = ["std"]
 std = []
 serialize = ["serde"]
+formal-verification = ["amari-core/formal-verification"]
+contracts = ["formal-verification"]

@@ -99,6 +99,6 @@ mod tests {
     #[test]
     fn test_library_compiles() {
         // Basic smoke test to ensure the library compiles
-        assert!(true);
+        let _compiled = true;
     }
 }

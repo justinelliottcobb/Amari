@@ -313,9 +313,8 @@ mod tests {
         let inside_point = vec![TropicalNumber::new(0.5), TropicalNumber::new(0.5)];
 
         // This is a simplified test - actual tropical containment is complex
-        let contained = polytope.contains_point(&inside_point);
-        // Just verify the test runs without error
-        assert!(contained || !contained); // Tautology, but tests compilation
+        let _contained = polytope.contains_point(&inside_point);
+        // Just verify the test runs without error (compilation test)
     }
 
     #[test]

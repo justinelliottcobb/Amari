@@ -18,12 +18,19 @@ bytemuck = { workspace = true }
 thiserror = { workspace = true }
 serde = { workspace = true, optional = true }
 
+# Formal verification (requires nightly)
+creusot-contracts = { version = "0.6", optional = true }
+
 [dev-dependencies]
 proptest = "1.4"
 criterion = "0.5"
 
 [features]
-default = ["std"]
+default = ["std", "phantom-types"]
 std = []
 serialize = ["serde"]
 parallel = ["rayon"]
+# Phantom types for compile-time verification (works on stable)
+phantom-types = []
+# Formal verification with Creusot (requires nightly)
+formal-verification = ["creusot-contracts", "phantom-types"]
