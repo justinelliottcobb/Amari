@@ -29,6 +29,10 @@
 //! assert_eq!(intersection.multiplicity(), 12); // 3 * 4 = 12
 //! ```
 
+#[cfg(test)]
+pub mod comprehensive_tests;
+pub mod verified_contracts;
+
 pub mod geometric_algebra;
 pub mod gromov_witten;
 pub mod higher_genus;
