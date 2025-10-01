@@ -90,15 +90,86 @@ pub enum AutomataError {
 /// Result type for automata operations
 pub type AutomataResult<T> = Result<T, AutomataError>;
 
-/// Trait for objects that can evolve over time
+/// **Innovative Evolvable Trait for Automata Theory**
+///
+/// A foundational abstraction that unifies evolution concepts across different
+/// mathematical structures in automata theory. This trait represents one of the
+/// key innovations in the Amari library's design philosophy.
+///
+/// ## Design Philosophy
+///
+/// The `Evolvable` trait abstracts the concept of "evolution" or "time-stepped
+/// progression" across disparate mathematical systems:
+///
+/// - **Cellular Automata**: Discrete time evolution of cell states
+/// - **Cayley Graph Navigation**: Movement through group element spaces
+/// - **Self-Assembly Systems**: Progressive component aggregation
+/// - **Tropical Algebra**: Iterative constraint solving
+/// - **Inverse Design**: Gradient-based optimization steps
+///
+/// ## Innovation Highlights
+///
+/// 1. **Mathematical Universality**: Provides a common interface for time-based
+///    evolution regardless of the underlying mathematical structure
+///
+/// 2. **Composability**: Enables complex systems to be built by composing
+///    different `Evolvable` components
+///
+/// 3. **Verification-Friendly**: The discrete step nature allows for
+///    invariant checking and formal verification at each evolution step
+///
+/// 4. **Geometric Algebra Integration**: Naturally supports multivector-based
+///    state evolution common in geometric algebra computations
+///
+/// ## Usage Patterns
+///
+/// ```rust
+/// use amari_automata::{GeometricCA, Evolvable};
+///
+/// let mut ca = GeometricCA::<3, 0, 0>::new_2d(64, 64);
+///
+/// // Evolve system through multiple generations
+/// for generation in 0..100 {
+///     ca.step().unwrap();
+///     println!("Generation {}: {}", ca.generation(), ca.total_energy());
+/// }
+///
+/// // Reset and try different evolution
+/// ca.reset();
+/// ```
+///
+/// ## Verification Integration
+///
+/// The trait design supports formal verification by providing discrete
+/// checkpoints where mathematical invariants can be verified:
+///
+/// - Energy conservation laws
+/// - Geometric algebra closure properties
+/// - Group theory axioms in Cayley navigation
+/// - Constraint satisfaction in tropical solving
+///
+/// This makes `Evolvable` particularly valuable for applications requiring
+/// mathematical correctness guarantees.
 pub trait Evolvable {
     /// Perform one evolution step
+    ///
+    /// # Contracts
+    /// - `ensures(self.generation() == old(self.generation()) + 1)`
+    /// - `ensures(mathematical_invariants_preserved())`
     fn step(&mut self) -> AutomataResult<()>;
 
     /// Get the current generation/time step
+    ///
+    /// # Contracts
+    /// - `ensures(result >= 0)`
+    /// - `ensures(result increases monotonically with each step())`
     fn generation(&self) -> usize;
 
     /// Reset to initial state
+    ///
+    /// # Contracts
+    /// - `ensures(self.generation() == 0)`
+    /// - `ensures(state_equals_initial_configuration())`
     fn reset(&mut self);
 }
 
