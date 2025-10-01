@@ -90,6 +90,7 @@ jobs:
             "amari-tropical"
             "amari-dual"
             "amari-info-geom"
+            "amari-enumerative"
             "amari-fusion"
             "amari-automata"
             "amari-gpu"
