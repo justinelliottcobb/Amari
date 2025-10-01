@@ -128,3 +128,9 @@ pub trait SelfAssembling {
     /// Get affinity between components
     fn affinity(&self, a: &Self::Component, b: &Self::Component) -> f64;
 }
+
+#[cfg(test)]
+pub mod comprehensive_tests_simple;
+
+#[cfg(test)]
+pub mod verified_contracts_simple;
