@@ -25,6 +25,31 @@ pub mod optimizer;
 pub mod verified;
 pub mod verified_contracts;
 
+use thiserror::Error;
+
+/// Error types for the fusion system
+#[derive(Error, Debug, Clone)]
+pub enum FusionError {
+    /// Optimization error
+    #[error(transparent)]
+    Optimization(#[from] optimizer::OptimizationError),
+
+    /// Dimension mismatch error
+    #[error("Dimension mismatch: expected {expected}, got {actual}")]
+    DimensionMismatch { expected: usize, actual: usize },
+
+    /// Numerical instability detected
+    #[error("Numerical instability detected")]
+    NumericalInstability,
+
+    /// Invalid configuration
+    #[error("Invalid configuration: {0}")]
+    InvalidConfiguration(String),
+}
+
+/// Result type for fusion operations
+pub type FusionResult<T> = Result<T, FusionError>;
+
 /// The unified Tropical-Dual-Clifford structure
 #[derive(Clone, Debug)]
 pub struct TropicalDualClifford<T: Float, const DIM: usize> {

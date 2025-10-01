@@ -65,34 +65,31 @@ pub use tropical_curves::{
     TropicalCurve, TropicalEdge, TropicalIntersection, TropicalModuliSpace, TropicalPoint,
 };
 
+use thiserror::Error;
+
 /// Error types for enumerative geometry computations
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Error, Debug, Clone, PartialEq)]
 pub enum EnumerativeError {
     /// Invalid dimension for the ambient space
+    #[error("Invalid dimension: {0}")]
     InvalidDimension(String),
+
     /// Intersection computation failed
+    #[error("Intersection error: {0}")]
     IntersectionError(String),
+
     /// Schubert calculus error
+    #[error("Schubert calculus error: {0}")]
     SchubertError(String),
+
     /// Gromov-Witten invariant computation error
+    #[error("Gromov-Witten error: {0}")]
     GromovWittenError(String),
+
     /// General computational error
+    #[error("Computation error: {0}")]
     ComputationError(String),
 }
-
-impl std::fmt::Display for EnumerativeError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            EnumerativeError::InvalidDimension(msg) => write!(f, "Invalid dimension: {}", msg),
-            EnumerativeError::IntersectionError(msg) => write!(f, "Intersection error: {}", msg),
-            EnumerativeError::SchubertError(msg) => write!(f, "Schubert calculus error: {}", msg),
-            EnumerativeError::GromovWittenError(msg) => write!(f, "Gromov-Witten error: {}", msg),
-            EnumerativeError::ComputationError(msg) => write!(f, "Computation error: {}", msg),
-        }
-    }
-}
-
-impl std::error::Error for EnumerativeError {}
 
 /// Result type for enumerative geometry computations
 pub type EnumerativeResult<T> = Result<T, EnumerativeError>;

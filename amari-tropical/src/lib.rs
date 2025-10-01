@@ -11,8 +11,12 @@ use alloc::vec::Vec;
 use core::ops::{Add, Mul, Neg};
 use num_traits::Float;
 
+pub mod error;
 pub mod polytope;
 pub mod viterbi;
+
+// Re-export error types
+pub use error::{TropicalError, TropicalResult};
 
 // Phantom types and formal verification modules
 #[cfg(feature = "formal-verification")]

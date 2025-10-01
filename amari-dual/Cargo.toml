@@ -11,8 +11,9 @@ keywords = ["automatic-differentiation", "dual-numbers", "calculus", "mathematic
 categories = ["mathematics", "science", "algorithms"]
 
 [dependencies]
-amari-core = { path = "../amari-core", version = "0.2" }
+amari-core = { path = "../amari-core", version = "0.3" }
 num-traits = { workspace = true }
+thiserror = { workspace = true }
 serde = { workspace = true, optional = true }
 
 [dev-dependencies]

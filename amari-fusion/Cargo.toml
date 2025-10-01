@@ -11,10 +11,11 @@ keywords = ["fusion-system", "algebraic-structures", "mathematics", "composition
 categories = ["mathematics", "science", "algorithms"]
 
 [dependencies]
-amari-core = { path = "../amari-core", version = "0.2" }
-amari-tropical = { path = "../amari-tropical", version = "0.2" }
-amari-dual = { path = "../amari-dual", version = "0.2" }
+amari-core = { path = "../amari-core", version = "0.3" }
+amari-tropical = { path = "../amari-tropical", version = "0.3" }
+amari-dual = { path = "../amari-dual", version = "0.3" }
 num-traits = { workspace = true }
+thiserror = { workspace = true }
 serde = { workspace = true, optional = true }
 fastrand = "2.0"
 

@@ -343,32 +343,26 @@ impl<T: Float, const DIM: usize> OptimizationResult<T, DIM> {
     }
 }
 
+use thiserror::Error;
+
 /// Errors that can occur during optimization
-#[derive(Debug, Clone)]
+#[derive(Error, Debug, Clone)]
 pub enum OptimizationError {
     /// Maximum iterations exceeded without convergence
+    #[error("Maximum iterations exceeded without convergence")]
     MaxIterationsExceeded,
-    /// Numerical instability detected
-    NumericalInstability,
-    /// Invalid initial point
-    InvalidInitialPoint,
-    /// Objective function evaluation failed
-    ObjectiveFunctionError,
-}
 
-impl core::fmt::Display for OptimizationError {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        match self {
-            OptimizationError::MaxIterationsExceeded => {
-                write!(f, "Maximum iterations exceeded without convergence")
-            }
-            OptimizationError::NumericalInstability => write!(f, "Numerical instability detected"),
-            OptimizationError::InvalidInitialPoint => write!(f, "Invalid initial point"),
-            OptimizationError::ObjectiveFunctionError => {
-                write!(f, "Objective function evaluation failed")
-            }
-        }
-    }
+    /// Numerical instability detected
+    #[error("Numerical instability detected")]
+    NumericalInstability,
+
+    /// Invalid initial point
+    #[error("Invalid initial point")]
+    InvalidInitialPoint,
+
+    /// Objective function evaluation failed
+    #[error("Objective function evaluation failed")]
+    ObjectiveFunctionError,
 }
 
 /// Specialized optimizers for common LLM tasks
