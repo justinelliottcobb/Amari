@@ -38,6 +38,33 @@ impl LayoutConstraint {
 #[derive(Clone, Debug)]
 pub struct Layout {
     pub components: Vec<UIComponent<3, 0, 0>>,
+    pub width: f64,
+    pub height: f64,
+    pub margin_left: f64,
+    pub margin_top: f64,
+    pub margin_right: f64,
+    pub margin_bottom: f64,
+    pub padding_left: f64,
+    pub padding_top: f64,
+    pub padding_right: f64,
+    pub padding_bottom: f64,
+    pub min_width: f64,
+    pub max_width: f64,
+    pub min_height: f64,
+    pub max_height: f64,
+    pub width_percentage: Option<f64>,
+    pub height_percentage: Option<f64>,
+    pub flex_direction: FlexDirection,
+    pub flex_grow: f64,
+    pub flex_shrink: f64,
+    pub flex_basis: f64,
+    pub grid_column: Option<usize>,
+    pub grid_row: Option<usize>,
+    pub grid_column_span: usize,
+    pub grid_row_span: usize,
+    pub z_index: i32,
+    pub mass: f64,
+    pub spring_constant: f64,
 }
 
 impl Default for Layout {
@@ -50,7 +77,139 @@ impl Layout {
     pub fn new() -> Self {
         Self {
             components: Vec::new(),
+            width: 0.0,
+            height: 0.0,
+            margin_left: 0.0,
+            margin_top: 0.0,
+            margin_right: 0.0,
+            margin_bottom: 0.0,
+            padding_left: 0.0,
+            padding_top: 0.0,
+            padding_right: 0.0,
+            padding_bottom: 0.0,
+            min_width: 0.0,
+            max_width: f64::INFINITY,
+            min_height: 0.0,
+            max_height: f64::INFINITY,
+            width_percentage: None,
+            height_percentage: None,
+            flex_direction: FlexDirection::Row,
+            flex_grow: 0.0,
+            flex_shrink: 1.0,
+            flex_basis: 0.0,
+            grid_column: None,
+            grid_row: None,
+            grid_column_span: 1,
+            grid_row_span: 1,
+            z_index: 0,
+            mass: 1.0,
+            spring_constant: 1.0,
         }
+    }
+
+    pub fn with_size(width: f64, height: f64) -> Self {
+        let mut layout = Self::new();
+        layout.width = width;
+        layout.height = height;
+        layout
+    }
+
+    // Getters
+    pub fn width(&self) -> f64 {
+        self.width
+    }
+    pub fn height(&self) -> f64 {
+        self.height
+    }
+    pub fn margin_left(&self) -> f64 {
+        self.margin_left
+    }
+    pub fn margin_top(&self) -> f64 {
+        self.margin_top
+    }
+    pub fn padding_top(&self) -> f64 {
+        self.padding_top
+    }
+    pub fn z_index(&self) -> i32 {
+        self.z_index
+    }
+
+    // Setters
+    pub fn set_width(&mut self, width: f64) {
+        self.width = width;
+    }
+    pub fn set_height(&mut self, height: f64) {
+        self.height = height;
+    }
+
+    pub fn set_margin(&mut self, left: f64, top: f64, right: f64, bottom: f64) {
+        self.margin_left = left;
+        self.margin_top = top;
+        self.margin_right = right;
+        self.margin_bottom = bottom;
+    }
+
+    pub fn set_padding(&mut self, left: f64, top: f64, right: f64, bottom: f64) {
+        self.padding_left = left;
+        self.padding_top = top;
+        self.padding_right = right;
+        self.padding_bottom = bottom;
+    }
+
+    pub fn set_min_width(&mut self, min_width: f64) {
+        self.min_width = min_width;
+    }
+    pub fn set_max_width(&mut self, max_width: f64) {
+        self.max_width = max_width;
+    }
+    pub fn set_min_height(&mut self, min_height: f64) {
+        self.min_height = min_height;
+    }
+    pub fn set_max_height(&mut self, max_height: f64) {
+        self.max_height = max_height;
+    }
+
+    pub fn set_width_percentage(&mut self, percentage: f64) {
+        self.width_percentage = Some(percentage);
+    }
+    pub fn set_height_percentage(&mut self, percentage: f64) {
+        self.height_percentage = Some(percentage);
+    }
+
+    pub fn set_flex_direction(&mut self, direction: FlexDirection) {
+        self.flex_direction = direction;
+    }
+    pub fn set_flex_grow(&mut self, grow: f64) {
+        self.flex_grow = grow;
+    }
+    pub fn set_flex_shrink(&mut self, shrink: f64) {
+        self.flex_shrink = shrink;
+    }
+    pub fn set_flex_basis(&mut self, basis: f64) {
+        self.flex_basis = basis;
+    }
+
+    pub fn set_grid_column(&mut self, column: usize) {
+        self.grid_column = Some(column);
+    }
+    pub fn set_grid_row(&mut self, row: usize) {
+        self.grid_row = Some(row);
+    }
+    pub fn set_grid_column_span(&mut self, span: usize) {
+        self.grid_column_span = span;
+    }
+    pub fn set_grid_row_span(&mut self, span: usize) {
+        self.grid_row_span = span;
+    }
+
+    pub fn set_z_index(&mut self, z_index: i32) {
+        self.z_index = z_index;
+    }
+    pub fn set_mass(&mut self, mass: f64) {
+        self.mass = mass;
+    }
+    pub fn set_spring_constant(&mut self, k: f64) {
+        self.spring_constant = k;
     }
 }
 
@@ -217,22 +376,77 @@ impl<const P: usize, const Q: usize, const R: usize> UIComponent<P, Q, R> {
     pub fn new(
         signature: Multivector<P, Q, R>,
         position: Vector<P, Q, R>,
-        ui_type: UIComponentType,
-        preferred_size: (f64, f64, f64),
+        component_type: ComponentType,
+        layout: Layout,
     ) -> Self {
-        let base = Component::ui_component(signature, position, ui_type);
+        let base = Component::new(signature, position, component_type);
 
         Self {
             base,
-            preferred_size,
-            min_size: (0.0, 0.0, 0.0),
-            max_size: (f64::INFINITY, f64::INFINITY, f64::INFINITY),
+            preferred_size: (layout.width, layout.height, 0.0),
+            min_size: (layout.min_width, layout.min_height, 0.0),
+            max_size: (layout.max_width, layout.max_height, f64::INFINITY),
             layout_weight: 1.0,
-            z_index: 0,
-            margin: (0.0, 0.0, 0.0, 0.0),
-            padding: (0.0, 0.0, 0.0, 0.0),
-            flex: FlexProperties::default(),
+            z_index: layout.z_index,
+            margin: (
+                layout.margin_left,
+                layout.margin_top,
+                layout.margin_right,
+                layout.margin_bottom,
+            ),
+            padding: (
+                layout.padding_left,
+                layout.padding_top,
+                layout.padding_right,
+                layout.padding_bottom,
+            ),
+            flex: FlexProperties {
+                grow: layout.flex_grow,
+                shrink: layout.flex_shrink,
+                basis: layout.flex_basis,
+                direction: layout.flex_direction.clone(),
+            },
         }
+    }
+
+    /// Get layout information
+    pub fn layout(&self) -> Layout {
+        let mut layout = Layout::new();
+        layout.width = self.preferred_size.0;
+        layout.height = self.preferred_size.1;
+        layout.min_width = self.min_size.0;
+        layout.min_height = self.min_size.1;
+        layout.max_width = self.max_size.0;
+        layout.max_height = self.max_size.1;
+        layout.z_index = self.z_index;
+        layout.margin_left = self.margin.0;
+        layout.margin_top = self.margin.1;
+        layout.margin_right = self.margin.2;
+        layout.margin_bottom = self.margin.3;
+        layout.padding_left = self.padding.0;
+        layout.padding_top = self.padding.1;
+        layout.padding_right = self.padding.2;
+        layout.padding_bottom = self.padding.3;
+        layout.flex_grow = self.flex.grow;
+        layout.flex_shrink = self.flex.shrink;
+        layout.flex_basis = self.flex.basis;
+        layout.flex_direction = self.flex.direction.clone();
+        layout
+    }
+
+    /// Get component signature
+    pub fn signature(&self) -> &Multivector<P, Q, R> {
+        &self.base.signature
+    }
+
+    /// Get component position
+    pub fn position(&self) -> &Vector<P, Q, R> {
+        &self.base.position
+    }
+
+    /// Get component type
+    pub fn component_type(&self) -> &ComponentType {
+        &self.base.component_type
     }
 
     /// Set size constraints
@@ -313,6 +527,67 @@ impl<const P: usize, const Q: usize, const R: usize> UIAssembly<P, Q, R> {
         }
     }
 
+    /// Get component count
+    pub fn component_count(&self) -> usize {
+        self.ui_components.len()
+    }
+
+    /// Get computed rectangle for component
+    pub fn get_computed_rect(&self, index: usize) -> AutomataResult<LayoutRect> {
+        if index < self.layout_rects.len() {
+            Ok(self.layout_rects[index].clone())
+        } else {
+            Err(AutomataError::InvalidCoordinates(index, 0))
+        }
+    }
+
+    /// Check if components overlap
+    pub fn has_overlapping_components(&self) -> bool {
+        for i in 0..self.layout_rects.len() {
+            for j in (i + 1)..self.layout_rects.len() {
+                if self.layout_rects[i].overlaps(&self.layout_rects[j]) {
+                    return true;
+                }
+            }
+        }
+        false
+    }
+
+    /// Find overlapping component pairs
+    pub fn find_overlapping_pairs(&self) -> Vec<(usize, usize)> {
+        let mut overlaps = Vec::new();
+        for i in 0..self.layout_rects.len() {
+            for j in (i + 1)..self.layout_rects.len() {
+                if self.layout_rects[i].overlaps(&self.layout_rects[j]) {
+                    overlaps.push((i, j));
+                }
+            }
+        }
+        overlaps
+    }
+
+    /// Get components ordered by z-index
+    pub fn components_by_z_order(&self) -> Vec<UIComponent<P, Q, R>> {
+        let mut components = self.ui_components.clone();
+        components.sort_by_key(|c| core::cmp::Reverse(c.z_index)); // Higher z-index first
+        components
+    }
+
+    /// Check if physics is stable
+    pub fn is_physics_stable(&self) -> bool {
+        // Simple physics stability check
+        self.total_physics_energy() < 100.0 // Arbitrary threshold
+    }
+
+    /// Calculate total physics energy
+    pub fn total_physics_energy(&self) -> f64 {
+        // Sum of kinetic and potential energy approximation
+        self.ui_components
+            .iter()
+            .map(|c| c.layout_weight * c.preferred_size.0 * c.preferred_size.1)
+            .sum()
+    }
+
     /// Add a UI component
     pub fn add_ui_component(&mut self, component: UIComponent<P, Q, R>) {
         self.base.add_component(component.base.clone());
@@ -389,6 +664,30 @@ impl<const P: usize, const Q: usize, const R: usize> UIAssembler<P, Q, R> {
             ui_config: config,
             layout_engine: LayoutEngine::new(),
         }
+    }
+
+    /// Create with default config
+    pub fn with_default_config() -> Self {
+        Self::new(UIAssemblyConfig::default())
+    }
+
+    /// Set layout algorithm
+    pub fn set_layout_engine(&mut self, algorithm: LayoutAlgorithm) {
+        self.layout_engine.set_algorithm(algorithm);
+    }
+
+    /// Set viewport size for responsive layouts
+    pub fn set_viewport_size(&mut self, _width: f64, _height: f64) {
+        // Store viewport size in config or as a field
+        // For now, this is a placeholder
+    }
+
+    /// Assemble UI components with layout computation
+    pub fn assemble(
+        &self,
+        components: &[UIComponent<P, Q, R>],
+    ) -> AutomataResult<UIAssembly<P, Q, R>> {
+        self.assemble_ui(components)
     }
 
     /// Assemble UI components with layout computation

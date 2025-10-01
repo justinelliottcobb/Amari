@@ -100,6 +100,16 @@ impl<const P: usize, const Q: usize, const R: usize> GeometricCA<P, Q, R> {
         (self.width, self.height)
     }
 
+    /// Get grid width
+    pub fn width(&self) -> usize {
+        self.width
+    }
+
+    /// Get grid height
+    pub fn height(&self) -> usize {
+        self.height
+    }
+
     /// Create 2D Game of Life with geometric states
     pub fn game_of_life(width: usize, height: usize) -> Self {
         let size = width * height;
@@ -280,6 +290,15 @@ impl<const P: usize, const Q: usize, const R: usize> GeometricCA<P, Q, R> {
         Ok(())
     }
 
+    /// Get the value of a cell in 2D coordinates
+    pub fn get_cell_2d(&self, x: usize, y: usize) -> AutomataResult<Multivector<P, Q, R>> {
+        if x >= self.width || y >= self.height {
+            return Err(AutomataError::InvalidCoordinates(x, y));
+        }
+        let index = y * self.width + x;
+        Ok(self.grid[index].clone())
+    }
+
     /// Get the value of a cell
     pub fn get_cell(&self, index: usize) -> Multivector<P, Q, R> {
         if index < self.size {
@@ -292,6 +311,121 @@ impl<const P: usize, const Q: usize, const R: usize> GeometricCA<P, Q, R> {
     /// Set the CA rule
     pub fn set_rule(&mut self, rule: CARule<P, Q, R>) {
         self.rule = rule;
+    }
+
+    /// Set rule using a RuleType
+    pub fn set_rule_type(&mut self, rule_type: RuleType) {
+        self.rule = CARule::from_rule_type(rule_type);
+    }
+
+    /// Set boundary conditions to periodic
+    pub fn set_boundary_periodic(&mut self) {
+        self.boundary = BoundaryCondition::Periodic;
+    }
+
+    /// Set boundary conditions to fixed
+    pub fn set_boundary_fixed(&mut self) {
+        self.boundary = BoundaryCondition::Fixed;
+    }
+
+    /// Get Moore neighborhood in 2D
+    pub fn get_moore_neighborhood_2d(
+        &self,
+        x: usize,
+        y: usize,
+    ) -> AutomataResult<Vec<Multivector<P, Q, R>>> {
+        if x >= self.width || y >= self.height {
+            return Err(AutomataError::InvalidCoordinates(x, y));
+        }
+
+        let mut neighbors = Vec::new();
+
+        // Check all 8 directions around the cell
+        for dy in [-1i32, 0, 1] {
+            for dx in [-1i32, 0, 1] {
+                if dx == 0 && dy == 0 {
+                    continue; // Skip the center cell
+                }
+
+                let nx = x as i32 + dx;
+                let ny = y as i32 + dy;
+
+                // Handle boundary conditions
+                let (valid_x, valid_y) = match self.boundary {
+                    BoundaryCondition::Periodic => {
+                        let wrapped_x = if nx < 0 {
+                            self.width as i32 - 1
+                        } else if nx >= self.width as i32 {
+                            0
+                        } else {
+                            nx
+                        } as usize;
+
+                        let wrapped_y = if ny < 0 {
+                            self.height as i32 - 1
+                        } else if ny >= self.height as i32 {
+                            0
+                        } else {
+                            ny
+                        } as usize;
+
+                        (Some(wrapped_x), Some(wrapped_y))
+                    }
+                    BoundaryCondition::Fixed => {
+                        if nx >= 0 && nx < self.width as i32 && ny >= 0 && ny < self.height as i32 {
+                            (Some(nx as usize), Some(ny as usize))
+                        } else {
+                            (None, None)
+                        }
+                    }
+                    BoundaryCondition::Reflecting => {
+                        let reflected_x = if nx < 0 {
+                            (-nx) as usize
+                        } else if nx >= self.width as i32 {
+                            self.width - 1 - ((nx - self.width as i32) as usize)
+                        } else {
+                            nx as usize
+                        }
+                        .min(self.width - 1);
+
+                        let reflected_y = if ny < 0 {
+                            (-ny) as usize
+                        } else if ny >= self.height as i32 {
+                            self.height - 1 - ((ny - self.height as i32) as usize)
+                        } else {
+                            ny as usize
+                        }
+                        .min(self.height - 1);
+
+                        (Some(reflected_x), Some(reflected_y))
+                    }
+                };
+
+                if let (Some(valid_x), Some(valid_y)) = (valid_x, valid_y) {
+                    let index = valid_y * self.width + valid_x;
+                    if index < self.size {
+                        neighbors.push(self.grid[index].clone());
+                    }
+                }
+            }
+        }
+
+        Ok(neighbors)
+    }
+
+    /// Calculate total energy of the system
+    pub fn total_energy(&self) -> f64 {
+        self.grid.iter().map(|cell| cell.magnitude().powi(2)).sum()
+    }
+
+    /// Get current state snapshot for reversibility checks
+    pub fn get_state_snapshot(&self) -> Vec<Multivector<P, Q, R>> {
+        self.grid.clone()
+    }
+
+    /// Get rule type
+    pub fn rule_type(&self) -> RuleType {
+        self.rule.rule_type.clone()
     }
 
     /// Set a pattern in the CA (for 2D interpretation)
@@ -511,6 +645,18 @@ impl<const P: usize, const Q: usize, const R: usize> GeometricCA<P, Q, R> {
 }
 
 impl<const P: usize, const Q: usize, const R: usize> CARule<P, Q, R> {
+    /// Create a rule from a RuleType
+    pub fn from_rule_type(rule_type: RuleType) -> Self {
+        match rule_type {
+            RuleType::Geometric => Self::default(),
+            RuleType::GameOfLife => Self::game_of_life(),
+            RuleType::Reversible => Self::reversible(),
+            RuleType::Conservative => Self::conservative(),
+            RuleType::RotorCA => Self::rotor(),
+            RuleType::GradePreserving => Self::grade_preserving(),
+        }
+    }
+
     /// Create a custom rule with given function
     pub fn custom(
         rule_fn: fn(&Multivector<P, Q, R>, &[Multivector<P, Q, R>]) -> Multivector<P, Q, R>,
@@ -580,6 +726,19 @@ impl<const P: usize, const Q: usize, const R: usize> CARule<P, Q, R> {
         }
     }
 
+    /// Conservative rule (preserves energy)
+    pub fn conservative() -> Self {
+        Self {
+            rule_fn: |center, neighbors| {
+                let total_magnitude =
+                    center.magnitude() + neighbors.iter().map(|n| n.magnitude()).sum::<f64>();
+                let avg_magnitude = total_magnitude / (neighbors.len() as f64 + 1.0);
+                center.normalize().unwrap_or(Multivector::zero()) * avg_magnitude
+            },
+            rule_type: RuleType::Conservative,
+        }
+    }
+
     /// Rotor-based rule
     pub fn rotor() -> Self {
         Self {
@@ -607,19 +766,6 @@ impl<const P: usize, const Q: usize, const R: usize> CARule<P, Q, R> {
                 sum.grade_projection(original_grade)
             },
             rule_type: RuleType::GradePreserving,
-        }
-    }
-
-    /// Conservative rule
-    pub fn conservative() -> Self {
-        Self {
-            rule_fn: |center, neighbors| {
-                let total: Multivector<P, Q, R> = neighbors
-                    .iter()
-                    .fold(center.clone(), |acc, n| acc + n.clone());
-                total * (1.0 / (neighbors.len() + 1) as f64)
-            },
-            rule_type: RuleType::Conservative,
         }
     }
 
