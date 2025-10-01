@@ -87,6 +87,20 @@ pub enum AutomataError {
     SolverConvergenceFailure,
 }
 
+impl core::fmt::Display for AutomataError {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self {
+            Self::InvalidCoordinates(x, y) => write!(f, "Invalid coordinates: ({}, {})", x, y),
+            Self::ConfigurationNotFound => {
+                write!(f, "Configuration not found during inverse design")
+            }
+            Self::AssemblyConstraintViolation => write!(f, "Assembly constraint violation"),
+            Self::CayleyTableMiss => write!(f, "Cayley table cache miss"),
+            Self::SolverConvergenceFailure => write!(f, "Tropical solver convergence failure"),
+        }
+    }
+}
+
 /// Result type for automata operations
 pub type AutomataResult<T> = Result<T, AutomataError>;
 

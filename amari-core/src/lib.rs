@@ -22,8 +22,12 @@ use num_traits::Zero;
 
 pub mod basis;
 pub mod cayley;
+pub mod error;
 pub mod rotor;
 pub mod unicode_ops;
+
+// Re-export error types
+pub use error::{CoreError, CoreResult};
 
 #[cfg(feature = "phantom-types")]
 pub mod verified;

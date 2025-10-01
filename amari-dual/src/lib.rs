@@ -12,12 +12,14 @@ use core::ops::{Add, Div, Mul, Neg, Sub};
 use num_traits::{Float, One, Zero};
 
 pub mod comprehensive_tests;
+pub mod error;
 pub mod functions;
 pub mod multivector;
 pub mod verified;
 pub mod verified_contracts;
 
 // Re-export commonly used types
+pub use error::{DualError, DualResult};
 pub use multivector::{DualMultivector, MultiDualMultivector};
 
 /// Multi-variable dual number for computing gradients

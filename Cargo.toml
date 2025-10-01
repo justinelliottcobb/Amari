@@ -12,18 +12,24 @@ keywords = ["mathematics", "geometric-algebra", "tropical-algebra", "automatic-d
 categories = ["mathematics", "science", "algorithms"]
 
 [dependencies]
-amari-core = { path = "amari-core", version = "0.2" }
-amari-tropical = { path = "amari-tropical", version = "0.2" }
-amari-dual = { path = "amari-dual", version = "0.2" }
-amari-fusion = { path = "amari-fusion", version = "0.2" }
-amari-info-geom = { path = "amari-info-geom", version = "0.2" }
-amari-automata = { path = "amari-automata", version = "0.2" }
-amari-enumerative = { path = "amari-enumerative", version = "0.2" }
+amari-core = { path = "amari-core", version = "0.3" }
+amari-tropical = { path = "amari-tropical", version = "0.3" }
+amari-dual = { path = "amari-dual", version = "0.3" }
+amari-fusion = { path = "amari-fusion", version = "0.3" }
+amari-info-geom = { path = "amari-info-geom", version = "0.3" }
+amari-automata = { path = "amari-automata", version = "0.3" }
+amari-enumerative = { path = "amari-enumerative", version = "0.3" }
+amari-gpu = { path = "amari-gpu", version = "0.3", optional = true }
+thiserror = { workspace = true }
 
 [dev-dependencies]
 approx.workspace = true
 criterion = "0.5"
 tokio = { version = "1.0", features = ["full"] }
+
+[features]
+default = []
+gpu = ["dep:amari-gpu"]
 
 [[test]]
 name = "integration"
@@ -34,7 +40,7 @@ members = ["amari-core", "amari-wasm", "amari-gpu", "amari-info-geom", "amari-tr
 resolver = "2"
 
 [workspace.package]
-version = "0.2.0"
+version = "0.3.0"
 authors = ["Amari Contributors"]
 edition = "2021"
 license = "MIT OR Apache-2.0"

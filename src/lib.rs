@@ -7,11 +7,62 @@
 //! - Information geometry
 //! - Fusion systems for neural network optimization
 
+pub use amari_automata as automata;
 pub use amari_core as core;
 pub use amari_dual as dual;
+pub use amari_enumerative as enumerative;
 pub use amari_fusion as fusion;
 pub use amari_info_geom as info_geom;
 pub use amari_tropical as tropical;
+
+use thiserror::Error;
+
+/// Unified error type for the Amari library
+#[derive(Error, Debug)]
+pub enum AmariError {
+    /// Core geometric algebra error
+    #[error(transparent)]
+    Core(#[from] amari_core::CoreError),
+
+    /// Automata error
+    #[error("{0}")]
+    Automata(amari_automata::AutomataError),
+
+    /// Enumerative geometry error
+    #[error(transparent)]
+    Enumerative(#[from] amari_enumerative::EnumerativeError),
+
+    /// GPU computation error
+    #[cfg(feature = "gpu")]
+    #[error(transparent)]
+    Gpu(#[from] amari_gpu::GpuError),
+
+    /// Information geometry error
+    #[error(transparent)]
+    InfoGeom(#[from] amari_info_geom::InfoGeomError),
+
+    /// Fusion system error
+    #[error(transparent)]
+    Fusion(#[from] amari_fusion::FusionError),
+
+    /// Tropical algebra error
+    #[error(transparent)]
+    Tropical(#[from] amari_tropical::TropicalError),
+
+    /// Dual number error
+    #[error(transparent)]
+    Dual(#[from] amari_dual::DualError),
+}
+
+/// Result type for Amari operations
+pub type AmariResult<T> = Result<T, AmariError>;
+
+// Manual implementation for AutomataError since it doesn't use thiserror
+impl From<amari_automata::AutomataError> for AmariError {
+    fn from(err: amari_automata::AutomataError) -> Self {
+        AmariError::Automata(err)
+    }
+}
 
 // Re-export common types
 pub use amari_core::{Bivector, Multivector, Scalar, Vector};
