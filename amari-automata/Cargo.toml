@@ -1,23 +1,27 @@
 [package]
 name = "amari-automata"
-version = "0.1.0"
-edition = "2021"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
 description = "Cellular automata, inverse design, and self-assembly using geometric algebra"
-authors = ["Elliott Hall <elliott@example.com>"]
-license = "MIT OR Apache-2.0"
+repository = "https://github.com/justinelliottcobb/Amari"
+homepage = "https://github.com/justinelliottcobb/Amari"
+keywords = ["cellular-automata", "inverse-design", "self-assembly", "geometric-algebra", "mathematics"]
+categories = ["mathematics", "science", "algorithms"]
 
 [dependencies]
-amari-core = { path = "../amari-core", version = "0.1" }
-amari-tropical = { path = "../amari-tropical", version = "0.1" }
-amari-dual = { path = "../amari-dual", version = "0.1" }
-num-traits = "0.2"
-serde = { version = "1.0", features = ["derive"], optional = true }
+amari-core = { path = "../amari-core", version = "0.2" }
+amari-tropical = { path = "../amari-tropical", version = "0.2" }
+amari-dual = { path = "../amari-dual", version = "0.2" }
+num-traits = { workspace = true }
+serde = { workspace = true, optional = true }
 
 [features]
 default = []
 serde-support = ["serde"]
 
 [dev-dependencies]
-approx = "0.5"
+approx = { workspace = true }
 criterion = "0.5"
 
