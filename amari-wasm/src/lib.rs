@@ -151,9 +151,14 @@ impl WasmMultivector {
         }
     }
 
-    /// Compute norm
+    /// Compute magnitude
+    pub fn magnitude(&self) -> f64 {
+        self.inner.magnitude()
+    }
+
+    /// Compute norm (alias for magnitude, maintained for compatibility)
     pub fn norm(&self) -> f64 {
-        self.inner.norm()
+        self.magnitude()
     }
 
     /// Normalize

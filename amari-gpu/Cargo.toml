@@ -11,8 +11,8 @@ keywords = ["gpu-computing", "webgpu", "parallel", "performance", "mathematics"]
 categories = ["mathematics", "science", "algorithms"]
 
 [dependencies]
-amari-core = { path = "../amari-core", version = "0.1" }
-amari-info-geom = { path = "../amari-info-geom", version = "0.1" }
+amari-core = { path = "../amari-core", version = "0.2" }
+amari-info-geom = { path = "../amari-info-geom", version = "0.2" }
 wgpu = "0.19"
 futures = "0.3"
 pollster = "0.3"

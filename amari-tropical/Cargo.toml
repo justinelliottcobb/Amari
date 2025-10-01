@@ -11,7 +11,7 @@ keywords = ["tropical-algebra", "max-plus", "semiring", "mathematics", "optimiza
 categories = ["mathematics", "science", "algorithms"]
 
 [dependencies]
-amari-core = { path = "../amari-core", version = "0.1" }
+amari-core = { path = "../amari-core", version = "0.2" }
 num-traits = { workspace = true }
 serde = { workspace = true, optional = true }
 

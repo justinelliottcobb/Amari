@@ -361,14 +361,32 @@ impl<const P: usize, const Q: usize, const R: usize> Multivector<P, Q, R> {
         self.scalar_product(&self.reverse())
     }
 
-    /// Compute the norm
-    pub fn norm(&self) -> f64 {
+    /// Compute the magnitude (length) of this multivector
+    ///
+    /// The magnitude is defined as |a| = √(a·ã) where ã is the reverse of a.
+    /// This provides the natural norm inherited from the underlying vector space.
+    ///
+    /// # Mathematical Properties
+    /// - Always non-negative: |a| ≥ 0
+    /// - Zero iff a = 0: |a| = 0 ⟺ a = 0
+    /// - Sub-multiplicative: |ab| ≤ |a||b|
+    ///
+    /// # Examples
+    /// ```rust
+    /// use amari_core::Multivector;
+    /// let v = Multivector::<3,0,0>::basis_vector(0);
+    /// assert_eq!(v.magnitude(), 1.0);
+    /// ```
+    pub fn magnitude(&self) -> f64 {
         self.norm_squared().abs().sqrt()
     }
 
-    /// Alias for norm() - used by tests and other modules
-    pub fn magnitude(&self) -> f64 {
-        self.norm()
+    /// Compute the norm (magnitude) of this multivector
+    ///
+    /// **Note**: This method is maintained for backward compatibility.
+    /// New code should prefer [`magnitude()`](Self::magnitude) for clarity.
+    pub fn norm(&self) -> f64 {
+        self.magnitude()
     }
 
     /// Absolute value (same as magnitude/norm for multivectors)
@@ -802,7 +820,7 @@ impl<const P: usize, const Q: usize, const R: usize> Vector<P, Q, R> {
     }
 
     pub fn magnitude(&self) -> f64 {
-        self.mv.norm()
+        self.mv.magnitude()
     }
 
     pub fn as_slice(&self) -> &[f64] {
@@ -867,8 +885,11 @@ impl<const P: usize, const Q: usize, const R: usize> Vector<P, Q, R> {
     }
 
     /// Compute the norm (magnitude) of the vector
+    ///
+    /// **Note**: This method is maintained for backward compatibility.
+    /// New code should prefer [`magnitude()`](Self::magnitude) for clarity.
     pub fn norm(&self) -> f64 {
-        self.mv.norm()
+        self.magnitude()
     }
 
     /// Hodge dual of the vector
@@ -935,7 +956,7 @@ impl<const P: usize, const Q: usize, const R: usize> Bivector<P, Q, R> {
     }
 
     pub fn magnitude(&self) -> f64 {
-        self.mv.norm()
+        self.mv.magnitude()
     }
 
     /// Index access for bivector components
