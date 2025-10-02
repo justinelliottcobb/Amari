@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.5] - 2024-01-10
+
+### Fixed
+- Remove problematic examples suite auto-update from CI/CD workflow
+- Prevent git conflicts and failed PR creation in automated deployment
+- Simplify CI/CD to focus on core deployment (crates.io + npm publish)
+
+### Changed
+- Examples suite updates now handled manually when needed
+- CI/CD workflow streamlined to essential publishing steps only
+
 ## [0.3.4] - 2024-01-10
 
 ### Fixed
