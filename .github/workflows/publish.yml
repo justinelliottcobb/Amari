@@ -180,20 +180,12 @@ jobs:
           name: wasm-packages
           path: amari-wasm/
 
-      - name: Update package version
-        run: |
-          cd amari-wasm
-          if [ "${{ github.event.inputs.version }}" != "" ]; then
-            npm version ${{ github.event.inputs.version }} --no-git-tag-version
-          elif [[ "${{ github.ref }}" == refs/tags/v* ]]; then
-            VERSION=${GITHUB_REF#refs/tags/v}
-            npm version $VERSION --no-git-tag-version
-          fi
+# Note: wasm-pack automatically sets version from Cargo.toml workspace version
 
       - name: Check if version exists on npm
         id: npm-version-check
         run: |
-          cd amari-wasm
+          cd amari-wasm/pkg
           PACKAGE_VERSION=$(node -p "require('./package.json').version")
           PACKAGE_NAME=$(node -p "require('./package.json').name")
           if npm view $PACKAGE_NAME@$PACKAGE_VERSION version 2>/dev/null; then
@@ -209,7 +201,7 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          cd amari-wasm
+          cd amari-wasm/pkg
           npm publish --ignore-scripts --access public
 
       - name: Skip npm publish (version exists)
@@ -249,7 +241,7 @@ jobs:
           fi
 
           # Update package.json to use published package
-          npm install @justinelliottcobb/amari-core@$VERSION
+          npm install @justinelliottcobb/amari-wasm@$VERSION
 
           # Update examples to import from npm package instead of simulated operations
           # This will be done in a follow-up commit
@@ -266,13 +258,13 @@ jobs:
 
           cd examples-suite
           git add package.json package-lock.json
-          git commit -m "Update examples suite to use published @justinelliottcobb/amari-core package"
+          git commit -m "Update examples suite to use published @justinelliottcobb/amari-wasm package"
 
           git push origin update-examples-with-published-library
 
           # Create PR
           gh pr create \
-            --title "Update examples suite to use published @justinelliottcobb/amari-core" \
-            --body "This PR updates the examples suite to use the published @justinelliottcobb/amari-core npm package instead of simulated operations, providing authentic mathematical functionality." \
+            --title "Update examples suite to use published @justinelliottcobb/amari-wasm" \
+            --body "This PR updates the examples suite to use the published @justinelliottcobb/amari-wasm npm package instead of simulated operations, providing authentic mathematical functionality." \
             --base feature/api-examples-suite \
             --head update-examples-with-published-library
