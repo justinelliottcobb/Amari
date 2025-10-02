@@ -31,3 +31,9 @@ features = [
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3"
+
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = ["-O4"]
+
+[package.metadata.wasm-pack.profile.dev]
+wasm-opt = false
