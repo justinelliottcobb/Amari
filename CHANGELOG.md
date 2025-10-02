@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.6] - 2024-01-10
+
+### Fixed
+- **CRITICAL**: Disable duplicate release.yml workflow that was causing @amari/amari-wasm conflicts
+- Fix deployment pipeline to use only publish.yml with correct @justinelliottcobb scope
+- Eliminate workflow duplication that was overriding manual package name fixes
+
+### Root Cause
+- Two workflows (publish.yml and release.yml) both triggered on tag pushes
+- release.yml used incorrect --scope amari, generating @amari/amari-wasm
+- release.yml ran without manual package name correction
+- This caused conflicting publishes and 404 errors
+
+### Solution
+- Disabled release.yml tag trigger to prevent conflicts
+- Only publish.yml now handles deployment with proper scope and manual fixes
+
 ## [0.3.5] - 2024-01-10
 
 ### Fixed
