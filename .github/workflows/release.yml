@@ -1,9 +1,10 @@
-name: Release
+name: Release (Legacy - Disabled)
 
 on:
-  push:
-    tags:
-      - 'v*'
+  # Disabled to prevent conflicts with publish.yml
+  # push:
+  #   tags:
+  #     - 'v*'
   workflow_dispatch:
     inputs:
       version:

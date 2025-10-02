@@ -90,6 +90,7 @@ jobs:
             "amari-tropical"
             "amari-dual"
             "amari-info-geom"
+            "amari-enumerative"
             "amari-fusion"
             "amari-automata"
             "amari-gpu"
@@ -161,11 +162,19 @@ jobs:
   publish-npm:
     name: Publish to npm
     runs-on: ubuntu-latest
-    needs: build-wasm
+    needs: validate
     if: ${{ github.event.inputs.publish_npm == 'true' || startsWith(github.ref, 'refs/tags/v') }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: Install wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -173,26 +182,29 @@ jobs:
           node-version: '20'
           registry-url: 'https://registry.npmjs.org'
 
-      - name: Download WASM artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: wasm-packages
-          path: amari-wasm/
-
-      - name: Update package version
+      - name: Build WASM package for npm
         run: |
           cd amari-wasm
-          if [ "${{ github.event.inputs.version }}" != "" ]; then
-            npm version ${{ github.event.inputs.version }} --no-git-tag-version
-          elif [[ "${{ github.ref }}" == refs/tags/v* ]]; then
-            VERSION=${GITHUB_REF#refs/tags/v}
-            npm version $VERSION --no-git-tag-version
-          fi
+          wasm-pack build --target web --out-dir pkg --scope justinelliottcobb
+          echo "Generated package.json before fix:"
+          cat pkg/package.json
+          echo "Fixing package name..."
+          node -e "
+            const pkg = require('./pkg/package.json');
+            pkg.name = '@justinelliottcobb/amari-wasm';
+            require('fs').writeFileSync('./pkg/package.json', JSON.stringify(pkg, null, 2) + '\n');
+          "
+          echo "Fixed package.json:"
+          cat pkg/package.json
+          echo "Package name: $(node -p "require('./pkg/package.json').name")"
+          echo "Package version: $(node -p "require('./pkg/package.json').version")"
+
+# Note: wasm-pack automatically sets version from Cargo.toml workspace version
 
       - name: Check if version exists on npm
         id: npm-version-check
         run: |
-          cd amari-wasm
+          cd amari-wasm/pkg
           PACKAGE_VERSION=$(node -p "require('./package.json').version")
           PACKAGE_NAME=$(node -p "require('./package.json').name")
           if npm view $PACKAGE_NAME@$PACKAGE_VERSION version 2>/dev/null; then
@@ -208,70 +220,12 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          cd amari-wasm
+          cd amari-wasm/pkg
           npm publish --ignore-scripts --access public
 
       - name: Skip npm publish (version exists)
         if: steps.npm-version-check.outputs.version-exists == 'true'
         run: echo "Skipping npm publish - version already exists"
 
-  update-examples:
-    name: Update Examples Suite
-    runs-on: ubuntu-latest
-    needs: [publish-npm]
-    if: ${{ success() && (github.event.inputs.publish_npm == 'true' || startsWith(github.ref, 'refs/tags/v')) }}
-    permissions:
-      contents: write
-      pull-requests: write
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Update examples suite to use published package
-        run: |
-          cd examples-suite
-
-          # Get the published version
-          if [ "${{ github.event.inputs.version }}" != "" ]; then
-            VERSION="${{ github.event.inputs.version }}"
-          elif [[ "${{ github.ref }}" == refs/tags/v* ]]; then
-            VERSION=${GITHUB_REF#refs/tags/v}
-          else
-            VERSION="latest"
-          fi
-
-          # Update package.json to use published package
-          npm install @justinelliottcobb/amari-core@$VERSION
-
-          # Update examples to import from npm package instead of simulated operations
-          # This will be done in a follow-up commit
-
-      - name: Create PR for examples update
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-
-          # Create a new branch for the update
-          git checkout -b update-examples-with-published-library
-
-          cd examples-suite
-          git add package.json package-lock.json
-          git commit -m "Update examples suite to use published @justinelliottcobb/amari-core package"
-
-          git push origin update-examples-with-published-library
-
-          # Create PR
-          gh pr create \
-            --title "Update examples suite to use published @justinelliottcobb/amari-core" \
-            --body "This PR updates the examples suite to use the published @justinelliottcobb/amari-core npm package instead of simulated operations, providing authentic mathematical functionality." \
-            --base feature/api-examples-suite \
-            --head update-examples-with-published-library
+# Examples suite updates can be done manually as needed
+# Removing automatic PR creation to avoid CI/CD conflicts

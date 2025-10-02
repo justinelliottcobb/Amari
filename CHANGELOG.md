@@ -1,0 +1,126 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [0.3.6] - 2024-01-10
+
+### Fixed
+- **CRITICAL**: Disable duplicate release.yml workflow that was causing @amari/amari-wasm conflicts
+- Fix deployment pipeline to use only publish.yml with correct @justinelliottcobb scope
+- Eliminate workflow duplication that was overriding manual package name fixes
+
+### Root Cause
+- Two workflows (publish.yml and release.yml) both triggered on tag pushes
+- release.yml used incorrect --scope amari, generating @amari/amari-wasm
+- release.yml ran without manual package name correction
+- This caused conflicting publishes and 404 errors
+
+### Solution
+- Disabled release.yml tag trigger to prevent conflicts
+- Only publish.yml now handles deployment with proper scope and manual fixes
+
+## [0.3.5] - 2024-01-10
+
+### Fixed
+- Remove problematic examples suite auto-update from CI/CD workflow
+- Prevent git conflicts and failed PR creation in automated deployment
+- Simplify CI/CD to focus on core deployment (crates.io + npm publish)
+
+### Changed
+- Examples suite updates now handled manually when needed
+- CI/CD workflow streamlined to essential publishing steps only
+
+## [0.3.4] - 2024-01-10
+
+### Fixed
+- Fix wasm-pack scope issue by manually correcting package name after build
+- CI/CD now properly generates @justinelliottcobb/amari-wasm instead of @amari/amari-wasm
+- Add comprehensive debugging output to track package.json generation and fixes
+
+### Technical Details
+- wasm-pack --scope flag doesn't work as expected with hyphenated crate names
+- Manual Node.js script fixes package name post-build in CI/CD
+- This resolves the 404 Not Found errors when publishing to npm registry
+
+## [0.3.3] - 2024-01-10
+
+### Fixed
+- Fix CI/CD workflow to build WASM package directly instead of using artifacts
+- Remove dependency on build-wasm job for npm publish to avoid package name conflicts
+- Add debugging output to CI/CD to trace package.json generation
+- Add wasm-pack optimization configuration
+
+### Changed
+- npm publish job now builds WASM package independently for cleaner package generation
+- Enhanced CI/CD debugging for package name verification
+
+## [0.3.2] - 2024-01-10
+
+### Fixed
+- Fix npm publish workflow to use wasm-pack generated package.json from pkg/ directory
+- Remove redundant manual package.json from amari-wasm (wasm-pack generates its own)
+- Correct package name references in CI/CD to use @justinelliottcobb/amari-wasm
+
+### Changed
+- CI/CD now publishes from amari-wasm/pkg/ instead of amari-wasm/
+- Package version management now fully handled by wasm-pack from Cargo.toml
+
+## [0.3.1] - 2024-01-10
+
+### Fixed
+- Add missing `amari-enumerative` crate to crates.io publish workflow
+- Sync npm package version with Rust crates (was stuck at 0.1.1)
+
+### Added
+- Comprehensive deployment strategy documentation (`DEPLOYMENT_STRATEGY.md`)
+- NPM publishing roadmap for phased WASM rollout (`NPM_PUBLISHING_ROADMAP.md`)
+
+### Changed
+- No breaking changes - patch release with deployment fixes only
+
+## [0.3.0] - 2024-01-10
+
+### Added
+- Unified error handling system with `AmariError` type
+- Error types for all crates: `CoreError`, `DualError`, `TropicalError`, `FusionError`
+- Comprehensive error handling design documentation
+- `thiserror` integration for consistent error patterns
+
+### Changed
+- All crates now use `Result` types instead of panics for recoverable errors
+- Version bump from 0.2.0 to 0.3.0 across all workspace members
+
+## [0.2.0] - 2024-01-09
+
+### Added
+- API naming convention guide (`API_NAMING_CONVENTION.md`)
+- `magnitude()` method as primary API for computing vector/multivector length
+
+### Changed
+- Standardized method naming across all crates
+- `norm()` methods maintained as backward-compatible aliases
+- Version bump from 0.1.1 to 0.2.0
+
+### Deprecated
+- `norm()` methods (use `magnitude()` in new code)
+
+## [0.1.1] - 2024-01-08
+
+### Initial Release
+- Core geometric algebra operations (`amari-core`)
+- Tropical (max-plus) algebra (`amari-tropical`)
+- Dual numbers for automatic differentiation (`amari-dual`)
+- Information geometry (`amari-info-geom`)
+- Fusion systems combining algebraic structures (`amari-fusion`)
+- Cellular automata with geometric algebra (`amari-automata`)
+- Enumerative geometry (`amari-enumerative`)
+- GPU acceleration (`amari-gpu`)
+- WebAssembly bindings (`amari-wasm`)
+
+[0.3.1]: https://github.com/justinelliottcobb/Amari/compare/v0.3.0...v0.3.1
+[0.3.0]: https://github.com/justinelliottcobb/Amari/compare/v0.2.0...v0.3.0
+[0.2.0]: https://github.com/justinelliottcobb/Amari/compare/v0.1.1...v0.2.0
+[0.1.1]: https://github.com/justinelliottcobb/Amari/releases/tag/v0.1.1
