@@ -186,7 +186,15 @@ jobs:
         run: |
           cd amari-wasm
           wasm-pack build --target web --out-dir pkg --scope justinelliottcobb
-          echo "Generated package.json:"
+          echo "Generated package.json before fix:"
+          cat pkg/package.json
+          echo "Fixing package name..."
+          node -e "
+            const pkg = require('./pkg/package.json');
+            pkg.name = '@justinelliottcobb/amari-wasm';
+            require('fs').writeFileSync('./pkg/package.json', JSON.stringify(pkg, null, 2) + '\n');
+          "
+          echo "Fixed package.json:"
           cat pkg/package.json
           echo "Package name: $(node -p "require('./pkg/package.json').name")"
           echo "Package version: $(node -p "require('./pkg/package.json').version")"

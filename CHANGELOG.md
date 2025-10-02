@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.4] - 2024-01-10
+
+### Fixed
+- Fix wasm-pack scope issue by manually correcting package name after build
+- CI/CD now properly generates @justinelliottcobb/amari-wasm instead of @amari/amari-wasm
+- Add comprehensive debugging output to track package.json generation and fixes
+
+### Technical Details
+- wasm-pack --scope flag doesn't work as expected with hyphenated crate names
+- Manual Node.js script fixes package name post-build in CI/CD
+- This resolves the 404 Not Found errors when publishing to npm registry
+
 ## [0.3.3] - 2024-01-10
 
 ### Fixed
