@@ -38,6 +38,14 @@ async fn test_verified_multivector_operations() {
 /// Test boundary verification with small batches
 #[tokio::test]
 async fn test_boundary_verification_small_batch() {
+    // Skip GPU tests in CI environments where GPU is not available
+    if std::env::var("CI").is_ok()
+        || std::env::var("GITHUB_ACTIONS").is_ok()
+        || std::env::var("DISPLAY").is_err()
+    {
+        println!("Skipping GPU boundary verification test in CI environment");
+        return;
+    }
     let config = VerificationConfig {
         strategy: VerificationStrategy::Boundary,
         performance_budget: Duration::from_millis(100),
@@ -174,6 +182,15 @@ async fn test_statistical_verification() {
 /// Test adaptive verification platform detection and strategy selection
 #[tokio::test]
 async fn test_adaptive_verification_strategies() {
+    // Skip GPU tests in CI environments where GPU is not available
+    if std::env::var("CI").is_ok()
+        || std::env::var("GITHUB_ACTIONS").is_ok()
+        || std::env::var("DISPLAY").is_err()
+    {
+        println!("Skipping GPU adaptive verification test in CI environment");
+        return;
+    }
+
     // Test platform-specific behavior
     match AdaptiveVerifier::new().await {
         Ok(mut verifier) => {
@@ -281,6 +298,15 @@ async fn test_adaptive_verification_strategies() {
 /// Test verification level adaptation and performance budgets
 #[tokio::test]
 async fn test_verification_level_adaptation() {
+    // Skip GPU tests in CI environments where GPU is not available
+    if std::env::var("CI").is_ok()
+        || std::env::var("GITHUB_ACTIONS").is_ok()
+        || std::env::var("DISPLAY").is_err()
+    {
+        println!("Skipping GPU verification level adaptation test in CI environment");
+        return;
+    }
+
     let levels = vec![
         AdaptiveVerificationLevel::Maximum,
         AdaptiveVerificationLevel::High,
