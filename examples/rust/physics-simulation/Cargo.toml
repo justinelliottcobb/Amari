@@ -1,0 +1,37 @@
+[package]
+name = "physics-simulation"
+version = "0.6.0"
+edition = "2021"
+authors = ["Amari Project <amari@example.com>"]
+description = "Physics simulations using geometric algebra with Amari"
+license = "MIT"
+
+[[bin]]
+name = "rigid_body_dynamics"
+path = "src/rigid_body_dynamics.rs"
+
+[[bin]]
+name = "electromagnetic_fields"
+path = "src/electromagnetic_fields.rs"
+
+[[bin]]
+name = "fluid_dynamics"
+path = "src/fluid_dynamics.rs"
+
+[[bin]]
+name = "quantum_mechanics"
+path = "src/quantum_mechanics.rs"
+
+[dependencies]
+amari = { path = "../../../", version = "0.6" }
+amari-core = { path = "../../../amari-core", version = "0.6" }
+amari-dual = { path = "../../../amari-dual", version = "0.6" }
+plotters = "0.3"
+rand = "0.8"
+nalgebra = "0.33"
+approx = "0.5"
+
+[features]
+default = ["visualizations"]
+visualizations = ["plotters"]
+performance = ["amari/parallel"]

@@ -1,0 +1,38 @@
+[package]
+name = "computer-graphics"
+version = "0.6.0"
+edition = "2021"
+authors = ["Amari Project <amari@example.com>"]
+description = "Computer graphics applications using geometric algebra with Amari"
+license = "MIT"
+
+[[bin]]
+name = "3d_transformations"
+path = "src/transformations.rs"
+
+[[bin]]
+name = "camera_projection"
+path = "src/camera.rs"
+
+[[bin]]
+name = "mesh_operations"
+path = "src/mesh.rs"
+
+[[bin]]
+name = "ray_tracing"
+path = "src/raytracing.rs"
+
+[dependencies]
+amari = { path = "../../../", version = "0.6" }
+amari-core = { path = "../../../amari-core", version = "0.6" }
+amari-dual = { path = "../../../amari-dual", version = "0.6" }
+plotters = "0.3"
+rand = "0.8"
+nalgebra = "0.33"
+approx = "0.5"
+image = "0.24"
+
+[features]
+default = ["visualizations"]
+visualizations = ["plotters"]
+performance = ["amari/parallel"]
