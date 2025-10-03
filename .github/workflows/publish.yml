@@ -103,10 +103,18 @@ jobs:
               cd "$crate"
             fi
 
+            # Get the actual version from Cargo.toml
+            ACTUAL_VERSION=$(grep "^version" Cargo.toml | head -1 | sed 's/.*= *"\([^"]*\)".*/\1/' || echo "unknown")
+            INPUT_VERSION="${{ github.event.inputs.version }}"
+            TARGET_VERSION="${INPUT_VERSION:-$ACTUAL_VERSION}"
+
+            echo "Checking $crate version $TARGET_VERSION..."
+
             # Check if already published
-            if cargo search "$crate" --limit 1 | grep -q "^$crate = \"${{ github.event.inputs.version || '0.1.1' }}\""; then
-              echo "$crate version already published, skipping..."
+            if cargo search "$crate" --limit 1 | grep -q "^$crate = \"$TARGET_VERSION\""; then
+              echo "$crate version $TARGET_VERSION already published, skipping..."
             else
+              echo "Publishing $crate version $TARGET_VERSION..."
               cargo publish --allow-dirty || echo "Failed to publish $crate, continuing..."
               echo "Waiting for crates.io to index $crate..."
               sleep 30
