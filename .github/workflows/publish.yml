@@ -79,6 +79,14 @@ jobs:
             target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
+      - name: Bump version if specified
+        if: ${{ github.event.inputs.version != '' }}
+        run: |
+          echo "Bumping version to ${{ github.event.inputs.version }}..."
+          chmod +x scripts/bump-version.sh
+          ./scripts/bump-version.sh ${{ github.event.inputs.version }}
+          echo "Version bump complete. Updated files:"
+          git diff --name-only
 
       - name: Publish crates to crates.io
         env:
