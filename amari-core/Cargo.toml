@@ -34,3 +34,7 @@ parallel = ["rayon"]
 phantom-types = []
 # Formal verification with Creusot (requires nightly)
 formal-verification = ["creusot-contracts", "phantom-types"]
+
+[[bench]]
+name = "performance_suite"
+harness = false

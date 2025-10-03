@@ -16,15 +16,19 @@
 
 extern crate alloc;
 use alloc::boxed::Box;
-use alloc::vec::{self, Vec};
+use alloc::vec::Vec;
 use core::ops::{Add, Mul, Neg, Sub};
 use num_traits::Zero;
 
+pub mod aligned_alloc;
 pub mod basis;
 pub mod cayley;
 pub mod error;
 pub mod rotor;
 pub mod unicode_ops;
+
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+pub mod simd;
 
 // Re-export error types
 pub use error::{CoreError, CoreResult};
@@ -50,9 +54,10 @@ pub use cayley::CayleyTable;
 /// - `Q`: Number of basis vectors that square to -1  
 /// - `R`: Number of basis vectors that square to 0
 #[derive(Debug, Clone, PartialEq)]
-#[repr(C, align(64))] // Cache alignment for performance
+#[repr(C, align(32))] // AVX2-optimal alignment for SIMD performance
 pub struct Multivector<const P: usize, const Q: usize, const R: usize> {
     /// Coefficients for each basis blade, indexed by binary representation
+    /// Memory layout optimized for cache lines and SIMD operations
     coefficients: Box<[f64]>,
 }
 
@@ -67,7 +72,7 @@ impl<const P: usize, const Q: usize, const R: usize> Multivector<P, Q, R> {
     #[inline(always)]
     pub fn zero() -> Self {
         Self {
-            coefficients: vec::from_elem(0.0, Self::BASIS_COUNT).into_boxed_slice(),
+            coefficients: vec![0.0; Self::BASIS_COUNT].into_boxed_slice(),
         }
     }
 
@@ -227,6 +232,21 @@ impl<const P: usize, const Q: usize, const R: usize> Multivector<P, Q, R> {
     /// The geometric product is the fundamental operation in geometric algebra,
     /// combining both the inner and outer products.
     pub fn geometric_product(&self, rhs: &Self) -> Self {
+        // SIMD optimization temporarily disabled for testing
+        // TODO: Fix SIMD implementation precision issue in follow-up
+        // #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+        // {
+        //     if P == 3 && Q == 0 && R == 0 && Self::BASIS_COUNT == 8 {
+        //         // SIMD implementation would go here
+        //     }
+        // }
+
+        // Fallback to scalar implementation
+        self.geometric_product_scalar(rhs)
+    }
+
+    /// Scalar implementation of geometric product (fallback)
+    pub fn geometric_product_scalar(&self, rhs: &Self) -> Self {
         let table = CayleyTable::<P, Q, R>::get();
         let mut result = Self::zero();
 

@@ -8,6 +8,7 @@
 //! - Information geometry (amari-info-geom)
 
 use amari_core::{rotor::Rotor, Bivector, Multivector};
+use std::cell::RefCell;
 use wasm_bindgen::prelude::*;
 
 pub mod dual;
@@ -218,6 +219,7 @@ pub struct BatchOperations;
 #[wasm_bindgen]
 impl BatchOperations {
     /// Batch geometric product: compute a[i] * b[i] for all i
+    /// Optimized for WebAssembly performance with reduced allocations
     #[wasm_bindgen(js_name = batchGeometricProduct)]
     pub fn batch_geometric_product(a_batch: &[f64], b_batch: &[f64]) -> Result<Vec<f64>, JsValue> {
         let batch_size = a_batch.len() / MULTIVECTOR_COEFFICIENTS;
@@ -234,22 +236,136 @@ impl BatchOperations {
             return Err(JsValue::from_str("Batch arrays must have the same length"));
         }
 
-        let mut result = Vec::with_capacity(a_batch.len());
+        // Pre-allocate result vector to avoid repeated allocations
+        let mut result = vec![0.0; a_batch.len()];
 
+        // Use optimized batch processing with minimal allocations
         for i in 0..batch_size {
             let start = i * MULTIVECTOR_COEFFICIENTS;
-            let end = start + MULTIVECTOR_COEFFICIENTS;
 
-            let a = Multivector::<3, 0, 0>::from_coefficients(a_batch[start..end].to_vec());
-            let b = Multivector::<3, 0, 0>::from_coefficients(b_batch[start..end].to_vec());
-            let product = a.geometric_product(&b);
+            // Direct coefficient access without intermediate vector allocation
+            let a_coeffs = &a_batch[start..start + MULTIVECTOR_COEFFICIENTS];
+            let b_coeffs = &b_batch[start..start + MULTIVECTOR_COEFFICIENTS];
 
-            for j in 0..MULTIVECTOR_COEFFICIENTS {
-                result.push(product.get(j));
-            }
+            // Inline geometric product computation for WASM optimization
+            Self::geometric_product_hot_path(
+                a_coeffs,
+                b_coeffs,
+                &mut result[start..start + MULTIVECTOR_COEFFICIENTS],
+            );
         }
 
         Ok(result)
+    }
+
+    /// Hot path optimized geometric product for WASM
+    /// Computes geometric product directly on coefficient slices
+    #[inline(always)]
+    fn geometric_product_hot_path(a: &[f64], b: &[f64], result: &mut [f64]) {
+        // Manually unrolled geometric product for 3D Euclidean space
+        // Based on multiplication table for Cl(3,0,0)
+
+        // Clear result
+        result.fill(0.0);
+
+        // Scalar * all
+        let a0 = a[0];
+        if a0 != 0.0 {
+            for i in 0..8 {
+                result[i] += a0 * b[i];
+            }
+        }
+
+        // e1 products (index 1)
+        let a1 = a[1];
+        if a1 != 0.0 {
+            result[0] += a1 * b[1]; // e1 * 1 = e1, 1 * e1 = e1
+            result[1] += a1 * b[0]; // 1 * e1 = e1
+            result[2] += a1 * b[3]; // e1 * e2 = e12
+            result[3] += a1 * b[2]; // e1 * e12 = e2
+            result[4] += a1 * b[5]; // e1 * e3 = e13
+            result[5] += a1 * b[4]; // e1 * e13 = e3
+            result[6] -= a1 * b[7]; // e1 * e23 = -e123
+            result[7] -= a1 * b[6]; // e1 * e123 = -e23
+        }
+
+        // e2 products (index 2)
+        let a2 = a[2];
+        if a2 != 0.0 {
+            result[0] += a2 * b[2]; // e2 * 1 = e2
+            result[1] -= a2 * b[3]; // e2 * e1 = -e12
+            result[2] += a2 * b[0]; // 1 * e2 = e2
+            result[3] -= a2 * b[1]; // e2 * e12 = -e1
+            result[4] += a2 * b[6]; // e2 * e3 = e23
+            result[5] += a2 * b[7]; // e2 * e13 = e123
+            result[6] += a2 * b[4]; // e2 * e23 = e3
+            result[7] += a2 * b[5]; // e2 * e123 = e13
+        }
+
+        // e3 products (index 4)
+        let a4 = a[4];
+        if a4 != 0.0 {
+            result[0] += a4 * b[4]; // e3 * 1 = e3
+            result[1] -= a4 * b[5]; // e3 * e1 = -e13
+            result[2] -= a4 * b[6]; // e3 * e2 = -e23
+            result[3] -= a4 * b[7]; // e3 * e12 = -e123
+            result[4] += a4 * b[0]; // 1 * e3 = e3
+            result[5] -= a4 * b[1]; // e3 * e13 = -e1
+            result[6] -= a4 * b[2]; // e3 * e23 = -e2
+            result[7] -= a4 * b[3]; // e3 * e123 = -e12
+        }
+
+        // e12 products (index 3)
+        let a3 = a[3];
+        if a3 != 0.0 {
+            result[0] -= a3 * b[3]; // e12 * 1 = e12, e12^2 = -1
+            result[1] += a3 * b[2]; // e12 * e1 = e2
+            result[2] -= a3 * b[1]; // e12 * e2 = -e1
+            result[3] += a3 * b[0]; // 1 * e12 = e12
+            result[4] += a3 * b[7]; // e12 * e3 = e123
+            result[5] -= a3 * b[6]; // e12 * e13 = -e23
+            result[6] += a3 * b[5]; // e12 * e23 = e13
+            result[7] += a3 * b[4]; // e12 * e123 = e3
+        }
+
+        // e13 products (index 5)
+        let a5 = a[5];
+        if a5 != 0.0 {
+            result[0] -= a5 * b[5]; // e13^2 = -1
+            result[1] += a5 * b[4]; // e13 * e1 = e3
+            result[2] -= a5 * b[7]; // e13 * e2 = -e123
+            result[3] += a5 * b[6]; // e13 * e12 = e23
+            result[4] -= a5 * b[1]; // e13 * e3 = -e1
+            result[5] += a5 * b[0]; // 1 * e13 = e13
+            result[6] -= a5 * b[3]; // e13 * e23 = -e12
+            result[7] -= a5 * b[2]; // e13 * e123 = -e2
+        }
+
+        // e23 products (index 6)
+        let a6 = a[6];
+        if a6 != 0.0 {
+            result[0] -= a6 * b[6]; // e23^2 = -1
+            result[1] += a6 * b[7]; // e23 * e1 = e123
+            result[2] += a6 * b[4]; // e23 * e2 = e3
+            result[3] -= a6 * b[5]; // e23 * e12 = -e13
+            result[4] -= a6 * b[2]; // e23 * e3 = -e2
+            result[5] += a6 * b[3]; // e23 * e13 = e12
+            result[6] += a6 * b[0]; // 1 * e23 = e23
+            result[7] += a6 * b[1]; // e23 * e123 = e1
+        }
+
+        // e123 products (index 7)
+        let a7 = a[7];
+        if a7 != 0.0 {
+            result[0] -= a7 * b[7]; // e123^2 = -1
+            result[1] -= a7 * b[6]; // e123 * e1 = -e23
+            result[2] += a7 * b[5]; // e123 * e2 = e13
+            result[3] -= a7 * b[4]; // e123 * e12 = -e3
+            result[4] += a7 * b[3]; // e123 * e3 = e12
+            result[5] -= a7 * b[2]; // e123 * e13 = -e2
+            result[6] += a7 * b[1]; // e123 * e23 = e1
+            result[7] += a7 * b[0]; // 1 * e123 = e123
+        }
     }
 
     /// Batch addition
@@ -310,10 +426,123 @@ impl WasmRotor {
     }
 }
 
+/// Memory pool for reducing allocation overhead in WASM
+struct MemoryPool {
+    coefficient_buffers: Vec<Vec<f64>>,
+}
+
+impl MemoryPool {
+    fn new() -> Self {
+        Self {
+            coefficient_buffers: Vec::new(),
+        }
+    }
+
+    fn get_buffer(&mut self) -> Vec<f64> {
+        self.coefficient_buffers
+            .pop()
+            .unwrap_or_else(|| Vec::with_capacity(MULTIVECTOR_COEFFICIENTS))
+    }
+
+    #[allow(dead_code)]
+    fn return_buffer(&mut self, mut buffer: Vec<f64>) {
+        if buffer.capacity() >= MULTIVECTOR_COEFFICIENTS {
+            buffer.clear();
+            if self.coefficient_buffers.len() < 16 {
+                // Limit pool size
+                self.coefficient_buffers.push(buffer);
+            }
+        }
+    }
+}
+
+thread_local! {
+    static MEMORY_POOL: RefCell<MemoryPool> = RefCell::new(MemoryPool::new());
+}
+
+/// High-performance WASM operations with memory pooling
+#[wasm_bindgen]
+pub struct PerformanceOperations;
+
+#[wasm_bindgen]
+impl PerformanceOperations {
+    /// Fast geometric product for hot paths with memory pooling
+    #[wasm_bindgen(js_name = fastGeometricProduct)]
+    pub fn fast_geometric_product(lhs: &[f64], rhs: &[f64]) -> Vec<f64> {
+        if lhs.len() != MULTIVECTOR_COEFFICIENTS || rhs.len() != MULTIVECTOR_COEFFICIENTS {
+            return vec![0.0; MULTIVECTOR_COEFFICIENTS];
+        }
+
+        MEMORY_POOL.with(|pool| {
+            let mut pool = pool.borrow_mut();
+            let mut result = pool.get_buffer();
+            result.resize(MULTIVECTOR_COEFFICIENTS, 0.0);
+
+            BatchOperations::geometric_product_hot_path(lhs, rhs, &mut result);
+
+            // Don't return buffer to pool since we're returning it to JS
+            result
+        })
+    }
+
+    /// Optimized vector operations for 3D space
+    #[wasm_bindgen(js_name = vectorCrossProduct)]
+    pub fn vector_cross_product(v1: &[f64], v2: &[f64]) -> Vec<f64> {
+        if v1.len() < 3 || v2.len() < 3 {
+            return vec![0.0; 3];
+        }
+
+        vec![
+            v1[1] * v2[2] - v1[2] * v2[1],
+            v1[2] * v2[0] - v1[0] * v2[2],
+            v1[0] * v2[1] - v1[1] * v2[0],
+        ]
+    }
+
+    /// Optimized vector dot product
+    #[wasm_bindgen(js_name = vectorDotProduct)]
+    pub fn vector_dot_product(v1: &[f64], v2: &[f64]) -> f64 {
+        let len = v1.len().min(v2.len());
+        let mut result = 0.0;
+        for i in 0..len {
+            result += v1[i] * v2[i];
+        }
+        result
+    }
+
+    /// Batch normalize vectors for efficiency
+    #[wasm_bindgen(js_name = batchNormalize)]
+    pub fn batch_normalize(vectors: &[f64], vector_size: usize) -> Vec<f64> {
+        let num_vectors = vectors.len() / vector_size;
+        let mut result = Vec::with_capacity(vectors.len());
+
+        for i in 0..num_vectors {
+            let start = i * vector_size;
+            let end = start + vector_size;
+            let vector = &vectors[start..end];
+
+            // Calculate magnitude
+            let mag_sq: f64 = vector.iter().map(|x| x * x).sum();
+            let mag = mag_sq.sqrt();
+
+            if mag > 1e-14 {
+                let inv_mag = 1.0 / mag;
+                for &component in vector {
+                    result.push(component * inv_mag);
+                }
+            } else {
+                result.extend(vec![0.0; vector_size]);
+            }
+        }
+
+        result
+    }
+}
+
 /// Initialize the WASM module
 #[wasm_bindgen(start)]
 pub fn init() {
-    console_log!("Amari WASM module initialized");
+    console_log!("Amari WASM module initialized with performance optimizations");
 }
 
 #[cfg(test)]
