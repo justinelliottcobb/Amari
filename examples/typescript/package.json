@@ -10,7 +10,7 @@
     "test": "jest"
   },
   "dependencies": {
-    "@amari/core": "^0.6.0"
+    "@justinelliottcobb/amari-core": "latest"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
