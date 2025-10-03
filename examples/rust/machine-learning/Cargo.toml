@@ -1,0 +1,39 @@
+[package]
+name = "machine-learning"
+version = "0.6.0"
+edition = "2021"
+authors = ["Amari Project <amari@example.com>"]
+description = "Machine learning applications with verified mathematics using Amari"
+license = "MIT"
+
+[[bin]]
+name = "automatic_differentiation"
+path = "src/autodiff.rs"
+
+[[bin]]
+name = "neural_networks"
+path = "src/neural_networks.rs"
+
+[[bin]]
+name = "optimization_algorithms"
+path = "src/optimization.rs"
+
+[[bin]]
+name = "verified_learning"
+path = "src/verified_learning.rs"
+
+[dependencies]
+amari = { path = "../../../", version = "0.6" }
+amari-core = { path = "../../../amari-core", version = "0.6" }
+amari-dual = { path = "../../../amari-dual", version = "0.6" }
+plotters = "0.3"
+rand = "0.8"
+nalgebra = "0.33"
+approx = "0.5"
+csv = "1.3"
+
+[features]
+default = ["visualizations"]
+visualizations = ["plotters"]
+performance = ["amari/parallel"]
+numerical_verification = ["amari-dual/high_precision"]

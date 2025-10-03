@@ -1,6 +1,6 @@
 {
   "name": "amari-examples-suite",
-  "version": "0.1.0",
+  "version": "0.6.0",
   "description": "Interactive API examples for the Amari Mathematical Computing Library",
   "private": true,
   "type": "module",
@@ -14,7 +14,7 @@
     "preview:netlify": "npm run build && netlify deploy --dir=dist"
   },
   "dependencies": {
-    "@justinelliottcobb/amari-core": "^0.1.0",
+    "@justinelliottcobb/amari-core": "latest",
     "@vitejs/plugin-react": "^4.0.0",
     "jadis-ui": "^0.1.1-2",
     "react": "^19.1.1",
