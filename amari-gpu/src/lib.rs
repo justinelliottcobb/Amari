@@ -1,9 +1,21 @@
 //! GPU acceleration for geometric algebra operations using WebGPU/wgpu
 
+pub mod adaptive;
+pub mod verification;
+
+pub use adaptive::{
+    AdaptiveVerificationError, AdaptiveVerificationLevel, AdaptiveVerifier, CpuFeatures,
+    GpuBackend, PlatformCapabilities, PlatformPerformanceProfile, VerificationPlatform,
+    WasmEnvironment,
+};
 use amari_core::Multivector;
 use amari_info_geom::amari_chentsov_tensor;
 use bytemuck::{Pod, Zeroable};
 use thiserror::Error;
+pub use verification::{
+    GpuBoundaryVerifier, GpuVerificationError, StatisticalGpuVerifier, VerificationConfig,
+    VerificationStrategy, VerifiedMultivector,
+};
 use wgpu::util::DeviceExt;
 
 #[derive(Error, Debug)]
@@ -984,13 +996,24 @@ mod tests {
 
     #[tokio::test]
     async fn test_gpu_info_geometry_creation() {
+        // Skip GPU tests in CI environments where GPU is not available
+        if std::env::var("CI").is_ok()
+            || std::env::var("GITHUB_ACTIONS").is_ok()
+            || std::env::var("DISPLAY").is_err()
+        {
+            println!("Skipping GPU test in CI environment");
+            return;
+        }
+
         // This test will fail if no GPU is available, which is expected in CI
         match GpuInfoGeometry::new().await {
             Ok(_) => {
                 // GPU available - test basic functionality
+                println!("GPU initialization successful");
             }
             Err(GpuError::InitializationError(_)) => {
-                // No GPU available - this is fine for CI environments
+                // No GPU available - this is fine
+                println!("GPU initialization failed - no GPU available");
             }
             Err(e) => panic!("Unexpected error: {:?}", e),
         }
