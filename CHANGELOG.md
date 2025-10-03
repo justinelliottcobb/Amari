@@ -5,6 +5,69 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2025-01-02
+
+### Added - Core WASM Expansion
+- **Tropical Algebra WASM Bindings**: Complete WebAssembly interface for max-plus semiring operations
+  - `WasmTropicalNumber` with tropical arithmetic (⊕ = max, ⊗ = +)
+  - `WasmTropicalVector` and `WasmTropicalMatrix` for neural network applications
+  - Batch operations for high-performance machine learning workloads
+  - Shortest path algorithms using tropical matrix powers
+
+- **Automatic Differentiation WASM Bindings**: Forward-mode AD for JavaScript/TypeScript
+  - `WasmDualNumber` for single-variable derivatives
+  - `WasmMultiDualNumber` for multi-variable partial derivatives
+  - Automatic gradient computation for optimization algorithms
+  - Polynomial evaluation utilities with exact derivatives
+
+- **Fusion Systems WASM Bindings**: Advanced multi-modal neural architectures
+  - `WasmTropicalDualClifford` combining tropical + dual + geometric algebra
+  - Attention mechanisms using fusion operations
+  - Multi-modal learning support for AI applications
+  - Geometric transformations in unified algebraic space
+
+- **Information Geometry WASM Bindings**: Statistical manifolds and divergences
+  - `WasmDuallyFlatManifold` for statistical analysis
+  - `WasmFisherInformationMatrix` with eigenvalue analysis
+  - `WasmAlphaConnection` for geometric connections (α ∈ [-1,1])
+  - `InfoGeomUtils` with KL divergence, JS divergence, entropy, mutual information
+  - Wasserstein distance and cross-entropy calculations
+
+- **Comprehensive Examples Suite**: Production-ready code samples
+  - 5 individual examples showcasing each mathematical system
+  - Complete unified demo demonstrating all systems working together
+  - Real-world use cases: physics simulations, ML optimization, statistical analysis
+  - TypeScript examples with proper memory management patterns
+
+### Enhanced
+- **Geometric Algebra**: Existing WASM bindings maintained and optimized
+- **Unified API**: Consistent camelCase naming for JavaScript/TypeScript
+- **Memory Management**: Proper `.free()` patterns for all WASM objects
+- **TypeScript Definitions**: Complete type safety for all new classes
+- **Performance**: Optimized WASM compilation with wasm-opt -O4
+
+### Technical Improvements
+- **Package Management**: Updated all workspace dependencies to v0.4.0
+- **Build System**: Enhanced wasm-pack configuration for optimal bundle size
+- **Validation**: Comprehensive test suite validating all new functionality
+- **Documentation**: Updated README and examples for expanded capabilities
+
+### Breaking Changes
+- **Version**: All workspace crates updated from 0.3.x to 0.4.0
+- **Scope**: Amari is now a unified mathematical computing platform (was primarily geometric algebra)
+
+### Migration Guide
+- Existing geometric algebra code continues to work unchanged
+- New tropical, dual, fusion, and information geometry APIs available alongside existing functionality
+- All new APIs follow consistent patterns: constructor, methods, `.free()` for memory management
+
+### Use Cases Enabled
+- **Game Development**: Enhanced 3D rotations and transformations
+- **Machine Learning**: Tropical neural networks and automatic gradients
+- **Scientific Computing**: Statistical manifolds and information theory
+- **Computer Graphics**: Unified geometric transformations
+- **AI Research**: Multi-modal fusion architectures and attention mechanisms
+
 ## [0.3.6] - 2024-01-10
 
 ### Fixed

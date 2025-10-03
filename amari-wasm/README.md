@@ -1,12 +1,12 @@
-# @amari/core
+# @justinelliottcobb/amari-wasm v0.4.0
 
-🚀 **Advanced Mathematical Computing Library for JavaScript/TypeScript**
+🚀 **Unified Mathematical Computing Library for JavaScript/TypeScript**
 
-[![npm version](https://badge.fury.io/js/%40amari%2Fcore.svg)](https://www.npmjs.com/package/@amari/core)
+[![npm version](https://badge.fury.io/js/%40justinelliottcobb%2Famari-wasm.svg)](https://www.npmjs.com/package/@justinelliottcobb/amari-wasm)
 [![CI](https://github.com/justinelliottcobb/Amari/actions/workflows/ci.yml/badge.svg)](https://github.com/justinelliottcobb/Amari/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Amari is a high-performance mathematical computing library that brings advanced algebraic structures to JavaScript/TypeScript through WebAssembly. It combines geometric algebra, tropical algebra, dual number automatic differentiation, and cellular automata in a unified framework.
+Amari is a comprehensive mathematical computing library that brings five advanced algebraic systems to JavaScript/TypeScript through WebAssembly: geometric algebra, tropical algebra, automatic differentiation, fusion systems, and information geometry.
 
 ## ✨ Features
 

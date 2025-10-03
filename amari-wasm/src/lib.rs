@@ -1,7 +1,19 @@
-//! WASM bindings for the Amari geometric algebra library
+//! WASM bindings for the Amari mathematical computing library
+//!
+//! This module provides WebAssembly bindings for:
+//! - Geometric algebra (amari-core)
+//! - Tropical algebra (amari-tropical)
+//! - Automatic differentiation (amari-dual)
+//! - Fusion systems (amari-fusion)
+//! - Information geometry (amari-info-geom)
 
 use amari_core::{rotor::Rotor, Bivector, Multivector};
 use wasm_bindgen::prelude::*;
+
+pub mod dual;
+pub mod fusion;
+pub mod info_geom;
+pub mod tropical;
 
 /// Number of coefficients in a 3D Clifford algebra multivector (2^3 = 8)
 /// Basis elements: 1, e1, e2, e3, e12, e13, e23, e123
