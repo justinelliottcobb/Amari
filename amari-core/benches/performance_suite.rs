@@ -3,7 +3,7 @@
 //! This benchmark suite measures critical operations to ensure performance targets
 //! are met and provides regression testing for optimization work.
 
-use amari_core::{Multivector, Vector, Bivector, Rotor};
+use amari_core::{Bivector, Multivector, Rotor, Vector};
 use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
 
 type Cl3 = Multivector<3, 0, 0>; // 3D Euclidean space
@@ -28,7 +28,8 @@ fn bench_geometric_product(c: &mut Criterion) {
     }
 
     // Complex multivector products
-    let complex_mv1 = Cl3::scalar(2.0) + e1.clone() * 3.0 + e2.clone() * 4.0 + e1.outer_product(&e2) * 5.0;
+    let complex_mv1 =
+        Cl3::scalar(2.0) + e1.clone() * 3.0 + e2.clone() * 4.0 + e1.outer_product(&e2) * 5.0;
     let complex_mv2 = Cl3::scalar(1.5) + e2.clone() * 2.5 + Cl3::basis_vector(2) * 3.5;
 
     group.bench_function("complex_multivectors", |b| {
@@ -49,7 +50,8 @@ fn bench_batch_operations(c: &mut Criterion) {
 
         for i in 0..*size {
             let mv1 = Cl3::scalar(i as f64) + Cl3::basis_vector(0) * (i as f64 * 0.5);
-            let mv2 = Cl3::basis_vector(1) * (i as f64 * 0.3) + Cl3::basis_vector(2) * (i as f64 * 0.7);
+            let mv2 =
+                Cl3::basis_vector(1) * (i as f64 * 0.3) + Cl3::basis_vector(2) * (i as f64 * 0.7);
 
             lhs_batch.extend_from_slice(mv1.as_slice());
             rhs_batch.extend_from_slice(mv2.as_slice());
@@ -122,7 +124,9 @@ fn bench_rotor_operations(c: &mut Criterion) {
     });
 
     let rotor = Rotor::from_bivector(&bivector, angle);
-    let vector = e1.clone() + e2.clone() * 0.5 + e3.clone() * 0.3;
+    let vector = e1
+        .add(&Vector::from_multivector(&(e2.mv.clone() * 0.5)))
+        .add(&Vector::from_multivector(&(e3.mv.clone() * 0.3)));
 
     group.bench_function("rotor_application", |b| {
         b.iter(|| black_box(rotor.apply(black_box(&vector.mv))))
@@ -185,9 +189,7 @@ fn bench_memory_operations(c: &mut Criterion) {
 
     // Test aligned allocation performance
     group.bench_function("aligned_allocation", |b| {
-        b.iter(|| {
-            black_box(amari_core::aligned_alloc::AlignedCoefficients::zero(8))
-        })
+        b.iter(|| black_box(amari_core::aligned_alloc::AlignedCoefficients::zero(8)))
     });
 
     group.finish();

@@ -1,8 +1,8 @@
 //! WASM bindings for the Amari geometric algebra library
 
 use amari_core::{rotor::Rotor, Bivector, Multivector};
-use wasm_bindgen::prelude::*;
 use std::cell::RefCell;
+use wasm_bindgen::prelude::*;
 
 /// Number of coefficients in a 3D Clifford algebra multivector (2^3 = 8)
 /// Basis elements: 1, e1, e2, e3, e12, e13, e23, e123
@@ -225,10 +225,7 @@ impl BatchOperations {
         }
 
         // Pre-allocate result vector to avoid repeated allocations
-        let mut result = Vec::with_capacity(a_batch.len());
-        unsafe {
-            result.set_len(a_batch.len());
-        }
+        let mut result = vec![0.0; a_batch.len()];
 
         // Use optimized batch processing with minimal allocations
         for i in 0..batch_size {
@@ -270,92 +267,92 @@ impl BatchOperations {
         // e1 products (index 1)
         let a1 = a[1];
         if a1 != 0.0 {
-            result[0] += a1 * b[1];  // e1 * 1 = e1, 1 * e1 = e1
-            result[1] += a1 * b[0];  // 1 * e1 = e1
-            result[2] += a1 * b[3];  // e1 * e2 = e12
-            result[3] += a1 * b[2];  // e1 * e12 = e2
-            result[4] += a1 * b[5];  // e1 * e3 = e13
-            result[5] += a1 * b[4];  // e1 * e13 = e3
-            result[6] -= a1 * b[7];  // e1 * e23 = -e123
-            result[7] -= a1 * b[6];  // e1 * e123 = -e23
+            result[0] += a1 * b[1]; // e1 * 1 = e1, 1 * e1 = e1
+            result[1] += a1 * b[0]; // 1 * e1 = e1
+            result[2] += a1 * b[3]; // e1 * e2 = e12
+            result[3] += a1 * b[2]; // e1 * e12 = e2
+            result[4] += a1 * b[5]; // e1 * e3 = e13
+            result[5] += a1 * b[4]; // e1 * e13 = e3
+            result[6] -= a1 * b[7]; // e1 * e23 = -e123
+            result[7] -= a1 * b[6]; // e1 * e123 = -e23
         }
 
         // e2 products (index 2)
         let a2 = a[2];
         if a2 != 0.0 {
-            result[0] += a2 * b[2];  // e2 * 1 = e2
-            result[1] -= a2 * b[3];  // e2 * e1 = -e12
-            result[2] += a2 * b[0];  // 1 * e2 = e2
-            result[3] -= a2 * b[1];  // e2 * e12 = -e1
-            result[4] += a2 * b[6];  // e2 * e3 = e23
-            result[5] += a2 * b[7];  // e2 * e13 = e123
-            result[6] += a2 * b[4];  // e2 * e23 = e3
-            result[7] += a2 * b[5];  // e2 * e123 = e13
+            result[0] += a2 * b[2]; // e2 * 1 = e2
+            result[1] -= a2 * b[3]; // e2 * e1 = -e12
+            result[2] += a2 * b[0]; // 1 * e2 = e2
+            result[3] -= a2 * b[1]; // e2 * e12 = -e1
+            result[4] += a2 * b[6]; // e2 * e3 = e23
+            result[5] += a2 * b[7]; // e2 * e13 = e123
+            result[6] += a2 * b[4]; // e2 * e23 = e3
+            result[7] += a2 * b[5]; // e2 * e123 = e13
         }
 
         // e3 products (index 4)
         let a4 = a[4];
         if a4 != 0.0 {
-            result[0] += a4 * b[4];  // e3 * 1 = e3
-            result[1] -= a4 * b[5];  // e3 * e1 = -e13
-            result[2] -= a4 * b[6];  // e3 * e2 = -e23
-            result[3] -= a4 * b[7];  // e3 * e12 = -e123
-            result[4] += a4 * b[0];  // 1 * e3 = e3
-            result[5] -= a4 * b[1];  // e3 * e13 = -e1
-            result[6] -= a4 * b[2];  // e3 * e23 = -e2
-            result[7] -= a4 * b[3];  // e3 * e123 = -e12
+            result[0] += a4 * b[4]; // e3 * 1 = e3
+            result[1] -= a4 * b[5]; // e3 * e1 = -e13
+            result[2] -= a4 * b[6]; // e3 * e2 = -e23
+            result[3] -= a4 * b[7]; // e3 * e12 = -e123
+            result[4] += a4 * b[0]; // 1 * e3 = e3
+            result[5] -= a4 * b[1]; // e3 * e13 = -e1
+            result[6] -= a4 * b[2]; // e3 * e23 = -e2
+            result[7] -= a4 * b[3]; // e3 * e123 = -e12
         }
 
         // e12 products (index 3)
         let a3 = a[3];
         if a3 != 0.0 {
-            result[0] -= a3 * b[3];  // e12 * 1 = e12, e12^2 = -1
-            result[1] += a3 * b[2];  // e12 * e1 = e2
-            result[2] -= a3 * b[1];  // e12 * e2 = -e1
-            result[3] += a3 * b[0];  // 1 * e12 = e12
-            result[4] += a3 * b[7];  // e12 * e3 = e123
-            result[5] -= a3 * b[6];  // e12 * e13 = -e23
-            result[6] += a3 * b[5];  // e12 * e23 = e13
-            result[7] += a3 * b[4];  // e12 * e123 = e3
+            result[0] -= a3 * b[3]; // e12 * 1 = e12, e12^2 = -1
+            result[1] += a3 * b[2]; // e12 * e1 = e2
+            result[2] -= a3 * b[1]; // e12 * e2 = -e1
+            result[3] += a3 * b[0]; // 1 * e12 = e12
+            result[4] += a3 * b[7]; // e12 * e3 = e123
+            result[5] -= a3 * b[6]; // e12 * e13 = -e23
+            result[6] += a3 * b[5]; // e12 * e23 = e13
+            result[7] += a3 * b[4]; // e12 * e123 = e3
         }
 
         // e13 products (index 5)
         let a5 = a[5];
         if a5 != 0.0 {
-            result[0] -= a5 * b[5];  // e13^2 = -1
-            result[1] += a5 * b[4];  // e13 * e1 = e3
-            result[2] -= a5 * b[7];  // e13 * e2 = -e123
-            result[3] += a5 * b[6];  // e13 * e12 = e23
-            result[4] -= a5 * b[1];  // e13 * e3 = -e1
-            result[5] += a5 * b[0];  // 1 * e13 = e13
-            result[6] -= a5 * b[3];  // e13 * e23 = -e12
-            result[7] -= a5 * b[2];  // e13 * e123 = -e2
+            result[0] -= a5 * b[5]; // e13^2 = -1
+            result[1] += a5 * b[4]; // e13 * e1 = e3
+            result[2] -= a5 * b[7]; // e13 * e2 = -e123
+            result[3] += a5 * b[6]; // e13 * e12 = e23
+            result[4] -= a5 * b[1]; // e13 * e3 = -e1
+            result[5] += a5 * b[0]; // 1 * e13 = e13
+            result[6] -= a5 * b[3]; // e13 * e23 = -e12
+            result[7] -= a5 * b[2]; // e13 * e123 = -e2
         }
 
         // e23 products (index 6)
         let a6 = a[6];
         if a6 != 0.0 {
-            result[0] -= a6 * b[6];  // e23^2 = -1
-            result[1] += a6 * b[7];  // e23 * e1 = e123
-            result[2] += a6 * b[4];  // e23 * e2 = e3
-            result[3] -= a6 * b[5];  // e23 * e12 = -e13
-            result[4] -= a6 * b[2];  // e23 * e3 = -e2
-            result[5] += a6 * b[3];  // e23 * e13 = e12
-            result[6] += a6 * b[0];  // 1 * e23 = e23
-            result[7] += a6 * b[1];  // e23 * e123 = e1
+            result[0] -= a6 * b[6]; // e23^2 = -1
+            result[1] += a6 * b[7]; // e23 * e1 = e123
+            result[2] += a6 * b[4]; // e23 * e2 = e3
+            result[3] -= a6 * b[5]; // e23 * e12 = -e13
+            result[4] -= a6 * b[2]; // e23 * e3 = -e2
+            result[5] += a6 * b[3]; // e23 * e13 = e12
+            result[6] += a6 * b[0]; // 1 * e23 = e23
+            result[7] += a6 * b[1]; // e23 * e123 = e1
         }
 
         // e123 products (index 7)
         let a7 = a[7];
         if a7 != 0.0 {
-            result[0] -= a7 * b[7];  // e123^2 = -1
-            result[1] -= a7 * b[6];  // e123 * e1 = -e23
-            result[2] += a7 * b[5];  // e123 * e2 = e13
-            result[3] -= a7 * b[4];  // e123 * e12 = -e3
-            result[4] += a7 * b[3];  // e123 * e3 = e12
-            result[5] -= a7 * b[2];  // e123 * e13 = -e2
-            result[6] += a7 * b[1];  // e123 * e23 = e1
-            result[7] += a7 * b[0];  // 1 * e123 = e123
+            result[0] -= a7 * b[7]; // e123^2 = -1
+            result[1] -= a7 * b[6]; // e123 * e1 = -e23
+            result[2] += a7 * b[5]; // e123 * e2 = e13
+            result[3] -= a7 * b[4]; // e123 * e12 = -e3
+            result[4] += a7 * b[3]; // e123 * e3 = e12
+            result[5] -= a7 * b[2]; // e123 * e13 = -e2
+            result[6] += a7 * b[1]; // e123 * e23 = e1
+            result[7] += a7 * b[0]; // 1 * e123 = e123
         }
     }
 
@@ -430,13 +427,17 @@ impl MemoryPool {
     }
 
     fn get_buffer(&mut self) -> Vec<f64> {
-        self.coefficient_buffers.pop().unwrap_or_else(|| Vec::with_capacity(MULTIVECTOR_COEFFICIENTS))
+        self.coefficient_buffers
+            .pop()
+            .unwrap_or_else(|| Vec::with_capacity(MULTIVECTOR_COEFFICIENTS))
     }
 
+    #[allow(dead_code)]
     fn return_buffer(&mut self, mut buffer: Vec<f64>) {
         if buffer.capacity() >= MULTIVECTOR_COEFFICIENTS {
             buffer.clear();
-            if self.coefficient_buffers.len() < 16 { // Limit pool size
+            if self.coefficient_buffers.len() < 16 {
+                // Limit pool size
                 self.coefficient_buffers.push(buffer);
             }
         }
@@ -518,9 +519,7 @@ impl PerformanceOperations {
                     result.push(component * inv_mag);
                 }
             } else {
-                for _ in 0..vector_size {
-                    result.push(0.0);
-                }
+                result.extend(vec![0.0; vector_size]);
             }
         }
 

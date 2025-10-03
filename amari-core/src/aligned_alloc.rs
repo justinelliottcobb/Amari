@@ -78,7 +78,7 @@ pub fn create_aligned_f64_vec(count: usize) -> Vec<f64> {
 
     // Verify alignment for critical sizes
     let ptr = vec.as_ptr() as usize;
-    if count == 8 && ptr % AVX2_ALIGNMENT != 0 {
+    if count == 8 && !ptr.is_multiple_of(AVX2_ALIGNMENT) {
         // Reallocate with proper alignment for 8-element vectors (3D Clifford algebra)
         let mut aligned_vec = Vec::with_capacity(count + (AVX2_ALIGNMENT / 8));
         aligned_vec.resize(count, 0.0);
@@ -177,7 +177,7 @@ impl AlignedCoefficients {
     /// Check if the memory is properly aligned for SIMD
     pub fn is_simd_aligned(&self) -> bool {
         let ptr = self.data.as_ptr() as usize;
-        ptr % AVX2_ALIGNMENT == 0
+        ptr.is_multiple_of(AVX2_ALIGNMENT)
     }
 }
 
