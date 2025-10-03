@@ -138,8 +138,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sync npm package version with Rust crates (was stuck at 0.1.1)
 
 ### Added
-- Comprehensive deployment strategy documentation (`DEPLOYMENT_STRATEGY.md`)
-- NPM publishing roadmap for phased WASM rollout (`NPM_PUBLISHING_ROADMAP.md`)
+- Comprehensive deployment strategy documentation (`docs/development/DEPLOYMENT_STRATEGY.md`)
+- NPM publishing roadmap for phased WASM rollout (`docs/development/NPM_PUBLISHING_ROADMAP.md`)
 
 ### Changed
 - No breaking changes - patch release with deployment fixes only
@@ -159,7 +159,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.2.0] - 2024-01-09
 
 ### Added
-- API naming convention guide (`API_NAMING_CONVENTION.md`)
+- API naming convention guide (`docs/technical/API_NAMING_CONVENTION.md`)
 - `magnitude()` method as primary API for computing vector/multivector length
 
 ### Changed
