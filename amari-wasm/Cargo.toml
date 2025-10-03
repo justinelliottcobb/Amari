@@ -4,17 +4,21 @@ version.workspace = true
 authors.workspace = true
 edition.workspace = true
 license.workspace = true
-description = "WebAssembly bindings for Amari mathematical computing library"
+description = "WebAssembly bindings for Amari mathematical computing library - geometric algebra, tropical algebra, automatic differentiation, fusion systems, and information geometry"
 repository = "https://github.com/justinelliottcobb/Amari"
 homepage = "https://github.com/justinelliottcobb/Amari"
-keywords = ["wasm", "webassembly", "geometric-algebra", "mathematics", "javascript"]
+keywords = ["wasm", "webassembly", "geometric-algebra", "tropical-algebra", "automatic-differentiation"]
 categories = ["mathematics", "science", "wasm", "web-programming"]
 
 [lib]
 crate-type = ["cdylib"]
 
 [dependencies]
-amari-core = { path = "../amari-core", version = "0.3" }
+amari-core = { path = "../amari-core", version = "0.4" }
+amari-tropical = { path = "../amari-tropical", version = "0.4" }
+amari-dual = { path = "../amari-dual", version = "0.4" }
+amari-fusion = { path = "../amari-fusion", version = "0.4" }
+amari-info-geom = { path = "../amari-info-geom", version = "0.4" }
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"
 js-sys = "0.3"

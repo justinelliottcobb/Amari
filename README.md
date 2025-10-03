@@ -1,6 +1,8 @@
-# Amari
+# Amari v0.4.0
 
-A high-performance Geometric Algebra/Clifford Algebra library with Information Geometry operations and Tropical-Dual-Clifford fusion system for advanced mathematical computing, designed for TypeScript interop via WASM and optional GPU acceleration.
+**Unified Mathematical Computing Platform for JavaScript/TypeScript**
+
+A comprehensive mathematical computing library that brings five advanced algebraic systems to JavaScript/TypeScript through WebAssembly: geometric algebra, tropical algebra, automatic differentiation, fusion systems, and information geometry.
 
 [![Rust](https://img.shields.io/badge/Rust-1.75+-orange.svg)](https://www.rust-lang.org/)
 [![WebAssembly](https://img.shields.io/badge/WebAssembly-Ready-blue.svg)](https://webassembly.org/)
@@ -9,27 +11,86 @@ A high-performance Geometric Algebra/Clifford Algebra library with Information G
 
 ## Features
 
-- High-Performance Core: Optimized Rust implementation with SIMD support and cache-aligned data structures
-- Tropical-Dual-Clifford Fusion: Revolutionary three-algebra system combining tropical, dual number, and Clifford algebras
-- WebAssembly Bindings: Zero-copy TypeScript/JavaScript bindings for web applications
-- GPU Acceleration: Optional WebGPU compute shaders for batch operations
-- Information Geometry: Fisher metrics, α-connections, Bregman divergences, and Amari-Chentsov tensors
-- Automatic Differentiation: Forward-mode autodiff with dual numbers for exact gradients
-- Tropical Algebra: Max-plus operations for efficient path finding and sequence decoding
-- Type Safety: Const generics eliminate runtime dimension checks
-- Flexible Signatures: Support for arbitrary metric signatures Cl(P,Q,R)
+- **Geometric Algebra (Clifford Algebra)**: Multivectors, rotors, and geometric products for 3D rotations and spatial transformations
+- **Tropical Algebra**: Max-plus semiring operations for optimization and neural network applications
+- **Automatic Differentiation**: Forward-mode AD with dual numbers for exact derivatives
+- **Fusion Systems**: Tropical-dual-Clifford fusion combining three algebraic systems
+- **Information Geometry**: Statistical manifolds, KL/JS divergences, and Fisher information
+- **WebAssembly**: High-performance WASM bindings for JavaScript/TypeScript
+- **Pure Rust Implementation**: Memory-safe, high-performance core with WASM bindings
+- **TypeScript Support**: Full TypeScript definitions included
+- **Real-World Applications**: Physics simulations, ML optimization, statistical analysis
+
+## Installation
+
+```bash
+npm install @justinelliottcobb/amari-wasm
+```
+
+Or with yarn:
+
+```bash
+yarn add @justinelliottcobb/amari-wasm
+```
+
+## Quick Start
+
+```typescript
+import init, { WasmMultivector, WasmTropicalNumber, WasmDualNumber } from '@justinelliottcobb/amari-wasm';
+
+async function main() {
+  // Initialize the WASM module
+  await init();
+
+  // Geometric Algebra: Create and rotate vectors
+  const e1 = WasmMultivector.basisVector(0);
+  const e2 = WasmMultivector.basisVector(1);
+  const bivector = e1.geometricProduct(e2);
+  console.log('Geometric product:', bivector.toString());
+
+  // Tropical Algebra: Neural network operations
+  const trop1 = new WasmTropicalNumber(3.0);
+  const trop2 = new WasmTropicalNumber(5.0);
+  const sum = trop1.tropicalAdd(trop2); // max(3, 5) = 5
+  const product = trop1.tropicalMul(trop2); // 3 + 5 = 8
+  console.log('Tropical operations:', sum.getValue(), product.getValue());
+
+  // Automatic Differentiation: Compute derivatives
+  const x = new WasmDualNumber(2.0, 1.0);
+  const xSquared = x.mul(x); // f(x) = x², f'(x) = 2x
+  console.log('f(2) =', xSquared.getReal(), "f'(2) =", xSquared.getDual());
+
+  // Clean up WASM memory
+  e1.free(); e2.free(); bivector.free();
+  trop1.free(); trop2.free(); sum.free(); product.free();
+  x.free(); xSquared.free();
+}
+
+main();
+```
+
+## Use Cases
+
+- **Computer Graphics**: 3D rotations and transformations using rotors
+- **Physics Simulations**: Geometric algebra for electromagnetic fields
+- **Machine Learning**: Tropical neural networks and automatic differentiation
+- **Optimization**: Tropical algebra for shortest path and scheduling problems
+- **Scientific Computing**: High-performance mathematical operations
+- **Game Development**: Efficient spatial transformations and physics
 
 ## Architecture
 
 ### Crates
 
 - `amari-core`: Core Clifford algebra types and CPU implementations
-- `amari-tropical`: Tropical (max-plus) algebra for efficient optimization
+- `amari-tropical`: Tropical (max-plus) algebra for neural networks
 - `amari-dual`: Dual numbers for automatic differentiation
 - `amari-fusion`: Unified Tropical-Dual-Clifford system
-- `amari-wasm`: WASM bindings for TypeScript/JavaScript
+- `amari-info-geom`: Information geometry and statistical manifolds
+- `amari-wasm`: WASM bindings for TypeScript/JavaScript (**New in v0.4.0**)
 - `amari-gpu`: Optional GPU acceleration via WebGPU/wgpu
-- `amari-info-geom`: Information geometry operations
+- `amari-automata`: Cellular automata with geometric algebra
+- `amari-enumerative`: Enumerative geometry and algebraic curves
 
 ### Key Types
 

@@ -1,0 +1,42 @@
+{
+  "name": "amari-wasm-examples",
+  "version": "0.4.0",
+  "description": "Comprehensive examples for Amari v0.4.0 WebAssembly mathematical computing library",
+  "type": "module",
+  "scripts": {
+    "demo": "node --loader ts-node/esm complete-demo.ts",
+    "geometric": "node --loader ts-node/esm geometric.ts",
+    "tropical": "node --loader ts-node/esm tropical.ts",
+    "autodiff": "node --loader ts-node/esm automatic-diff.ts",
+    "infogeom": "node --loader ts-node/esm information-geometry.ts",
+    "fusion": "node --loader ts-node/esm fusion-systems.ts",
+    "all": "npm run demo && npm run geometric && npm run tropical && npm run autodiff && npm run infogeom && npm run fusion"
+  },
+  "dependencies": {
+    "@justinelliottcobb/amari-wasm": "^0.4.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "ts-node": "^10.9.0",
+    "@types/node": "^20.0.0"
+  },
+  "keywords": [
+    "mathematics",
+    "webassembly",
+    "geometric-algebra",
+    "tropical-algebra",
+    "automatic-differentiation",
+    "information-geometry",
+    "fusion-systems",
+    "machine-learning",
+    "physics",
+    "examples"
+  ],
+  "author": "Amari Contributors",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/justinelliottcobb/Amari.git",
+    "directory": "amari-wasm/examples"
+  }
+}
