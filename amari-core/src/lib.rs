@@ -16,15 +16,19 @@
 
 extern crate alloc;
 use alloc::boxed::Box;
-use alloc::vec::{self, Vec};
+use alloc::vec::Vec;
 use core::ops::{Add, Mul, Neg, Sub};
 use num_traits::Zero;
 
+pub mod aligned_alloc;
 pub mod basis;
 pub mod cayley;
 pub mod error;
 pub mod rotor;
 pub mod unicode_ops;
+
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+pub mod simd;
 
 // Re-export error types
 pub use error::{CoreError, CoreResult};
@@ -50,9 +54,10 @@ pub use cayley::CayleyTable;
 /// - `Q`: Number of basis vectors that square to -1  
 /// - `R`: Number of basis vectors that square to 0
 #[derive(Debug, Clone, PartialEq)]
-#[repr(C, align(64))] // Cache alignment for performance
+#[repr(C, align(32))] // AVX2-optimal alignment for SIMD performance
 pub struct Multivector<const P: usize, const Q: usize, const R: usize> {
     /// Coefficients for each basis blade, indexed by binary representation
+    /// Memory layout optimized for cache lines and SIMD operations
     coefficients: Box<[f64]>,
 }
 
@@ -63,11 +68,14 @@ impl<const P: usize, const Q: usize, const R: usize> Multivector<P, Q, R> {
     /// Total number of basis blades (2^DIM)
     pub const BASIS_COUNT: usize = 1 << Self::DIM;
 
-    /// Create a new zero multivector
+    /// Create a new zero multivector with optimal memory alignment
     #[inline(always)]
     pub fn zero() -> Self {
+        // Use aligned allocation for SIMD performance
+        let coefficients = aligned_alloc::create_aligned_f64_vec(Self::BASIS_COUNT);
+
         Self {
-            coefficients: vec::from_elem(0.0, Self::BASIS_COUNT).into_boxed_slice(),
+            coefficients: coefficients.into_boxed_slice(),
         }
     }
 
@@ -227,6 +235,47 @@ impl<const P: usize, const Q: usize, const R: usize> Multivector<P, Q, R> {
     /// The geometric product is the fundamental operation in geometric algebra,
     /// combining both the inner and outer products.
     pub fn geometric_product(&self, rhs: &Self) -> Self {
+        // Use SIMD optimization for 3D Euclidean space (most common case)
+        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+        {
+            if P == 3 && Q == 0 && R == 0 && Self::BASIS_COUNT == 8 {
+                // Cast to 3D Euclidean multivector for SIMD optimization
+                // Safety: This is safe because we've verified the dimensions match
+                let self_3d = unsafe {
+                    &*(self as *const Self as *const Multivector<3, 0, 0>)
+                };
+                let rhs_3d = unsafe {
+                    &*(rhs as *const Self as *const Multivector<3, 0, 0>)
+                };
+
+                #[cfg(target_feature = "avx2")]
+                {
+                    if is_x86_feature_detected!("avx2") {
+                        let result_3d = crate::simd::geometric_product_3d_avx2(self_3d, rhs_3d);
+                        return unsafe {
+                            core::mem::transmute::<Multivector<3, 0, 0>, Self>(result_3d)
+                        };
+                    }
+                }
+
+                #[cfg(target_feature = "sse2")]
+                {
+                    if is_x86_feature_detected!("sse2") {
+                        let result_3d = crate::simd::geometric_product_3d_sse2(self_3d, rhs_3d);
+                        return unsafe {
+                            core::mem::transmute::<Multivector<3, 0, 0>, Self>(result_3d)
+                        };
+                    }
+                }
+            }
+        }
+
+        // Fallback to scalar implementation
+        self.geometric_product_scalar(rhs)
+    }
+
+    /// Scalar implementation of geometric product (fallback)
+    fn geometric_product_scalar(&self, rhs: &Self) -> Self {
         let table = CayleyTable::<P, Q, R>::get();
         let mut result = Self::zero();
 
