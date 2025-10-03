@@ -10,8 +10,8 @@ keywords = ["mathematics", "geometry", "enumerative", "intersection", "schubert"
 categories = ["mathematics", "science"]
 
 [dependencies]
-amari-core = { path = "../amari-core", version = "0.6" }
-amari-tropical = { path = "../amari-tropical", version = "0.6" }
+amari-core = { path = "../amari-core", version = "0.7" }
+amari-tropical = { path = "../amari-tropical", version = "0.7" }
 num-rational = "0.4"
 num-bigint = "0.4"
 num-traits = { workspace = true }
