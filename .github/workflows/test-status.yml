@@ -105,7 +105,7 @@ jobs:
         echo "Badge data files created"
 
     - name: Upload badge artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: badge-data
         path: |
