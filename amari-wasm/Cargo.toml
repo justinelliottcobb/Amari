@@ -14,11 +14,11 @@ categories = ["mathematics", "science", "wasm", "web-programming"]
 crate-type = ["cdylib"]
 
 [dependencies]
-amari-core = { path = "../amari-core", version = "0.7" }
-amari-tropical = { path = "../amari-tropical", version = "0.7" }
-amari-dual = { path = "../amari-dual", version = "0.7" }
-amari-fusion = { path = "../amari-fusion", version = "0.7" }
-amari-info-geom = { path = "../amari-info-geom", version = "0.7" }
+amari-core = { path = "../amari-core", version = "0.8" }
+amari-tropical = { path = "../amari-tropical", version = "0.8" }
+amari-dual = { path = "../amari-dual", version = "0.8" }
+amari-fusion = { path = "../amari-fusion", version = "0.8" }
+amari-info-geom = { path = "../amari-info-geom", version = "0.8" }
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"
 js-sys = "0.3"

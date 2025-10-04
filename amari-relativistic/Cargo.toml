@@ -1,0 +1,39 @@
+[package]
+name = "amari-relativistic"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Relativistic physics using geometric algebra for charged particle simulations"
+repository = "https://github.com/justinelliottcobb/Amari"
+homepage = "https://github.com/justinelliottcobb/Amari"
+keywords = ["relativistic-physics", "geometric-algebra", "spacetime", "general-relativity", "particle-physics"]
+categories = ["mathematics", "science", "simulation", "algorithms"]
+
+[dependencies]
+amari-core = { path = "../amari-core", version = "0.8" }
+nalgebra = "0.32"
+serde = { version = "1.0", features = ["derive"], optional = true }
+num-traits = { workspace = true }
+thiserror = { workspace = true }
+
+# Formal verification (requires nightly)
+creusot-contracts = { version = "0.6", optional = true }
+
+[dev-dependencies]
+approx = { workspace = true }
+criterion = "0.5"
+
+
+[features]
+default = ["std", "phantom-types"]
+std = []
+serde-support = ["serde"]
+# Phantom types for compile-time verification (works on stable)
+phantom-types = []
+# Formal verification with Creusot (requires nightly)
+formal-verification = ["creusot-contracts", "phantom-types"]
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
