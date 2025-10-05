@@ -1,8 +1,8 @@
-# Amari v0.4.0
+# Amari v0.8.0
 
-**Unified Mathematical Computing Platform for JavaScript/TypeScript**
+**Unified Mathematical Computing Platform with Relativistic Physics & High-Precision Arithmetic**
 
-A comprehensive mathematical computing library that brings five advanced algebraic systems to JavaScript/TypeScript through WebAssembly: geometric algebra, tropical algebra, automatic differentiation, fusion systems, and information geometry.
+A comprehensive mathematical computing library featuring geometric algebra, relativistic physics, high-precision arithmetic for spacecraft orbital mechanics, tropical algebra, automatic differentiation, and information geometry. Available in Rust and JavaScript/TypeScript through WebAssembly.
 
 [![Rust](https://img.shields.io/badge/Rust-1.75+-orange.svg)](https://www.rust-lang.org/)
 [![WebAssembly](https://img.shields.io/badge/WebAssembly-Ready-blue.svg)](https://webassembly.org/)
@@ -11,17 +11,52 @@ A comprehensive mathematical computing library that brings five advanced algebra
 
 ## Features
 
+### 🚀 New in v0.8.0: Relativistic Physics & High-Precision Arithmetic
+- **Relativistic Physics**: Complete spacetime algebra (Cl(1,3)) with Minkowski signature for relativistic calculations
+- **Spacecraft Orbital Mechanics**: High-precision arithmetic for critical trajectory calculations with configurable tolerance
+- **Geodesic Integration**: Velocity Verlet method for curved spacetime particle trajectories
+- **Schwarzschild Metric**: Spherically symmetric gravitational fields for astrophysics applications
+- **Arbitrary Precision**: Optional GMP/MPFR integration for ultimate precision requirements
+- **Phantom Types**: Compile-time verification of relativistic invariants and spacetime signatures
+
+### Core Mathematical Systems
 - **Geometric Algebra (Clifford Algebra)**: Multivectors, rotors, and geometric products for 3D rotations and spatial transformations
 - **Tropical Algebra**: Max-plus semiring operations for optimization and neural network applications
 - **Automatic Differentiation**: Forward-mode AD with dual numbers for exact derivatives
 - **Fusion Systems**: Tropical-dual-Clifford fusion combining three algebraic systems
 - **Information Geometry**: Statistical manifolds, KL/JS divergences, and Fisher information
+
+### Platform Support
+- **Native Rust**: High-performance mathematical computing with zero-cost abstractions
 - **WebAssembly**: High-performance WASM bindings for JavaScript/TypeScript
-- **Pure Rust Implementation**: Memory-safe, high-performance core with WASM bindings
+- **GPU Acceleration**: WebGPU support for large-scale parallel computations
 - **TypeScript Support**: Full TypeScript definitions included
-- **Real-World Applications**: Physics simulations, ML optimization, statistical analysis
+- **Cross-Platform**: Linux, macOS, Windows, and browser environments
 
 ## Installation
+
+### Rust Crates
+
+Add to your `Cargo.toml`:
+
+```toml
+[dependencies]
+# Core geometric algebra and mathematical foundations
+amari-core = "0.8"
+
+# High-precision relativistic physics for spacecraft orbital mechanics
+amari-relativistic = { version = "0.8", features = ["high-precision"] }
+
+# GPU acceleration and verification
+amari-gpu = "0.8"
+
+# Additional mathematical systems
+amari-tropical = "0.8"
+amari-dual = "0.8"
+amari-info-geom = "0.8"
+```
+
+### JavaScript/TypeScript (WebAssembly)
 
 ```bash
 npm install @justinelliottcobb/amari-wasm
@@ -34,6 +69,49 @@ yarn add @justinelliottcobb/amari-wasm
 ```
 
 ## Quick Start
+
+### Rust: Spacecraft Orbital Mechanics
+
+```rust
+use amari_relativistic::prelude::*;
+
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Create gravitational field from massive object (Earth)
+    let earth = schwarzschild::SchwarzschildMetric::earth();
+    let mut integrator = geodesic::GeodesicIntegrator::with_metric(Box::new(earth));
+
+    // Create spacecraft at 400 km altitude
+    let altitude = 400e3; // 400 km
+    let earth_radius = 6.371e6; // Earth radius
+    let position = Vector3::new(earth_radius + altitude, 0.0, 0.0);
+    let orbital_velocity = Vector3::new(0.0, 7.67e3, 0.0); // ~7.67 km/s orbital velocity
+
+    // Create spacecraft particle
+    let mut spacecraft = particle::RelativisticParticle::new(
+        position,
+        orbital_velocity,
+        0.0, // Uncharged
+        1000.0, // 1000 kg spacecraft
+        0.0, // No charge
+    )?;
+
+    // Propagate orbit for one period with high precision
+    let orbital_period = 5580.0; // ~93 minutes
+    let trajectory = particle::propagate_relativistic(
+        &mut spacecraft,
+        &mut integrator,
+        orbital_period,
+        60.0, // 1-minute time steps
+    )?;
+
+    println!("Spacecraft orbital trajectory computed with {} points", trajectory.len());
+    println!("Final position: {:?}", spacecraft.position_3d());
+
+    Ok(())
+}
+```
+
+### JavaScript/TypeScript: Mathematical Computing
 
 ```typescript
 import init, { WasmMultivector, WasmTropicalNumber, WasmDualNumber } from '@justinelliottcobb/amari-wasm';

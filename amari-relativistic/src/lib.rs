@@ -106,6 +106,36 @@
 //! }
 //! ```
 //!
+//! ### High-Precision Arithmetic for Spacecraft Orbital Mechanics
+//!
+//! When precision is critical for spacecraft missions, use high-precision arithmetic:
+//!
+//! ```rust
+//! use amari_relativistic::prelude::*;
+//! use amari_relativistic::precision::*;
+//! use amari_relativistic::precision_geodesic::*;
+//!
+//! // High-precision orbital parameter calculation
+//! let semi_major_axis = StandardFloat::from_f64(7000e3); // 7000 km
+//! let eccentricity = StandardFloat::from_f64(0.01);
+//! let mu = constants::gravitational_constant::<StandardFloat>() * constants::earth_mass::<StandardFloat>();
+//!
+//! // Orbital period with high precision
+//! let period = StandardFloat::from_f64(2.0) * StandardFloat::PI() *
+//!     (semi_major_axis.powf_precise(StandardFloat::from_f64(3.0)) / mu).sqrt_precise();
+//!
+//! // Precision spacetime vector for spacecraft position
+//! let spacecraft_pos = PrecisionSpacetimeVector::<StandardFloat>::new(
+//!     StandardFloat::from_f64(0.0),
+//!     StandardFloat::from_f64(7000e3),
+//!     StandardFloat::from_f64(0.0),
+//!     StandardFloat::from_f64(0.0)
+//! );
+//!
+//! println!("Orbital period: {:.12} s", period.to_f64());
+//! println!("Spacecraft tolerance: {:.2e}", StandardFloat::orbital_tolerance().to_f64());
+//! ```
+//!
 //! ### Compile-Time Verification with Phantom Types
 //!
 //! When the `phantom-types` feature is enabled (default), you get compile-time guarantees:
@@ -235,6 +265,12 @@ pub mod schwarzschild;
 /// Relativistic charged particle dynamics
 pub mod particle;
 
+/// High-precision arithmetic for spacecraft orbital mechanics
+pub mod precision;
+
+/// High-precision geodesic integration for orbital mechanics
+pub mod precision_geodesic;
+
 #[cfg(feature = "phantom-types")]
 /// Formally verified relativistic physics with phantom types
 pub mod verified;
@@ -283,6 +319,9 @@ pub mod prelude {
 
     // External dependencies commonly used
     pub use nalgebra::Vector3;
+
+    // High-precision arithmetic
+    pub use crate::precision::{OrbitalFloat, PrecisionFloat, StandardFloat};
 
     // Phantom types for compile-time verification (stable Rust)
     #[cfg(feature = "phantom-types")]
