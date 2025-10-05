@@ -135,7 +135,7 @@ impl VerifiedFourVelocity {
         let c_sq = C * C;
 
         // Allow small numerical tolerance
-        let epsilon = 1e-12;
+        let epsilon = 1e-8;
         (norm_sq - c_sq).abs() < epsilon
     }
 

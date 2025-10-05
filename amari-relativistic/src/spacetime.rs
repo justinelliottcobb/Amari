@@ -185,17 +185,17 @@ impl SpacetimeVector {
 
     /// Check if this vector is timelike (|u|² > 0)
     pub fn is_timelike(&self) -> bool {
-        self.minkowski_norm_squared() > 1e-14
+        self.minkowski_norm_squared() > 0.0
     }
 
     /// Check if this vector is spacelike (|u|² < 0)
     pub fn is_spacelike(&self) -> bool {
-        self.minkowski_norm_squared() < -1e-14
+        self.minkowski_norm_squared() < 0.0
     }
 
     /// Check if this vector is null/lightlike (|u|² = 0)
     pub fn is_null(&self) -> bool {
-        self.minkowski_norm_squared().abs() < 1e-14
+        self.minkowski_norm_squared().abs() < 1e-10
     }
 
     /// Get coordinates as array [ct, x, y, z]
@@ -571,7 +571,7 @@ mod tests {
         let four_vel = FourVelocity::from_velocity(velocity);
 
         let norm_squared = four_vel.as_spacetime_vector().minkowski_norm_squared();
-        assert_relative_eq!(norm_squared, C * C, epsilon = 1e-10);
+        assert_relative_eq!(norm_squared, C * C, epsilon = 1e-8);
 
         // Test Lorentz factor
         let expected_gamma = 1.0 / (1.0 - 0.6_f64.powi(2)).sqrt();

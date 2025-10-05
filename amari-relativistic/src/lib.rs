@@ -376,8 +376,8 @@ mod integration_tests {
         // Test four-velocity normalization and consistency
         let velocity = Vector3::new(0.6 * C, 0.8 * C, 0.0);
 
-        // This should fail because |v| > c
-        assert!(velocity.magnitude() > C);
+        // This should be true because |v| = sqrt(0.36 + 0.64) * C = C
+        assert_eq!(velocity.magnitude(), C);
 
         // Test with valid velocity
         let valid_velocity = Vector3::new(0.36 * C, 0.48 * C, 0.0); // |v| = 0.6c
