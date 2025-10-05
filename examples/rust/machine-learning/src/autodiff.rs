@@ -430,7 +430,7 @@ fn optimization_demo() {
 }
 
 fn main() {
-    println!("🧮 Automatic Differentiation with Dual Numbers");
+    println!("AUTODIFF Automatic Differentiation with Dual Numbers");
     println!("==============================================\\n");
 
     println!("This example demonstrates automatic differentiation using");

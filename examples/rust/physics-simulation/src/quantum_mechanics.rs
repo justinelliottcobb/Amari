@@ -313,7 +313,7 @@ fn geometric_phase_demo() {
 }
 
 fn main() {
-    println!("⚛️  Quantum Mechanics with Geometric Algebra");
+    println!("QUANTUM  Quantum Mechanics with Geometric Algebra");
     println!("==========================================\n");
 
     println!("This example demonstrates how geometric algebra provides");

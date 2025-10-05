@@ -11,7 +11,7 @@ A comprehensive mathematical computing library featuring geometric algebra, rela
 
 ## Features
 
-### 🚀 New in v0.8.0: Relativistic Physics & High-Precision Arithmetic
+### New in v0.8.0: Relativistic Physics & High-Precision Arithmetic
 - **Relativistic Physics**: Complete spacetime algebra (Cl(1,3)) with Minkowski signature for relativistic calculations
 - **Spacecraft Orbital Mechanics**: High-precision arithmetic for critical trajectory calculations with configurable tolerance
 - **Geodesic Integration**: Velocity Verlet method for curved spacetime particle trajectories

@@ -601,7 +601,7 @@ fn convergence_analysis_demo() {
 }
 
 fn main() {
-    println!("⚡ Optimization Algorithms with Verified Mathematics");
+    println!("ELECTROMAGNETIC Optimization Algorithms with Verified Mathematics");
     println!("==================================================\\n");
 
     println!("This example demonstrates optimization algorithms using");

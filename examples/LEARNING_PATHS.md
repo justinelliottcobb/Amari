@@ -2,7 +2,7 @@
 
 Welcome to the Amari educational journey! This guide provides structured pathways for learning geometric algebra and dual numbers through our comprehensive example suite.
 
-## 🌟 Overview
+## FEATURED Overview
 
 Amari's example suite is designed with progressive learning in mind, taking you from basic concepts to advanced applications across multiple domains. Each path builds upon previous knowledge while providing practical, hands-on experience.
 
@@ -97,7 +97,7 @@ Choose one domain and create a comprehensive application:
 
 ---
 
-### 🎯 Advanced Track: "Mastery"
+### TARGET Advanced Track: "Mastery"
 *Duration: 4-6 weeks • Prerequisites: Intermediate track + calculus, linear algebra*
 
 **Goal**: Master advanced applications and contribute to the field
@@ -133,7 +133,7 @@ Choose one domain and create a comprehensive application:
 
 ---
 
-### 🔬 Research Track: "Innovation"
+### SCIENTIFIC Research Track: "Innovation"
 *Duration: Ongoing • Prerequisites: Advanced track + domain expertise*
 
 **Goal**: Push the boundaries of GA and dual number applications
@@ -217,7 +217,7 @@ npm run dev
 - [ ] Mentor other learners
 - [ ] Innovate in chosen domain
 
-## 🌐 Extended Learning
+## INTERACTIVE Extended Learning
 
 ### Recommended Reading
 1. **Geometric Algebra**: Doran & Lasenby "Geometric Algebra for Physicists"

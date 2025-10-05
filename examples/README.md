@@ -1,40 +1,40 @@
-# 🎯 Amari Examples Suite
+# TARGET Amari Examples Suite
 
 Welcome to the comprehensive Amari examples collection! This suite demonstrates the power and elegance of geometric algebra and dual numbers across multiple domains.
 
-## 🌟 What's Included
+## FEATURED What's Included
 
-### 🔬 Physics Simulations (`rust/physics-simulation/`)
+### SCIENTIFIC Physics Simulations (`rust/physics-simulation/`)
 Real-world physics demonstrations using geometric algebra's natural representations:
 
 - **🌀 Rigid Body Dynamics**: Singularity-free rotations using rotors
-- **⚡ Electromagnetic Fields**: Unified E+B field treatment with Maxwell's equations
+- **ELECTROMAGNETIC Electromagnetic Fields**: Unified E+B field treatment with Maxwell's equations
 - **🌊 Fluid Dynamics**: Vorticity as bivectors, circulation theorems
-- **⚛️ Quantum Mechanics**: Pauli matrices, spin states, Bell's inequality
+- **QUANTUM Quantum Mechanics**: Pauli matrices, spin states, Bell's inequality
 
-### 🎨 Computer Graphics (`rust/computer-graphics/`)
+### GRAPHICS Computer Graphics (`rust/computer-graphics/`)
 Modern graphics applications showcasing GA's geometric intuition:
 
 - **🎭 3D Transformations**: Gimbal lock-free rotations and interpolation
 - **📷 Camera Systems**: Perspective projection and orbital controls
 - **🔺 Mesh Operations**: Normal calculations and geometric queries
-- **🌟 Ray Tracing**: Natural ray representation and lighting
+- **FEATURED Ray Tracing**: Natural ray representation and lighting
 
 ### 🧠 Machine Learning (`rust/machine-learning/`)
 Verified ML algorithms using dual number automatic differentiation:
 
-- **🧮 Automatic Differentiation**: Exact gradients without approximation errors
+- **COMPUTATION Automatic Differentiation**: Exact gradients without approximation errors
 - **🤖 Neural Networks**: Verified backpropagation and training
-- **📈 Optimization**: Gradient descent, Adam, Newton's method
-- **✅ Verified Learning**: Mathematical guarantees and error analysis
+- **METRICS Optimization**: Gradient descent, Adam, Newton's method
+- **VERIFIED Verified Learning**: Mathematical guarantees and error analysis
 
-### 🌐 Interactive Demos (`web/interactive-demos/`)
+### INTERACTIVE Interactive Demos (`web/interactive-demos/`)
 Real-time visualizations for hands-on learning:
 
 - **🎮 3D Rotor Manipulator**: Interactive rotation exploration
-- **⚡ EM Field Visualizer**: Dynamic electromagnetic field lines
+- **ELECTROMAGNETIC EM Field Visualizer**: Dynamic electromagnetic field lines
 - **📊 AutoDiff Grapher**: Real-time derivative computation
-- **🎯 Optimization Tracer**: Watch algorithms converge live
+- **TARGET Optimization Tracer**: Watch algorithms converge live
 
 ## 🚀 Quick Start
 
@@ -91,13 +91,13 @@ We've designed structured learning paths for different backgrounds:
 - Create integration projects
 - *Duration: 3-4 weeks*
 
-### 🎯 [Advanced Track](LEARNING_PATHS.md#advanced-track-mastery)
+### TARGET [Advanced Track](LEARNING_PATHS.md#advanced-track-mastery)
 - Research-level applications
 - Mathematical verification
 - Contribute to the field
 - *Duration: 4-6 weeks*
 
-### 🔬 [Research Track](LEARNING_PATHS.md#research-track-innovation)
+### SCIENTIFIC [Research Track](LEARNING_PATHS.md#research-track-innovation)
 - Push theoretical boundaries
 - Develop novel applications
 - Lead community efforts
@@ -105,7 +105,7 @@ We've designed structured learning paths for different backgrounds:
 
 [📖 **View Complete Learning Paths**](LEARNING_PATHS.md)
 
-## 🎯 Example Highlights
+## TARGET Example Highlights
 
 ### Physics: Electromagnetic Unity
 ```rust
@@ -179,7 +179,7 @@ let derivative = y.dual(); // f'(2) = 12 - 8 = 4, exactly
 - **Easier Debugging**: Clear mathematical structure
 - **Educational**: Learn through interactive exploration
 
-## 🌐 Community & Support
+## INTERACTIVE Community & Support
 
 ### Getting Help
 - 📚 **Documentation**: Comprehensive guides and API docs
@@ -192,7 +192,7 @@ We welcome contributions! Areas where you can help:
 - 🐛 **Bug Reports**: Find and report issues
 - 📝 **Documentation**: Improve explanations
 - 🚀 **Examples**: Add new demonstrations
-- 🔬 **Research**: Contribute novel applications
+- SCIENTIFIC **Research**: Contribute novel applications
 
 ### Citing Amari
 If you use Amari in research or education:
@@ -231,6 +231,6 @@ This project is licensed under the MIT License - see the [LICENSE](../LICENSE) f
 
 ---
 
-**Ready to explore?** Start with our [🌱 Beginner Track](LEARNING_PATHS.md#beginner-track-foundations) or dive into [🌐 Interactive Demos](web/interactive-demos/index.html)!
+**Ready to explore?** Start with our [🌱 Beginner Track](LEARNING_PATHS.md#beginner-track-foundations) or dive into [INTERACTIVE Interactive Demos](web/interactive-demos/index.html)!
 
 *Amari: Where mathematics meets intuition, and computation becomes art.* ✨

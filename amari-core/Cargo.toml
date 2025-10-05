@@ -17,6 +17,7 @@ rayon = { workspace = true, optional = true }
 bytemuck = { workspace = true }
 thiserror = { workspace = true }
 serde = { workspace = true, optional = true }
+rug = { version = "1.24", optional = true }
 
 # Formal verification (requires nightly)
 creusot-contracts = { version = "0.6", optional = true }
@@ -32,6 +33,8 @@ serialize = ["serde"]
 parallel = ["rayon"]
 # Phantom types for compile-time verification (works on stable)
 phantom-types = []
+# High-precision arithmetic using arbitrary precision floats
+high-precision = ["dep:rug"]
 # Formal verification with Creusot (requires nightly)
 formal-verification = ["creusot-contracts", "phantom-types"]
 
