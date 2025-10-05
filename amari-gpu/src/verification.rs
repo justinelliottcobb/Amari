@@ -926,10 +926,11 @@ mod relativistic_tests {
         let verifier = RelativisticVerifier::new(1e-6);
         let c = C as f32;
 
-        // Valid four-velocity (normalized)
-        let _valid_velocity = GpuSpacetimeVector::new(c, 0.6 * c, 0.0, 0.0);
-        let valid_norm_sq = c * c - (0.6 * c) * (0.6 * c);
-        assert!((valid_norm_sq - 0.64 * c * c).abs() < 1e-6); // Should be c² - 0.6²c² = 0.64c²
+        // This is just a demonstration vector - not actually normalized
+        let _demo_velocity = GpuSpacetimeVector::new(c, 0.6 * c, 0.0, 0.0);
+        let demo_norm_sq = c * c - (0.6 * c) * (0.6 * c);
+        // This shows the Minkowski norm: c² - (0.6c)² = c²(1 - 0.36) = 0.64c²
+        assert!((demo_norm_sq - 0.64 * c * c).abs() < 1e-6);
 
         // Actually create properly normalized four-velocity
         let gamma = 1.0_f32 / (1.0_f32 - 0.6_f32 * 0.6_f32).sqrt();

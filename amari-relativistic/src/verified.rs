@@ -156,12 +156,14 @@ impl VerifiedFourVelocity {
 #[derive(Debug, Clone)]
 pub struct VerifiedRelativisticParticle {
     /// Verified spacetime position
+    #[allow(dead_code)]
     pub(crate) position: VerifiedSpacetimeVector,
     /// Verified four-velocity
     pub(crate) four_velocity: VerifiedFourVelocity,
     /// Rest mass
     pub(crate) mass: f64,
     /// Electric charge
+    #[allow(dead_code)]
     pub(crate) charge: f64,
     /// Phantom marker for energy-momentum verification
     _energy_momentum: PhantomData<EnergyMomentumInvariant>,
