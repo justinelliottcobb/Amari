@@ -306,7 +306,6 @@ async fn test_verification_level_adaptation() {
         println!("Skipping GPU verification level adaptation test in CI environment");
         return;
     }
-
     let levels = vec![
         AdaptiveVerificationLevel::Maximum,
         AdaptiveVerificationLevel::High,

@@ -12,8 +12,8 @@ categories = ["mathematics", "science", "algorithms"]
 
 [dependencies]
 amari-core = { path = "../amari-core", version = "0.8" }
-amari-tropical = { path = "../amari-tropical", version = "0.8" }
 amari-dual = { path = "../amari-dual", version = "0.8" }
+amari-tropical = { path = "../amari-tropical", version = "0.8" }
 num-traits = { workspace = true }
 serde = { workspace = true, optional = true }
 
