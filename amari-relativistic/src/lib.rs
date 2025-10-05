@@ -106,6 +106,46 @@
 //! }
 //! ```
 //!
+//! ### Compile-Time Verification with Phantom Types
+//!
+//! When the `phantom-types` feature is enabled (default), you get compile-time guarantees:
+//!
+//! ```rust
+//! # #[cfg(feature = "phantom-types")] {
+//! use amari_relativistic::prelude::*;
+//!
+//! // Verified spacetime vector with compile-time signature guarantees
+//! let position = VerifiedSpacetimeVector::new(0.0, Vector3::zeros());
+//! let velocity = Vector3::new(0.6 * C, 0.0, 0.0);
+//!
+//! // Four-velocity is automatically normalized and verified at creation
+//! let four_vel = VerifiedFourVelocity::from_velocity(velocity)?;
+//! assert!(four_vel.is_normalized()); // Guaranteed by phantom types
+//!
+//! // Particles must satisfy energy-momentum relation E² = (pc)² + (mc²)²
+//! let particle = VerifiedRelativisticParticle::new(
+//!     position, four_vel, 9.109e-31, -1.602e-19
+//! )?;
+//! assert!(particle.satisfies_energy_momentum_relation()); // Type-guaranteed
+//! # }
+//! # Ok::<(), Box<dyn std::error::Error>>(())
+//! ```
+//!
+//! ### Formal Verification with Creusot Contracts
+//!
+//! With the `formal-verification` feature on nightly Rust:
+//!
+//! ```rust,ignore
+//! use amari_relativistic::prelude::*;
+//!
+//! // Functions with mathematical guarantees proven at compile time
+//! let boosted = verified_lorentz_boost(&vector, boost_velocity);
+//! // Guaranteed: Minkowski norm preserved by Lorentz transformation
+//!
+//! let collision_valid = verified_collision(&p1, &p2, &p3, &p4);
+//! // Guaranteed: Energy and momentum conservation in particle collisions
+//! ```
+//!
 //! ## Application Domains
 //!
 //! ### Charged Particle Simulations
@@ -160,9 +200,25 @@
 pub use constants::*;
 pub use geodesic::{GeodesicIntegrator, GeodesicResult, IntegrationConfig, Metric};
 pub use particle::light_deflection_angle;
-pub use particle::{propagate_relativistic, RelativisticParticle};
+pub use particle::{
+    propagate_relativistic, ParticleError, ParticleResult, RelativisticParticle, TrajectoryPoint,
+    TrajectoryResult,
+};
 pub use schwarzschild::{effective_potential, SchwarzschildMetric};
 pub use spacetime::{FourVelocity, LorentzRotor, SpacetimeVector};
+
+// Re-export phantom types and verified constructs when features are enabled
+#[cfg(feature = "phantom-types")]
+pub use verified::{
+    EnergyMomentumInvariant, FourVelocityNorm, MinkowskiMetric, SpacetimeSignature, ValidSpacetime,
+    VerifiedFourVelocity, VerifiedRelativisticParticle, VerifiedSpacetimeVector,
+};
+
+#[cfg(feature = "formal-verification")]
+pub use verified_contracts::{
+    verified_collision, verified_four_velocity_addition, verified_geodesic_step,
+    verified_invariant_mass, verified_lorentz_boost, verified_lorentz_force,
+};
 
 /// Physical constants for relativistic physics
 pub mod constants;
@@ -207,22 +263,40 @@ pub mod result {
 /// for convenient importing with `use amari_relativistic::prelude::*;`
 pub mod prelude {
 
+    // Core constants
     pub use crate::constants::{AMU, C, E_CHARGE, G, SOLAR_MASS};
-    pub use crate::geodesic::{GeodesicIntegrator, Metric};
-    pub use crate::particle::{propagate_relativistic, RelativisticParticle};
-    pub use crate::schwarzschild::SchwarzschildMetric;
+
+    // Core spacetime types
     pub use crate::spacetime::{FourVelocity, LorentzRotor, SpacetimeVector};
+
+    // Particle physics
+    pub use crate::particle::{
+        light_deflection_angle, propagate_relativistic, ParticleError, ParticleResult,
+        RelativisticParticle, TrajectoryPoint, TrajectoryResult,
+    };
+
+    // Geodesic integration
+    pub use crate::geodesic::{GeodesicIntegrator, GeodesicResult, IntegrationConfig, Metric};
+
+    // Schwarzschild geometry
+    pub use crate::schwarzschild::{effective_potential, SchwarzschildMetric};
+
+    // External dependencies commonly used
     pub use nalgebra::Vector3;
 
+    // Phantom types for compile-time verification (stable Rust)
     #[cfg(feature = "phantom-types")]
     pub use crate::verified::{
-        MinkowskiMetric, ValidSpacetime, VerifiedFourVelocity, VerifiedRelativisticParticle,
+        EnergyMomentumInvariant, FourVelocityNorm, MinkowskiMetric, SpacetimeSignature,
+        ValidSpacetime, VerifiedFourVelocity, VerifiedRelativisticParticle,
         VerifiedSpacetimeVector,
     };
 
+    // Formal verification contracts (nightly Rust)
     #[cfg(feature = "formal-verification")]
     pub use crate::verified_contracts::{
-        verified_collision, verified_four_velocity_addition, verified_lorentz_boost,
+        verified_collision, verified_four_velocity_addition, verified_geodesic_step,
+        verified_invariant_mass, verified_lorentz_boost, verified_lorentz_force,
     };
 }
 
