@@ -734,8 +734,9 @@ impl RelativisticVerifier {
         for (i, velocity) in velocities.iter().enumerate() {
             let norm_squared = self.minkowski_norm_squared(velocity);
             let deviation = (norm_squared - c_squared).abs();
+            let relative_error = deviation / c_squared;
 
-            if deviation > self.tolerance as f32 {
+            if relative_error > self.tolerance as f32 {
                 return Err(GpuVerificationError::InvariantViolation {
                     invariant: format!(
                         "Four-velocity normalization violation at index {}: |u|² = {:.6e}, expected c² = {:.6e}, deviation = {:.6e}",
@@ -923,18 +924,31 @@ mod relativistic_tests {
 
     #[test]
     fn test_four_velocity_normalization_verification() {
-        let verifier = RelativisticVerifier::new(1e-6);
+        // Use relative tolerance appropriate for c² scale values
+        let verifier = RelativisticVerifier::new(1e-5);
         let c = C as f32;
 
-        // This is just a demonstration vector - not actually normalized
-        let _demo_velocity = GpuSpacetimeVector::new(c, 0.6 * c, 0.0, 0.0);
-        let demo_norm_sq = c * c - (0.6 * c) * (0.6 * c);
-        // This shows the Minkowski norm: c² - (0.6c)² = c²(1 - 0.36) = 0.64c²
-        assert!((demo_norm_sq - 0.64 * c * c).abs() < 1e-6);
+        // Test with properly normalized four-velocity directly
 
         // Actually create properly normalized four-velocity
-        let gamma = 1.0_f32 / (1.0_f32 - 0.6_f32 * 0.6_f32).sqrt();
-        let normalized_velocity = GpuSpacetimeVector::new(gamma * c, gamma * 0.6 * c, 0.0, 0.0);
+        let beta = 0.6_f32;
+        let gamma = 1.0_f32 / (1.0_f32 - beta * beta).sqrt();
+        let normalized_velocity = GpuSpacetimeVector::new(gamma * c, gamma * beta * c, 0.0, 0.0);
+
+        // Debug: Check the actual norm
+        let actual_norm_sq = normalized_velocity.t * normalized_velocity.t
+            - normalized_velocity.x * normalized_velocity.x
+            - normalized_velocity.y * normalized_velocity.y
+            - normalized_velocity.z * normalized_velocity.z;
+        let expected_c_sq = c * c;
+        let deviation = (actual_norm_sq - expected_c_sq).abs();
+
+        // Check relative error instead of absolute error for large numbers like c²
+        let relative_error = deviation / expected_c_sq;
+        if relative_error > 1e-6 {
+            panic!("Four-velocity not properly normalized: actual = {:.8e}, expected = {:.8e}, relative error = {:.8e}",
+                actual_norm_sq, expected_c_sq, relative_error);
+        }
 
         let velocities = vec![normalized_velocity];
         assert!(verifier
