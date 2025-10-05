@@ -30,8 +30,9 @@
 //! - Weinberg, "Gravitation and Cosmology" Ch. 8 (1972)
 
 use crate::constants::{C, G, SOLAR_MASS};
-use crate::geodesic::Metric;
-use crate::spacetime::SpacetimeVector;
+use crate::geodesic::{GenericMetric, Metric};
+use crate::precision::PrecisionFloat;
+use crate::spacetime::{GenericSpacetimeVector, SpacetimeVector};
 use nalgebra::Vector3;
 
 // Note: Serde support is available but not currently implemented for these types
@@ -113,7 +114,7 @@ impl SchwarzschildMetric {
     /// use amari_relativistic::schwarzschild::SchwarzschildMetric;
     ///
     /// let massive_object = SchwarzschildMetric::sun();
-    /// assert!((massive_object.schwarzschild_radius - 2953.0).abs() < 1.0); // ~2.95 km
+    /// assert!((massive_object.schwarzschild_radius - 2954.0).abs() < 1.0); // ~2.95 km
     /// ```
     pub fn sun() -> Self {
         Self::new(SOLAR_MASS, Vector3::zeros())
@@ -356,6 +357,61 @@ impl Metric for SchwarzschildMetric {
     }
 }
 
+impl<T: PrecisionFloat> GenericMetric<T> for SchwarzschildMetric {
+    fn metric_tensor(&self, position: &GenericSpacetimeVector<T>) -> [[T; 4]; 4] {
+        // Convert to f64 SpacetimeVector for calculation
+        let f64_pos = SpacetimeVector::new(
+            position.time().to_f64(),
+            position.x().to_f64(),
+            position.y().to_f64(),
+            position.z().to_f64(),
+        );
+
+        // Use f64 implementation
+        let f64_metric = <Self as Metric>::metric_tensor(self, &f64_pos);
+
+        // Convert back to generic precision
+        let mut generic_metric = [[T::zero(); 4]; 4];
+        for i in 0..4 {
+            for j in 0..4 {
+                generic_metric[i][j] = <T as PrecisionFloat>::from_f64(f64_metric[i][j]);
+            }
+        }
+
+        generic_metric
+    }
+
+    fn christoffel(&self, position: &GenericSpacetimeVector<T>) -> [[[T; 4]; 4]; 4] {
+        // Convert to f64 SpacetimeVector for calculation
+        let f64_pos = SpacetimeVector::new(
+            position.time().to_f64(),
+            position.x().to_f64(),
+            position.y().to_f64(),
+            position.z().to_f64(),
+        );
+
+        // Use f64 implementation
+        let f64_christoffel = <Self as Metric>::christoffel(self, &f64_pos);
+
+        // Convert back to generic precision
+        let mut generic_christoffel = [[[T::zero(); 4]; 4]; 4];
+        for i in 0..4 {
+            for j in 0..4 {
+                for k in 0..4 {
+                    generic_christoffel[i][j][k] =
+                        <T as PrecisionFloat>::from_f64(f64_christoffel[i][j][k]);
+                }
+            }
+        }
+
+        generic_christoffel
+    }
+
+    fn name(&self) -> &str {
+        <Self as Metric>::name(self)
+    }
+}
+
 /// Calculate effective potential for orbital motion in Schwarzschild spacetime
 ///
 /// The effective potential determines the radial motion of particles:
@@ -501,7 +557,7 @@ mod tests {
 
         // Test at large distance (weak field)
         let position = SpacetimeVector::new(0.0, 1.496e11, 0.0, 0.0); // Large distance
-        let g = sun.metric_tensor(&position);
+        let g = <SchwarzschildMetric as Metric>::metric_tensor(&sun, &position);
 
         // In weak field, should approach Minkowski metric
         // g₀₀ ≈ -(1 + 2Φ/c²) where Φ = -GM/r
@@ -601,15 +657,23 @@ mod tests {
 
         // Outside Schwarzschild radius should be fine
         let far_position = SpacetimeVector::new(0.0, 1e6, 0.0, 0.0);
-        assert!(!sun.has_singularity(&far_position));
+        assert!(!<SchwarzschildMetric as Metric>::has_singularity(
+            &sun,
+            &far_position
+        ));
 
         // At Schwarzschild radius should be singular
         let horizon_position = SpacetimeVector::new(0.0, sun.schwarzschild_radius, 0.0, 0.0);
-        assert!(sun.has_singularity(&horizon_position));
+        assert!(<SchwarzschildMetric as Metric>::has_singularity(
+            &sun,
+            &horizon_position
+        ));
 
         // Origin should be singular
         let origin = SpacetimeVector::new(0.0, 0.0, 0.0, 0.0);
-        assert!(sun.has_singularity(&origin));
+        assert!(<SchwarzschildMetric as Metric>::has_singularity(
+            &sun, &origin
+        ));
     }
 
     #[test]

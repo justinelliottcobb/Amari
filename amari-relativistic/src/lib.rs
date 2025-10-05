@@ -86,6 +86,7 @@
 //!
 //! ```rust
 //! use amari_relativistic::spacetime::*;
+//! use amari_relativistic::constants;
 //! use nalgebra::Vector3;
 //!
 //! // Create relativistic four-velocity
@@ -114,11 +115,13 @@
 //! use amari_relativistic::prelude::*;
 //! use amari_relativistic::precision::*;
 //! use amari_relativistic::precision_geodesic::*;
+//! use amari_relativistic::constants;
+//! use num_traits::float::FloatConst;
 //!
 //! // High-precision orbital parameter calculation
 //! let semi_major_axis = StandardFloat::from_f64(7000e3); // 7000 km
 //! let eccentricity = StandardFloat::from_f64(0.01);
-//! let mu = constants::gravitational_constant::<StandardFloat>() * constants::earth_mass::<StandardFloat>();
+//! let mu = constants::precision::g::<StandardFloat>() * constants::precision::earth_mass::<StandardFloat>();
 //!
 //! // Orbital period with high precision
 //! let period = StandardFloat::from_f64(2.0) * StandardFloat::PI() *
@@ -439,6 +442,34 @@ mod integration_tests {
         #[derive(Debug)]
         struct FlatSpacetime;
 
+        impl<T: crate::precision::PrecisionFloat> crate::geodesic::GenericMetric<T> for FlatSpacetime {
+            fn metric_tensor(
+                &self,
+                _: &crate::spacetime::GenericSpacetimeVector<T>,
+            ) -> [[T; 4]; 4] {
+                let one = T::one();
+                let neg_one = -T::one();
+                let zero = T::zero();
+                [
+                    [one, zero, zero, zero],
+                    [zero, neg_one, zero, zero],
+                    [zero, zero, neg_one, zero],
+                    [zero, zero, zero, neg_one],
+                ]
+            }
+
+            fn christoffel(
+                &self,
+                _: &crate::spacetime::GenericSpacetimeVector<T>,
+            ) -> [[[T; 4]; 4]; 4] {
+                [[[T::zero(); 4]; 4]; 4] // All zeros for flat spacetime
+            }
+
+            fn name(&self) -> &str {
+                "Flat Spacetime"
+            }
+        }
+
         impl Metric for FlatSpacetime {
             fn metric_tensor(&self, _: &SpacetimeVector) -> [[f64; 4]; 4] {
                 [
@@ -520,6 +551,7 @@ mod doctests {
     ///
     /// ```rust
     /// use amari_relativistic::prelude::*;
+    /// use amari_relativistic::constants::{atomic_masses, E_CHARGE};
     ///
     /// // This should compile without errors
     /// let sun = SchwarzschildMetric::sun();
@@ -529,7 +561,7 @@ mod doctests {
     /// let velocity = Vector3::new(1e5, 0.0, 0.0);
     /// let particle = RelativisticParticle::new(
     ///     position, velocity, 0.0,
-    ///     crate::constants::atomic_masses::HYDROGEN,
+    ///     atomic_masses::HYDROGEN,
     ///     E_CHARGE
     /// );
     /// assert!(particle.is_ok());

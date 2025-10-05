@@ -606,6 +606,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[ignore] // Skip in CI due to GPU hardware requirements
     async fn test_gpu_minkowski_products() {
         let gpu_physics = match GpuRelativisticPhysics::new().await {
             Ok(physics) => physics,

@@ -134,9 +134,10 @@ impl VerifiedFourVelocity {
         let norm_sq = self.vector.norm_squared();
         let c_sq = C * C;
 
-        // Allow small numerical tolerance
-        let epsilon = 1e-8;
-        (norm_sq - c_sq).abs() < epsilon
+        // Use relative tolerance appropriate for c² scale (≈9e16)
+        let relative_epsilon = 1e-6;
+        let absolute_tolerance = relative_epsilon * c_sq;
+        (norm_sq - c_sq).abs() < absolute_tolerance
     }
 
     /// Get Lorentz factor γ

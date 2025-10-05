@@ -18,6 +18,7 @@
 //! - Hestenes, D. "Space-Time Algebra" (1966)
 
 use crate::constants::C;
+use crate::precision::PrecisionFloat;
 use amari_core::{Multivector, Rotor};
 use nalgebra::Vector3;
 
@@ -35,22 +36,39 @@ use core::ops::{Add, Mul, Sub};
 /// P=1 (timelike), Q=3 (spacelike), R=0 (no null vectors)
 pub type SpacetimeAlgebra = Multivector<1, 3, 0>;
 
-/// A four-vector in Minkowski spacetime
+/// A four-vector in Minkowski spacetime with configurable precision
 ///
-/// Four-vectors are represented as grade-1 multivectors in spacetime algebra Cl(1,3).
+/// Four-vectors are represented with configurable precision arithmetic.
 /// The metric signature is (+---) with coordinates (ct, x, y, z).
 ///
 /// # Mathematical Properties
 /// - Minkowski inner product: u·v = u₀v₀ - u₁v₁ - u₂v₂ - u₃v₃
 /// - Norm squared: |u|² = u₀² - u₁² - u₂² - u₃²
 /// - Light cone: |u|² > 0 (timelike), |u|² < 0 (spacelike), |u|² = 0 (null)
+///
+/// # Type Parameters
+/// - `T`: Precision type implementing `PrecisionFloat`
 #[derive(Debug, Clone, PartialEq)]
-pub struct SpacetimeVector {
-    /// Internal representation as a grade-1 multivector in Cl(1,3)
-    pub(crate) mv: SpacetimeAlgebra,
+pub struct GenericSpacetimeVector<T: PrecisionFloat> {
+    /// Temporal component (ct)
+    pub(crate) t: T,
+    /// Spatial x component
+    pub(crate) x: T,
+    /// Spatial y component
+    pub(crate) y: T,
+    /// Spatial z component
+    pub(crate) z: T,
 }
 
-impl SpacetimeVector {
+/// Standard precision spacetime vector using f64
+pub type SpacetimeVector = GenericSpacetimeVector<f64>;
+
+/// High precision spacetime vector for critical calculations
+#[cfg(feature = "high-precision")]
+pub type HighPrecisionSpacetimeVector =
+    GenericSpacetimeVector<crate::precision::HighPrecisionFloat>;
+
+impl<T: PrecisionFloat> GenericSpacetimeVector<T> {
     /// Create a new spacetime vector from coordinates (ct, x, y, z)
     ///
     /// # Arguments
@@ -70,64 +88,76 @@ impl SpacetimeVector {
     /// let event = SpacetimeVector::new(1.0, 0.0, 0.0, 0.0);
     /// assert_eq!(event.time_component(), 299792458.0); // ct in meters
     /// ```
-    pub fn new(t: f64, x: f64, y: f64, z: f64) -> Self {
-        let mut mv = SpacetimeAlgebra::zero();
-        mv.set_vector_component(0, C * t); // ct component (timelike)
-        mv.set_vector_component(1, x); // x component (spacelike)
-        mv.set_vector_component(2, y); // y component (spacelike)
-        mv.set_vector_component(3, z); // z component (spacelike)
-        Self { mv }
+    pub fn new(t: T, x: T, y: T, z: T) -> Self {
+        let c = <T as PrecisionFloat>::from_f64(C);
+        Self { t: c * t, x, y, z }
     }
 
     /// Create spacetime vector from spatial position and time
     ///
     /// # Arguments
-    /// * `position` - 3D spatial position vector in meters
+    /// * `position` - 3D spatial position vector in meters (as f64)
     /// * `t` - Time coordinate in seconds
     pub fn from_position_and_time(position: Vector3<f64>, t: f64) -> Self {
-        Self::new(t, position.x, position.y, position.z)
+        Self::new(
+            <T as PrecisionFloat>::from_f64(t),
+            <T as PrecisionFloat>::from_f64(position.x),
+            <T as PrecisionFloat>::from_f64(position.y),
+            <T as PrecisionFloat>::from_f64(position.z),
+        )
     }
 
     /// Create a purely timelike vector (ct, 0, 0, 0)
     pub fn timelike(t: f64) -> Self {
-        Self::new(t, 0.0, 0.0, 0.0)
+        Self::new(
+            <T as PrecisionFloat>::from_f64(t),
+            T::zero(),
+            T::zero(),
+            T::zero(),
+        )
     }
 
     /// Create a purely spacelike vector (0, x, y, z)
     pub fn spacelike(x: f64, y: f64, z: f64) -> Self {
-        Self::new(0.0, x, y, z)
+        Self::new(
+            T::zero(),
+            <T as PrecisionFloat>::from_f64(x),
+            <T as PrecisionFloat>::from_f64(y),
+            <T as PrecisionFloat>::from_f64(z),
+        )
     }
 
     /// Get the time component (ct) in meters
-    pub fn time_component(&self) -> f64 {
-        self.mv.vector_component(0)
+    pub fn time_component(&self) -> T {
+        self.t
     }
 
     /// Get the time coordinate in seconds
-    pub fn time(&self) -> f64 {
-        self.time_component() / C
+    pub fn time(&self) -> T {
+        let c = <T as PrecisionFloat>::from_f64(C);
+        self.t / c
     }
 
     /// Get the x spatial component in meters
-    pub fn x(&self) -> f64 {
-        self.mv.vector_component(1)
+    pub fn x(&self) -> T {
+        self.x
     }
 
     /// Get the y spatial component in meters
-    pub fn y(&self) -> f64 {
-        self.mv.vector_component(2)
+    pub fn y(&self) -> T {
+        self.y
     }
 
     /// Get the z spatial component in meters
-    pub fn z(&self) -> f64 {
-        self.mv.vector_component(3)
+    pub fn z(&self) -> T {
+        self.z
     }
 
     /// Get the spatial part as a 3-vector
     ///
     /// Returns the spatial components (x, y, z) as a nalgebra Vector3.
     pub fn spatial(&self) -> Vector3<f64> {
-        Vector3::new(self.x(), self.y(), self.z())
+        Vector3::new(self.x.to_f64(), self.y.to_f64(), self.z.to_f64())
     }
 
     /// Minkowski inner product with another spacetime vector
@@ -149,10 +179,10 @@ impl SpacetimeVector {
     /// // Should be positive (timelike)
     /// assert!(inner > 0.0);
     /// ```
-    pub fn minkowski_dot(&self, other: &Self) -> f64 {
+    pub fn minkowski_dot(&self, other: &Self) -> T {
         // Minkowski metric signature (+---)
-        let t_part = self.time_component() * other.time_component();
-        let spatial_part = self.x() * other.x() + self.y() * other.y() + self.z() * other.z();
+        let t_part = self.t * other.t;
+        let spatial_part = self.x * other.x + self.y * other.y + self.z * other.z;
         t_part - spatial_part
     }
 
@@ -162,7 +192,7 @@ impl SpacetimeVector {
     /// - Positive: timelike vector
     /// - Negative: spacelike vector
     /// - Zero: null (lightlike) vector
-    pub fn minkowski_norm_squared(&self) -> f64 {
+    pub fn minkowski_norm_squared(&self) -> T {
         self.minkowski_dot(self)
     }
 
@@ -174,10 +204,12 @@ impl SpacetimeVector {
     /// # Mathematical Background
     /// Proper time is the time measured by a clock moving along the worldline.
     /// For a four-velocity u, the proper time element is dτ = √(u·u)/c.
-    pub fn proper_time(&self) -> Option<f64> {
+    pub fn proper_time(&self) -> Option<T> {
         let norm_sq = self.minkowski_norm_squared();
-        if norm_sq > 0.0 {
-            Some(norm_sq.sqrt() / C)
+        let zero = T::zero();
+        if norm_sq > zero {
+            let c = <T as PrecisionFloat>::from_f64(C);
+            Some(norm_sq.sqrt() / c)
         } else {
             None
         }
@@ -185,66 +217,94 @@ impl SpacetimeVector {
 
     /// Check if this vector is timelike (|u|² > 0)
     pub fn is_timelike(&self) -> bool {
-        self.minkowski_norm_squared() > 0.0
+        self.minkowski_norm_squared() > T::zero()
     }
 
     /// Check if this vector is spacelike (|u|² < 0)
     pub fn is_spacelike(&self) -> bool {
-        self.minkowski_norm_squared() < 0.0
+        self.minkowski_norm_squared() < T::zero()
     }
 
     /// Check if this vector is null/lightlike (|u|² = 0)
     pub fn is_null(&self) -> bool {
-        self.minkowski_norm_squared().abs() < 1e-10
+        let norm_sq = self.minkowski_norm_squared();
+        let spatial_mag = <T as PrecisionFloat>::from_f64(self.spatial().magnitude());
+        let scale = self.t.abs().max(spatial_mag);
+        let tolerance_threshold = <T as PrecisionFloat>::from_f64(1e-6);
+        let tolerance = if scale > tolerance_threshold {
+            <T as PrecisionFloat>::from_f64(1e-6) * scale * scale
+        } else {
+            <T as PrecisionFloat>::from_f64(1e-10)
+        };
+        norm_sq.abs() < tolerance
     }
 
     /// Get coordinates as array [ct, x, y, z]
     pub fn coordinates(&self) -> [f64; 4] {
-        [self.time_component(), self.x(), self.y(), self.z()]
+        [
+            self.time_component().to_f64(),
+            self.x().to_f64(),
+            self.y().to_f64(),
+            self.z().to_f64(),
+        ]
     }
 
     /// Create from coordinates array [ct, x, y, z]
     pub fn from_coordinates(coords: [f64; 4]) -> Self {
-        let mut mv = SpacetimeAlgebra::zero();
-        mv.set_vector_component(0, coords[0]); // ct
-        mv.set_vector_component(1, coords[1]); // x
-        mv.set_vector_component(2, coords[2]); // y
-        mv.set_vector_component(3, coords[3]); // z
-        Self { mv }
+        Self {
+            t: <T as PrecisionFloat>::from_f64(coords[0]), // ct
+            x: <T as PrecisionFloat>::from_f64(coords[1]), // x
+            y: <T as PrecisionFloat>::from_f64(coords[2]), // y
+            z: <T as PrecisionFloat>::from_f64(coords[3]), // z
+        }
     }
 
-    /// Access the underlying multivector (for advanced operations)
-    pub fn as_multivector(&self) -> &SpacetimeAlgebra {
-        &self.mv
+    /// Convert to SpacetimeAlgebra multivector (for compatibility with geometric algebra operations)
+    pub fn to_multivector(&self) -> SpacetimeAlgebra {
+        let mut mv = SpacetimeAlgebra::zero();
+        mv.set_vector_component(0, self.t.to_f64());
+        mv.set_vector_component(1, self.x.to_f64());
+        mv.set_vector_component(2, self.y.to_f64());
+        mv.set_vector_component(3, self.z.to_f64());
+        mv
     }
 }
 
-impl Add for SpacetimeVector {
+impl<T: PrecisionFloat> Add for GenericSpacetimeVector<T> {
     type Output = Self;
 
     fn add(self, rhs: Self) -> Self {
         Self {
-            mv: self.mv + rhs.mv,
+            t: self.t + rhs.t,
+            x: self.x + rhs.x,
+            y: self.y + rhs.y,
+            z: self.z + rhs.z,
         }
     }
 }
 
-impl Sub for SpacetimeVector {
+impl<T: PrecisionFloat> Sub for GenericSpacetimeVector<T> {
     type Output = Self;
 
     fn sub(self, rhs: Self) -> Self {
         Self {
-            mv: self.mv - rhs.mv,
+            t: self.t - rhs.t,
+            x: self.x - rhs.x,
+            y: self.y - rhs.y,
+            z: self.z - rhs.z,
         }
     }
 }
 
-impl Mul<f64> for SpacetimeVector {
+impl<T: PrecisionFloat> Mul<T> for GenericSpacetimeVector<T> {
     type Output = Self;
 
-    fn mul(self, scalar: f64) -> Self {
+    fn mul(self, scalar: T) -> Self {
         Self {
-            mv: self.mv * scalar,
+            t: self.t * scalar,
+            x: self.x * scalar,
+            y: self.y * scalar,
+            z: self.z * scalar,
         }
     }
 }
@@ -259,12 +319,19 @@ impl Mul<f64> for SpacetimeVector {
 /// - Timelike: u₀ > 0 (future-directed)
 /// - Related to 3-velocity: u = γ(c, v⃗) where γ = 1/√(1-v²/c²)
 #[derive(Debug, Clone, PartialEq)]
-pub struct FourVelocity {
+pub struct GenericFourVelocity<T: PrecisionFloat> {
     /// Internal spacetime vector representation
-    vector: SpacetimeVector,
+    vector: GenericSpacetimeVector<T>,
 }
 
-impl FourVelocity {
+/// Standard precision four-velocity using f64
+pub type FourVelocity = GenericFourVelocity<f64>;
+
+/// High precision four-velocity for critical calculations
+#[cfg(feature = "high-precision")]
+pub type HighPrecisionFourVelocity = GenericFourVelocity<crate::precision::HighPrecisionFloat>;
+
+impl<T: PrecisionFloat> GenericFourVelocity<T> {
     /// Create four-velocity from 3-velocity
     ///
     /// # Arguments
@@ -296,12 +363,15 @@ impl FourVelocity {
         }
 
         let gamma = Self::lorentz_factor(v_magnitude);
-        let four_vel = SpacetimeVector::new(
-            gamma * C / C, // γc/c = γ (time component)
-            gamma * velocity.x,
-            gamma * velocity.y,
-            gamma * velocity.z,
-        );
+        let gamma_t = <T as PrecisionFloat>::from_f64(gamma);
+        let c = <T as PrecisionFloat>::from_f64(C);
+
+        let four_vel = GenericSpacetimeVector {
+            t: gamma_t * c, // γc (time component)
+            x: gamma_t * <T as PrecisionFloat>::from_f64(velocity.x),
+            y: gamma_t * <T as PrecisionFloat>::from_f64(velocity.y),
+            z: gamma_t * <T as PrecisionFloat>::from_f64(velocity.z),
+        };
 
         Self { vector: four_vel }
     }
@@ -322,8 +392,9 @@ impl FourVelocity {
     }
 
     /// Get the Lorentz factor γ
-    pub fn gamma(&self) -> f64 {
-        self.vector.time_component() / C
+    pub fn gamma(&self) -> T {
+        let c = <T as PrecisionFloat>::from_f64(C);
+        self.vector.time_component() / c
     }
 
     /// Get the 3-velocity vector
@@ -332,9 +403,9 @@ impl FourVelocity {
     pub fn velocity(&self) -> Vector3<f64> {
         let gamma = self.gamma();
         Vector3::new(
-            self.vector.x() / gamma,
-            self.vector.y() / gamma,
-            self.vector.z() / gamma,
+            (self.vector.x() / gamma).to_f64(),
+            (self.vector.y() / gamma).to_f64(),
+            (self.vector.z() / gamma).to_f64(),
         )
     }
 
@@ -360,26 +431,33 @@ impl FourVelocity {
     /// during integration or other operations.
     pub fn normalize(&mut self) {
         let norm_squared = self.vector.minkowski_norm_squared();
-        if norm_squared > 1e-14 {
-            let correction_factor = C / norm_squared.sqrt();
+        let tolerance = <T as PrecisionFloat>::from_f64(1e-14);
+        if norm_squared > tolerance {
+            let c = <T as PrecisionFloat>::from_f64(C);
+            let correction_factor = c / norm_squared.sqrt();
             self.vector = self.vector.clone() * correction_factor;
         }
     }
 
     /// Check if the four-velocity is properly normalized
     ///
-    /// Returns true if |u·u - c²| < tolerance
+    /// Returns true if |u·u - c²|/c² < tolerance (relative tolerance)
     pub fn is_normalized(&self, tolerance: f64) -> bool {
-        (self.vector.minkowski_norm_squared() - C * C).abs() < tolerance
+        let norm_sq = self.vector.minkowski_norm_squared();
+        let c = <T as PrecisionFloat>::from_f64(C);
+        let c_sq = c * c;
+        let tolerance_t = <T as PrecisionFloat>::from_f64(tolerance);
+        let relative_error = (norm_sq - c_sq).abs() / c_sq;
+        relative_error < tolerance_t
     }
 
     /// Get the underlying spacetime vector
-    pub fn as_spacetime_vector(&self) -> &SpacetimeVector {
+    pub fn as_spacetime_vector(&self) -> &GenericSpacetimeVector<T> {
         &self.vector
     }
 
     /// Convert to spacetime vector (consuming)
-    pub fn into_spacetime_vector(self) -> SpacetimeVector {
+    pub fn into_spacetime_vector(self) -> GenericSpacetimeVector<T> {
         self.vector
     }
 }
@@ -482,8 +560,14 @@ impl LorentzRotor {
     /// Applies the Lorentz transformation to the input vector.
     /// This preserves the Minkowski inner product (Lorentz invariance).
     pub fn transform(&self, vector: &SpacetimeVector) -> SpacetimeVector {
-        let transformed = self.rotor.apply(&vector.mv);
-        SpacetimeVector { mv: transformed }
+        let mv = vector.to_multivector();
+        let transformed = self.rotor.apply(&mv);
+        SpacetimeVector {
+            t: transformed.vector_component(0),
+            x: transformed.vector_component(1),
+            y: transformed.vector_component(2),
+            z: transformed.vector_component(3),
+        }
     }
 
     /// Compose two Lorentz transformations: R₃ = R₂R₁
@@ -546,9 +630,9 @@ mod tests {
     #[test]
     fn test_minkowski_metric() {
         // Test metric signature (+---)
-        let timelike = SpacetimeVector::new(2.0, 1.0, 1.0, 1.0); // ct > spatial
-        let spacelike = SpacetimeVector::new(1.0, 2.0, 2.0, 2.0); // ct < spatial
-        let null = SpacetimeVector::new(1.0, C, 0.0, 0.0); // light ray
+        let timelike = SpacetimeVector::from_coordinates([2.0, 1.0, 1.0, 1.0]); // ct > spatial
+        let spacelike = SpacetimeVector::from_coordinates([1.0, 2.0, 2.0, 2.0]); // ct < spatial
+        let null = SpacetimeVector::from_coordinates([C, C, 0.0, 0.0]); // light ray
 
         assert!(timelike.is_timelike());
         assert!(spacelike.is_spacelike());
@@ -571,7 +655,14 @@ mod tests {
         let four_vel = FourVelocity::from_velocity(velocity);
 
         let norm_squared = four_vel.as_spacetime_vector().minkowski_norm_squared();
-        assert_relative_eq!(norm_squared, C * C, epsilon = 1e-8);
+        let expected = C * C;
+        assert!(
+            (norm_squared - expected).abs() / expected < 1e-15,
+            "Four-velocity normalization failed: {:.15e} vs {:.15e}, rel_error: {:.15e}",
+            norm_squared,
+            expected,
+            (norm_squared - expected).abs() / expected
+        );
 
         // Test Lorentz factor
         let expected_gamma = 1.0 / (1.0 - 0.6_f64.powi(2)).sqrt();
