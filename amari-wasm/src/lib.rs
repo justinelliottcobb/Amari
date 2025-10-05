@@ -14,6 +14,7 @@ use wasm_bindgen::prelude::*;
 pub mod dual;
 pub mod fusion;
 pub mod info_geom;
+// pub mod relativistic;  // TODO: Fix API compatibility issues
 pub mod tropical;
 
 /// Number of coefficients in a 3D Clifford algebra multivector (2^3 = 8)

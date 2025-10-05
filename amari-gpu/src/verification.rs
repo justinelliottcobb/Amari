@@ -3,10 +3,13 @@
 //! This module implements boundary verification strategies for GPU-accelerated
 //! geometric algebra operations, addressing the challenge that phantom types
 //! cannot cross GPU memory boundaries while maintaining mathematical correctness.
+//! Extended for Phase 4C with relativistic physics verification.
 
+use crate::relativistic::{GpuRelativisticParticle, GpuSpacetimeVector};
 use crate::{GpuCliffordAlgebra, GpuError};
 use amari_core::Multivector;
 use amari_info_geom::Parameter;
+use amari_relativistic::constants::C;
 use std::collections::HashMap;
 use std::marker::PhantomData;
 use std::time::{Duration, Instant};
@@ -702,5 +705,291 @@ mod tests {
             verifier.performance_stats().average_duration(),
             Duration::ZERO
         );
+    }
+}
+
+/// Relativistic physics verification functions for GPU operations
+pub struct RelativisticVerifier {
+    tolerance: f64,
+    #[allow(dead_code)]
+    config: VerificationConfig,
+}
+
+impl RelativisticVerifier {
+    /// Create new relativistic verifier
+    pub fn new(tolerance: f64) -> Self {
+        Self {
+            tolerance,
+            config: VerificationConfig::default(),
+        }
+    }
+
+    /// Verify four-velocity normalization: u·u = c²
+    pub fn verify_four_velocity_normalization(
+        &self,
+        velocities: &[GpuSpacetimeVector],
+    ) -> Result<(), GpuVerificationError> {
+        let c_squared = (C * C) as f32;
+
+        for (i, velocity) in velocities.iter().enumerate() {
+            let norm_squared = self.minkowski_norm_squared(velocity);
+            let deviation = (norm_squared - c_squared).abs();
+
+            if deviation > self.tolerance as f32 {
+                return Err(GpuVerificationError::InvariantViolation {
+                    invariant: format!(
+                        "Four-velocity normalization violation at index {}: |u|² = {:.6e}, expected c² = {:.6e}, deviation = {:.6e}",
+                        i, norm_squared, c_squared, deviation
+                    ),
+                });
+            }
+        }
+
+        Ok(())
+    }
+
+    /// Verify energy-momentum relation: E² = (pc)² + (mc²)²
+    pub fn verify_energy_momentum_relation(
+        &self,
+        particles: &[GpuRelativisticParticle],
+    ) -> Result<(), GpuVerificationError> {
+        for (i, particle) in particles.iter().enumerate() {
+            let gamma = self.lorentz_factor(&particle.velocity);
+            let c = C as f32;
+
+            // Total energy: E = γmc²
+            let energy = gamma * particle.mass * c * c;
+
+            // Spatial momentum magnitude: |p| = γm|v|
+            let spatial_vel_mag = (particle.velocity.x * particle.velocity.x
+                + particle.velocity.y * particle.velocity.y
+                + particle.velocity.z * particle.velocity.z)
+                .sqrt();
+            let momentum_mag = gamma * particle.mass * spatial_vel_mag;
+
+            // Energy-momentum relation: E² = (pc)² + (mc²)²
+            let lhs = energy * energy;
+            let rhs = (momentum_mag * c) * (momentum_mag * c)
+                + (particle.mass * c * c) * (particle.mass * c * c);
+
+            let deviation = (lhs - rhs).abs();
+            let relative_error = deviation / lhs.max(rhs);
+
+            if relative_error > self.tolerance as f32 {
+                return Err(GpuVerificationError::InvariantViolation {
+                    invariant: format!(
+                        "Energy-momentum relation violation at particle {}: E² = {:.6e}, (pc)² + (mc²)² = {:.6e}, relative error = {:.6e}",
+                        i, lhs, rhs, relative_error
+                    ),
+                });
+            }
+        }
+
+        Ok(())
+    }
+
+    /// Verify Minkowski signature preservation
+    pub fn verify_minkowski_signature(
+        &self,
+        vectors: &[GpuSpacetimeVector],
+        expected_signs: &[i8], // +1 for timelike, -1 for spacelike, 0 for null
+    ) -> Result<(), GpuVerificationError> {
+        if vectors.len() != expected_signs.len() {
+            return Err(GpuVerificationError::VerificationFailed(
+                "Vector and expected sign arrays must have same length".to_string(),
+            ));
+        }
+
+        for (i, (vector, &expected_sign)) in vectors.iter().zip(expected_signs.iter()).enumerate() {
+            let norm_squared = self.minkowski_norm_squared(vector);
+
+            let actual_sign = if norm_squared > self.tolerance as f32 {
+                1 // Timelike
+            } else if norm_squared < -(self.tolerance as f32) {
+                -1 // Spacelike
+            } else {
+                0 // Null
+            };
+
+            if actual_sign != expected_sign {
+                return Err(GpuVerificationError::InvariantViolation {
+                    invariant: format!(
+                        "Minkowski signature violation at index {}: expected {}, got {} (norm² = {:.6e})",
+                        i, expected_sign, actual_sign, norm_squared
+                    ),
+                });
+            }
+        }
+
+        Ok(())
+    }
+
+    /// Verify causality constraints
+    pub fn verify_causality_constraints(
+        &self,
+        velocities: &[GpuSpacetimeVector],
+    ) -> Result<(), GpuVerificationError> {
+        let c = C as f32;
+
+        for (i, velocity) in velocities.iter().enumerate() {
+            let spatial_speed_squared =
+                velocity.x * velocity.x + velocity.y * velocity.y + velocity.z * velocity.z;
+            let spatial_speed = spatial_speed_squared.sqrt();
+
+            // Check that spatial velocity magnitude is less than c
+            if spatial_speed >= c * (1.0 - self.tolerance as f32) {
+                return Err(GpuVerificationError::InvariantViolation {
+                    invariant: format!(
+                        "Causality violation at index {}: spatial speed {:.6e} >= c ({:.6e})",
+                        i, spatial_speed, c
+                    ),
+                });
+            }
+        }
+
+        Ok(())
+    }
+
+    /// Compute Minkowski norm squared: t² - x² - y² - z²
+    fn minkowski_norm_squared(&self, vector: &GpuSpacetimeVector) -> f32 {
+        vector.t * vector.t - vector.x * vector.x - vector.y * vector.y - vector.z * vector.z
+    }
+
+    /// Compute Lorentz factor γ = 1/√(1 - v²/c²)
+    fn lorentz_factor(&self, four_velocity: &GpuSpacetimeVector) -> f32 {
+        let c = C as f32;
+        four_velocity.t / c
+    }
+
+    /// Verify a batch of relativistic particles with comprehensive checks
+    pub fn verify_particle_batch(
+        &self,
+        particles: &[GpuRelativisticParticle],
+    ) -> Result<(), GpuVerificationError> {
+        // Extract velocities for verification
+        let velocities: Vec<GpuSpacetimeVector> = particles.iter().map(|p| p.velocity).collect();
+
+        // Verify four-velocity normalization
+        self.verify_four_velocity_normalization(&velocities)?;
+
+        // Verify energy-momentum relation
+        self.verify_energy_momentum_relation(particles)?;
+
+        // Verify causality constraints
+        self.verify_causality_constraints(&velocities)?;
+
+        Ok(())
+    }
+
+    /// Statistical verification of relativistic invariants
+    pub fn statistical_verify_particles(
+        &self,
+        particles: &[GpuRelativisticParticle],
+        sample_rate: f64,
+    ) -> Result<(), GpuVerificationError> {
+        if particles.is_empty() {
+            return Ok(());
+        }
+
+        let sample_count = ((particles.len() as f64) * sample_rate).ceil() as usize;
+        let sample_count = sample_count.min(particles.len()).max(1);
+
+        let mut sampled_particles = Vec::with_capacity(sample_count);
+        let step = particles.len() / sample_count;
+
+        for i in 0..sample_count {
+            let index = i * step;
+            if index < particles.len() {
+                sampled_particles.push(particles[index]);
+            }
+        }
+
+        // Always include first and last if not already included
+        if !sampled_particles.is_empty() {
+            sampled_particles[0] = particles[0];
+            if sampled_particles.len() > 1 && sample_count < particles.len() {
+                let last_index = sampled_particles.len() - 1;
+                sampled_particles[last_index] = particles[particles.len() - 1];
+            }
+        }
+
+        self.verify_particle_batch(&sampled_particles)
+    }
+}
+
+#[cfg(test)]
+mod relativistic_tests {
+    use super::*;
+
+    #[test]
+    fn test_four_velocity_normalization_verification() {
+        let verifier = RelativisticVerifier::new(1e-6);
+        let c = C as f32;
+
+        // Valid four-velocity (normalized)
+        let _valid_velocity = GpuSpacetimeVector::new(c, 0.6 * c, 0.0, 0.0);
+        let valid_norm_sq = c * c - (0.6 * c) * (0.6 * c);
+        assert!((valid_norm_sq - 0.64 * c * c).abs() < 1e-6); // Should be c² - 0.6²c² = 0.64c²
+
+        // Actually create properly normalized four-velocity
+        let gamma = 1.0_f32 / (1.0_f32 - 0.6_f32 * 0.6_f32).sqrt();
+        let normalized_velocity = GpuSpacetimeVector::new(gamma * c, gamma * 0.6 * c, 0.0, 0.0);
+
+        let velocities = vec![normalized_velocity];
+        assert!(verifier
+            .verify_four_velocity_normalization(&velocities)
+            .is_ok());
+
+        // Invalid four-velocity (not normalized)
+        let invalid_velocity = GpuSpacetimeVector::new(1.0, 2.0, 3.0, 4.0);
+        let invalid_velocities = vec![invalid_velocity];
+        assert!(verifier
+            .verify_four_velocity_normalization(&invalid_velocities)
+            .is_err());
+    }
+
+    #[test]
+    fn test_causality_verification() {
+        let verifier = RelativisticVerifier::new(1e-6);
+        let c = C as f32;
+
+        // Valid subluminal velocity
+        let valid_velocity = GpuSpacetimeVector::new(c, 0.5 * c, 0.0, 0.0);
+        let valid_velocities = vec![valid_velocity];
+        assert!(verifier
+            .verify_causality_constraints(&valid_velocities)
+            .is_ok());
+
+        // Invalid superluminal velocity
+        let invalid_velocity = GpuSpacetimeVector::new(c, 1.1 * c, 0.0, 0.0);
+        let invalid_velocities = vec![invalid_velocity];
+        assert!(verifier
+            .verify_causality_constraints(&invalid_velocities)
+            .is_err());
+    }
+
+    #[test]
+    fn test_minkowski_signature_verification() {
+        let verifier = RelativisticVerifier::new(1e-6);
+
+        // Timelike vector (t² > x² + y² + z²)
+        let timelike = GpuSpacetimeVector::new(2.0, 1.0, 0.0, 0.0);
+        // Spacelike vector (t² < x² + y² + z²)
+        let spacelike = GpuSpacetimeVector::new(1.0, 2.0, 0.0, 0.0);
+        // Null vector (t² = x² + y² + z²)
+        let null = GpuSpacetimeVector::new(1.0, 1.0, 0.0, 0.0);
+
+        let vectors = vec![timelike, spacelike, null];
+        let expected_signs = vec![1, -1, 0];
+
+        assert!(verifier
+            .verify_minkowski_signature(&vectors, &expected_signs)
+            .is_ok());
+
+        // Wrong expectations should fail
+        let wrong_signs = vec![-1, 1, 0];
+        assert!(verifier
+            .verify_minkowski_signature(&vectors, &wrong_signs)
+            .is_err());
     }
 }

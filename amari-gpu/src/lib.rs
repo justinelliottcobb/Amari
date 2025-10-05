@@ -1,6 +1,7 @@
 //! GPU acceleration for geometric algebra operations using WebGPU/wgpu
 
 pub mod adaptive;
+pub mod relativistic;
 pub mod verification;
 
 pub use adaptive::{
@@ -11,10 +12,13 @@ pub use adaptive::{
 use amari_core::Multivector;
 use amari_info_geom::amari_chentsov_tensor;
 use bytemuck::{Pod, Zeroable};
+pub use relativistic::{
+    GpuRelativisticParticle, GpuRelativisticPhysics, GpuSpacetimeVector, GpuTrajectoryParams,
+};
 use thiserror::Error;
 pub use verification::{
-    GpuBoundaryVerifier, GpuVerificationError, StatisticalGpuVerifier, VerificationConfig,
-    VerificationStrategy, VerifiedMultivector,
+    GpuBoundaryVerifier, GpuVerificationError, RelativisticVerifier, StatisticalGpuVerifier,
+    VerificationConfig, VerificationStrategy, VerifiedMultivector,
 };
 use wgpu::util::DeviceExt;
 
