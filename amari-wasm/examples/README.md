@@ -1,6 +1,6 @@
-# Amari v0.4.0 Examples
+# Amari v0.8.0 Examples
 
-This directory contains comprehensive examples showcasing all mathematical systems in the Amari WebAssembly library.
+This directory contains comprehensive examples showcasing all mathematical systems in the Amari WebAssembly library, including the new relativistic physics capabilities.
 
 ## 🚀 Quick Start
 
@@ -15,12 +15,13 @@ npx ts-node examples/typescript/complete-demo.ts
 ## 📚 Example Files
 
 ### 1. Complete Demonstration (`complete-demo.ts`)
-**🎯 Start here!** A comprehensive showcase that demonstrates all five mathematical systems working together:
+**🎯 Start here!** A comprehensive showcase that demonstrates all mathematical systems working together:
 - Physics simulation with geometric algebra
 - Neural network optimization with tropical algebra
 - Function optimization with automatic differentiation
 - Machine learning evaluation with information geometry
 - Advanced architectures with fusion systems
+- Relativistic physics with spacetime algebra
 
 ### 2. Geometric Algebra (`geometric.ts`)
 **🔢 3D Mathematics & Physics**
@@ -55,7 +56,16 @@ npx ts-node examples/typescript/complete-demo.ts
 - Mutual information
 - Alpha connections
 
-### 6. Fusion Systems (`fusion-systems.ts`)
+### 6. Relativistic Physics (`relativistic.ts`)
+**🚀 Spacetime & High-Energy Physics**
+- Spacetime vector operations in Minkowski space
+- Four-velocity calculations and Lorentz factors
+- Relativistic particle dynamics and energy-momentum
+- Schwarzschild spacetime and gravitational effects
+- Geodesic integration for orbital mechanics
+- Light deflection by massive objects
+
+### 7. Fusion Systems (`fusion-systems.ts`)
 **🔲 Advanced Neural Architectures**
 - Tropical-dual-Clifford fusion operations
 - Attention mechanisms
@@ -89,6 +99,10 @@ const emField = electricField.wedge_product(magneticField);
 
 // Statistical manifold analysis
 const divergence = manifold.klDivergence(distribution1, distribution2);
+
+// Relativistic particle dynamics
+const fourVel = WasmFourVelocity.from_velocity(vx, vy, vz);
+const gamma = fourVel.gamma();
 ```
 
 ### 🎨 Computer Graphics
@@ -111,7 +125,8 @@ const output = attention.apply_to_value(value);
 2. **Geometric Algebra**: Focus on `geometric.ts` for 3D mathematics
 3. **Machine Learning**: Explore `tropical.ts` and `automatic-diff.ts`
 4. **Statistics**: Study `information-geometry.ts` for statistical analysis
-5. **Advanced**: Dive into `fusion-systems.ts` for cutting-edge architectures
+5. **Physics**: Learn `relativistic.ts` for spacetime physics and orbital mechanics
+6. **Advanced**: Dive into `fusion-systems.ts` for cutting-edge architectures
 
 ## 🔧 API Patterns
 
@@ -236,4 +251,4 @@ Want to add more examples? Follow these guidelines:
 
 ---
 
-**Happy Computing with Amari v0.4.0! 🚀**
+**Happy Computing with Amari v0.8.0! 🚀**
