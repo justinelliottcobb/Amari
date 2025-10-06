@@ -99,9 +99,9 @@ jobs:
             "amari-dual"
             "amari-info-geom"
             "amari-relativistic"
-            "amari-enumerative"
             "amari-fusion"
             "amari-automata"
+            "amari-enumerative"
             "amari-gpu"
             "amari"
           )
