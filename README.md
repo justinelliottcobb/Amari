@@ -1,4 +1,4 @@
-# Amari v0.8.0
+# Amari v0.8.4
 
 **Unified Mathematical Computing Platform with Relativistic Physics & High-Precision Arithmetic**
 
