@@ -446,6 +446,11 @@ impl RelativisticParticle {
         self.four_velocity.velocity()
     }
 
+    /// Get time coordinate in seconds
+    pub fn time(&self) -> f64 {
+        self.position.time()
+    }
+
     /// Get rapidity φ where v = c tanh(φ)
     pub fn rapidity(&self) -> f64 {
         self.four_velocity.rapidity()
@@ -774,6 +779,81 @@ mod tests {
         let total_energy = particle.total_energy();
         let momentum_energy = particle.momentum() * C;
         assert_relative_eq!(total_energy, momentum_energy, epsilon = 0.1);
+    }
+
+    #[test]
+    fn test_time_tracking() {
+        // Test that time() method returns the correct time
+        let position = Vector3::new(1e6, 0.0, 0.0);
+        let velocity = Vector3::new(1e4, 0.0, 0.0);
+        let initial_time = 42.0; // seconds
+        let mass = atomic_masses::HYDROGEN;
+
+        let particle = RelativisticParticle::new(position, velocity, initial_time, mass, E_CHARGE)
+            .expect("Particle creation should succeed");
+
+        // Verify time() method returns correct initial time
+        assert_abs_diff_eq!(particle.time(), initial_time, epsilon = 1e-10);
+
+        // Test set_position updates time
+        let mut particle2 = particle.clone();
+        let new_time = 100.0;
+        particle2.set_position(position, new_time);
+        assert_abs_diff_eq!(particle2.time(), new_time, epsilon = 1e-10);
+    }
+
+    #[test]
+    fn test_propagation_time_update() {
+        use crate::geodesic::GeodesicIntegrator;
+        use crate::schwarzschild::SchwarzschildMetric;
+
+        // Create particle at initial time
+        let position = Vector3::new(2e11, 0.0, 0.0); // Far from center
+        let velocity = Vector3::new(0.0, 1e4, 0.0); // 10 km/s tangential
+        let initial_time = 0.0;
+        let mass = atomic_masses::HYDROGEN;
+
+        let mut particle =
+            RelativisticParticle::new(position, velocity, initial_time, mass, E_CHARGE)
+                .expect("Particle creation should succeed");
+
+        // Create simple integrator (flat spacetime approximation far from mass)
+        let central_mass = 1e30; // kg
+        let center = Vector3::zeros();
+        let metric = Box::new(SchwarzschildMetric::new(central_mass, center));
+        let config = crate::geodesic::IntegrationConfig::default();
+        let mut integrator = GeodesicIntegrator::new(metric, config);
+
+        // Propagate for 100 seconds
+        let duration = 100.0;
+        let dtau = 1.0;
+
+        let initial_particle_time = particle.time();
+        let trajectory = propagate_relativistic(&mut particle, &mut integrator, duration, dtau)
+            .expect("Propagation should succeed");
+
+        // Check that particle's time has been updated
+        let final_particle_time = particle.time();
+        assert!(
+            final_particle_time > initial_particle_time,
+            "Particle time should increase after propagation"
+        );
+
+        // For non-relativistic speeds, proper time ≈ coordinate time
+        // So final time should be approximately initial_time + duration
+        assert_abs_diff_eq!(
+            final_particle_time - initial_particle_time,
+            duration,
+            epsilon = 1.0
+        ); // Allow 1 second tolerance
+
+        // Check trajectory points have increasing time
+        assert!(!trajectory.is_empty(), "Trajectory should not be empty");
+        let mut prev_time = trajectory[0].0;
+        for (time, _, _) in trajectory.iter().skip(1) {
+            assert!(*time > prev_time, "Trajectory times should be increasing");
+            prev_time = *time;
+        }
     }
 
     #[test]
