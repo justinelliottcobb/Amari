@@ -2,7 +2,7 @@
 
 This document provides detailed explanations of all examples in the Amari suite, including mathematical foundations, implementation details, and educational insights.
 
-## 🔬 Physics Simulation Examples
+## SCIENTIFIC Physics Simulation Examples
 
 ### 🌀 Rigid Body Dynamics
 
@@ -35,7 +35,7 @@ cargo run --bin rigid_body_dynamics
 
 ---
 
-### ⚡ Electromagnetic Fields
+### ELECTROMAGNETIC Electromagnetic Fields
 
 **Mathematical Foundation**: Electromagnetic fields unify into a single multivector `F = E + I·B` where `I` is the pseudoscalar.
 
@@ -95,7 +95,7 @@ pub fn circulation(&self, area: f64, normal: Vector<3, 0, 0>) -> f64 {
 
 ---
 
-### ⚛️ Quantum Mechanics
+### QUANTUM Quantum Mechanics
 
 **Mathematical Foundation**: Pauli matrices as bivectors, spin states as multivectors.
 
@@ -131,7 +131,7 @@ pub fn rotate(&self, axis: Vector<3, 0, 0>, angle: f64) -> Self {
 
 ---
 
-## 🎨 Computer Graphics Examples
+## GRAPHICS Computer Graphics Examples
 
 ### 🎭 3D Transformations
 
@@ -190,7 +190,7 @@ pub fn interpolate(&self, other: &Transform3D, t: f64) -> Self {
 
 ---
 
-### 🌟 Ray Tracing
+### FEATURED Ray Tracing
 
 **Mathematical Foundation**: Rays as geometric objects with natural intersection tests.
 
@@ -208,7 +208,7 @@ pub fn interpolate(&self, other: &Transform3D, t: f64) -> Self {
 
 ## 🧠 Machine Learning Examples
 
-### 🧮 Automatic Differentiation
+### COMPUTATION Automatic Differentiation
 
 **Mathematical Foundation**: Dual numbers `a + bε` where `ε² = 0` for exact derivatives.
 
@@ -253,7 +253,7 @@ impl DualNumber for Dual<f64> {
 
 ---
 
-### 📈 Optimization Algorithms
+### METRICS Optimization Algorithms
 
 **Mathematical Foundation**: Optimization with exact gradient information.
 
@@ -269,7 +269,7 @@ impl DualNumber for Dual<f64> {
 
 ---
 
-### ✅ Verified Learning
+### VERIFIED Verified Learning
 
 **Mathematical Foundation**: Machine learning with mathematical verification.
 
@@ -285,7 +285,7 @@ impl DualNumber for Dual<f64> {
 
 ---
 
-## 🌐 Interactive Demo Documentation
+## INTERACTIVE Interactive Demo Documentation
 
 ### 🎮 Implementation Architecture
 
@@ -295,7 +295,7 @@ The web demos use a modern stack:
 - **Interactivity**: dat.GUI for parameter control
 - **Mathematics**: KaTeX for equation rendering
 
-### 🎯 Educational Design Principles
+### TARGET Educational Design Principles
 
 1. **Progressive Disclosure**: Start simple, add complexity gradually
 2. **Immediate Feedback**: Real-time response to parameter changes

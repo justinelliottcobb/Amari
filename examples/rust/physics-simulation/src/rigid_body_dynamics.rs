@@ -267,7 +267,7 @@ fn gyroscope_simulation() {
 }
 
 fn main() {
-    println!("🔬 Physics Simulation with Geometric Algebra");
+    println!("PHYSICS Physics Simulation with Geometric Algebra");
     println!("============================================\n");
 
     println!("This example demonstrates the natural representation of");

@@ -11,11 +11,12 @@ use amari_core::{rotor::Rotor, Bivector, Multivector};
 use std::cell::RefCell;
 use wasm_bindgen::prelude::*;
 
-pub mod dual;
-pub mod fusion;
-pub mod info_geom;
-// pub mod relativistic;  // TODO: Fix API compatibility issues
-pub mod tropical;
+// Optional modules - disabled for minimal WASM build to avoid high-precision dependencies
+// #[cfg(feature = "dual")] pub mod dual;
+// #[cfg(feature = "fusion")] pub mod fusion;
+// #[cfg(feature = "info-geom")] pub mod info_geom;
+// #[cfg(feature = "relativistic")] pub mod relativistic;
+// #[cfg(feature = "tropical")] pub mod tropical;
 
 /// Number of coefficients in a 3D Clifford algebra multivector (2^3 = 8)
 /// Basis elements: 1, e1, e2, e3, e12, e13, e23, e123

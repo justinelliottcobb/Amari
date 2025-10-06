@@ -369,7 +369,7 @@ fn matrix_equivalence_demo() {
 }
 
 fn main() {
-    println!("🎨 3D Transformations with Geometric Algebra");
+    println!("GRAPHICS 3D Transformations with Geometric Algebra");
     println!("===========================================\n");
 
     println!("This example demonstrates the elegance of geometric algebra");

@@ -24,6 +24,7 @@ pub mod aligned_alloc;
 pub mod basis;
 pub mod cayley;
 pub mod error;
+pub mod precision;
 pub mod rotor;
 pub mod unicode_ops;
 
@@ -32,6 +33,12 @@ pub mod simd;
 
 // Re-export error types
 pub use error::{CoreError, CoreResult};
+
+// Re-export precision types for high-precision arithmetic
+pub use precision::{ExtendedFloat, PrecisionFloat, StandardFloat};
+
+#[cfg(feature = "high-precision")]
+pub use precision::HighPrecisionFloat;
 
 #[cfg(feature = "phantom-types")]
 pub mod verified;

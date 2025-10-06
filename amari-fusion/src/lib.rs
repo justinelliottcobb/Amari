@@ -18,6 +18,14 @@ use amari_dual::{multivector::DualMultivector, DualNumber};
 use amari_tropical::{TropicalMatrix, TropicalMultivector, TropicalNumber};
 use num_traits::Float;
 
+// Re-export precision types from all constituent crates
+pub use amari_core::{ExtendedFloat, PrecisionFloat, StandardFloat};
+pub use amari_dual::{ExtendedDual, ExtendedMultiDual, StandardDual, StandardMultiDual};
+pub use amari_tropical::{ExtendedTropical, StandardTropical};
+
+#[cfg(feature = "high-precision")]
+pub use amari_core::HighPrecisionFloat;
+
 pub mod attention;
 pub mod comprehensive_tests;
 pub mod evaluation;

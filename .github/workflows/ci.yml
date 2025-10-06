@@ -71,7 +71,8 @@ jobs:
       - name: Build WASM package
         run: |
           cd amari-wasm
-          wasm-pack build --target web --out-dir pkg --scope amari
+          # Build without default features to exclude high-precision (rug not WASM-compatible)
+          wasm-pack build --target web --out-dir pkg --scope amari -- --no-default-features
 
       - name: Upload WASM artifacts
         uses: actions/upload-artifact@v4

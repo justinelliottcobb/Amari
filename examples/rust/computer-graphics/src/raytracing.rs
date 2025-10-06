@@ -644,7 +644,7 @@ fn monte_carlo_demo() {
 }
 
 fn main() {
-    println!("🌟 Ray Tracing with Geometric Algebra");
+    println!("RAYTRACING Ray Tracing with Geometric Algebra");
     println!("=====================================\\n");
 
     println!("This example demonstrates ray tracing using geometric algebra:\\n");

@@ -719,7 +719,7 @@ fn optimization_verification_demo() {
 }
 
 fn main() {
-    println!("🔬 Verified Machine Learning with Mathematical Guarantees");
+    println!("PHYSICS Verified Machine Learning with Mathematical Guarantees");
     println!("========================================================\\n");
 
     println!("This example demonstrates machine learning with mathematical");

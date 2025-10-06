@@ -11,6 +11,11 @@ use alloc::vec::Vec;
 use core::ops::{Add, Div, Mul, Neg, Sub};
 use num_traits::{Float, One, Zero};
 
+// Import precision types from amari-core
+#[cfg(feature = "high-precision")]
+pub use amari_core::HighPrecisionFloat;
+pub use amari_core::{ExtendedFloat, PrecisionFloat, StandardFloat};
+
 pub mod comprehensive_tests;
 pub mod error;
 pub mod functions;
@@ -21,6 +26,19 @@ pub mod verified_contracts;
 // Re-export commonly used types
 pub use error::{DualError, DualResult};
 pub use multivector::{DualMultivector, MultiDualMultivector};
+
+// Precision-aware type aliases for dual numbers
+/// Standard precision dual number using f64
+pub type StandardDual = DualNumber<StandardFloat>;
+
+/// Extended precision dual number - uses high precision when available
+pub type ExtendedDual = DualNumber<ExtendedFloat>;
+
+/// Standard precision multi-dual number using f64
+pub type StandardMultiDual = MultiDual<StandardFloat>;
+
+/// Extended precision multi-dual number - uses high precision when available
+pub type ExtendedMultiDual = MultiDual<ExtendedFloat>;
 
 /// Multi-variable dual number for computing gradients
 #[derive(Clone, Debug, PartialEq)]

@@ -11,10 +11,15 @@ keywords = ["information-geometry", "statistics", "manifolds", "fisher-metric", 
 categories = ["mathematics", "science", "algorithms"]
 
 [dependencies]
-amari-core = { path = "../amari-core", version = "0.8" }
+amari-core = { path = "../amari-core", version = "0.8.1" }
 num-traits = { workspace = true }
 thiserror = { workspace = true }
 approx = { workspace = true }
 
 [dev-dependencies]
 criterion = "0.5"
+
+[features]
+default = ["std", "high-precision"]
+std = ["amari-core/std"]
+high-precision = ["amari-core/high-precision"]

@@ -11,12 +11,24 @@ use alloc::vec::Vec;
 use core::ops::{Add, Mul, Neg};
 use num_traits::Float;
 
+// Import precision types from amari-core
+#[cfg(feature = "high-precision")]
+pub use amari_core::HighPrecisionFloat;
+pub use amari_core::{ExtendedFloat, PrecisionFloat, StandardFloat};
+
 pub mod error;
 pub mod polytope;
 pub mod viterbi;
 
 // Re-export error types
 pub use error::{TropicalError, TropicalResult};
+
+// Precision-aware type aliases for tropical numbers
+/// Standard precision tropical number using f64
+pub type StandardTropical = TropicalNumber<StandardFloat>;
+
+/// Extended precision tropical number - uses high precision when available
+pub type ExtendedTropical = TropicalNumber<ExtendedFloat>;
 
 // Phantom types and formal verification modules
 #[cfg(feature = "formal-verification")]

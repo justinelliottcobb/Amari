@@ -311,7 +311,7 @@ fn relativistic_field_transformation() {
 }
 
 fn main() {
-    println!("⚡ Electromagnetic Fields with Geometric Algebra");
+    println!("ELECTROMAGNETIC Electromagnetic Fields with Geometric Algebra");
     println!("=============================================\n");
 
     println!("This example demonstrates the elegant treatment of");

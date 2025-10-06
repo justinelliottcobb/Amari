@@ -11,14 +11,11 @@ keywords = ["relativistic-physics", "geometric-algebra", "spacetime", "general-r
 categories = ["mathematics", "science", "simulation", "algorithms"]
 
 [dependencies]
-amari-core = { path = "../amari-core", version = "0.8" }
+amari-core = { path = "../amari-core", version = "0.8.1" }
 nalgebra = { workspace = true }
 serde = { version = "1.0", features = ["derive"], optional = true }
 num-traits = { workspace = true }
 thiserror = { workspace = true }
-
-# High-precision arithmetic
-rug = { version = "1.28", features = ["float", "rational"], optional = true }
 
 # Formal verification (requires nightly)
 creusot-contracts = { version = "0.6", optional = true }
@@ -29,13 +26,13 @@ criterion = "0.5"
 
 
 [features]
-default = ["std", "phantom-types"]
+default = ["std", "phantom-types", "high-precision"]
 std = []
 serde-support = ["serde"]
 # Phantom types for compile-time verification (works on stable)
 phantom-types = []
-# High-precision arithmetic using arbitrary precision floats
-high-precision = ["rug"]
+# High-precision arithmetic using centralized precision types from amari-core
+high-precision = ["amari-core/high-precision"]
 # Formal verification with Creusot (requires nightly)
 formal-verification = ["creusot-contracts", "phantom-types"]
 

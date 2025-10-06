@@ -1,5 +1,6 @@
 //! Benchmarks comparing standard and high-precision arithmetic for orbital mechanics
 
+use amari_relativistic::constants;
 use amari_relativistic::precision::*;
 use amari_relativistic::precision_geodesic::*;
 use amari_relativistic::spacetime::SpacetimeVector;
@@ -29,12 +30,12 @@ fn bench_precision_arithmetic(c: &mut Criterion) {
     // Physical constants computation
     group.bench_function("physical_constants", |b| {
         b.iter(|| {
-            let c = constants::speed_of_light::<f64>();
-            let g = constants::gravitational_constant::<f64>();
-            let rs_factor = constants::schwarzschild_factor::<f64>();
-            let solar_mass = constants::solar_mass::<f64>();
+            let c = constants::C;
+            let g = constants::G;
+            let solar_mass = constants::SOLAR_MASS;
+            let earth_mass = constants::EARTH_MASS;
 
-            black_box((c, g, rs_factor, solar_mass))
+            black_box((c, g, solar_mass, earth_mass))
         })
     });
 
