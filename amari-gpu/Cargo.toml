@@ -12,9 +12,9 @@ categories = ["mathematics", "science", "algorithms"]
 
 [dependencies]
 # Default to no high-precision for GPU (and WASM compatibility)
-amari-core = { path = "../amari-core", version = "0.8.1", default-features = false, features = ["std", "phantom-types"] }
-amari-info-geom = { path = "../amari-info-geom", version = "0.8.1", default-features = false, features = ["std"] }
-amari-relativistic = { path = "../amari-relativistic", version = "0.8.1", default-features = false, features = ["std", "phantom-types"] }
+amari-core = { path = "../amari-core", version = "0.8.3", default-features = false, features = ["std", "phantom-types"] }
+amari-info-geom = { path = "../amari-info-geom", version = "0.8.3", default-features = false, features = ["std"] }
+amari-relativistic = { path = "../amari-relativistic", version = "0.8.3", default-features = false, features = ["std", "phantom-types"] }
 wgpu = "0.19"
 futures = "0.3"
 pollster = "0.3"

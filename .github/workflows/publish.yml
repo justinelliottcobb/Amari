@@ -92,12 +92,13 @@ jobs:
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
         run: |
-          # Publish in dependency order with delays for indexing
+          # Publish in dependency order with delays for crates.io rate limiting
           CRATES=(
             "amari-core"
             "amari-tropical"
             "amari-dual"
             "amari-info-geom"
+            "amari-relativistic"
             "amari-enumerative"
             "amari-fusion"
             "amari-automata"
@@ -124,8 +125,8 @@ jobs:
             else
               echo "Publishing $crate version $TARGET_VERSION..."
               cargo publish --allow-dirty || echo "Failed to publish $crate, continuing..."
-              echo "Waiting for crates.io to index $crate..."
-              sleep 30
+              echo "Waiting for crates.io indexing and rate limit reset..."
+              sleep 90
             fi
 
             if [ "$crate" != "amari" ]; then
