@@ -126,7 +126,7 @@ jobs:
               echo "Publishing $crate version $TARGET_VERSION..."
               cargo publish --allow-dirty || echo "Failed to publish $crate, continuing..."
               echo "Waiting for crates.io indexing and rate limit reset..."
-              sleep 90
+              sleep 30
             fi
 
             if [ "$crate" != "amari" ]; then
