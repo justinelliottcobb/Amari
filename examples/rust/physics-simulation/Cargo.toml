@@ -23,9 +23,9 @@ name = "quantum_mechanics"
 path = "src/quantum_mechanics.rs"
 
 [dependencies]
-amari = { path = "../../../", version = "0.8.4" }
-amari-core = { path = "../../../amari-core", version = "0.8.4" }
-amari-dual = { path = "../../../amari-dual", version = "0.8.4" }
+amari = { workspace = true }
+amari-core = { workspace = true }
+amari-dual = { workspace = true }
 plotters = "0.3"
 rand = "0.8"
 nalgebra = "0.33"

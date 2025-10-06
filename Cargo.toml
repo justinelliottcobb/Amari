@@ -12,15 +12,15 @@ keywords = ["mathematics", "geometric-algebra", "tropical-algebra", "automatic-d
 categories = ["mathematics", "science", "algorithms"]
 
 [dependencies]
-amari-core = { path = "amari-core", version = "0.8.4" }
-amari-tropical = { path = "amari-tropical", version = "0.8.4" }
-amari-dual = { path = "amari-dual", version = "0.8.4" }
-amari-fusion = { path = "amari-fusion", version = "0.8.4" }
-amari-info-geom = { path = "amari-info-geom", version = "0.8.4" }
-amari-automata = { path = "amari-automata", version = "0.8.4" }
-amari-enumerative = { path = "amari-enumerative", version = "0.8.4" }
-amari-relativistic = { path = "amari-relativistic", version = "0.8.4" }
-amari-gpu = { path = "amari-gpu", version = "0.8.4", optional = true }
+amari-core = { workspace = true }
+amari-tropical = { workspace = true }
+amari-dual = { workspace = true }
+amari-fusion = { workspace = true }
+amari-info-geom = { workspace = true }
+amari-automata = { workspace = true }
+amari-enumerative = { workspace = true }
+amari-relativistic = { workspace = true }
+amari-gpu = { workspace = true, optional = true }
 thiserror = { workspace = true }
 
 [dev-dependencies]
@@ -48,6 +48,19 @@ license = "MIT OR Apache-2.0"
 rust-version = "1.75"
 
 [workspace.dependencies]
+# Amari crates (internal dependencies)
+amari = { path = ".", version = "0.8.4" }
+amari-core = { path = "amari-core", version = "0.8.4" }
+amari-tropical = { path = "amari-tropical", version = "0.8.4" }
+amari-dual = { path = "amari-dual", version = "0.8.4" }
+amari-fusion = { path = "amari-fusion", version = "0.8.4" }
+amari-info-geom = { path = "amari-info-geom", version = "0.8.4" }
+amari-automata = { path = "amari-automata", version = "0.8.4" }
+amari-enumerative = { path = "amari-enumerative", version = "0.8.4" }
+amari-relativistic = { path = "amari-relativistic", version = "0.8.4" }
+amari-gpu = { path = "amari-gpu", version = "0.8.4" }
+
+# External dependencies
 bytemuck = "1.14"
 rayon = "1.8"
 thiserror = "1.0"
