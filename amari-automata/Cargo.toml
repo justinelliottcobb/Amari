@@ -11,9 +11,9 @@ keywords = ["cellular-automata", "inverse-design", "self-assembly", "geometric-a
 categories = ["mathematics", "science", "algorithms"]
 
 [dependencies]
-amari-core = { path = "../amari-core", version = "0.8.4" }
-amari-dual = { path = "../amari-dual", version = "0.8.4" }
-amari-tropical = { path = "../amari-tropical", version = "0.8.4" }
+amari-core = { workspace = true }
+amari-dual = { workspace = true }
+amari-tropical = { workspace = true }
 num-traits = { workspace = true }
 serde = { workspace = true, optional = true }
 
