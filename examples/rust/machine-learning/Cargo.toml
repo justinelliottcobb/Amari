@@ -23,9 +23,9 @@ name = "verified_learning"
 path = "src/verified_learning.rs"
 
 [dependencies]
-amari = { path = "../../../", version = "0.8.2" }
-amari-core = { path = "../../../amari-core", version = "0.8.2" }
-amari-dual = { path = "../../../amari-dual", version = "0.8.2" }
+amari = { path = "../../../", version = "0.8.3" }
+amari-core = { path = "../../../amari-core", version = "0.8.3" }
+amari-dual = { path = "../../../amari-dual", version = "0.8.3" }
 plotters = "0.3"
 rand = "0.8"
 nalgebra = "0.33"
