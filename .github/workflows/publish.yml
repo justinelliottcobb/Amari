@@ -98,6 +98,7 @@ jobs:
             "amari-tropical"
             "amari-dual"
             "amari-info-geom"
+            "amari-relativistic"
             "amari-enumerative"
             "amari-fusion"
             "amari-automata"
