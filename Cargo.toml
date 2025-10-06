@@ -12,15 +12,15 @@ keywords = ["mathematics", "geometric-algebra", "tropical-algebra", "automatic-d
 categories = ["mathematics", "science", "algorithms"]
 
 [dependencies]
-amari-core = { path = "amari-core", version = "0.8" }
-amari-tropical = { path = "amari-tropical", version = "0.8" }
-amari-dual = { path = "amari-dual", version = "0.8" }
-amari-fusion = { path = "amari-fusion", version = "0.8" }
-amari-info-geom = { path = "amari-info-geom", version = "0.8" }
-amari-automata = { path = "amari-automata", version = "0.8" }
-amari-enumerative = { path = "amari-enumerative", version = "0.8" }
-amari-relativistic = { path = "amari-relativistic", version = "0.8" }
-amari-gpu = { path = "amari-gpu", version = "0.8", optional = true }
+amari-core = { path = "amari-core", version = "0.8.1" }
+amari-tropical = { path = "amari-tropical", version = "0.8.1" }
+amari-dual = { path = "amari-dual", version = "0.8.1" }
+amari-fusion = { path = "amari-fusion", version = "0.8.1" }
+amari-info-geom = { path = "amari-info-geom", version = "0.8.1" }
+amari-automata = { path = "amari-automata", version = "0.8.1" }
+amari-enumerative = { path = "amari-enumerative", version = "0.8.1" }
+amari-relativistic = { path = "amari-relativistic", version = "0.8.1" }
+amari-gpu = { path = "amari-gpu", version = "0.8.1", optional = true }
 thiserror = { workspace = true }
 
 [dev-dependencies]
