@@ -7,7 +7,7 @@ license.workspace = true
 description = "WebAssembly bindings for Amari mathematical computing library - geometric algebra, tropical algebra, automatic differentiation, fusion systems, and information geometry"
 repository = "https://github.com/justinelliottcobb/Amari"
 homepage = "https://github.com/justinelliottcobb/Amari"
-keywords = ["wasm", "webassembly", "geometric-algebra", "tropical-algebra", "automatic-differentiation"]
+keywords = ["wasm", "webassembly", "geometric-algebra", "tropical-algebra", "autodiff"]
 categories = ["mathematics", "science", "wasm", "web-programming"]
 
 [lib]
@@ -26,7 +26,7 @@ nalgebra = { workspace = true }
 # Note: We must disable default features on ALL dependencies to prevent
 # any transitive enabling of high-precision through the dependency chain
 # Using direct path instead of workspace to ensure default-features = false works
-amari-core = { path = "../amari-core", version = "0.8.5", default-features = false, features = ["std", "phantom-types"] }
+amari-core = { path = "../amari-core", version = "0.8.6", default-features = false, features = ["std", "phantom-types"] }
 
 [dependencies.web-sys]
 version = "0.3"
