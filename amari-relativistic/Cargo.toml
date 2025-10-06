@@ -26,7 +26,7 @@ criterion = "0.5"
 
 
 [features]
-default = ["std", "phantom-types"]
+default = ["std", "phantom-types", "high-precision"]
 std = []
 serde-support = ["serde"]
 # Phantom types for compile-time verification (works on stable)

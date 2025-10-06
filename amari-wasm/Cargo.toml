@@ -14,13 +14,14 @@ categories = ["mathematics", "science", "wasm", "web-programming"]
 crate-type = ["cdylib"]
 
 [dependencies]
-amari-core = { path = "../amari-core", version = "0.8" }
-amari-tropical = { path = "../amari-tropical", version = "0.8" }
-amari-dual = { path = "../amari-dual", version = "0.8" }
-amari-fusion = { path = "../amari-fusion", version = "0.8" }
-amari-info-geom = { path = "../amari-info-geom", version = "0.8" }
-amari-relativistic = { path = "../amari-relativistic", version = "0.8" }
-amari-gpu = { path = "../amari-gpu", version = "0.8", features = ["webgpu"] }
+# WASM builds cannot use rug (high-precision), so we disable default features
+amari-core = { path = "../amari-core", version = "0.8", default-features = false, features = ["std", "phantom-types"] }
+amari-tropical = { path = "../amari-tropical", version = "0.8", default-features = false, features = ["std"] }
+amari-dual = { path = "../amari-dual", version = "0.8", default-features = false, features = ["std"] }
+amari-fusion = { path = "../amari-fusion", version = "0.8", default-features = false, features = ["std"] }
+amari-info-geom = { path = "../amari-info-geom", version = "0.8", default-features = false, features = ["std"] }
+amari-relativistic = { path = "../amari-relativistic", version = "0.8", default-features = false, features = ["std", "phantom-types"] }
+amari-gpu = { path = "../amari-gpu", version = "0.8", default-features = false, features = ["webgpu", "std"] }
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"
 js-sys = "0.3"

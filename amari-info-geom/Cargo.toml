@@ -18,3 +18,8 @@ approx = { workspace = true }
 
 [dev-dependencies]
 criterion = "0.5"
+
+[features]
+default = ["std", "high-precision"]
+std = ["amari-core/std"]
+high-precision = ["amari-core/high-precision"]

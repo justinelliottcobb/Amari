@@ -27,7 +27,7 @@ proptest = "1.4"
 criterion = "0.5"
 
 [features]
-default = ["std", "phantom-types"]
+default = ["std", "phantom-types", "high-precision"]
 std = []
 serialize = ["serde"]
 parallel = ["rayon"]

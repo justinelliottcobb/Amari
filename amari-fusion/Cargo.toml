@@ -25,7 +25,7 @@ criterion = "0.5"
 fastrand = "2.0"
 
 [features]
-default = ["std"]
+default = ["std", "high-precision"]
 std = []
 serialize = ["serde"]
 high-precision = ["amari-core/high-precision", "amari-dual/high-precision", "amari-tropical/high-precision"]
