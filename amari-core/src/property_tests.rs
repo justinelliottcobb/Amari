@@ -7,6 +7,15 @@
 use crate::*;
 use proptest::prelude::*;
 
+#[cfg(not(feature = "std"))]
+use alloc::format;
+
+#[cfg(feature = "std")]
+use std::f64::consts;
+
+#[cfg(not(feature = "std"))]
+use core::f64::consts;
+
 /// Strategy for generating valid multivector coefficients
 fn multivector_coefficients() -> impl Strategy<Value = Vec<f64>> {
     prop::collection::vec(-100.0..100.0, 8..=8) // For Cl(3,0,0) = 2^3 = 8 coefficients
@@ -238,7 +247,7 @@ proptest! {
     #[test]
     fn prop_rotor_preserves_norm(
         vector_coeffs in prop::collection::vec(-10.0..10.0, 3..=3), // 3D vector
-        angle in -std::f64::consts::PI..std::f64::consts::PI
+        angle in -consts::PI..consts::PI
     ) {
         // Create a vector from coefficients
         let v = Multivector::<3, 0, 0>::from_vector(&Vector::from_components(

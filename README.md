@@ -1,8 +1,8 @@
-# Amari v0.8.4
+# Amari v0.9.0
 
-**Unified Mathematical Computing Platform with Relativistic Physics & High-Precision Arithmetic**
+**Unified Mathematical Computing Platform with WebAssembly-Compatible High-Precision Arithmetic**
 
-A comprehensive mathematical computing library featuring geometric algebra, relativistic physics, high-precision arithmetic for spacecraft orbital mechanics, tropical algebra, automatic differentiation, and information geometry. Available in Rust and JavaScript/TypeScript through WebAssembly.
+A comprehensive mathematical computing library featuring geometric algebra, relativistic physics, cross-platform high-precision arithmetic for spacecraft orbital mechanics, tropical algebra, automatic differentiation, and information geometry. Now with full WebAssembly compatibility and multi-backend precision support for both native and WASM environments.
 
 [![Rust](https://img.shields.io/badge/Rust-1.75+-orange.svg)](https://www.rust-lang.org/)
 [![WebAssembly](https://img.shields.io/badge/WebAssembly-Ready-blue.svg)](https://webassembly.org/)
@@ -11,12 +11,19 @@ A comprehensive mathematical computing library featuring geometric algebra, rela
 
 ## Features
 
-### New in v0.8.0: Relativistic Physics & High-Precision Arithmetic
+### New in v0.9.0: WebAssembly-Compatible Multi-Backend Precision
+- **Universal High-Precision**: Seamless high-precision arithmetic that works in both native and WebAssembly environments
+- **Multi-Backend Architecture**: Automatically uses rug (GMP/MPFR) for native performance and dashu for WASM compatibility
+- **WebAssembly 3.0 Ready**: Leverages latest WASM features including 64-bit address space for enhanced precision
+- **Cross-Platform Orbital Mechanics**: Spacecraft simulations now work identically in browsers and native applications
+- **Conditional Compilation**: Smart feature-based backend selection for optimal performance per platform
+- **Pure Rust WASM**: No native dependencies required for WebAssembly builds, enabling deployment anywhere
+
+### Established Features: Relativistic Physics & Mathematical Systems
 - **Relativistic Physics**: Complete spacetime algebra (Cl(1,3)) with Minkowski signature for relativistic calculations
 - **Spacecraft Orbital Mechanics**: High-precision arithmetic for critical trajectory calculations with configurable tolerance
 - **Geodesic Integration**: Velocity Verlet method for curved spacetime particle trajectories
 - **Schwarzschild Metric**: Spherically symmetric gravitational fields for astrophysics applications
-- **Arbitrary Precision**: Optional GMP/MPFR integration for ultimate precision requirements
 - **Phantom Types**: Compile-time verification of relativistic invariants and spacetime signatures
 
 ### Core Mathematical Systems
@@ -27,11 +34,13 @@ A comprehensive mathematical computing library featuring geometric algebra, rela
 - **Information Geometry**: Statistical manifolds, KL/JS divergences, and Fisher information
 
 ### Platform Support
-- **Native Rust**: High-performance mathematical computing with zero-cost abstractions
-- **WebAssembly**: High-performance WASM bindings for JavaScript/TypeScript
+- **Native Rust**: Ultimate performance with rug (GMP/MPFR) backend for high-precision arithmetic
+- **WebAssembly**: Full-featured WASM bindings with dashu backend for browser compatibility
+- **Universal Precision**: Same API and mathematical accuracy across all platforms
 - **GPU Acceleration**: WebGPU support for large-scale parallel computations
 - **TypeScript Support**: Full TypeScript definitions included
-- **Cross-Platform**: Linux, macOS, Windows, and browser environments
+- **Deployment Freedom**: Pure Rust WASM builds deploy anywhere without system dependencies
+- **Cross-Platform**: Linux, macOS, Windows, browsers, Node.js, and edge computing environments
 
 ## Installation
 
@@ -42,18 +51,24 @@ Add to your `Cargo.toml`:
 ```toml
 [dependencies]
 # Core geometric algebra and mathematical foundations
-amari-core = "0.8"
+amari-core = "0.9"
 
-# High-precision relativistic physics for spacecraft orbital mechanics
-amari-relativistic = { version = "0.8", features = ["high-precision"] }
+# High-precision relativistic physics with multi-backend support
+amari-relativistic = { version = "0.9", features = ["high-precision"] }
+
+# For native applications (uses rug/GMP backend)
+amari-relativistic = { version = "0.9", features = ["native-precision"] }
+
+# For WebAssembly targets (uses dashu backend)
+amari-relativistic = { version = "0.9", features = ["wasm-precision"] }
 
 # GPU acceleration and verification
-amari-gpu = "0.8"
+amari-gpu = "0.9"
 
 # Additional mathematical systems
-amari-tropical = "0.8"
-amari-dual = "0.8"
-amari-info-geom = "0.8"
+amari-tropical = "0.9"
+amari-dual = "0.9"
+amari-info-geom = "0.9"
 ```
 
 ### JavaScript/TypeScript (WebAssembly)
@@ -145,6 +160,58 @@ async function main() {
 }
 
 main();
+```
+
+## Multi-Backend Precision Architecture
+
+### Automatic Backend Selection
+
+Amari v0.9.0 introduces intelligent backend selection for high-precision arithmetic:
+
+```rust
+// Same API, different backends automatically selected:
+
+// For native builds (optimal performance)
+cargo build --features native-precision  // Uses rug (GMP/MPFR)
+
+// For WASM builds (maximum compatibility)
+cargo build --target wasm32-unknown-unknown --features wasm-precision  // Uses dashu
+
+// Auto-selection (recommended)
+cargo build --features high-precision  // Chooses best backend for target
+```
+
+### Backend Characteristics
+
+| Backend | Platform | Performance | Dependencies | Use Case |
+|---------|----------|-------------|--------------|----------|
+| **rug** | Native | Ultimate | GMP/MPFR (C libraries) | High-performance computing, research |
+| **dashu** | WASM | Excellent | Pure Rust | Web apps, edge computing, universality |
+
+### Mathematical Consistency
+
+Both backends provide:
+- **Identical API**: Same function signatures across platforms
+- **Numerical Accuracy**: Configurable precision with orbital-grade tolerance
+- **Mathematical Correctness**: All relativistic calculations preserve physical invariants
+- **Feature Parity**: Full support for spacecraft orbital mechanics in both environments
+
+### WebAssembly Deployment Example
+
+```rust
+// Compile for WASM with high-precision arithmetic
+#[cfg(target_arch = "wasm32")]
+use amari_relativistic::precision::StandardFloat; // Uses dashu backend
+
+// Native compilation automatically uses rug
+#[cfg(not(target_arch = "wasm32"))]
+use amari_relativistic::precision::StandardFloat; // Uses rug backend
+
+// Same code works everywhere!
+let spacecraft_trajectory = propagate_orbital_mechanics(
+    initial_conditions,
+    StandardFloat::orbital_tolerance(), // 1e-12 precision
+)?;
 ```
 
 ## Use Cases

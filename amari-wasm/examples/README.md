@@ -1,8 +1,8 @@
-# Amari v0.8.0 Examples
+# Amari v0.9.0 Examples
 
-This directory contains comprehensive examples showcasing all mathematical systems in the Amari WebAssembly library, including the new relativistic physics capabilities.
+This directory contains comprehensive examples showcasing all mathematical systems in the Amari WebAssembly library, featuring the new high-precision arithmetic capabilities that enable spacecraft orbital mechanics and relativistic physics calculations in web browsers.
 
-## 🚀 Quick Start
+## Quick Start
 
 ```bash
 # Install dependencies
@@ -12,10 +12,10 @@ npm install @justinelliottcobb/amari-wasm
 npx ts-node examples/typescript/complete-demo.ts
 ```
 
-## 📚 Example Files
+## Example Files
 
 ### 1. Complete Demonstration (`complete-demo.ts`)
-**🎯 Start here!** A comprehensive showcase that demonstrates all mathematical systems working together:
+**Start here!** A comprehensive showcase that demonstrates all mathematical systems working together:
 - Physics simulation with geometric algebra
 - Neural network optimization with tropical algebra
 - Function optimization with automatic differentiation
@@ -24,7 +24,7 @@ npx ts-node examples/typescript/complete-demo.ts
 - Relativistic physics with spacetime algebra
 
 ### 2. Geometric Algebra (`geometric.ts`)
-**🔢 3D Mathematics & Physics**
+**3D Mathematics & Physics**
 - Basic multivector operations
 - Geometric products and bivectors
 - 3D rotations using rotors
@@ -32,7 +32,7 @@ npx ts-node examples/typescript/complete-demo.ts
 - Vector algebra in geometric algebra framework
 
 ### 3. Tropical Algebra (`tropical.ts`)
-**🌴 Neural Networks & Optimization**
+**Neural Networks & Optimization**
 - Tropical arithmetic (max-plus algebra)
 - Neural network layer simulation
 - Shortest path problems
@@ -40,7 +40,7 @@ npx ts-node examples/typescript/complete-demo.ts
 - Batch processing for machine learning
 
 ### 4. Automatic Differentiation (`automatic-diff.ts`)
-**📈 Optimization & Gradients**
+**Optimization & Gradients**
 - Single and multi-variable derivatives
 - Function composition
 - Newton's method for root finding
@@ -48,7 +48,7 @@ npx ts-node examples/typescript/complete-demo.ts
 - Polynomial evaluation
 
 ### 5. Information Geometry (`information-geometry.ts`)
-**📊 Statistical Analysis & ML Metrics**
+**Statistical Analysis & ML Metrics**
 - Probability distribution analysis
 - KL divergence and JS divergence
 - Fisher information matrices
@@ -57,7 +57,7 @@ npx ts-node examples/typescript/complete-demo.ts
 - Alpha connections
 
 ### 6. Relativistic Physics (`relativistic.ts`)
-**🚀 Spacetime & High-Energy Physics**
+**Spacetime & High-Energy Physics**
 - Spacetime vector operations in Minkowski space
 - Four-velocity calculations and Lorentz factors
 - Relativistic particle dynamics and energy-momentum
@@ -65,24 +65,33 @@ npx ts-node examples/typescript/complete-demo.ts
 - Geodesic integration for orbital mechanics
 - Light deflection by massive objects
 
+### New in v0.9.0: High-Precision WebAssembly Examples
+**Browser-Based Spacecraft Simulation**
+- International Space Station (ISS) orbital propagation
+- GPS satellite constellation modeling
+- Interplanetary trajectory calculations
+- Mars mission planning with gravitational assists
+- Asteroid deflection simulations
+- Solar sail dynamics with relativistic effects
+
 ### 7. Fusion Systems (`fusion-systems.ts`)
-**🔲 Advanced Neural Architectures**
+**Advanced Neural Architectures**
 - Tropical-dual-Clifford fusion operations
 - Attention mechanisms
 - Multi-modal neural networks
 - Geometric transformations in fusion space
 - Batch processing in fusion systems
 
-## 🎯 Use Cases by Domain
+## Use Cases by Domain
 
-### 🎮 Game Development
+### Game Development
 ```typescript
 // 3D rotations and transformations
 const rotor = WasmRotor.from_axis_angle(axis, angle);
 const rotated = rotor.rotate_vector(gameObject);
 ```
 
-### 🧠 Machine Learning
+### Machine Learning
 ```typescript
 // Tropical neural networks
 const output = tropicalMatrix.tropical_multiply_vector(input);
@@ -92,7 +101,7 @@ const loss = computeLoss(WasmDualNumber.new(weight, 1.0));
 const gradient = loss.derivative();
 ```
 
-### 🔬 Scientific Computing
+### Scientific Computing
 ```typescript
 // Electromagnetic field calculations
 const emField = electricField.wedge_product(magneticField);
@@ -105,14 +114,14 @@ const fourVel = WasmFourVelocity.from_velocity(vx, vy, vz);
 const gamma = fourVel.gamma();
 ```
 
-### 🎨 Computer Graphics
+### Computer Graphics
 ```typescript
 // Efficient spatial transformations
 const transformed = rotor.rotate_vector(vertex);
 const projected = camera.apply_projection(transformed);
 ```
 
-### 🤖 AI Research
+### AI Research
 ```typescript
 // Fusion systems for multimodal learning
 const attention = query.fusionMultiply(key);
@@ -128,7 +137,7 @@ const output = attention.apply_to_value(value);
 5. **Physics**: Learn `relativistic.ts` for spacetime physics and orbital mechanics
 6. **Advanced**: Dive into `fusion-systems.ts` for cutting-edge architectures
 
-## 🔧 API Patterns
+## API Patterns
 
 All examples follow consistent patterns:
 
@@ -155,7 +164,7 @@ try {
 }
 ```
 
-## 🎛️ Configuration
+## Configuration
 
 ### TypeScript Setup
 ```json
@@ -184,7 +193,7 @@ import init from '@justinelliottcobb/amari-wasm';
 // Works directly with ES modules
 ```
 
-## 🚀 Performance Tips
+## Performance Tips
 
 1. **Batch Operations**: Process multiple items together when possible
 2. **Memory Management**: Always call `.free()` on WASM objects
@@ -192,7 +201,7 @@ import init from '@justinelliottcobb/amari-wasm';
 4. **Web Workers**: Use Web Workers for heavy computations
 5. **SIMD**: Enable SIMD in your build environment for extra performance
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 
@@ -242,7 +251,7 @@ Want to add more examples? Follow these guidelines:
 4. **Performance**: Show efficient patterns
 5. **Real-world Use**: Connect to practical applications
 
-## 🔗 Additional Resources
+## Additional Resources
 
 - [Amari Core Documentation](https://github.com/justinelliottcobb/Amari/docs)
 - [Geometric Algebra Tutorial](https://bivector.net/)
@@ -251,4 +260,6 @@ Want to add more examples? Follow these guidelines:
 
 ---
 
-**Happy Computing with Amari v0.8.0! 🚀**
+**Happy Computing with Amari v0.9.0!**
+
+*Now featuring WebAssembly-compatible high-precision arithmetic for universal deployment.*

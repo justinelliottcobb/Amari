@@ -5,6 +5,7 @@
 
 use alloc::alloc::{alloc, dealloc, Layout};
 use alloc::boxed::Box;
+use alloc::vec;
 use alloc::vec::Vec;
 use core::ptr::NonNull;
 

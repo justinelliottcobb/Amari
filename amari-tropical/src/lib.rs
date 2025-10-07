@@ -37,7 +37,8 @@ pub mod verified;
 #[cfg(feature = "formal-verification")]
 pub mod verified_contracts;
 
-// Re-export phantom types for tropical algebra
+// Re-export phantom types for tropical algebra (when available)
+#[cfg(feature = "formal-verification")]
 pub use amari_core::verified::VerifiedMultivector as CoreVerifiedMultivector;
 
 /// A number in the tropical (max-plus) semiring

@@ -267,23 +267,27 @@ fn generic_metric_determinant<T: PrecisionFloat>(g: &[[T; 4]; 4]) -> T {
     // det(g) = g₀₀ * M₀₀ - g₀₁ * M₀₁ + g₀₂ * M₀₂ - g₀₃ * M₀₃
     // where Mᵢ≡ are 3×3 minors
 
-    let m00 = g[1][1] * (g[2][2] * g[3][3] - g[2][3] * g[3][2])
-        - g[1][2] * (g[2][1] * g[3][3] - g[2][3] * g[3][1])
-        + g[1][3] * (g[2][1] * g[3][2] - g[2][2] * g[3][1]);
+    let m00 = g[1][1].clone()
+        * (g[2][2].clone() * g[3][3].clone() - g[2][3].clone() * g[3][2].clone())
+        - g[1][2].clone() * (g[2][1].clone() * g[3][3].clone() - g[2][3].clone() * g[3][1].clone())
+        + g[1][3].clone() * (g[2][1].clone() * g[3][2].clone() - g[2][2].clone() * g[3][1].clone());
 
-    let m01 = g[1][0] * (g[2][2] * g[3][3] - g[2][3] * g[3][2])
-        - g[1][2] * (g[2][0] * g[3][3] - g[2][3] * g[3][0])
-        + g[1][3] * (g[2][0] * g[3][2] - g[2][2] * g[3][0]);
+    let m01 = g[1][0].clone()
+        * (g[2][2].clone() * g[3][3].clone() - g[2][3].clone() * g[3][2].clone())
+        - g[1][2].clone() * (g[2][0].clone() * g[3][3].clone() - g[2][3].clone() * g[3][0].clone())
+        + g[1][3].clone() * (g[2][0].clone() * g[3][2].clone() - g[2][2].clone() * g[3][0].clone());
 
-    let m02 = g[1][0] * (g[2][1] * g[3][3] - g[2][3] * g[3][1])
-        - g[1][1] * (g[2][0] * g[3][3] - g[2][3] * g[3][0])
-        + g[1][3] * (g[2][0] * g[3][1] - g[2][1] * g[3][0]);
+    let m02 = g[1][0].clone()
+        * (g[2][1].clone() * g[3][3].clone() - g[2][3].clone() * g[3][1].clone())
+        - g[1][1].clone() * (g[2][0].clone() * g[3][3].clone() - g[2][3].clone() * g[3][0].clone())
+        + g[1][3].clone() * (g[2][0].clone() * g[3][1].clone() - g[2][1].clone() * g[3][0].clone());
 
-    let m03 = g[1][0] * (g[2][1] * g[3][2] - g[2][2] * g[3][1])
-        - g[1][1] * (g[2][0] * g[3][2] - g[2][2] * g[3][0])
-        + g[1][2] * (g[2][0] * g[3][1] - g[2][1] * g[3][0]);
+    let m03 = g[1][0].clone()
+        * (g[2][1].clone() * g[3][2].clone() - g[2][2].clone() * g[3][1].clone())
+        - g[1][1].clone() * (g[2][0].clone() * g[3][2].clone() - g[2][2].clone() * g[3][0].clone())
+        + g[1][2].clone() * (g[2][0].clone() * g[3][1].clone() - g[2][1].clone() * g[3][0].clone());
 
-    g[0][0] * m00 - g[0][1] * m01 + g[0][2] * m02 - g[0][3] * m03
+    g[0][0].clone() * m00 - g[0][1].clone() * m01 + g[0][2].clone() * m02 - g[0][3].clone() * m03
 }
 
 /// Calculate determinant of 4×4 metric tensor (f64 compatibility)
@@ -530,70 +534,80 @@ impl<T: PrecisionFloat> GenericGeodesicIntegrator<T> {
 
         // Compute initial acceleration: a_n = -Γᵘ_αβ u^α u^β
         let gamma = self.metric.christoffel(position);
-        let mut a_n = [T::zero(); 4];
+        let mut a_n = T::zero_array_4();
 
         for mu in 0..4 {
             for alpha in 0..4 {
                 for beta in 0..4 {
-                    a_n[mu] = a_n[mu] - gamma[mu][alpha][beta] * u[alpha] * u[beta];
+                    a_n[mu] = a_n[mu].clone()
+                        - gamma[mu][alpha][beta].clone() * u[alpha].clone() * u[beta].clone();
                 }
             }
         }
 
         // Velocity Verlet step 1: x_{n+1} = x_n + u_n * Δτ + ½ * a_n * (Δτ)²
-        let half_dtau_sq = dtau * dtau * <T as PrecisionFloat>::from_f64(0.5);
-        let mut x_new = [T::zero(); 4];
+        let half_dtau_sq = dtau.clone() * dtau.clone() * <T as PrecisionFloat>::from_f64(0.5);
+        let mut x_new = T::zero_array_4();
         for i in 0..4 {
-            x_new[i] = x[i] + u[i] * dtau + a_n[i] * half_dtau_sq;
+            x_new[i] =
+                x[i].clone() + u[i].clone() * dtau.clone() + a_n[i].clone() * half_dtau_sq.clone();
         }
 
         // Update position
         *position = GenericSpacetimeVector {
-            t: x_new[0],
-            x: x_new[1],
-            y: x_new[2],
-            z: x_new[3],
+            t: x_new[0].clone(),
+            x: x_new[1].clone(),
+            y: x_new[2].clone(),
+            z: x_new[3].clone(),
         };
 
         // Compute intermediate velocity for acceleration calculation
-        let half_dtau = dtau * <T as PrecisionFloat>::from_f64(0.5);
-        let mut u_half = [T::zero(); 4];
+        let half_dtau = dtau.clone() * <T as PrecisionFloat>::from_f64(0.5);
+        let mut u_half = T::zero_array_4();
         for i in 0..4 {
-            u_half[i] = u[i] + a_n[i] * half_dtau;
+            u_half[i] = u[i].clone() + a_n[i].clone() * half_dtau.clone();
         }
 
         // Compute new acceleration: a_{n+1} = acceleration(x_{n+1})
         let gamma_new = self.metric.christoffel(position);
-        let mut a_new = [T::zero(); 4];
+        let mut a_new = T::zero_array_4();
 
         for mu in 0..4 {
             for alpha in 0..4 {
                 for beta in 0..4 {
-                    a_new[mu] =
-                        a_new[mu] - gamma_new[mu][alpha][beta] * u_half[alpha] * u_half[beta];
+                    a_new[mu] = a_new[mu].clone()
+                        - gamma_new[mu][alpha][beta].clone()
+                            * u_half[alpha].clone()
+                            * u_half[beta].clone();
                 }
             }
         }
 
         // Velocity Verlet step 3: u_{n+1} = u_n + ½ * (a_n + a_{n+1}) * Δτ
-        let mut u_new = [T::zero(); 4];
+        let mut u_new = T::zero_array_4();
         for i in 0..4 {
-            u_new[i] = u[i] + (a_n[i] + a_new[i]) * half_dtau;
+            u_new[i] = u[i].clone() + (a_n[i].clone() + a_new[i].clone()) * half_dtau.clone();
         }
 
         // Update four-velocity
         let _new_vector = GenericSpacetimeVector {
-            t: u_new[0],
-            x: u_new[1],
-            y: u_new[2],
-            z: u_new[3],
+            t: u_new[0].clone(),
+            x: u_new[1].clone(),
+            y: u_new[2].clone(),
+            z: u_new[3].clone(),
         };
 
         // Convert to f64 Vector3 for four-velocity construction
         let spatial_velocity = Vector3::new(
-            (u_new[1] / u_new[0] * <T as PrecisionFloat>::from_f64(crate::constants::C)).to_f64(),
-            (u_new[2] / u_new[0] * <T as PrecisionFloat>::from_f64(crate::constants::C)).to_f64(),
-            (u_new[3] / u_new[0] * <T as PrecisionFloat>::from_f64(crate::constants::C)).to_f64(),
+            (u_new[1].clone() / u_new[0].clone()
+                * <T as PrecisionFloat>::from_f64(crate::constants::C))
+            .to_f64(),
+            (u_new[2].clone() / u_new[0].clone()
+                * <T as PrecisionFloat>::from_f64(crate::constants::C))
+            .to_f64(),
+            (u_new[3].clone() / u_new[0].clone()
+                * <T as PrecisionFloat>::from_f64(crate::constants::C))
+            .to_f64(),
         );
 
         // Create new four-velocity (this will normalize automatically)
@@ -608,8 +622,8 @@ impl<T: PrecisionFloat> GenericGeodesicIntegrator<T> {
         {
             let norm_sq = four_velocity.as_spacetime_vector().minkowski_norm_squared();
             let c = <T as PrecisionFloat>::from_f64(crate::constants::C);
-            let c_sq = c * c;
-            let relative_error = (norm_sq - c_sq).abs() / c_sq;
+            let c_sq = c.clone() * c;
+            let relative_error = (norm_sq.clone() - c_sq.clone()).abs() / c_sq.clone();
 
             if relative_error > self.config.normalization_tolerance {
                 return Err(GeodesicError::NormalizationFailure {
@@ -620,16 +634,16 @@ impl<T: PrecisionFloat> GenericGeodesicIntegrator<T> {
         }
 
         // Update state
-        self.proper_time = self.proper_time + dtau;
+        self.proper_time = self.proper_time.clone() + dtau.clone();
         self.steps_taken += 1;
-        self.last_step_size = dtau;
+        self.last_step_size = dtau.clone();
 
         Ok(dtau)
     }
 
     /// Get the current proper time
     pub fn proper_time(&self) -> T {
-        self.proper_time
+        self.proper_time.clone()
     }
 
     /// Get the number of steps taken
@@ -639,7 +653,7 @@ impl<T: PrecisionFloat> GenericGeodesicIntegrator<T> {
 
     /// Get the last step size used
     pub fn last_step_size(&self) -> T {
-        self.last_step_size
+        self.last_step_size.clone()
     }
 
     /// Reset the integrator state
@@ -669,33 +683,41 @@ impl<T: PrecisionFloat> GenericGeodesicIntegrator<T> {
         duration: T,
         dtau: T,
     ) -> GeodesicResult<GeodesicTrajectory<T>> {
-        let start_time = self.proper_time;
-        let end_time = start_time + duration;
+        let start_time = self.proper_time.clone();
+        let end_time = start_time.clone() + duration;
         let mut trajectory = Vec::new();
 
         // Store initial point
-        trajectory.push((self.proper_time, position.clone(), four_velocity.clone()));
+        trajectory.push((
+            self.proper_time.clone(),
+            position.clone(),
+            four_velocity.clone(),
+        ));
 
-        let mut current_step = dtau.min(self.config.max_step_size);
+        let mut current_step = dtau.min(self.config.max_step_size.clone());
 
         while self.proper_time < end_time && self.steps_taken < self.config.max_steps {
             // Ensure we don't overshoot the end time
-            if self.proper_time + current_step > end_time {
-                current_step = end_time - self.proper_time;
+            if self.proper_time.clone() + current_step.clone() > end_time {
+                current_step = end_time.clone() - self.proper_time.clone();
             }
 
             // Perform integration step
-            match self.step(position, four_velocity, current_step) {
+            match self.step(position, four_velocity, current_step.clone()) {
                 Ok(actual_step) => {
                     // Store trajectory point
-                    trajectory.push((self.proper_time, position.clone(), four_velocity.clone()));
+                    trajectory.push((
+                        self.proper_time.clone(),
+                        position.clone(),
+                        four_velocity.clone(),
+                    ));
 
                     // Update step size for next iteration
                     current_step = actual_step;
                 }
                 Err(e) => {
                     // Try smaller step size on error
-                    current_step = current_step * <T as PrecisionFloat>::from_f64(0.5);
+                    current_step = current_step.clone() * <T as PrecisionFloat>::from_f64(0.5);
                     if current_step < self.config.min_step_size {
                         return Err(e);
                     }
@@ -728,8 +750,8 @@ impl<T: PrecisionFloat> GenericGeodesicIntegrator<T> {
     pub fn stats(&self) -> IntegrationStats<T> {
         IntegrationStats {
             steps_taken: self.steps_taken,
-            proper_time: self.proper_time,
-            last_step_size: self.last_step_size,
+            proper_time: self.proper_time.clone(),
+            last_step_size: self.last_step_size.clone(),
         }
     }
 }
@@ -1044,18 +1066,17 @@ mod tests {
             // Minkowski metric: diag(+1, -1, -1, -1)
             let one = T::one();
             let neg_one = -T::one();
-            let zero = T::zero();
             [
-                [one, zero, zero, zero],
-                [zero, neg_one, zero, zero],
-                [zero, zero, neg_one, zero],
-                [zero, zero, zero, neg_one],
+                [one, T::zero(), T::zero(), T::zero()],
+                [T::zero(), neg_one.clone(), T::zero(), T::zero()],
+                [T::zero(), T::zero(), neg_one.clone(), T::zero()],
+                [T::zero(), T::zero(), T::zero(), neg_one],
             ]
         }
 
         fn christoffel(&self, _position: &GenericSpacetimeVector<T>) -> [[[T; 4]; 4]; 4] {
             // All Christoffel symbols are zero in flat spacetime
-            [[[T::zero(); 4]; 4]; 4]
+            T::zero_tensor_4x4x4()
         }
 
         fn name(&self) -> &str {

@@ -2,6 +2,7 @@
 
 use crate::Multivector;
 use alloc::string::{String, ToString};
+use alloc::vec;
 use alloc::vec::Vec;
 
 /// Get the grade (number of basis vectors) in a blade

@@ -605,7 +605,7 @@ mod tests {
 
         // Test KL divergence
         let kl = dist1.kl_divergence(&dist2);
-        assert!(kl.real.abs() > 0.0); // Should be non-zero
+        assert!(num_traits::Float::abs(kl.real) > 0.0); // Should be non-zero
 
         // Test sequence generation
         let sequence = dist1.most_likely_sequence(3);

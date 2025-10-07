@@ -86,7 +86,10 @@ impl<T: PrecisionFloat> PrecisionSpacetimeVector<T> {
 
     /// Minkowski inner product with high precision
     pub fn minkowski_dot(&self, other: &Self) -> T {
-        self.t * other.t - self.x * other.x - self.y * other.y - self.z * other.z
+        self.t.clone() * other.t.clone()
+            - self.x.clone() * other.x.clone()
+            - self.y.clone() * other.y.clone()
+            - self.z.clone() * other.z.clone()
     }
 
     /// Minkowski norm squared
@@ -96,16 +99,18 @@ impl<T: PrecisionFloat> PrecisionSpacetimeVector<T> {
 
     /// Spatial magnitude squared
     pub fn spatial_magnitude_squared(&self) -> T {
-        self.x * self.x + self.y * self.y + self.z * self.z
+        self.x.clone() * self.x.clone()
+            + self.y.clone() * self.y.clone()
+            + self.z.clone() * self.z.clone()
     }
 
     /// Component access by index
     pub fn component(&self, i: usize) -> T {
         match i {
-            0 => self.t,
-            1 => self.x,
-            2 => self.y,
-            3 => self.z,
+            0 => self.t.clone(),
+            1 => self.x.clone(),
+            2 => self.y.clone(),
+            3 => self.z.clone(),
             _ => panic!("Invalid component index {}", i),
         }
     }
@@ -175,7 +180,7 @@ impl<T: PrecisionFloat> PrecisionGeodesicIntegrator<T> {
         Self {
             metric,
             proper_time: T::zero(),
-            current_step: config.max_step_size,
+            current_step: config.max_step_size.clone(),
             config,
             step_count: 0,
         }
@@ -202,21 +207,22 @@ impl<T: PrecisionFloat> PrecisionGeodesicIntegrator<T> {
         let accel_initial = self.compute_acceleration(position, velocity)?;
 
         // Position update: x_{n+1} = x_n + v_n * dt + 0.5 * a_n * dt^2
-        let half_step_sq = step_size * step_size * <T as PrecisionFloat>::from_f64(0.5);
+        let half_step_sq =
+            step_size.clone() * step_size.clone() * <T as PrecisionFloat>::from_f64(0.5);
         for i in 0..4 {
             *position.component_mut(i) = position.component(i)
-                + velocity.component(i) * step_size
-                + accel_initial.component(i) * half_step_sq;
+                + velocity.component(i) * step_size.clone()
+                + accel_initial.component(i) * half_step_sq.clone();
         }
 
         // Compute acceleration at new position
         let accel_final = self.compute_acceleration(position, velocity)?;
 
         // Velocity update: v_{n+1} = v_n + 0.5 * (a_n + a_{n+1}) * dt
-        let half_step = step_size * <T as PrecisionFloat>::from_f64(0.5);
+        let half_step = step_size.clone() * <T as PrecisionFloat>::from_f64(0.5);
         for i in 0..4 {
             *velocity.component_mut(i) = velocity.component(i)
-                + (accel_initial.component(i) + accel_final.component(i)) * half_step;
+                + (accel_initial.component(i) + accel_final.component(i)) * half_step.clone();
         }
 
         // Renormalize four-velocity periodically for massive particles
@@ -227,7 +233,7 @@ impl<T: PrecisionFloat> PrecisionGeodesicIntegrator<T> {
             self.renormalize_four_velocity(velocity)?;
         }
 
-        self.proper_time = self.proper_time + step_size;
+        self.proper_time = self.proper_time.clone() + step_size;
         self.step_count += 1;
 
         Ok(())
@@ -251,7 +257,7 @@ impl<T: PrecisionFloat> PrecisionGeodesicIntegrator<T> {
             for alpha in 0..4 {
                 for beta in 0..4 {
                     sum = sum
-                        + christoffel[mu][alpha][beta]
+                        + christoffel[mu][alpha][beta].clone()
                             * velocity.component(alpha)
                             * velocity.component(beta);
                 }
@@ -269,10 +275,10 @@ impl<T: PrecisionFloat> PrecisionGeodesicIntegrator<T> {
     ) -> Result<(), String> {
         let c = <T as PrecisionFloat>::from_f64(crate::constants::C);
         let norm_squared = velocity.norm_squared();
-        let expected = c * c;
+        let expected = c.clone() * c.clone();
 
         // Check if renormalization is needed
-        let deviation = (norm_squared - expected).abs_precise();
+        let deviation = (norm_squared.clone() - expected).abs_precise();
         if deviation < self.config.normalization_tolerance {
             return Ok(()); // Already normalized
         }
@@ -284,10 +290,10 @@ impl<T: PrecisionFloat> PrecisionGeodesicIntegrator<T> {
         }
 
         let factor = c / norm;
-        velocity.t = velocity.t * factor;
-        velocity.x = velocity.x * factor;
-        velocity.y = velocity.y * factor;
-        velocity.z = velocity.z * factor;
+        velocity.t = velocity.t.clone() * factor.clone();
+        velocity.x = velocity.x.clone() * factor.clone();
+        velocity.y = velocity.y.clone() * factor.clone();
+        velocity.z = velocity.z.clone() * factor;
 
         Ok(())
     }
@@ -298,7 +304,7 @@ impl<T: PrecisionFloat> PrecisionGeodesicIntegrator<T> {
         position: &mut PrecisionSpacetimeVector<T>,
         velocity: &mut PrecisionSpacetimeVector<T>,
     ) -> Result<T, String> {
-        let mut step_size = self.current_step;
+        let mut step_size = self.current_step.clone();
         let max_attempts = 10;
 
         for _ in 0..max_attempts {
@@ -307,21 +313,21 @@ impl<T: PrecisionFloat> PrecisionGeodesicIntegrator<T> {
             let vel_backup = velocity.clone();
 
             // Try full step
-            match self.step(position, velocity, step_size) {
+            match self.step(position, velocity, step_size.clone()) {
                 Ok(()) => {
                     // Step succeeded, check if we can increase step size
                     if step_size < self.config.max_step_size {
                         step_size = (step_size * <T as PrecisionFloat>::from_f64(1.1))
-                            .min(self.config.max_step_size);
+                            .min(self.config.max_step_size.clone());
                     }
-                    self.current_step = step_size;
+                    self.current_step = step_size.clone();
                     return Ok(step_size);
                 }
                 Err(_) => {
                     // Step failed, restore state and reduce step size
                     *position = pos_backup;
                     *velocity = vel_backup;
-                    step_size = step_size * self.config.safety_factor;
+                    step_size = step_size * self.config.safety_factor.clone();
 
                     if step_size < self.config.min_step_size {
                         return Err("Step size below minimum threshold".to_string());
@@ -336,9 +342,9 @@ impl<T: PrecisionFloat> PrecisionGeodesicIntegrator<T> {
     /// Get current integration statistics
     pub fn stats(&self) -> PrecisionIntegrationStats<T> {
         PrecisionIntegrationStats {
-            proper_time: self.proper_time,
+            proper_time: self.proper_time.clone(),
             step_count: self.step_count,
-            current_step_size: self.current_step,
+            current_step_size: self.current_step.clone(),
             metric_name: self.metric.name().to_string(),
         }
     }
