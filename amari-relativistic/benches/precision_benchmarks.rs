@@ -5,7 +5,6 @@ use amari_relativistic::precision::*;
 use amari_relativistic::precision_geodesic::*;
 use amari_relativistic::spacetime::SpacetimeVector;
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
-use num_traits::Zero;
 
 /// Benchmark basic precision arithmetic operations
 fn bench_precision_arithmetic(c: &mut Criterion) {
@@ -134,7 +133,8 @@ fn bench_orbital_mechanics(c: &mut Criterion) {
                 .sqrt_precise();
 
             // Specific energy with high precision
-            let specific_energy = StandardFloat::zero() - mu / (two * semi_major_axis);
+            let specific_energy =
+                <StandardFloat as PrecisionFloat>::zero() - mu / (two * semi_major_axis);
 
             black_box((
                 period.to_f64(),

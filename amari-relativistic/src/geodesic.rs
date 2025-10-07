@@ -688,7 +688,11 @@ impl<T: PrecisionFloat> GenericGeodesicIntegrator<T> {
         let mut trajectory = Vec::new();
 
         // Store initial point
-        trajectory.push((self.proper_time.clone(), position.clone(), four_velocity.clone()));
+        trajectory.push((
+            self.proper_time.clone(),
+            position.clone(),
+            four_velocity.clone(),
+        ));
 
         let mut current_step = dtau.min(self.config.max_step_size.clone());
 
@@ -702,7 +706,11 @@ impl<T: PrecisionFloat> GenericGeodesicIntegrator<T> {
             match self.step(position, four_velocity, current_step.clone()) {
                 Ok(actual_step) => {
                     // Store trajectory point
-                    trajectory.push((self.proper_time.clone(), position.clone(), four_velocity.clone()));
+                    trajectory.push((
+                        self.proper_time.clone(),
+                        position.clone(),
+                        four_velocity.clone(),
+                    ));
 
                     // Update step size for next iteration
                     current_step = actual_step;
