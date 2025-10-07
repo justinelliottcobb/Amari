@@ -1,6 +1,6 @@
-# Amari v0.8.0 Examples
+# Amari v0.9.0 Examples
 
-This directory contains comprehensive examples showcasing all mathematical systems in the Amari WebAssembly library, including the new relativistic physics capabilities.
+This directory contains comprehensive examples showcasing all mathematical systems in the Amari WebAssembly library, featuring the new high-precision arithmetic capabilities that enable spacecraft orbital mechanics and relativistic physics calculations in web browsers.
 
 ## 🚀 Quick Start
 
@@ -64,6 +64,15 @@ npx ts-node examples/typescript/complete-demo.ts
 - Schwarzschild spacetime and gravitational effects
 - Geodesic integration for orbital mechanics
 - Light deflection by massive objects
+
+### 🌟 New in v0.9.0: High-Precision WebAssembly Examples
+**🎯 Browser-Based Spacecraft Simulation**
+- International Space Station (ISS) orbital propagation
+- GPS satellite constellation modeling
+- Interplanetary trajectory calculations
+- Mars mission planning with gravitational assists
+- Asteroid deflection simulations
+- Solar sail dynamics with relativistic effects
 
 ### 7. Fusion Systems (`fusion-systems.ts`)
 **🔲 Advanced Neural Architectures**
@@ -251,4 +260,6 @@ Want to add more examples? Follow these guidelines:
 
 ---
 
-**Happy Computing with Amari v0.8.0! 🚀**
+**Happy Computing with Amari v0.9.0! 🚀🌌**
+
+*Now featuring WebAssembly-compatible high-precision arithmetic for universal deployment!*
