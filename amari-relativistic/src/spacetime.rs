@@ -129,28 +129,28 @@ impl<T: PrecisionFloat> GenericSpacetimeVector<T> {
 
     /// Get the time component (ct) in meters
     pub fn time_component(&self) -> T {
-        self.t
+        self.t.clone()
     }
 
     /// Get the time coordinate in seconds
     pub fn time(&self) -> T {
         let c = <T as PrecisionFloat>::from_f64(C);
-        self.t / c
+        self.t.clone() / c
     }
 
     /// Get the x spatial component in meters
     pub fn x(&self) -> T {
-        self.x
+        self.x.clone()
     }
 
     /// Get the y spatial component in meters
     pub fn y(&self) -> T {
-        self.y
+        self.y.clone()
     }
 
     /// Get the z spatial component in meters
     pub fn z(&self) -> T {
-        self.z
+        self.z.clone()
     }
 
     /// Get the spatial part as a 3-vector
@@ -181,8 +181,10 @@ impl<T: PrecisionFloat> GenericSpacetimeVector<T> {
     /// ```
     pub fn minkowski_dot(&self, other: &Self) -> T {
         // Minkowski metric signature (+---)
-        let t_part = self.t * other.t;
-        let spatial_part = self.x * other.x + self.y * other.y + self.z * other.z;
+        let t_part = self.t.clone() * other.t.clone();
+        let spatial_part = self.x.clone() * other.x.clone()
+            + self.y.clone() * other.y.clone()
+            + self.z.clone() * other.z.clone();
         t_part - spatial_part
     }
 
@@ -229,10 +231,10 @@ impl<T: PrecisionFloat> GenericSpacetimeVector<T> {
     pub fn is_null(&self) -> bool {
         let norm_sq = self.minkowski_norm_squared();
         let spatial_mag = <T as PrecisionFloat>::from_f64(self.spatial().magnitude());
-        let scale = self.t.abs().max(spatial_mag);
+        let scale = self.t.clone().abs().max(spatial_mag);
         let tolerance_threshold = <T as PrecisionFloat>::from_f64(1e-6);
         let tolerance = if scale > tolerance_threshold {
-            <T as PrecisionFloat>::from_f64(1e-6) * scale * scale
+            <T as PrecisionFloat>::from_f64(1e-6) * scale.clone() * scale
         } else {
             <T as PrecisionFloat>::from_f64(1e-10)
         };
@@ -301,9 +303,9 @@ impl<T: PrecisionFloat> Mul<T> for GenericSpacetimeVector<T> {
 
     fn mul(self, scalar: T) -> Self {
         Self {
-            t: self.t * scalar,
-            x: self.x * scalar,
-            y: self.y * scalar,
+            t: self.t * scalar.clone(),
+            x: self.x * scalar.clone(),
+            y: self.y * scalar.clone(),
             z: self.z * scalar,
         }
     }
@@ -367,9 +369,9 @@ impl<T: PrecisionFloat> GenericFourVelocity<T> {
         let c = <T as PrecisionFloat>::from_f64(C);
 
         let four_vel = GenericSpacetimeVector {
-            t: gamma_t * c, // γc (time component)
-            x: gamma_t * <T as PrecisionFloat>::from_f64(velocity.x),
-            y: gamma_t * <T as PrecisionFloat>::from_f64(velocity.y),
+            t: gamma_t.clone() * c, // γc (time component)
+            x: gamma_t.clone() * <T as PrecisionFloat>::from_f64(velocity.x),
+            y: gamma_t.clone() * <T as PrecisionFloat>::from_f64(velocity.y),
             z: gamma_t * <T as PrecisionFloat>::from_f64(velocity.z),
         };
 
@@ -403,8 +405,8 @@ impl<T: PrecisionFloat> GenericFourVelocity<T> {
     pub fn velocity(&self) -> Vector3<f64> {
         let gamma = self.gamma();
         Vector3::new(
-            (self.vector.x() / gamma).to_f64(),
-            (self.vector.y() / gamma).to_f64(),
+            (self.vector.x() / gamma.clone()).to_f64(),
+            (self.vector.y() / gamma.clone()).to_f64(),
             (self.vector.z() / gamma).to_f64(),
         )
     }

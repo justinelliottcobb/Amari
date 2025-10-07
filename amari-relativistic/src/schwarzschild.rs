@@ -371,7 +371,7 @@ impl<T: PrecisionFloat> GenericMetric<T> for SchwarzschildMetric {
         let f64_metric = <Self as Metric>::metric_tensor(self, &f64_pos);
 
         // Convert back to generic precision
-        let mut generic_metric = [[T::zero(); 4]; 4];
+        let mut generic_metric = T::zero_matrix_4x4();
         for i in 0..4 {
             for j in 0..4 {
                 generic_metric[i][j] = <T as PrecisionFloat>::from_f64(f64_metric[i][j]);
@@ -394,7 +394,7 @@ impl<T: PrecisionFloat> GenericMetric<T> for SchwarzschildMetric {
         let f64_christoffel = <Self as Metric>::christoffel(self, &f64_pos);
 
         // Convert back to generic precision
-        let mut generic_christoffel = [[[T::zero(); 4]; 4]; 4];
+        let mut generic_christoffel = T::zero_tensor_4x4x4();
         for i in 0..4 {
             for j in 0..4 {
                 for k in 0..4 {

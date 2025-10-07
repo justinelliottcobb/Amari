@@ -304,14 +304,14 @@ pub mod precision {
         pub fn electron_rest_energy<T: PrecisionFloat>() -> T {
             let m = electron_mass::<T>();
             let c_val = c::<T>();
-            m * c_val * c_val
+            m * c_val.clone() * c_val
         }
 
         /// Proton rest mass energy with generic precision
         pub fn proton_rest_energy<T: PrecisionFloat>() -> T {
             let m = proton_mass::<T>();
             let c_val = c::<T>();
-            m * c_val * c_val
+            m * c_val.clone() * c_val
         }
     }
 

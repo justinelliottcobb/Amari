@@ -530,7 +530,7 @@ impl<T: PrecisionFloat> GenericGeodesicIntegrator<T> {
 
         // Compute initial acceleration: a_n = -Γᵘ_αβ u^α u^β
         let gamma = self.metric.christoffel(position);
-        let mut a_n = [T::zero(); 4];
+        let mut a_n = T::zero_array_4();
 
         for mu in 0..4 {
             for alpha in 0..4 {
@@ -542,7 +542,7 @@ impl<T: PrecisionFloat> GenericGeodesicIntegrator<T> {
 
         // Velocity Verlet step 1: x_{n+1} = x_n + u_n * Δτ + ½ * a_n * (Δτ)²
         let half_dtau_sq = dtau * dtau * <T as PrecisionFloat>::from_f64(0.5);
-        let mut x_new = [T::zero(); 4];
+        let mut x_new = T::zero_array_4();
         for i in 0..4 {
             x_new[i] = x[i] + u[i] * dtau + a_n[i] * half_dtau_sq;
         }
@@ -557,14 +557,14 @@ impl<T: PrecisionFloat> GenericGeodesicIntegrator<T> {
 
         // Compute intermediate velocity for acceleration calculation
         let half_dtau = dtau * <T as PrecisionFloat>::from_f64(0.5);
-        let mut u_half = [T::zero(); 4];
+        let mut u_half = T::zero_array_4();
         for i in 0..4 {
             u_half[i] = u[i] + a_n[i] * half_dtau;
         }
 
         // Compute new acceleration: a_{n+1} = acceleration(x_{n+1})
         let gamma_new = self.metric.christoffel(position);
-        let mut a_new = [T::zero(); 4];
+        let mut a_new = T::zero_array_4();
 
         for mu in 0..4 {
             for alpha in 0..4 {
@@ -576,7 +576,7 @@ impl<T: PrecisionFloat> GenericGeodesicIntegrator<T> {
         }
 
         // Velocity Verlet step 3: u_{n+1} = u_n + ½ * (a_n + a_{n+1}) * Δτ
-        let mut u_new = [T::zero(); 4];
+        let mut u_new = T::zero_array_4();
         for i in 0..4 {
             u_new[i] = u[i] + (a_n[i] + a_new[i]) * half_dtau;
         }

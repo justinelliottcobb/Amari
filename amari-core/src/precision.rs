@@ -5,6 +5,7 @@
 //! - Arbitrary precision using rug::Float for critical calculations
 //! - Configurable precision based on application requirements
 
+#[allow(unused_imports)]
 use num_traits::{FromPrimitive, ToPrimitive, Zero};
 
 #[cfg(feature = "std")]
@@ -23,6 +24,11 @@ pub trait PrecisionFloat:
     + Display
     + PartialEq
     + PartialOrd
+    + core::ops::Add<Output = Self>
+    + core::ops::Sub<Output = Self>
+    + core::ops::Mul<Output = Self>
+    + core::ops::Div<Output = Self>
+    + core::ops::Neg<Output = Self>
     + Send
     + Sync
     + 'static
@@ -31,7 +37,7 @@ pub trait PrecisionFloat:
     fn from_f64(value: f64) -> Self;
 
     /// Convert to f64 (may lose precision)
-    fn to_f64(self) -> f64;
+    fn to_f64(&self) -> f64;
 
     /// Square root with high precision
     fn sqrt_precise(self) -> Self;
@@ -70,6 +76,57 @@ pub trait PrecisionFloat:
 
     /// Specialized tolerance for orbital mechanics calculations
     fn orbital_tolerance() -> Self;
+
+    /// Mathematical constant π
+    #[allow(non_snake_case)]
+    fn PI() -> Self;
+
+    /// The multiplicative identity (1)
+    fn one() -> Self;
+
+    /// The additive identity (0)
+    fn zero() -> Self;
+
+    /// Square root function (delegated to sqrt_precise)
+    fn sqrt(self) -> Self {
+        self.sqrt_precise()
+    }
+
+    /// Absolute value function (delegated to abs_precise)
+    fn abs(self) -> Self {
+        self.abs_precise()
+    }
+
+    /// Maximum of two values
+    fn max(self, other: Self) -> Self;
+
+    /// Minimum of two values
+    fn min(self, other: Self) -> Self;
+
+    /// Create a 4-element array filled with zero values
+    fn zero_array_4() -> [Self; 4] {
+        [Self::zero(), Self::zero(), Self::zero(), Self::zero()]
+    }
+
+    /// Create a 4x4 matrix filled with zero values
+    fn zero_matrix_4x4() -> [[Self; 4]; 4] {
+        [
+            Self::zero_array_4(),
+            Self::zero_array_4(),
+            Self::zero_array_4(),
+            Self::zero_array_4(),
+        ]
+    }
+
+    /// Create a 4x4x4 tensor filled with zero values
+    fn zero_tensor_4x4x4() -> [[[Self; 4]; 4]; 4] {
+        [
+            Self::zero_matrix_4x4(),
+            Self::zero_matrix_4x4(),
+            Self::zero_matrix_4x4(),
+            Self::zero_matrix_4x4(),
+        ]
+    }
 }
 
 /// Standard f64 implementation for general use
@@ -80,8 +137,8 @@ impl PrecisionFloat for f64 {
     }
 
     #[inline]
-    fn to_f64(self) -> f64 {
-        self
+    fn to_f64(&self) -> f64 {
+        *self
     }
 
     #[inline]
@@ -153,10 +210,38 @@ impl PrecisionFloat for f64 {
     fn orbital_tolerance() -> Self {
         1e-15
     }
+
+    #[inline]
+    fn PI() -> Self {
+        std::f64::consts::PI
+    }
+
+    #[inline]
+    fn one() -> Self {
+        1.0
+    }
+
+    #[inline]
+    fn zero() -> Self {
+        0.0
+    }
+
+    #[inline]
+    fn max(self, other: Self) -> Self {
+        f64::max(self, other)
+    }
+
+    #[inline]
+    fn min(self, other: Self) -> Self {
+        f64::min(self, other)
+    }
 }
 
 /// High-precision wrapper around rug::Float for critical calculations
-#[cfg(any(feature = "native-precision", all(feature = "high-precision", not(target_family = "wasm"))))]
+#[cfg(any(
+    feature = "native-precision",
+    all(feature = "high-precision", not(target_family = "wasm"))
+))]
 #[derive(Clone, Debug)]
 pub struct HighPrecisionFloat {
     /// The arbitrary precision floating point value
@@ -165,7 +250,10 @@ pub struct HighPrecisionFloat {
     precision: u32,
 }
 
-#[cfg(any(feature = "native-precision", all(feature = "high-precision", not(target_family = "wasm"))))]
+#[cfg(any(
+    feature = "native-precision",
+    all(feature = "high-precision", not(target_family = "wasm"))
+))]
 impl HighPrecisionFloat {
     /// Create with specified precision (bits)
     pub fn with_precision(value: f64, precision: u32) -> Self {
@@ -191,21 +279,30 @@ impl HighPrecisionFloat {
     }
 }
 
-#[cfg(any(feature = "native-precision", all(feature = "high-precision", not(target_family = "wasm"))))]
+#[cfg(any(
+    feature = "native-precision",
+    all(feature = "high-precision", not(target_family = "wasm"))
+))]
 impl PartialEq for HighPrecisionFloat {
     fn eq(&self, other: &Self) -> bool {
         self.value == other.value
     }
 }
 
-#[cfg(any(feature = "native-precision", all(feature = "high-precision", not(target_family = "wasm"))))]
+#[cfg(any(
+    feature = "native-precision",
+    all(feature = "high-precision", not(target_family = "wasm"))
+))]
 impl PartialOrd for HighPrecisionFloat {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         self.value.partial_cmp(&other.value)
     }
 }
 
-#[cfg(any(feature = "native-precision", all(feature = "high-precision", not(target_family = "wasm"))))]
+#[cfg(any(
+    feature = "native-precision",
+    all(feature = "high-precision", not(target_family = "wasm"))
+))]
 impl Display for HighPrecisionFloat {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.value)
@@ -216,7 +313,10 @@ impl Display for HighPrecisionFloat {
 // This would require substantial implementation for full compatibility
 
 /// High-precision wrapper around dashu_float::FBig for WASM-compatible calculations
-#[cfg(any(feature = "wasm-precision", all(feature = "high-precision", target_family = "wasm")))]
+#[cfg(any(
+    feature = "wasm-precision",
+    all(feature = "high-precision", target_family = "wasm")
+))]
 #[derive(Clone, Debug)]
 pub struct DashuFloat {
     /// The arbitrary precision floating point value
@@ -225,14 +325,17 @@ pub struct DashuFloat {
     precision: u32,
 }
 
-#[cfg(any(feature = "wasm-precision", all(feature = "high-precision", target_family = "wasm")))]
+#[cfg(any(
+    feature = "wasm-precision",
+    all(feature = "high-precision", target_family = "wasm")
+))]
 impl DashuFloat {
     /// Create with specified precision (decimal digits)
     pub fn with_precision(value: f64, precision: u32) -> Self {
         use dashu_float::FBig;
 
         Self {
-            value: FBig::try_from(value).unwrap_or_else(|_| FBig::ZERO),
+            value: FBig::try_from(value).unwrap_or(FBig::ZERO),
             precision,
         }
     }
@@ -253,28 +356,40 @@ impl DashuFloat {
     }
 }
 
-#[cfg(any(feature = "wasm-precision", all(feature = "high-precision", target_family = "wasm")))]
+#[cfg(any(
+    feature = "wasm-precision",
+    all(feature = "high-precision", target_family = "wasm")
+))]
 impl PartialEq for DashuFloat {
     fn eq(&self, other: &Self) -> bool {
         self.value == other.value
     }
 }
 
-#[cfg(any(feature = "wasm-precision", all(feature = "high-precision", target_family = "wasm")))]
+#[cfg(any(
+    feature = "wasm-precision",
+    all(feature = "high-precision", target_family = "wasm")
+))]
 impl PartialOrd for DashuFloat {
     fn partial_cmp(&self, other: &Self) -> Option<core::cmp::Ordering> {
         self.value.partial_cmp(&other.value)
     }
 }
 
-#[cfg(any(feature = "wasm-precision", all(feature = "high-precision", target_family = "wasm")))]
+#[cfg(any(
+    feature = "wasm-precision",
+    all(feature = "high-precision", target_family = "wasm")
+))]
 impl Display for DashuFloat {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(f, "{}", self.value)
     }
 }
 
-#[cfg(any(feature = "wasm-precision", all(feature = "high-precision", target_family = "wasm")))]
+#[cfg(any(
+    feature = "wasm-precision",
+    all(feature = "high-precision", target_family = "wasm")
+))]
 impl PrecisionFloat for DashuFloat {
     #[inline]
     fn from_f64(value: f64) -> Self {
@@ -282,9 +397,9 @@ impl PrecisionFloat for DashuFloat {
     }
 
     #[inline]
-    fn to_f64(self) -> f64 {
+    fn to_f64(&self) -> f64 {
         // Convert dashu FBig to f64 (may lose precision)
-        f64::try_from(self.value).unwrap_or(0.0)
+        f64::try_from(self.value.clone()).unwrap_or(0.0)
     }
 
     #[inline]
@@ -377,10 +492,50 @@ impl PrecisionFloat for DashuFloat {
     fn orbital_tolerance() -> Self {
         Self::with_precision(1e-15, 80)
     }
+
+    #[inline]
+    fn PI() -> Self {
+        Self::with_precision(std::f64::consts::PI, 40)
+    }
+
+    #[inline]
+    fn one() -> Self {
+        Self::with_precision(1.0, 40)
+    }
+
+    #[inline]
+    fn zero() -> Self {
+        Self::with_precision(0.0, 40)
+    }
+
+    #[inline]
+    fn max(self, other: Self) -> Self {
+        let self_f64 = f64::try_from(self.value.clone()).unwrap_or(0.0);
+        let other_f64 = f64::try_from(other.value.clone()).unwrap_or(0.0);
+        if self_f64 >= other_f64 {
+            self
+        } else {
+            other
+        }
+    }
+
+    #[inline]
+    fn min(self, other: Self) -> Self {
+        let self_f64 = f64::try_from(self.value.clone()).unwrap_or(0.0);
+        let other_f64 = f64::try_from(other.value.clone()).unwrap_or(0.0);
+        if self_f64 <= other_f64 {
+            self
+        } else {
+            other
+        }
+    }
 }
 
 // Implement basic arithmetic traits for DashuFloat
-#[cfg(any(feature = "wasm-precision", all(feature = "high-precision", target_family = "wasm")))]
+#[cfg(any(
+    feature = "wasm-precision",
+    all(feature = "high-precision", target_family = "wasm")
+))]
 impl core::ops::Add for DashuFloat {
     type Output = Self;
 
@@ -392,7 +547,10 @@ impl core::ops::Add for DashuFloat {
     }
 }
 
-#[cfg(any(feature = "wasm-precision", all(feature = "high-precision", target_family = "wasm")))]
+#[cfg(any(
+    feature = "wasm-precision",
+    all(feature = "high-precision", target_family = "wasm")
+))]
 impl core::ops::Sub for DashuFloat {
     type Output = Self;
 
@@ -404,7 +562,10 @@ impl core::ops::Sub for DashuFloat {
     }
 }
 
-#[cfg(any(feature = "wasm-precision", all(feature = "high-precision", target_family = "wasm")))]
+#[cfg(any(
+    feature = "wasm-precision",
+    all(feature = "high-precision", target_family = "wasm")
+))]
 impl core::ops::Mul for DashuFloat {
     type Output = Self;
 
@@ -416,7 +577,10 @@ impl core::ops::Mul for DashuFloat {
     }
 }
 
-#[cfg(any(feature = "wasm-precision", all(feature = "high-precision", target_family = "wasm")))]
+#[cfg(any(
+    feature = "wasm-precision",
+    all(feature = "high-precision", target_family = "wasm")
+))]
 impl core::ops::Div for DashuFloat {
     type Output = Self;
 
@@ -428,7 +592,10 @@ impl core::ops::Div for DashuFloat {
     }
 }
 
-#[cfg(any(feature = "wasm-precision", all(feature = "high-precision", target_family = "wasm")))]
+#[cfg(any(
+    feature = "wasm-precision",
+    all(feature = "high-precision", target_family = "wasm")
+))]
 impl core::ops::Neg for DashuFloat {
     type Output = Self;
 
@@ -440,7 +607,10 @@ impl core::ops::Neg for DashuFloat {
     }
 }
 
-#[cfg(any(feature = "wasm-precision", all(feature = "high-precision", target_family = "wasm")))]
+#[cfg(any(
+    feature = "wasm-precision",
+    all(feature = "high-precision", target_family = "wasm")
+))]
 impl num_traits::Zero for DashuFloat {
     fn zero() -> Self {
         Self {
@@ -455,7 +625,10 @@ impl num_traits::Zero for DashuFloat {
     }
 }
 
-#[cfg(any(feature = "wasm-precision", all(feature = "high-precision", target_family = "wasm")))]
+#[cfg(any(
+    feature = "wasm-precision",
+    all(feature = "high-precision", target_family = "wasm")
+))]
 impl num_traits::One for DashuFloat {
     fn one() -> Self {
         Self {
@@ -465,7 +638,10 @@ impl num_traits::One for DashuFloat {
     }
 }
 
-#[cfg(any(feature = "wasm-precision", all(feature = "high-precision", target_family = "wasm")))]
+#[cfg(any(
+    feature = "wasm-precision",
+    all(feature = "high-precision", target_family = "wasm")
+))]
 impl num_traits::FromPrimitive for DashuFloat {
     fn from_f64(n: f64) -> Option<Self> {
         Some(<DashuFloat as PrecisionFloat>::from_f64(n))
@@ -484,38 +660,46 @@ impl num_traits::FromPrimitive for DashuFloat {
     }
 }
 
-#[cfg(any(feature = "wasm-precision", all(feature = "high-precision", target_family = "wasm")))]
-impl num_traits::ToPrimitive for DashuFloat {
-    fn to_f64(&self) -> Option<f64> {
-        Some(self.clone().to_f64())
-    }
-
-    fn to_f32(&self) -> Option<f32> {
-        Some(self.clone().to_f64() as f32)
-    }
-
-    fn to_i64(&self) -> Option<i64> {
-        Some(self.clone().to_f64() as i64)
-    }
-
-    fn to_u64(&self) -> Option<u64> {
-        Some(self.clone().to_f64() as u64)
-    }
-}
+// ToPrimitive implementation removed to avoid method name collision with PrecisionFloat::to_f64
 
 /// Type alias for standard precision calculations
 pub type StandardFloat = f64;
 
-/// Type alias for high precision calculations when available (native builds with rug)
-#[cfg(any(feature = "native-precision", all(feature = "high-precision", not(target_family = "wasm"))))]
+/// Type alias for extended precision calculations - backend selected based on target and features
+///
+/// Selection priority:
+/// 1. Explicit `native-precision` feature -> rug backend
+/// 2. Explicit `wasm-precision` feature -> dashu backend
+/// 3. `high-precision` + native target -> rug backend
+/// 4. `high-precision` + wasm target -> dashu backend
+/// 5. No precision features -> f64 fallback
+#[cfg(feature = "native-precision")]
 pub type ExtendedFloat = HighPrecisionFloat;
 
-/// Type alias for high precision calculations on WASM targets
-#[cfg(any(feature = "wasm-precision", all(feature = "high-precision", target_family = "wasm")))]
+#[cfg(all(feature = "wasm-precision", not(feature = "native-precision")))]
 pub type ExtendedFloat = DashuFloat;
 
-/// Type alias using standard precision when high-precision unavailable
-#[cfg(not(any(feature = "high-precision", feature = "wasm-precision", feature = "native-precision")))]
+#[cfg(all(
+    feature = "high-precision",
+    not(feature = "native-precision"),
+    not(feature = "wasm-precision"),
+    not(target_family = "wasm")
+))]
+pub type ExtendedFloat = HighPrecisionFloat;
+
+#[cfg(all(
+    feature = "high-precision",
+    not(feature = "native-precision"),
+    not(feature = "wasm-precision"),
+    target_family = "wasm"
+))]
+pub type ExtendedFloat = DashuFloat;
+
+#[cfg(not(any(
+    feature = "native-precision",
+    feature = "wasm-precision",
+    feature = "high-precision"
+)))]
 pub type ExtendedFloat = f64;
 
 #[cfg(test)]
@@ -535,7 +719,10 @@ mod tests {
         assert!(f64::default_tolerance() > 0.0);
     }
 
-    #[cfg(any(feature = "native-precision", all(feature = "high-precision", not(target_family = "wasm"))))]
+    #[cfg(any(
+        feature = "native-precision",
+        all(feature = "high-precision", not(target_family = "wasm"))
+    ))]
     #[test]
     fn test_high_precision_creation() {
         let hp = HighPrecisionFloat::standard(std::f64::consts::PI);
@@ -545,7 +732,10 @@ mod tests {
         assert_eq!(sp.precision(), 256);
     }
 
-    #[cfg(any(feature = "wasm-precision", all(feature = "high-precision", target_family = "wasm")))]
+    #[cfg(any(
+        feature = "wasm-precision",
+        all(feature = "high-precision", target_family = "wasm")
+    ))]
     #[test]
     fn test_dashu_float_creation() {
         let df = DashuFloat::standard(core::f64::consts::PI);
@@ -555,7 +745,10 @@ mod tests {
         assert_eq!(df_high.precision(), 80);
     }
 
-    #[cfg(any(feature = "wasm-precision", all(feature = "high-precision", target_family = "wasm")))]
+    #[cfg(any(
+        feature = "wasm-precision",
+        all(feature = "high-precision", target_family = "wasm")
+    ))]
     #[test]
     fn test_dashu_float_precision_operations() {
         let x = <DashuFloat as PrecisionFloat>::from_f64(2.0);
@@ -567,13 +760,22 @@ mod tests {
         assert!(diff < 1e-10, "sqrt precision test failed: diff = {}", diff);
 
         // Test power function
-        let power_result = x.clone().powf_precise(<DashuFloat as PrecisionFloat>::from_f64(3.0));
+        let power_result = x
+            .clone()
+            .powf_precise(<DashuFloat as PrecisionFloat>::from_f64(3.0));
         let power_expected = <DashuFloat as PrecisionFloat>::from_f64(8.0);
         let power_diff = (power_result.to_f64() - power_expected.to_f64()).abs();
-        assert!(power_diff < 1e-10, "power precision test failed: diff = {}", power_diff);
+        assert!(
+            power_diff < 1e-10,
+            "power precision test failed: diff = {}",
+            power_diff
+        );
     }
 
-    #[cfg(any(feature = "wasm-precision", all(feature = "high-precision", target_family = "wasm")))]
+    #[cfg(any(
+        feature = "wasm-precision",
+        all(feature = "high-precision", target_family = "wasm")
+    ))]
     #[test]
     fn test_dashu_float_arithmetic() {
         let a = <DashuFloat as PrecisionFloat>::from_f64(3.0);
@@ -589,7 +791,10 @@ mod tests {
         assert!((quotient.to_f64() - 4.0).abs() < 1e-10);
     }
 
-    #[cfg(any(feature = "wasm-precision", all(feature = "high-precision", target_family = "wasm")))]
+    #[cfg(any(
+        feature = "wasm-precision",
+        all(feature = "high-precision", target_family = "wasm")
+    ))]
     #[test]
     fn test_dashu_float_transcendental() {
         let x = <DashuFloat as PrecisionFloat>::from_f64(1.0);

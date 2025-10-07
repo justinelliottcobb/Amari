@@ -12,7 +12,7 @@ keywords = ["mathematics", "geometric-algebra", "tropical-algebra", "autodiff", 
 categories = ["mathematics", "science", "algorithms"]
 
 [dependencies]
-amari-core = { workspace = true }
+amari-core = { workspace = true, features = ["std", "phantom-types", "high-precision"] }
 amari-tropical = { workspace = true }
 amari-dual = { workspace = true }
 amari-fusion = { workspace = true }
@@ -50,7 +50,7 @@ rust-version = "1.75"
 [workspace.dependencies]
 # Amari crates (internal dependencies)
 amari = { path = ".", version = "0.8.7" }
-amari-core = { path = "amari-core", version = "0.8.7" }
+amari-core = { path = "amari-core", version = "0.8.7", default-features = false }
 amari-tropical = { path = "amari-tropical", version = "0.8.7" }
 amari-dual = { path = "amari-dual", version = "0.8.7" }
 amari-fusion = { path = "amari-fusion", version = "0.8.7" }

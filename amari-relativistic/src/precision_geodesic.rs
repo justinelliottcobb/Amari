@@ -307,21 +307,21 @@ impl<T: PrecisionFloat> PrecisionGeodesicIntegrator<T> {
             let vel_backup = velocity.clone();
 
             // Try full step
-            match self.step(position, velocity, step_size) {
+            match self.step(position, velocity, step_size.clone()) {
                 Ok(()) => {
                     // Step succeeded, check if we can increase step size
                     if step_size < self.config.max_step_size {
                         step_size = (step_size * <T as PrecisionFloat>::from_f64(1.1))
-                            .min(self.config.max_step_size);
+                            .min(self.config.max_step_size.clone());
                     }
-                    self.current_step = step_size;
+                    self.current_step = step_size.clone();
                     return Ok(step_size);
                 }
                 Err(_) => {
                     // Step failed, restore state and reduce step size
                     *position = pos_backup;
                     *velocity = vel_backup;
-                    step_size = step_size * self.config.safety_factor;
+                    step_size = step_size * self.config.safety_factor.clone();
 
                     if step_size < self.config.min_step_size {
                         return Err("Step size below minimum threshold".to_string());
@@ -336,9 +336,9 @@ impl<T: PrecisionFloat> PrecisionGeodesicIntegrator<T> {
     /// Get current integration statistics
     pub fn stats(&self) -> PrecisionIntegrationStats<T> {
         PrecisionIntegrationStats {
-            proper_time: self.proper_time,
+            proper_time: self.proper_time.clone(),
             step_count: self.step_count,
-            current_step_size: self.current_step,
+            current_step_size: self.current_step.clone(),
             metric_name: self.metric.name().to_string(),
         }
     }
