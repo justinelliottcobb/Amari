@@ -16,6 +16,7 @@
 
 extern crate alloc;
 use alloc::boxed::Box;
+use alloc::vec;
 use alloc::vec::Vec;
 use core::ops::{Add, Mul, Neg, Sub};
 use num_traits::Zero;

@@ -9,10 +9,22 @@
 use num_traits::{FromPrimitive, ToPrimitive, Zero};
 
 #[cfg(feature = "std")]
-use std::fmt::{Debug, Display};
+use std::{
+    cmp,
+    fmt::{self, Debug, Display},
+};
 
 #[cfg(not(feature = "std"))]
-use core::fmt::{Debug, Display};
+use core::{
+    cmp,
+    fmt::{self, Debug, Display},
+};
+
+#[cfg(feature = "std")]
+use std::f64::consts;
+
+#[cfg(not(feature = "std"))]
+use core::f64::consts;
 
 /// Unified trait for floating-point arithmetic in scientific computing
 ///
@@ -213,7 +225,7 @@ impl PrecisionFloat for f64 {
 
     #[inline]
     fn PI() -> Self {
-        std::f64::consts::PI
+        consts::PI
     }
 
     #[inline]
@@ -294,7 +306,7 @@ impl PartialEq for HighPrecisionFloat {
     all(feature = "high-precision", not(target_family = "wasm"))
 ))]
 impl PartialOrd for HighPrecisionFloat {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+    fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
         self.value.partial_cmp(&other.value)
     }
 }
@@ -304,7 +316,7 @@ impl PartialOrd for HighPrecisionFloat {
     all(feature = "high-precision", not(target_family = "wasm"))
 ))]
 impl Display for HighPrecisionFloat {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.value)
     }
 }
@@ -495,7 +507,7 @@ impl PrecisionFloat for DashuFloat {
 
     #[inline]
     fn PI() -> Self {
-        Self::with_precision(std::f64::consts::PI, 40)
+        Self::with_precision(consts::PI, 40)
     }
 
     #[inline]
@@ -725,10 +737,10 @@ mod tests {
     ))]
     #[test]
     fn test_high_precision_creation() {
-        let hp = HighPrecisionFloat::standard(std::f64::consts::PI);
+        let hp = HighPrecisionFloat::standard(consts::PI);
         assert_eq!(hp.precision(), 128);
 
-        let sp = HighPrecisionFloat::high(std::f64::consts::E);
+        let sp = HighPrecisionFloat::high(consts::E);
         assert_eq!(sp.precision(), 256);
     }
 
