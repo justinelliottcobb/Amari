@@ -11,7 +11,7 @@ A comprehensive mathematical computing library featuring geometric algebra, rela
 
 ## Features
 
-### 🚀 New in v0.9.0: WebAssembly-Compatible Multi-Backend Precision
+### New in v0.9.0: WebAssembly-Compatible Multi-Backend Precision
 - **Universal High-Precision**: Seamless high-precision arithmetic that works in both native and WebAssembly environments
 - **Multi-Backend Architecture**: Automatically uses rug (GMP/MPFR) for native performance and dashu for WASM compatibility
 - **WebAssembly 3.0 Ready**: Leverages latest WASM features including 64-bit address space for enhanced precision
@@ -164,7 +164,7 @@ main();
 
 ## Multi-Backend Precision Architecture
 
-### 🎯 Automatic Backend Selection
+### Automatic Backend Selection
 
 Amari v0.9.0 introduces intelligent backend selection for high-precision arithmetic:
 
@@ -181,22 +181,22 @@ cargo build --target wasm32-unknown-unknown --features wasm-precision  // Uses d
 cargo build --features high-precision  // Chooses best backend for target
 ```
 
-### 🔧 Backend Characteristics
+### Backend Characteristics
 
 | Backend | Platform | Performance | Dependencies | Use Case |
 |---------|----------|-------------|--------------|----------|
 | **rug** | Native | Ultimate | GMP/MPFR (C libraries) | High-performance computing, research |
 | **dashu** | WASM | Excellent | Pure Rust | Web apps, edge computing, universality |
 
-### 📐 Mathematical Consistency
+### Mathematical Consistency
 
 Both backends provide:
-- ✅ **Identical API**: Same function signatures across platforms
-- ✅ **Numerical Accuracy**: Configurable precision with orbital-grade tolerance
-- ✅ **Mathematical Correctness**: All relativistic calculations preserve physical invariants
-- ✅ **Feature Parity**: Full support for spacecraft orbital mechanics in both environments
+- **Identical API**: Same function signatures across platforms
+- **Numerical Accuracy**: Configurable precision with orbital-grade tolerance
+- **Mathematical Correctness**: All relativistic calculations preserve physical invariants
+- **Feature Parity**: Full support for spacecraft orbital mechanics in both environments
 
-### 🌐 WebAssembly Deployment Example
+### WebAssembly Deployment Example
 
 ```rust
 // Compile for WASM with high-precision arithmetic

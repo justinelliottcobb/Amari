@@ -1,6 +1,6 @@
 # @justinelliottcobb/amari-wasm v0.9.0
 
-🚀 **Unified Mathematical Computing Library with High-Precision WebAssembly Support**
+**Unified Mathematical Computing Library with High-Precision WebAssembly Support**
 
 [![npm version](https://badge.fury.io/js/%40justinelliottcobb%2Famari-wasm.svg)](https://www.npmjs.com/package/@justinelliottcobb/amari-wasm)
 [![CI](https://github.com/justinelliottcobb/Amari/actions/workflows/ci.yml/badge.svg)](https://github.com/justinelliottcobb/Amari/actions/workflows/ci.yml)
@@ -8,25 +8,25 @@
 
 Amari is a comprehensive mathematical computing library that brings advanced algebraic systems to JavaScript/TypeScript through WebAssembly, now with full high-precision arithmetic support for spacecraft orbital mechanics and relativistic physics calculations. Features pure Rust implementation with no native dependencies for universal deployment.
 
-## ✨ Features
+## Features
 
-### 🚀 New in v0.9.0: High-Precision WebAssembly
-- **🎯 Spacecraft Orbital Mechanics**: Full-precision trajectory calculations now available in browsers
-- **🌌 Relativistic Physics**: Spacetime algebra (Cl(1,3)) with WebAssembly-compatible precision
-- **🔧 Pure Rust Backend**: dashu-powered arithmetic with no native dependencies
-- **🌐 Universal Deployment**: Same precision guarantees across desktop, web, and edge environments
-- **⚡ WebAssembly 3.0 Ready**: Leverages latest WASM features for enhanced mathematical computing
+### New in v0.9.0: High-Precision WebAssembly
+- **Spacecraft Orbital Mechanics**: Full-precision trajectory calculations now available in browsers
+- **Relativistic Physics**: Spacetime algebra (Cl(1,3)) with WebAssembly-compatible precision
+- **Pure Rust Backend**: dashu-powered arithmetic with no native dependencies
+- **Universal Deployment**: Same precision guarantees across desktop, web, and edge environments
+- **WebAssembly 3.0 Ready**: Leverages latest WASM features for enhanced mathematical computing
 
 ### Core Mathematical Systems
-- **🔢 Geometric Algebra (Clifford Algebra)**: Multivectors, rotors, and geometric products for 3D rotations and spatial transformations
-- **🌴 Tropical Algebra**: Max-plus semiring operations for optimization and neural network applications
-- **📈 Automatic Differentiation**: Forward-mode AD with dual numbers for exact derivatives
-- **🔲 Cellular Automata**: Geometric cellular automata with multivector states
-- **⚡ WebGPU Acceleration**: Optional GPU acceleration for large-scale operations
-- **🦀 Pure Rust Implementation**: Memory-safe, high-performance core with WASM bindings
-- **📦 TypeScript Support**: Full TypeScript definitions included
+- **Geometric Algebra (Clifford Algebra)**: Multivectors, rotors, and geometric products for 3D rotations and spatial transformations
+- **Tropical Algebra**: Max-plus semiring operations for optimization and neural network applications
+- **Automatic Differentiation**: Forward-mode AD with dual numbers for exact derivatives
+- **Cellular Automata**: Geometric cellular automata with multivector states
+- **WebGPU Acceleration**: Optional GPU acceleration for large-scale operations
+- **Pure Rust Implementation**: Memory-safe, high-performance core with WASM bindings
+- **TypeScript Support**: Full TypeScript definitions included
 
-## 📦 Installation
+## Installation
 
 ```bash
 npm install @amari/core
@@ -38,7 +38,7 @@ Or with yarn:
 yarn add @amari/core
 ```
 
-## 🚀 Quick Start
+## Quick Start
 
 ```typescript
 import init, { WasmMultivector, WasmRotor } from '@amari/core';
@@ -79,7 +79,7 @@ async function main() {
 main();
 ```
 
-## 🚀 High-Precision Orbital Mechanics (New in v0.9.0)
+## High-Precision Orbital Mechanics (New in v0.9.0)
 
 ```typescript
 import init, {
@@ -135,7 +135,7 @@ async function spacecraftSimulation() {
 spacecraftSimulation();
 ```
 
-## 📚 Core Concepts
+## Core Concepts
 
 ### Geometric Algebra
 
@@ -183,7 +183,7 @@ for (let i = 0; i < 100; i++) {
 console.log(`Generation: ${ca.generation()}`);
 ```
 
-## 🎯 Use Cases
+## Use Cases
 
 - **Computer Graphics**: 3D rotations and transformations using rotors
 - **Physics Simulations**: Geometric algebra for electromagnetic fields
@@ -192,7 +192,7 @@ console.log(`Generation: ${ca.generation()}`);
 - **Scientific Computing**: High-performance mathematical operations
 - **Game Development**: Efficient spatial transformations and physics
 
-## 🔧 API Reference
+## API Reference
 
 ### Multivector Operations
 
@@ -263,4 +263,4 @@ MIT License - see [LICENSE](https://github.com/justinelliottcobb/Amari/blob/mast
 
 ---
 
-**Made with ❤️ and 🦀 by the Amari team**
+**Made with Rust by the Amari team**
