@@ -6,6 +6,12 @@
 use crate::*;
 use approx::assert_relative_eq;
 
+#[cfg(feature = "std")]
+use std::f64::consts;
+
+#[cfg(not(feature = "std"))]
+use core::f64::consts;
+
 type Cl3 = Multivector<3, 0, 0>; // 3D Euclidean space
 
 #[cfg(test)]
@@ -924,7 +930,7 @@ mod advanced_operations_tests {
         // Create a bivector for rotation in e1-e2 plane
         let e1 = Cl3::basis_vector(0);
         let e2 = Cl3::basis_vector(1);
-        let bivector = e1.outer_product(&e2) * (std::f64::consts::PI / 4.0); // 45 degree rotation
+        let bivector = e1.outer_product(&e2) * (consts::PI / 4.0); // 45 degree rotation
 
         let rotor = bivector.exp();
 
@@ -960,7 +966,7 @@ mod advanced_operations_tests {
         let exp_scalar = scalar.exp();
 
         // Should be approximately e ≈ 2.718
-        assert!((exp_scalar.scalar_part() - std::f64::consts::E).abs() < 1e-10);
+        assert!((exp_scalar.scalar_part() - consts::E).abs() < 1e-10);
 
         // All other components should be zero
         for i in 1..8 {

@@ -184,17 +184,34 @@ pub fn batch_geometric_product_avx2(
     }
 }
 
-/// Runtime CPU feature detection for optimal code path selection
+/// CPU feature detection for optimal code path selection
+/// In std environments, uses runtime detection; in no_std, uses compile-time detection
 pub fn select_geometric_product_impl(
 ) -> fn(&Multivector<3, 0, 0>, &Multivector<3, 0, 0>) -> Multivector<3, 0, 0> {
-    #[cfg(target_feature = "avx2")]
+    // For no_std environments, use compile-time feature detection
+    #[cfg(all(not(feature = "std"), target_feature = "avx2"))]
+    {
+        return geometric_product_3d_avx2;
+    }
+
+    #[cfg(all(
+        not(feature = "std"),
+        target_feature = "sse2",
+        not(target_feature = "avx2")
+    ))]
+    {
+        return geometric_product_3d_sse2;
+    }
+
+    // For std environments, use runtime detection
+    #[cfg(all(feature = "std", target_feature = "avx2"))]
     {
         if is_x86_feature_detected!("avx2") {
             return geometric_product_3d_avx2;
         }
     }
 
-    #[cfg(target_feature = "sse2")]
+    #[cfg(all(feature = "std", target_feature = "sse2", not(target_feature = "avx2")))]
     {
         if is_x86_feature_detected!("sse2") {
             return geometric_product_3d_sse2;
