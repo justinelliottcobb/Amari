@@ -124,7 +124,7 @@
 //! let mu = constants::precision::g::<StandardFloat>() * constants::precision::earth_mass::<StandardFloat>();
 //!
 //! // Orbital period with high precision
-//! let period = StandardFloat::from_f64(2.0) * StandardFloat::PI() *
+//! let period = StandardFloat::from_f64(2.0) * <StandardFloat as PrecisionFloat>::PI() *
 //!     (semi_major_axis.powf_precise(StandardFloat::from_f64(3.0)) / mu).sqrt_precise();
 //!
 //! // Precision spacetime vector for spacecraft position
@@ -449,12 +449,11 @@ mod integration_tests {
             ) -> [[T; 4]; 4] {
                 let one = T::one();
                 let neg_one = -T::one();
-                let zero = T::zero();
                 [
-                    [one, zero, zero, zero],
-                    [zero, neg_one, zero, zero],
-                    [zero, zero, neg_one, zero],
-                    [zero, zero, zero, neg_one],
+                    [one, T::zero(), T::zero(), T::zero()],
+                    [T::zero(), neg_one.clone(), T::zero(), T::zero()],
+                    [T::zero(), T::zero(), neg_one.clone(), T::zero()],
+                    [T::zero(), T::zero(), T::zero(), neg_one],
                 ]
             }
 
@@ -462,7 +461,7 @@ mod integration_tests {
                 &self,
                 _: &crate::spacetime::GenericSpacetimeVector<T>,
             ) -> [[[T; 4]; 4]; 4] {
-                [[[T::zero(); 4]; 4]; 4] // All zeros for flat spacetime
+                T::zero_tensor_4x4x4() // All zeros for flat spacetime
             }
 
             fn name(&self) -> &str {

@@ -33,6 +33,10 @@ serde-support = ["serde"]
 phantom-types = []
 # High-precision arithmetic using centralized precision types from amari-core
 high-precision = ["amari-core/high-precision"]
+# Native precision backend (rug for high-performance)
+native-precision = ["amari-core/native-precision"]
+# WASM precision backend (dashu for portability)
+wasm-precision = ["amari-core/wasm-precision"]
 # Formal verification with Creusot (requires nightly)
 formal-verification = ["creusot-contracts", "phantom-types"]
 

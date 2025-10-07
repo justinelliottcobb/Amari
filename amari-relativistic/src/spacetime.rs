@@ -447,9 +447,9 @@ impl<T: PrecisionFloat> GenericFourVelocity<T> {
     pub fn is_normalized(&self, tolerance: f64) -> bool {
         let norm_sq = self.vector.minkowski_norm_squared();
         let c = <T as PrecisionFloat>::from_f64(C);
-        let c_sq = c * c;
+        let c_sq = c.clone() * c;
         let tolerance_t = <T as PrecisionFloat>::from_f64(tolerance);
-        let relative_error = (norm_sq - c_sq).abs() / c_sq;
+        let relative_error = (norm_sq - c_sq.clone()).abs() / c_sq;
         relative_error < tolerance_t
     }
 
