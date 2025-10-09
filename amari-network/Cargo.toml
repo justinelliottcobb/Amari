@@ -18,8 +18,8 @@ thiserror = { workspace = true }
 serde = { workspace = true, optional = true }
 nalgebra = { workspace = true }
 
-# Formal verification dependencies (optional)
-creusot-contracts = { version = "0.2", optional = true }
+# Formal verification (requires nightly)
+creusot-contracts = { version = "0.6", optional = true }
 
 [dev-dependencies]
 approx = { workspace = true }
@@ -30,8 +30,10 @@ default = ["std"]
 std = []
 serde = ["dep:serde", "amari-core/serde", "amari-tropical/serde"]
 
-# Formal verification features
-formal-verification = ["dep:creusot-contracts", "amari-core/formal-verification"]
+# Phantom types for compile-time verification (works on stable)
+phantom-types = []
+# Formal verification with Creusot (requires nightly)
+formal-verification = ["creusot-contracts", "phantom-types"]
 contracts = ["formal-verification"]
 
 # Examples demonstrating different aspects of geometric network analysis

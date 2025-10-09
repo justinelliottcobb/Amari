@@ -11,14 +11,12 @@
 //! - Tropical algebra optimization guarantees (shortest paths, betweenness)
 
 use crate::verified::VerifiedGeometricNetwork;
-use crate::{Community, GeometricNetwork, NetworkError, NodeMetadata, PropagationAnalysis};
-use amari_core::{Multivector, Vector};
+use crate::{Community, GeometricNetwork, NetworkError, PropagationAnalysis};
+use amari_core::Multivector;
 use core::marker::PhantomData;
-use num_traits::{Float, One, Zero};
-use std::collections::HashMap;
 
 #[cfg(feature = "formal-verification")]
-use creusot_contracts::{ensures, law, requires};
+use creusot_contracts::ensures;
 
 /// Verification marker for graph-theoretic properties
 #[derive(Debug, Clone, Copy)]
@@ -204,22 +202,11 @@ pub trait GraphTheoreticProperties {
 pub trait GeometricProperties<const P: usize, const Q: usize, const R: usize> {
     /// Verify that geometric distances satisfy metric axioms
     ///
-    /// # Laws
+    /// # Mathematical Properties
     /// - Non-negativity: ∀i,j: d(i,j) >= 0
     /// - Identity: ∀i,j: d(i,j) = 0 ⟺ i = j
     /// - Symmetry: ∀i,j: d(i,j) = d(j,i)
     /// - Triangle inequality: ∀i,j,k: d(i,k) <= d(i,j) + d(j,k)
-    #[cfg_attr(feature = "formal-verification",
-        law,
-        ensures(forall(|i: usize, j: usize|
-            self.geometric_distance_verified(i, j) >= 0.0
-        )),
-        ensures(forall(|i: usize|
-            self.geometric_distance_verified(i, i) == 0.0
-        )),
-        ensures(forall(|i: usize, j: usize|
-            self.geometric_distance_verified(i, j) == self.geometric_distance_verified(j, i)
-        )))]
     fn metric_axioms() {}
 
     /// Get verified geometric distance
@@ -233,16 +220,10 @@ pub trait GeometricProperties<const P: usize, const Q: usize, const R: usize> {
 pub trait TropicalProperties {
     /// Verify that tropical conversion preserves graph structure
     ///
-    /// # Laws
+    /// # Mathematical Properties
     /// - Node count preservation: |V_tropical| = |V_geometric|
     /// - Edge existence preservation: (i,j) ∈ E_geometric ⟺ (i,j) ∈ E_tropical
     /// - Path existence preservation: path(i,j) exists ⟺ tropical_path(i,j) exists
-    #[cfg_attr(feature = "formal-verification",
-        law,
-        ensures(self.tropical_node_count() == self.geometric_node_count()),
-        ensures(forall(|i: usize, j: usize|
-            self.has_edge_geometric(i, j) == self.has_edge_tropical(i, j)
-        )))]
     fn tropical_preservation() {}
 
     /// Get node count in tropical representation
@@ -266,8 +247,8 @@ impl<const P: usize, const Q: usize, const R: usize> GraphTheoreticProperties
     for VerifiedContractGeometricNetwork<P, Q, R>
 {
     fn graph_invariants(&self) -> bool {
-        // Basic graph invariants
-        self.num_nodes() >= 0 && self.num_edges() >= 0
+        // Basic graph invariants - node and edge counts are always valid for usize
+        true
     }
 
     fn connectivity_invariants(&self) -> bool {

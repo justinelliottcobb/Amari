@@ -5,12 +5,9 @@
 //! and formal verification guarantees.
 
 use crate::{
-    Community, GeometricEdge, GeometricNetwork, NetworkError, NodeMetadata, PropagationAnalysis,
+    Community, GeometricNetwork, NetworkError, NodeMetadata, PropagationAnalysis,
 };
-use amari_core::{Multivector, Vector};
-use amari_tropical::TropicalNumber;
-use num_traits::{Float, One, Zero};
-use std::collections::HashMap;
+use amari_core::Multivector;
 use std::marker::PhantomData;
 
 #[cfg(feature = "formal-verification")]

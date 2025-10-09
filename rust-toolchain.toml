@@ -4,14 +4,12 @@
 # Nightly is required only for formal verification features with Creusot
 
 [toolchain]
-# Use stable by default
-channel = "stable"
+# Use nightly for formal verification with Creusot contracts
+channel = "nightly"
 
 # Components we need
 components = ["rustfmt", "clippy"]
 
-# For formal verification development:
-# To use nightly for Creusot support, run:
-#   cargo +nightly build --features formal-verification
-# Or override locally with:
-#   rustup override set nightly
+# Note: Nightly is required for formal verification features with Creusot
+# For stable-only development without formal verification:
+#   cargo +stable build
