@@ -1,4 +1,4 @@
-# Amari v0.9.0
+# Amari v0.9.1
 
 **Unified Mathematical Computing Platform with WebAssembly-Compatible High-Precision Arithmetic**
 
@@ -11,7 +11,7 @@ A comprehensive mathematical computing library featuring geometric algebra, rela
 
 ## Features
 
-### New in v0.9.0: WebAssembly-Compatible Multi-Backend Precision
+### New in v0.9.1: WebAssembly-Compatible Multi-Backend Precision
 - **Universal High-Precision**: Seamless high-precision arithmetic that works in both native and WebAssembly environments
 - **Multi-Backend Architecture**: Automatically uses rug (GMP/MPFR) for native performance and dashu for WASM compatibility
 - **WebAssembly 3.0 Ready**: Leverages latest WASM features including 64-bit address space for enhanced precision
@@ -51,24 +51,24 @@ Add to your `Cargo.toml`:
 ```toml
 [dependencies]
 # Core geometric algebra and mathematical foundations
-amari-core = "0.9"
+amari-core = "0.9.1"
 
 # High-precision relativistic physics with multi-backend support
-amari-relativistic = { version = "0.9", features = ["high-precision"] }
+amari-relativistic = { version = "0.9.1", features = ["high-precision"] }
 
 # For native applications (uses rug/GMP backend)
-amari-relativistic = { version = "0.9", features = ["native-precision"] }
+amari-relativistic = { version = "0.9.1", features = ["native-precision"] }
 
 # For WebAssembly targets (uses dashu backend)
-amari-relativistic = { version = "0.9", features = ["wasm-precision"] }
+amari-relativistic = { version = "0.9.1", features = ["wasm-precision"] }
 
 # GPU acceleration and verification
-amari-gpu = "0.9"
+amari-gpu = "0.9.1"
 
 # Additional mathematical systems
-amari-tropical = "0.9"
-amari-dual = "0.9"
-amari-info-geom = "0.9"
+amari-tropical = "0.9.1"
+amari-dual = "0.9.1"
+amari-info-geom = "0.9.1"
 ```
 
 ### JavaScript/TypeScript (WebAssembly)
@@ -166,7 +166,7 @@ main();
 
 ### Automatic Backend Selection
 
-Amari v0.9.0 introduces intelligent backend selection for high-precision arithmetic:
+Amari v0.9.1 introduces intelligent backend selection for high-precision arithmetic:
 
 ```rust
 // Same API, different backends automatically selected:

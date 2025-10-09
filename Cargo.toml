@@ -41,7 +41,7 @@ members = ["amari-core", "amari-wasm", "amari-gpu", "amari-info-geom", "amari-tr
 resolver = "2"
 
 [workspace.package]
-version = "0.9.0"
+version = "0.9.1"
 authors = ["Amari Contributors"]
 edition = "2021"
 license = "MIT OR Apache-2.0"
@@ -49,17 +49,17 @@ rust-version = "1.75"
 
 [workspace.dependencies]
 # Amari crates (internal dependencies)
-amari = { path = ".", version = "0.9.0" }
-amari-core = { path = "amari-core", version = "0.9.0", default-features = false }
-amari-tropical = { path = "amari-tropical", version = "0.9.0" }
-amari-dual = { path = "amari-dual", version = "0.9.0" }
-amari-fusion = { path = "amari-fusion", version = "0.9.0" }
-amari-info-geom = { path = "amari-info-geom", version = "0.9.0" }
-amari-automata = { path = "amari-automata", version = "0.9.0" }
-amari-enumerative = { path = "amari-enumerative", version = "0.9.0" }
-amari-relativistic = { path = "amari-relativistic", version = "0.9.0" }
-amari-gpu = { path = "amari-gpu", version = "0.9.0" }
-amari-network = { path = "amari-network", version = "0.9.0" }
+amari = { path = ".", version = "0.9.1" }
+amari-core = { path = "amari-core", version = "0.9.1", default-features = false }
+amari-tropical = { path = "amari-tropical", version = "0.9.1" }
+amari-dual = { path = "amari-dual", version = "0.9.1" }
+amari-fusion = { path = "amari-fusion", version = "0.9.1" }
+amari-info-geom = { path = "amari-info-geom", version = "0.9.1" }
+amari-automata = { path = "amari-automata", version = "0.9.1" }
+amari-enumerative = { path = "amari-enumerative", version = "0.9.1" }
+amari-relativistic = { path = "amari-relativistic", version = "0.9.1" }
+amari-gpu = { path = "amari-gpu", version = "0.9.1" }
+amari-network = { path = "amari-network", version = "0.9.1" }
 
 # External dependencies
 bytemuck = "1.14"
