@@ -45,6 +45,65 @@ if ! cargo test --workspace --features formal-verification --quiet; then
 fi
 echo -e "${GREEN}✅ Formal verification tests passed${NC}"
 
+echo -e "${YELLOW}🔗 Running integration tests...${NC}"
+if ! cargo test --workspace --tests --quiet; then
+    echo -e "${RED}❌ Integration tests failed!${NC}"
+    echo "Integration correctness must be maintained"
+    exit 1
+fi
+echo -e "${GREEN}✅ Integration tests passed${NC}"
+
+echo -e "${YELLOW}📖 Running documentation tests...${NC}"
+if ! cargo test --workspace --doc --quiet; then
+    echo -e "${RED}❌ Documentation tests failed!${NC}"
+    echo "Documentation examples must be verified"
+    exit 1
+fi
+echo -e "${GREEN}✅ Documentation tests passed${NC}"
+
+echo -e "${YELLOW}📐 Verifying geometric algebra axioms...${NC}"
+if ! cargo test --package amari-core geometric_axioms --quiet; then
+    echo -e "${RED}❌ Geometric algebra axioms verification failed!${NC}"
+    echo "Geometric algebra properties are fundamental to mathematical correctness"
+    exit 1
+fi
+echo -e "${GREEN}✅ Geometric algebra axioms verified${NC}"
+
+echo -e "${YELLOW}🏝️ Verifying tropical semiring axioms...${NC}"
+if ! cargo test --package amari-tropical semiring_axioms --quiet; then
+    echo -e "${RED}❌ Tropical semiring axioms verification failed!${NC}"
+    echo "Tropical algebra properties are fundamental to mathematical correctness"
+    exit 1
+fi
+echo -e "${GREEN}✅ Tropical semiring axioms verified${NC}"
+
+echo -e "${YELLOW}👻 Validating phantom type safety...${NC}"
+if ! cargo test --package amari-core verified_contracts --quiet; then
+    echo -e "${RED}❌ Core phantom type safety validation failed!${NC}"
+    echo "Type safety constraints are critical for mathematical correctness"
+    exit 1
+fi
+if ! cargo test --package amari-tropical verified_contracts --quiet; then
+    echo -e "${RED}❌ Tropical phantom type safety validation failed!${NC}"
+    echo "Type safety constraints are critical for mathematical correctness"
+    exit 1
+fi
+if ! cargo test --package amari-network verified_contracts --quiet; then
+    echo -e "${RED}❌ Network phantom type safety validation failed!${NC}"
+    echo "Type safety constraints are critical for mathematical correctness"
+    exit 1
+fi
+echo -e "${GREEN}✅ Phantom type safety validated${NC}"
+
+echo -e "${YELLOW}📊 Validating test coverage...${NC}"
+TOTAL_TESTS=$(cargo test --workspace --lib --bins -- --list 2>/dev/null | grep -c "test " || echo "0")
+if [ "$TOTAL_TESTS" -lt 300 ]; then
+    echo -e "${RED}❌ Insufficient test coverage: $TOTAL_TESTS tests (minimum 300 required)${NC}"
+    echo "Mathematical libraries require comprehensive test coverage"
+    exit 1
+fi
+echo -e "${GREEN}✅ Test coverage validated: $TOTAL_TESTS tests${NC}"
+
 echo -e "${YELLOW}📚 Checking documentation builds...${NC}"
 if ! cargo doc --workspace --no-deps --quiet; then
     echo -e "${RED}❌ Documentation build failed!${NC}"
@@ -56,3 +115,6 @@ echo -e "${GREEN}✅ Documentation builds successfully${NC}"
 echo -e "${GREEN}🎉 All pre-commit checks passed! Proceeding with commit...${NC}"
 echo ""
 echo "✨ Mathematical correctness maintained ✨"
+echo "All geometric algebra properties verified"
+echo "All tropical semiring axioms confirmed"
+echo "All phantom type constraints validated"

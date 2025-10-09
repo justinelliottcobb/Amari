@@ -260,6 +260,7 @@ fn standard_viterbi(
     // Find best final state
     let mut best_state = 0;
     let mut best_score = f64::NEG_INFINITY;
+    #[allow(clippy::needless_range_loop)]
     for state in 0..num_states {
         if dp[seq_len - 1][state] > best_score {
             best_score = dp[seq_len - 1][state];
