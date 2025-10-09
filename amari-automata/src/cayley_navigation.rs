@@ -218,6 +218,7 @@ impl<const P: usize, const Q: usize, const R: usize> CayleyGraph<P, Q, R> {
         let mut inverses = vec![None; n];
 
         // Compute all products
+        #[allow(clippy::needless_range_loop)]
         for i in 0..n {
             for j in 0..n {
                 let product = self.generators[i].geometric_product(&self.generators[j]);

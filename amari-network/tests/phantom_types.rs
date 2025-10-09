@@ -4,7 +4,7 @@
 //! compile-time constraints and that the verified contracts work as expected.
 
 use amari_core::Vector;
-use amari_network::{GeometricNetwork, NetworkError};
+use amari_network::GeometricNetwork;
 use approx::assert_relative_eq;
 
 // Only compile these tests when formal verification is enabled
@@ -173,7 +173,7 @@ fn test_type_safety_compilation() {
     let mut network2 = GeometricNetwork::<3, 0, 0>::new();
 
     let node1 = network1.add_node(Vector::from_components(1.0, 0.0, 0.0).mv);
-    let node2 = network2.add_node(Vector::from_components(0.0, 1.0, 0.0).mv);
+    let _node2 = network2.add_node(Vector::from_components(0.0, 1.0, 0.0).mv);
 
     // This is fine - within the same network
     network1.add_edge(node1, node1, 1.0).unwrap();

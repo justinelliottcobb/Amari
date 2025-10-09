@@ -15,9 +15,6 @@ use crate::{Community, GeometricNetwork, NetworkError, PropagationAnalysis};
 use amari_core::Multivector;
 use core::marker::PhantomData;
 
-#[cfg(feature = "formal-verification")]
-use creusot_contracts::ensures;
-
 /// Verification marker for graph-theoretic properties
 #[derive(Debug, Clone, Copy)]
 pub struct GraphVerified;

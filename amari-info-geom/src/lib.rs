@@ -118,6 +118,7 @@ impl DuallyFlatManifold {
         let mut matrix = vec![vec![0.0; self.dimension]; self.dimension];
 
         // Simplified Fisher metric for probability simplex
+        #[allow(clippy::needless_range_loop)]
         for i in 0..self.dimension {
             for j in 0..self.dimension {
                 if i == j && i < point.len() {

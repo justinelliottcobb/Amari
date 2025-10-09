@@ -194,6 +194,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     for (i, (_, from_name)) in city_indices.iter().enumerate() {
         print!("{:>8}", &from_name[..4.min(from_name.len())]);
+        #[allow(clippy::needless_range_loop)]
         for j in 0..cities.len() {
             let distance = all_pairs_tropical[i][j];
             if distance.is_zero() {

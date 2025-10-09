@@ -4,9 +4,7 @@
 //! geometric network analysis using phantom types for compile-time invariants
 //! and formal verification guarantees.
 
-use crate::{
-    Community, GeometricNetwork, NetworkError, NodeMetadata, PropagationAnalysis,
-};
+use crate::{Community, GeometricNetwork, NetworkError, NodeMetadata, PropagationAnalysis};
 use amari_core::Multivector;
 use std::marker::PhantomData;
 
