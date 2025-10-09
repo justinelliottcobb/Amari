@@ -1,0 +1,36 @@
+{
+  "name": "@justinelliottcobb/amari-wasm",
+  "version": "0.9.1",
+  "description": "WebAssembly bindings for Amari mathematical computing library",
+  "scripts": {
+    "build": "wasm-pack build --target web --out-dir pkg --scope justinelliottcobb",
+    "build-all": "npm run build && npm run build:node && npm run build:bundler",
+    "build:node": "wasm-pack build --target nodejs --out-dir pkg-node --scope justinelliottcobb",
+    "build:bundler": "wasm-pack build --target bundler --out-dir pkg-bundler --scope justinelliottcobb",
+    "test": "wasm-pack test --node",
+    "clean": "rm -rf pkg pkg-node pkg-bundler",
+    "version": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/justinelliottcobb/Amari.git"
+  },
+  "license": "MIT OR Apache-2.0",
+  "keywords": [
+    "wasm",
+    "webassembly",
+    "geometric-algebra",
+    "tropical-algebra",
+    "autodiff",
+    "mathematics"
+  ],
+  "files": [
+    "pkg/",
+    "pkg-node/",
+    "pkg-bundler/"
+  ],
+  "devDependencies": {},
+  "engines": {
+    "node": ">=16"
+  }
+}
