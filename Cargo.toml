@@ -37,7 +37,7 @@ name = "integration"
 path = "tests/integration.rs"
 
 [workspace]
-members = ["amari-core", "amari-wasm", "amari-gpu", "amari-info-geom", "amari-tropical", "amari-dual", "amari-fusion", "amari-automata", "amari-enumerative", "amari-relativistic"]
+members = ["amari-core", "amari-wasm", "amari-gpu", "amari-info-geom", "amari-tropical", "amari-dual", "amari-fusion", "amari-automata", "amari-enumerative", "amari-relativistic", "amari-network"]
 resolver = "2"
 
 [workspace.package]
@@ -59,6 +59,7 @@ amari-automata = { path = "amari-automata", version = "0.9.0" }
 amari-enumerative = { path = "amari-enumerative", version = "0.9.0" }
 amari-relativistic = { path = "amari-relativistic", version = "0.9.0" }
 amari-gpu = { path = "amari-gpu", version = "0.9.0" }
+amari-network = { path = "amari-network", version = "0.9.0" }
 
 # External dependencies
 bytemuck = "1.14"
