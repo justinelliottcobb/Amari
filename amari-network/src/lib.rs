@@ -18,14 +18,14 @@
 //!
 //! ```rust
 //! use amari_network::GeometricNetwork;
-//! use amari_core::Multivector;
+//! use amari_core::Vector;
 //!
 //! // Create a network in 3D Euclidean space (signature 3,0,0)
 //! let mut network = GeometricNetwork::<3, 0, 0>::new();
 //!
 //! // Add nodes at specific geometric positions
-//! let node1 = network.add_node(Multivector::from_vector(&[1.0, 0.0, 0.0]));
-//! let node2 = network.add_node(Multivector::from_vector(&[0.0, 1.0, 0.0]));
+//! let node1 = network.add_node(Vector::from_components(1.0, 0.0, 0.0).mv);
+//! let node2 = network.add_node(Vector::from_components(0.0, 1.0, 0.0).mv);
 //!
 //! // Connect nodes with weighted edges
 //! network.add_edge(node1, node2, 1.0).unwrap();
@@ -57,7 +57,22 @@ use std::collections::HashMap;
 pub mod error;
 pub mod tropical;
 
+// Formal verification modules (optional)
+#[cfg(feature = "formal-verification")]
+pub mod verified;
+#[cfg(feature = "formal-verification")]
+pub mod verified_contracts;
+
 pub use error::{NetworkError, NetworkResult};
+
+// Re-export formal verification types when feature is enabled
+#[cfg(feature = "formal-verification")]
+pub use verified::{NetworkProperty, NetworkSignature, VerifiedGeometricNetwork};
+#[cfg(feature = "formal-verification")]
+pub use verified_contracts::{
+    GeometricProperties, GraphTheoreticProperties, TropicalProperties,
+    VerifiedContractGeometricNetwork,
+};
 
 /// A network where nodes are embedded in geometric algebra space
 ///

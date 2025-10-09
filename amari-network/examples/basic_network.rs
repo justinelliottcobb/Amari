@@ -75,7 +75,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("  • Distance from X-axis to Y-axis: {:.2}", distance_xy);
     println!("  • Distance from Origin to Z-axis: {:.2}", distance_oz);
-    println!("  • Distance from Center to Origin: {:.2}", distance_center_origin);
+    println!(
+        "  • Distance from Center to Origin: {:.2}",
+        distance_center_origin
+    );
 
     // Compute centrality measures
     println!("\n🎯 Computing centrality measures:");
@@ -109,13 +112,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("\n🛤️  Finding shortest paths:");
 
     if let Some((path, distance)) = network.shortest_path(origin, node_z)? {
-        println!("  • Path from Origin to Z-axis: {:?} (distance: {:.2})", path, distance);
+        println!(
+            "  • Path from Origin to Z-axis: {:?} (distance: {:.2})",
+            path, distance
+        );
     } else {
         println!("  • No path found from Origin to Z-axis");
     }
 
     if let Some((path, distance)) = network.shortest_geometric_path(origin, center)? {
-        println!("  • Geometric path from Origin to Center: {:?} (distance: {:.2})", path, distance);
+        println!(
+            "  • Geometric path from Origin to Center: {:?} (distance: {:.2})",
+            path, distance
+        );
     } else {
         println!("  • No geometric path found from Origin to Center");
     }
@@ -124,7 +133,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("\n🌴 Converting to tropical network for advanced path analysis...");
 
     let tropical_network = network.to_tropical_network()?;
-    println!("✅ Tropical network created with {} nodes", tropical_network.size());
+    println!(
+        "✅ Tropical network created with {} nodes",
+        tropical_network.size()
+    );
 
     // Demonstrate neighbor analysis
     println!("\n👥 Analyzing node neighborhoods:");
@@ -134,7 +146,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         if let Some(metadata) = network.get_metadata(i) {
             if let Some(label) = &metadata.label {
-                println!("  • {} ({}): {} neighbors, degree {}", i, label, neighbors.len(), degree);
+                println!(
+                    "  • {} ({}): {} neighbors, degree {}",
+                    i,
+                    label,
+                    neighbors.len(),
+                    degree
+                );
                 if !neighbors.is_empty() {
                     println!("    Connected to: {:?}", neighbors);
                 }

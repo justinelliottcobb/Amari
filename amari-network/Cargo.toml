@@ -18,6 +18,9 @@ thiserror = { workspace = true }
 serde = { workspace = true, optional = true }
 nalgebra = { workspace = true }
 
+# Formal verification dependencies (optional)
+creusot-contracts = { version = "0.2", optional = true }
+
 [dev-dependencies]
 approx = { workspace = true }
 criterion = "0.5"
@@ -26,6 +29,10 @@ criterion = "0.5"
 default = ["std"]
 std = []
 serde = ["dep:serde", "amari-core/serde", "amari-tropical/serde"]
+
+# Formal verification features
+formal-verification = ["dep:creusot-contracts", "amari-core/formal-verification"]
+contracts = ["formal-verification"]
 
 # Examples demonstrating different aspects of geometric network analysis
 [[example]]

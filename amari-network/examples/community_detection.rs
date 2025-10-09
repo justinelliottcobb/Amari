@@ -76,7 +76,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         community3_indices.push(node);
     }
 
-    println!("✅ Created {} nodes in 3 expected communities", network.num_nodes());
+    println!(
+        "✅ Created {} nodes in 3 expected communities",
+        network.num_nodes()
+    );
 
     // Add intra-community edges (strong connections within groups)
     println!("\n🔗 Adding intra-community connections...");
@@ -118,8 +121,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("\nCommunity Analysis:");
     for (i, community) in communities.iter().enumerate() {
-        println!("  Community {}: {} members, cohesion score: {:.4}",
-                 i + 1, community.nodes.len(), community.cohesion_score);
+        println!(
+            "  Community {}: {} members, cohesion score: {:.4}",
+            i + 1,
+            community.nodes.len(),
+            community.cohesion_score
+        );
 
         print!("    Members: ");
         for &node_idx in &community.nodes {
@@ -132,16 +139,21 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!();
 
         // Show geometric centroid
-        println!("    Geometric centroid: [{:.2}, {:.2}]",
-                 community.geometric_centroid.get(1), // e1 component
-                 community.geometric_centroid.get(2)); // e2 component
+        println!(
+            "    Geometric centroid: [{:.2}, {:.2}]",
+            community.geometric_centroid.get(1), // e1 component
+            community.geometric_centroid.get(2)
+        ); // e2 component
     }
 
     // Perform spectral clustering for comparison
     println!("\n🌟 Comparing with spectral clustering...");
 
     let spectral_clusters = network.spectral_clustering(3)?;
-    println!("✅ Spectral clustering found {} clusters", spectral_clusters.len());
+    println!(
+        "✅ Spectral clustering found {} clusters",
+        spectral_clusters.len()
+    );
 
     for (i, cluster) in spectral_clusters.iter().enumerate() {
         println!("  Spectral Cluster {}: {} members", i + 1, cluster.len());
@@ -167,10 +179,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         // Intra-community distances
         for i in 0..community.nodes.len() {
             for j in (i + 1)..community.nodes.len() {
-                let distance = network.geometric_distance(
-                    community.nodes[i],
-                    community.nodes[j]
-                )?;
+                let distance =
+                    network.geometric_distance(community.nodes[i], community.nodes[j])?;
                 intra_community_distances.push(distance);
             }
         }
@@ -187,14 +197,23 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     if !intra_community_distances.is_empty() && !inter_community_distances.is_empty() {
-        let avg_intra_distance: f64 = intra_community_distances.iter().sum::<f64>()
-            / intra_community_distances.len() as f64;
-        let avg_inter_distance: f64 = inter_community_distances.iter().sum::<f64>()
-            / inter_community_distances.len() as f64;
+        let avg_intra_distance: f64 =
+            intra_community_distances.iter().sum::<f64>() / intra_community_distances.len() as f64;
+        let avg_inter_distance: f64 =
+            inter_community_distances.iter().sum::<f64>() / inter_community_distances.len() as f64;
 
-        println!("  • Average intra-community distance: {:.4}", avg_intra_distance);
-        println!("  • Average inter-community distance: {:.4}", avg_inter_distance);
-        println!("  • Separation ratio: {:.4}", avg_inter_distance / avg_intra_distance);
+        println!(
+            "  • Average intra-community distance: {:.4}",
+            avg_intra_distance
+        );
+        println!(
+            "  • Average inter-community distance: {:.4}",
+            avg_inter_distance
+        );
+        println!(
+            "  • Separation ratio: {:.4}",
+            avg_inter_distance / avg_intra_distance
+        );
 
         if avg_inter_distance / avg_intra_distance > 2.0 {
             println!("  ✅ Well-separated communities detected!");

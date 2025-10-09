@@ -20,16 +20,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Create nodes representing individuals with different "influence orientations"
     // in the 2D geometric space
     let individuals = vec![
-        ("Alice", 0.0, 0.0, "news_source", 1.0),      // Central news source
-        ("Bob", 1.0, 0.5, "early_adopter", 0.9),      // Early adopter
-        ("Carol", -0.5, 1.0, "skeptic", 0.3),         // Skeptical individual
-        ("David", 1.5, -0.5, "influencer", 0.8),      // Social influencer
-        ("Eve", 0.8, 1.2, "follower", 0.6),           // Follower
-        ("Frank", -1.0, -0.5, "isolated", 0.2),       // Somewhat isolated
-        ("Grace", 2.0, 1.0, "enthusiast", 0.9),       // Enthusiastic spreader
-        ("Henry", -0.2, -1.0, "conservative", 0.4),   // Conservative
-        ("Iris", 1.8, 0.2, "connector", 0.7),         // Network connector
-        ("Jack", 0.3, -1.5, "peripheral", 0.5),       // Peripheral member
+        ("Alice", 0.0, 0.0, "news_source", 1.0), // Central news source
+        ("Bob", 1.0, 0.5, "early_adopter", 0.9), // Early adopter
+        ("Carol", -0.5, 1.0, "skeptic", 0.3),    // Skeptical individual
+        ("David", 1.5, -0.5, "influencer", 0.8), // Social influencer
+        ("Eve", 0.8, 1.2, "follower", 0.6),      // Follower
+        ("Frank", -1.0, -0.5, "isolated", 0.2),  // Somewhat isolated
+        ("Grace", 2.0, 1.0, "enthusiast", 0.9),  // Enthusiastic spreader
+        ("Henry", -0.2, -1.0, "conservative", 0.4), // Conservative
+        ("Iris", 1.8, 0.2, "connector", 0.7),    // Network connector
+        ("Jack", 0.3, -1.5, "peripheral", 0.5),  // Peripheral member
     ];
 
     let mut node_indices = Vec::new();
@@ -44,7 +44,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         node_indices.push((node, name, personality));
     }
 
-    println!("✅ Created {} individuals in the network", network.num_nodes());
+    println!(
+        "✅ Created {} individuals in the network",
+        network.num_nodes()
+    );
 
     // Create connections based on social relationships
     println!("\n🤝 Establishing social connections...");
@@ -79,13 +82,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Display network structure
     println!("\n👥 Network structure:");
     for (node_idx, name, personality) in &node_indices {
-        let neighbors = network.neighbors(*node_idx);
+        let _neighbors = network.neighbors(*node_idx);
         let degree = network.degree(*node_idx);
 
         if let Some(metadata) = network.get_metadata(*node_idx) {
             let receptivity = metadata.properties.get("receptivity").unwrap_or(&0.0);
-            println!("  • {} ({}): {} connections, receptivity: {:.1}",
-                     name, personality, degree, receptivity);
+            println!(
+                "  • {} ({}): {} connections, receptivity: {:.1}",
+                name, personality, degree, receptivity
+            );
         }
     }
 
@@ -99,15 +104,23 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     )?;
 
     println!("✅ Diffusion simulation completed");
-    println!("  • Converged in {} steps", diffusion_analysis.convergence_time);
-    println!("  • Total coverage points: {}", diffusion_analysis.coverage.len());
+    println!(
+        "  • Converged in {} steps",
+        diffusion_analysis.convergence_time
+    );
+    println!(
+        "  • Total coverage points: {}",
+        diffusion_analysis.coverage.len()
+    );
 
     // Analyze diffusion progression
     println!("\n📈 Diffusion progression over time:");
     for (step, &coverage) in diffusion_analysis.coverage.iter().enumerate() {
         let coverage_percent = (coverage as f64 / network.num_nodes() as f64) * 100.0;
-        println!("  Step {}: {} individuals reached ({:.1}%)",
-                 step, coverage, coverage_percent);
+        println!(
+            "  Step {}: {} individuals reached ({:.1}%)",
+            step, coverage, coverage_percent
+        );
     }
 
     // Analyze individual influence scores
@@ -126,9 +139,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     influence_data.sort_by(|a, b| b.0.partial_cmp(&a.0).unwrap());
 
     for (i, (influence, name, personality)) in influence_data.iter().enumerate() {
-        if *influence > 0.001 { // Only show significant influencers
-            println!("  {}. {} ({}): influence score {:.4}",
-                     i + 1, name, personality, influence);
+        if *influence > 0.001 {
+            // Only show significant influencers
+            println!(
+                "  {}. {} ({}): influence score {:.4}",
+                i + 1,
+                name,
+                personality,
+                influence
+            );
         }
     }
 
@@ -162,7 +181,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             0.0
         };
 
-        println!("  • {} ↔ {}: geometric similarity {:.4}", name1, name2, similarity);
+        println!(
+            "  • {} ↔ {}: geometric similarity {:.4}",
+            name1, name2, similarity
+        );
     }
 
     // Analyze network properties that affect diffusion
@@ -178,8 +200,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             let between_centrality = betweenness_centrality[i];
             let (_, name, _) = &node_indices[i];
 
-            println!("  • {}: influence {:.4}, geo-centrality {:.4}, betweenness {:.4}",
-                     name, influence, geo_centrality, between_centrality);
+            println!(
+                "  • {}: influence {:.4}, geo-centrality {:.4}, betweenness {:.4}",
+                name, influence, geo_centrality, between_centrality
+            );
         }
     }
 
@@ -188,21 +212,27 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Scenario 1: High diffusion rate
     let high_rate_analysis = network.simulate_diffusion(&[0], 10, 0.8)?;
-    println!("  High rate (80%): converged in {} steps, max coverage {}",
-             high_rate_analysis.convergence_time,
-             high_rate_analysis.coverage.iter().max().unwrap_or(&0));
+    println!(
+        "  High rate (80%): converged in {} steps, max coverage {}",
+        high_rate_analysis.convergence_time,
+        high_rate_analysis.coverage.iter().max().unwrap_or(&0)
+    );
 
     // Scenario 2: Low diffusion rate
     let low_rate_analysis = network.simulate_diffusion(&[0], 20, 0.2)?;
-    println!("  Low rate (20%): converged in {} steps, max coverage {}",
-             low_rate_analysis.convergence_time,
-             low_rate_analysis.coverage.iter().max().unwrap_or(&0));
+    println!(
+        "  Low rate (20%): converged in {} steps, max coverage {}",
+        low_rate_analysis.convergence_time,
+        low_rate_analysis.coverage.iter().max().unwrap_or(&0)
+    );
 
     // Scenario 3: Multiple sources
     let multi_source_analysis = network.simulate_diffusion(&[0, 3, 6], 10, 0.5)?;
-    println!("  Multiple sources: converged in {} steps, max coverage {}",
-             multi_source_analysis.convergence_time,
-             multi_source_analysis.coverage.iter().max().unwrap_or(&0));
+    println!(
+        "  Multiple sources: converged in {} steps, max coverage {}",
+        multi_source_analysis.convergence_time,
+        multi_source_analysis.coverage.iter().max().unwrap_or(&0)
+    );
 
     println!("\n🎉 Information diffusion analysis complete!");
     println!("This example demonstrated:");
