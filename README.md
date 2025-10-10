@@ -581,6 +581,18 @@ at your option.
 - Built with modern Rust performance idioms and WebAssembly best practices
 - Named after Shun-ichi Amari's contributions to Information Geometry
 
+## Integration Status
+
+Amari provides three deployment targets with varying levels of integration across crates:
+
+| Target | Description | Coverage |
+|--------|-------------|----------|
+| **Rust** | Native library | All crates fully integrated |
+| **WASM** | Web browsers/Node.js | Core + network analysis complete |
+| **GPU** | Hardware acceleration | Core + network + info-geom + relativistic |
+
+For detailed integration status, supported features, and roadmap, see [INTEGRATION_STATUS.md](INTEGRATION_STATUS.md).
+
 ## Support
 
 - **Issues**: [GitHub Issues](https://github.com/your-username/amari/issues)

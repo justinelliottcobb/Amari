@@ -15,6 +15,7 @@ categories = ["mathematics", "science", "algorithms"]
 amari-core = { workspace = true, features = ["std", "phantom-types", "high-precision"] }
 amari-tropical = { workspace = true }
 amari-dual = { workspace = true }
+amari-network = { workspace = true }
 amari-fusion = { workspace = true }
 amari-info-geom = { workspace = true }
 amari-automata = { workspace = true }

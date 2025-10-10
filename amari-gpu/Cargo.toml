@@ -14,6 +14,7 @@ categories = ["mathematics", "science", "algorithms"]
 # Default to no high-precision for GPU (and WASM compatibility)
 amari-core = { workspace = true, default-features = false, features = ["std", "phantom-types"] }
 amari-info-geom = { workspace = true, default-features = false, features = ["std"] }
+amari-network = { workspace = true, default-features = false, features = ["std"] }
 amari-relativistic = { workspace = true, default-features = false, features = ["std", "phantom-types"] }
 wgpu = "0.19"
 futures = "0.3"

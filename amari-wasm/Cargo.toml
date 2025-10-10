@@ -27,6 +27,8 @@ nalgebra = { workspace = true }
 # any transitive enabling of high-precision through the dependency chain
 # Using direct path instead of workspace to ensure default-features = false works
 amari-core = { path = "../amari-core", version = "0.9.1", default-features = false, features = ["std", "phantom-types"] }
+amari-network = { path = "../amari-network", version = "0.9.1", default-features = false, features = ["std"] }
+amari-relativistic = { path = "../amari-relativistic", version = "0.9.1", default-features = false, features = ["std", "phantom-types"] }
 
 [dependencies.web-sys]
 version = "0.3"

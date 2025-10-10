@@ -1,6 +1,7 @@
 //! GPU acceleration for geometric algebra operations using WebGPU/wgpu
 
 pub mod adaptive;
+pub mod network;
 pub mod relativistic;
 pub mod verification;
 
@@ -12,6 +13,7 @@ pub use adaptive::{
 use amari_core::Multivector;
 use amari_info_geom::amari_chentsov_tensor;
 use bytemuck::{Pod, Zeroable};
+pub use network::{AdaptiveNetworkCompute, GpuGeometricNetwork, GpuNetworkError, GpuNetworkResult};
 pub use relativistic::{
     GpuRelativisticParticle, GpuRelativisticPhysics, GpuSpacetimeVector, GpuTrajectoryParams,
 };
