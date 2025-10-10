@@ -22,14 +22,14 @@ serde = { workspace = true }
 serde-wasm-bindgen = "0.6"
 nalgebra = { workspace = true }
 
-# Amari dependencies with WASM-compatible features
-# Note: Use wasm-precision instead of high-precision to avoid rug/GMP dependencies
-# that don't work with WASM targets
-amari-core = { path = "../amari-core", version = "0.9.1", default-features = false, features = ["std", "phantom-types", "wasm-precision"] }
-amari-network = { path = "../amari-network", version = "0.9.1", default-features = false, features = ["std", "wasm-precision"] }
-amari-tropical = { path = "../amari-tropical", version = "0.9.1", default-features = false, features = ["std", "wasm-precision"] }
-amari-dual = { path = "../amari-dual", version = "0.9.1", default-features = false, features = ["std", "wasm-precision"] }
-amari-relativistic = { path = "../amari-relativistic", version = "0.9.1", default-features = false, features = ["std", "phantom-types"] }
+# Amari dependencies - now WASM-compatible by default
+# Note: high-precision now uses pure Rust dashu-float (WASM-compatible)
+# Native users can opt-in to native-precision for rug backend
+amari-core = { workspace = true, features = ["phantom-types"] }
+amari-network = { workspace = true, features = ["high-precision"] }
+amari-tropical = { workspace = true }
+amari-dual = { workspace = true }
+amari-relativistic = { workspace = true, features = ["phantom-types"] }
 
 [dependencies.web-sys]
 version = "0.3"
