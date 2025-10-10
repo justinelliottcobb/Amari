@@ -98,6 +98,11 @@ jobs:
         with:
           targets: wasm32-unknown-unknown
 
+      - name: Verify WASM target installation
+        run: |
+          rustup target list --installed
+          rustup show
+
       - name: Cache cargo registry
         uses: actions/cache@v4
         with:
