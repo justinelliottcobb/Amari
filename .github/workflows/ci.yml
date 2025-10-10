@@ -95,36 +95,92 @@ jobs:
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: wasm32-unknown-unknown
 
-      - name: Verify WASM target installation
+      - name: Install and verify WASM target
         run: |
+          rustup target add wasm32-unknown-unknown
           rustup target list --installed
           rustup show
 
       - name: Cache cargo registry
         uses: actions/cache@v4
         with:
-          path: ~/.cargo/registry
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
           key: ${{ runner.os }}-cargo-wasm32-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-wasm32-
+            ${{ runner.os }}-cargo-
 
       - name: Install wasm-pack
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
       - name: Check WASM compilation (individual crates)
         run: |
-          cargo check -p amari-core --target wasm32-unknown-unknown --features high-precision
-          cargo check -p amari-tropical --target wasm32-unknown-unknown --features high-precision
-          cargo check -p amari-dual --target wasm32-unknown-unknown --features high-precision
-          cargo check -p amari-network --target wasm32-unknown-unknown --features high-precision
-          cargo check -p amari-relativistic --target wasm32-unknown-unknown --features high-precision
+          echo "🔍 Checking WASM target availability..."
+          rustc --print target-list | grep wasm32
+
+          echo "🔍 Checking sysroot..."
+          rustc --target wasm32-unknown-unknown --print sysroot
+
+          echo "🔍 Testing basic WASM compilation..."
+          echo 'fn main() {}' > test.rs
+          rustc --target wasm32-unknown-unknown test.rs -o test.wasm
+          rm test.rs test.wasm
+
+          echo "✅ Basic WASM compilation works, checking crates..."
+
+          echo "🔍 Checking amari-core..."
+          cargo check -p amari-core --target wasm32-unknown-unknown --features high-precision -v
+
+          echo "🔍 Checking amari-tropical..."
+          cargo check -p amari-tropical --target wasm32-unknown-unknown --features high-precision -v
+
+          echo "🔍 Checking amari-dual..."
+          cargo check -p amari-dual --target wasm32-unknown-unknown --features high-precision -v
+
+          echo "🔍 Checking amari-network..."
+          cargo check -p amari-network --target wasm32-unknown-unknown --features high-precision -v
+
+          echo "🔍 Checking amari-relativistic..."
+          cargo check -p amari-relativistic --target wasm32-unknown-unknown --features high-precision -v
 
       - name: Build WASM package
         run: |
           cd amari-wasm
-          # Build with WASM-compatible high-precision (now uses pure Rust dashu-float)
-          wasm-pack build --target web --out-dir pkg --scope amari
+          echo "🏗️ Building WASM package with wasm-pack..."
+
+          # Try standard build first
+          if wasm-pack build --target web --out-dir pkg --scope amari --verbose; then
+            echo "✅ Standard WASM build succeeded"
+          else
+            echo "⚠️ Standard build failed, trying alternative approaches..."
+
+            # Clean target directory to avoid cache issues
+            cargo clean
+
+            # Try with explicit target installation and rebuild
+            echo "🔄 Reinstalling WASM target and trying again..."
+            rustup target remove wasm32-unknown-unknown || true
+            rustup target add wasm32-unknown-unknown
+
+            # Verify target is properly installed
+            rustup target list --installed | grep wasm32-unknown-unknown
+
+            # Try build again
+            if wasm-pack build --target web --out-dir pkg --scope amari --verbose; then
+              echo "✅ WASM build succeeded after target reinstall"
+            else
+              echo "❌ WASM build failed even after target reinstall"
+              echo "🔍 Target list:"
+              rustup target list --installed
+              echo "🔍 Toolchain info:"
+              rustup show
+              exit 1
+            fi
+          fi
 
       - name: Test WASM package
         run: |
