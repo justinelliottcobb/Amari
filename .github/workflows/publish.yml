@@ -97,12 +97,12 @@ jobs:
             "amari-core"
             "amari-tropical"
             "amari-dual"
+            "amari-network"
             "amari-info-geom"
             "amari-relativistic"
             "amari-fusion"
             "amari-automata"
             "amari-enumerative"
-            "amari-network"
             "amari-gpu"
             "amari"
           )
