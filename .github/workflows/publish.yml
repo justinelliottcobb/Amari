@@ -102,6 +102,7 @@ jobs:
             "amari-fusion"
             "amari-automata"
             "amari-enumerative"
+            "amari-network"
             "amari-gpu"
             "amari"
           )
@@ -112,8 +113,19 @@ jobs:
               cd "$crate"
             fi
 
-            # Get the actual version from Cargo.toml
-            ACTUAL_VERSION=$(grep "^version" Cargo.toml | head -1 | sed 's/.*= *"\([^"]*\)".*/\1/' || echo "unknown")
+            # Get the actual version from Cargo.toml (handle workspace versions)
+            if grep -q "^version.workspace = true" Cargo.toml; then
+              # Get version from workspace Cargo.toml [workspace.package] section
+              if [ "$crate" = "amari" ]; then
+                WORKSPACE_TOML="Cargo.toml"
+              else
+                WORKSPACE_TOML="../Cargo.toml"
+              fi
+              ACTUAL_VERSION=$(awk '/^\[workspace\.package\]/{f=1} f && /^version = /{print $NF; exit}' "$WORKSPACE_TOML" | sed 's/"//g' || echo "unknown")
+            else
+              # Get version from local Cargo.toml
+              ACTUAL_VERSION=$(grep "^version" Cargo.toml | head -1 | sed 's/.*= *"\([^"]*\)".*/\1/' || echo "unknown")
+            fi
             INPUT_VERSION="${{ github.event.inputs.version }}"
             TARGET_VERSION="${INPUT_VERSION:-$ACTUAL_VERSION}"
 
