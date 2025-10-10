@@ -10,8 +10,8 @@ env:
   RUST_BACKTRACE: 1
 
 jobs:
-  test:
-    name: Test Suite
+  test-native:
+    name: Test Suite (Native Precision)
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -43,16 +43,49 @@ jobs:
           path: target
           key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
 
-      - name: Run tests
-        run: cargo test --workspace
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgmp-dev libmpfr-dev
+
+      - name: Run tests with native precision
+        run: cargo test --workspace --features native-precision
 
       - name: Run clippy
-        run: cargo clippy --workspace -- -D warnings
+        run: cargo clippy --workspace --features native-precision -- -D warnings
         if: matrix.rust == 'stable'
 
       - name: Check formatting
         run: cargo fmt --all -- --check
         if: matrix.rust == 'stable'
+
+  test-wasm-compat:
+    name: Test Suite (WASM-Compatible Precision)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-wasm-compat-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Run tests with WASM-compatible precision
+        run: cargo test --workspace --features high-precision
+
+      - name: Test individual crates
+        run: |
+          cargo test -p amari-core --features high-precision
+          cargo test -p amari-tropical --features high-precision
+          cargo test -p amari-dual --features high-precision
+          cargo test -p amari-network --features high-precision
+          cargo test -p amari-relativistic --features high-precision
 
   wasm:
     name: WASM Build
@@ -65,14 +98,33 @@ jobs:
         with:
           targets: wasm32-unknown-unknown
 
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-wasm32-${{ hashFiles('**/Cargo.lock') }}
+
       - name: Install wasm-pack
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+      - name: Check WASM compilation (individual crates)
+        run: |
+          cargo check -p amari-core --target wasm32-unknown-unknown --features high-precision
+          cargo check -p amari-tropical --target wasm32-unknown-unknown --features high-precision
+          cargo check -p amari-dual --target wasm32-unknown-unknown --features high-precision
+          cargo check -p amari-network --target wasm32-unknown-unknown --features high-precision
+          cargo check -p amari-relativistic --target wasm32-unknown-unknown --features high-precision
 
       - name: Build WASM package
         run: |
           cd amari-wasm
-          # Build without default features to exclude high-precision (rug not WASM-compatible)
-          wasm-pack build --target web --out-dir pkg --scope amari -- --no-default-features
+          # Build with WASM-compatible high-precision (now uses pure Rust dashu-float)
+          wasm-pack build --target web --out-dir pkg --scope amari
+
+      - name: Test WASM package
+        run: |
+          cd amari-wasm
+          wasm-pack test --node
 
       - name: Upload WASM artifacts
         uses: actions/upload-artifact@v4

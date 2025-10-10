@@ -29,6 +29,8 @@ criterion = "0.5"
 default = ["std"]
 std = []
 serde = ["dep:serde", "amari-core/serde", "amari-tropical/serde"]
+high-precision = ["amari-core/high-precision", "amari-tropical/high-precision", "amari-dual/high-precision"]
+native-precision = ["amari-core/native-precision", "amari-tropical/native-precision", "amari-dual/native-precision"]
 wasm-precision = ["amari-core/wasm-precision", "amari-tropical/wasm-precision", "amari-dual/wasm-precision"]
 
 # Phantom types for compile-time verification (works on stable)

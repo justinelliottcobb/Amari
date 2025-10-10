@@ -7,8 +7,12 @@
 // Re-export precision types from amari-core
 pub use amari_core::precision::{ExtendedFloat, PrecisionFloat, StandardFloat};
 
-#[cfg(feature = "high-precision")]
-pub use amari_core::precision::HighPrecisionFloat;
+#[cfg(any(
+    feature = "high-precision",
+    feature = "wasm-precision",
+    feature = "native-precision"
+))]
+pub use amari_core::HighPrecisionFloat;
 
 // Type aliases for relativistic physics
 /// Standard precision for general relativistic calculations
