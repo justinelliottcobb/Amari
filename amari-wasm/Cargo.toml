@@ -25,11 +25,11 @@ nalgebra = { workspace = true }
 # Amari dependencies - now WASM-compatible by default
 # Note: high-precision now uses pure Rust dashu-float (WASM-compatible)
 # Native users can opt-in to native-precision for rug backend
-amari-core = { workspace = true, features = ["phantom-types"] }
-amari-network = { workspace = true, features = ["high-precision"] }
-amari-tropical = { workspace = true }
-amari-dual = { workspace = true }
-amari-relativistic = { workspace = true, features = ["phantom-types"] }
+amari-core = { path = "../amari-core", version = "0.9.1", features = ["phantom-types"] }
+amari-network = { path = "../amari-network", version = "0.9.1", features = ["high-precision"] }
+amari-tropical = { path = "../amari-tropical", version = "0.9.1" }
+amari-dual = { path = "../amari-dual", version = "0.9.1" }
+amari-relativistic = { path = "../amari-relativistic", version = "0.9.1", features = ["phantom-types"] }
 
 [dependencies.web-sys]
 version = "0.3"
