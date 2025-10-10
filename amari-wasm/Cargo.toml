@@ -22,12 +22,13 @@ serde = { workspace = true }
 serde-wasm-bindgen = "0.6"
 nalgebra = { workspace = true }
 
-# Amari dependencies with high-precision explicitly disabled for WASM
-# Note: We must disable default features on ALL dependencies to prevent
-# any transitive enabling of high-precision through the dependency chain
-# Using direct path instead of workspace to ensure default-features = false works
-amari-core = { path = "../amari-core", version = "0.9.1", default-features = false, features = ["std", "phantom-types"] }
-amari-network = { path = "../amari-network", version = "0.9.1", default-features = false, features = ["std"] }
+# Amari dependencies with WASM-compatible features
+# Note: Use wasm-precision instead of high-precision to avoid rug/GMP dependencies
+# that don't work with WASM targets
+amari-core = { path = "../amari-core", version = "0.9.1", default-features = false, features = ["std", "phantom-types", "wasm-precision"] }
+amari-network = { path = "../amari-network", version = "0.9.1", default-features = false, features = ["std", "wasm-precision"] }
+amari-tropical = { path = "../amari-tropical", version = "0.9.1", default-features = false, features = ["std", "wasm-precision"] }
+amari-dual = { path = "../amari-dual", version = "0.9.1", default-features = false, features = ["std", "wasm-precision"] }
 amari-relativistic = { path = "../amari-relativistic", version = "0.9.1", default-features = false, features = ["std", "phantom-types"] }
 
 [dependencies.web-sys]

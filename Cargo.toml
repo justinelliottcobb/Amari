@@ -51,7 +51,7 @@ rust-version = "1.75"
 [workspace.dependencies]
 # Amari crates (internal dependencies)
 amari = { path = ".", version = "0.9.1" }
-amari-core = { path = "amari-core", version = "0.9.1", default-features = false }
+amari-core = { path = "amari-core", version = "0.9.1" }
 amari-tropical = { path = "amari-tropical", version = "0.9.1" }
 amari-dual = { path = "amari-dual", version = "0.9.1" }
 amari-fusion = { path = "amari-fusion", version = "0.9.1" }

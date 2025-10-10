@@ -436,7 +436,16 @@ pub struct AdaptiveNetworkCompute {
 impl AdaptiveNetworkCompute {
     /// Create with optional GPU acceleration
     pub async fn new() -> Self {
-        let gpu = GpuGeometricNetwork::new().await.ok();
+        // Use panic-safe GPU detection like in adaptive verification
+        let gpu = {
+            let panic_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                pollster::block_on(async { GpuGeometricNetwork::new().await.ok() })
+            }));
+
+            // GPU initialization panicked or failed - gracefully fall back to CPU
+            panic_result.unwrap_or_default()
+        };
+
         Self { gpu }
     }
 
@@ -491,12 +500,20 @@ mod tests {
 
     #[tokio::test]
     async fn test_adaptive_network_creation() {
-        // Skip GPU tests in CI environments
-        if std::env::var("CI").is_ok() || std::env::var("GITHUB_ACTIONS").is_ok() {
-            return;
+        // Test adaptive behavior: should work with or without GPU
+        let adaptive = AdaptiveNetworkCompute::new().await;
+
+        // Should always succeed - adaptive design gracefully falls back to CPU
+        match &adaptive.gpu {
+            Some(_) => {
+                println!("✅ GPU network acceleration available");
+            }
+            None => {
+                println!("✅ GPU not available, using CPU fallback for network operations");
+            }
         }
 
-        let _adaptive = AdaptiveNetworkCompute::new().await;
-        // Just test that it doesn't panic
+        // The adaptive compute should be created successfully regardless of GPU availability
+        // This tests the core adaptive design principle
     }
 }

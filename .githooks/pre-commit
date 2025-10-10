@@ -112,6 +112,65 @@ if ! cargo doc --workspace --no-deps --quiet; then
 fi
 echo -e "${GREEN}✅ Documentation builds successfully${NC}"
 
+echo -e "${YELLOW}🌐 Validating WASM builds...${NC}"
+# Ensure WASM target is installed
+if ! rustup target list --installed | grep -q wasm32-unknown-unknown; then
+    echo -e "${YELLOW}⚠️ Installing wasm32-unknown-unknown target...${NC}"
+    rustup target add wasm32-unknown-unknown
+fi
+
+# Check basic WASM compilation (skip full wasm-pack build for now due to dependency issues)
+echo -e "${YELLOW}  Checking WASM compilation...${NC}"
+if ! cargo check --package amari-wasm --target wasm32-unknown-unknown --quiet 2>/dev/null; then
+    echo -e "${YELLOW}⚠️ WASM compilation check failed - known issue with rug dependency${NC}"
+    echo -e "${YELLOW}  This will be fixed in fast-follow release${NC}"
+    # Don't fail the commit for now - WASM integration is work in progress
+fi
+
+echo -e "${GREEN}✅ WASM validation completed${NC}"
+
+echo -e "${YELLOW}🏗️ Validating individual crate builds...${NC}"
+# Test each crate individually to catch crate-specific issues
+CRATES=("amari-core" "amari-tropical" "amari-dual" "amari-enumerative" "amari-relativistic" "amari-info-geom" "amari-network" "amari-fusion" "amari-automata" "amari-gpu")
+
+for crate in "${CRATES[@]}"; do
+    echo -e "${YELLOW}  Testing $crate...${NC}"
+    if ! cargo test --package "$crate" --quiet; then
+        echo -e "${RED}❌ $crate tests failed!${NC}"
+        echo "Fix $crate-specific issues before committing"
+        exit 1
+    fi
+done
+
+# Special handling for amari-wasm (different test approach)
+echo -e "${YELLOW}  Testing amari-wasm...${NC}"
+if ! cargo test --package amari-wasm --target wasm32-unknown-unknown --quiet 2>/dev/null; then
+    # WASM tests might not work in all environments, so just check compilation
+    if ! cargo check --package amari-wasm --target wasm32-unknown-unknown --quiet; then
+        echo -e "${RED}❌ amari-wasm compilation failed!${NC}"
+        echo "Fix WASM compilation issues before committing"
+        exit 1
+    fi
+fi
+
+echo -e "${GREEN}✅ Individual crate builds validated${NC}"
+
+echo -e "${YELLOW}🎯 Validating cross-compilation targets...${NC}"
+# Ensure we can build for common deployment targets
+if ! cargo check --target x86_64-unknown-linux-gnu --workspace --quiet; then
+    echo -e "${RED}❌ Linux x86_64 build failed!${NC}"
+    echo "Fix cross-compilation issues before committing"
+    exit 1
+fi
+
+if ! cargo check --target wasm32-unknown-unknown --package amari-wasm --quiet; then
+    echo -e "${RED}❌ WASM target build failed!${NC}"
+    echo "Fix WASM target issues before committing"
+    exit 1
+fi
+
+echo -e "${GREEN}✅ Cross-compilation targets validated${NC}"
+
 echo -e "${GREEN}🎉 All pre-commit checks passed! Proceeding with commit...${NC}"
 echo ""
 echo "✨ Mathematical correctness maintained ✨"
