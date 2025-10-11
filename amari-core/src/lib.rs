@@ -36,10 +36,22 @@ pub mod simd;
 pub use error::{CoreError, CoreResult};
 
 // Re-export precision types for high-precision arithmetic
-pub use precision::{ExtendedFloat, PrecisionFloat, StandardFloat};
+pub use precision::{PrecisionFloat, StandardFloat};
 
-#[cfg(feature = "high-precision")]
-pub use precision::HighPrecisionFloat;
+#[cfg(any(
+    feature = "high-precision",
+    feature = "wasm-precision",
+    feature = "native-precision"
+))]
+pub use precision::ExtendedFloat;
+
+// For backward compatibility, re-export ExtendedFloat as HighPrecisionFloat
+#[cfg(any(
+    feature = "high-precision",
+    feature = "wasm-precision",
+    feature = "native-precision"
+))]
+pub use precision::ExtendedFloat as HighPrecisionFloat;
 
 #[cfg(feature = "phantom-types")]
 pub mod verified;

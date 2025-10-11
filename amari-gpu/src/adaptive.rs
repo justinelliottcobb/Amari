@@ -262,8 +262,19 @@ impl AdaptiveVerifier {
 
     /// Detect current execution platform
     async fn detect_platform() -> Result<VerificationPlatform, AdaptiveVerificationError> {
-        // Try GPU detection first
-        if GpuCliffordAlgebra::new::<3, 0, 0>().await.is_ok() {
+        // Try GPU detection with comprehensive error handling
+        let gpu_available = {
+            // Use std::panic::catch_unwind to handle GPU driver panics
+            let panic_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                // Use pollster to handle the async call safely
+                pollster::block_on(async { GpuCliffordAlgebra::new::<3, 0, 0>().await.is_ok() })
+            }));
+
+            // GPU initialization panicked or failed - gracefully fall back to CPU
+            panic_result.unwrap_or_default()
+        };
+
+        if gpu_available {
             let backend = Self::detect_gpu_backend();
             let (memory_mb, compute_units) = Self::estimate_gpu_capabilities().await;
 
@@ -685,6 +696,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_verification_with_config() {
+        // Test adaptive behavior: should work with or without GPU
         match AdaptiveVerifier::with_config(
             AdaptiveVerificationLevel::Minimal,
             Duration::from_millis(5),
@@ -692,14 +704,29 @@ mod tests {
         .await
         {
             Ok(verifier) => {
+                // GPU or CPU succeeded - test functionality
                 assert_eq!(
                     *verifier.verification_level(),
                     AdaptiveVerificationLevel::Minimal
                 );
                 assert_eq!(verifier.performance_budget(), Duration::from_millis(5));
+
+                // Test that the platform was detected correctly
+                match verifier.platform() {
+                    VerificationPlatform::Gpu { .. } => {
+                        println!("✅ GPU verification platform detected");
+                    }
+                    VerificationPlatform::NativeCpu { .. } => {
+                        println!("✅ CPU verification platform detected (GPU not available)");
+                    }
+                    VerificationPlatform::Wasm { .. } => {
+                        println!("✅ WASM verification platform detected");
+                    }
+                }
             }
-            Err(_) => {
-                // Expected in limited environments
+            Err(e) => {
+                // Should not fail - adaptive design should always have a fallback
+                panic!("Adaptive verifier should not fail, but got: {:?}", e);
             }
         }
     }

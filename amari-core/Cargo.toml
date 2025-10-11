@@ -34,12 +34,14 @@ serialize = ["serde"]
 parallel = ["rayon"]
 # Phantom types for compile-time verification (works on stable)
 phantom-types = []
-# High-precision arithmetic (includes both backends, auto-selects based on target)
-high-precision = ["dep:rug", "dep:dashu-float", "dashu-float/std"]
-# WASM-compatible high-precision (pure Rust backend only)
-wasm-precision = ["dep:dashu-float", "dashu-float/std"]
-# Native high-precision (rug backend only, maximum performance)
+# High-precision arithmetic (pure Rust, WASM-compatible)
+high-precision = ["dep:dashu-float", "dashu-float/std"]
+# WASM-compatible high-precision (alias for high-precision)
+wasm-precision = ["high-precision"]
+# Native high-precision (rug backend, maximum performance, native-only)
 native-precision = ["dep:rug"]
+# Maximum precision (includes both backends for auto-selection)
+full-precision = ["high-precision", "native-precision"]
 # Formal verification with Creusot (requires nightly)
 formal-verification = ["creusot-contracts", "phantom-types"]
 

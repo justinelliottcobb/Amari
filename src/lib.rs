@@ -4,6 +4,7 @@
 //! - Geometric algebra (Clifford algebras)
 //! - Tropical algebra (max-plus semiring)
 //! - Dual number automatic differentiation
+//! - Geometric network analysis
 //! - Information geometry
 //! - Fusion systems for neural network optimization
 
@@ -13,6 +14,8 @@ pub use amari_dual as dual;
 pub use amari_enumerative as enumerative;
 pub use amari_fusion as fusion;
 pub use amari_info_geom as info_geom;
+pub use amari_network as network;
+pub use amari_relativistic as relativistic;
 pub use amari_tropical as tropical;
 
 use thiserror::Error;
@@ -40,6 +43,10 @@ pub enum AmariError {
     /// Information geometry error
     #[error(transparent)]
     InfoGeom(#[from] amari_info_geom::InfoGeomError),
+
+    /// Network analysis error
+    #[error(transparent)]
+    Network(#[from] amari_network::NetworkError),
 
     /// Fusion system error
     #[error(transparent)]
@@ -69,4 +76,7 @@ pub use amari_core::{Bivector, Multivector, Scalar, Vector};
 pub use amari_dual::{DualMultivector, DualNumber};
 pub use amari_fusion::TropicalDualClifford;
 pub use amari_info_geom::{DuallyFlatManifold, FisherInformationMatrix, SimpleAlphaConnection};
+pub use amari_network::{
+    Community, GeometricEdge, GeometricNetwork, NodeMetadata, PropagationAnalysis,
+};
 pub use amari_tropical::{TropicalMatrix, TropicalMultivector, TropicalNumber};

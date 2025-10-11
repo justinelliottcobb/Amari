@@ -5,15 +5,15 @@
 //! spacecraft orbital mechanics and plasma physics applications.
 
 use amari_relativistic::{
-    spacetime::{SpacetimeVector, FourVelocity},
+    constants::{C, EARTH_MASS, G, SOLAR_MASS},
+    geodesic::{GeodesicIntegrator, Metric},
     particle::RelativisticParticle,
-    geodesic::{GeodesicIntegrator, IntegrationConfig},
     schwarzschild::SchwarzschildMetric,
-    constants::{C, G, SOLAR_MASS, EARTH_MASS},
+    spacetime::{FourVelocity, SpacetimeVector},
 };
-use wasm_bindgen::prelude::*;
 use js_sys::Array;
 use nalgebra::Vector3;
+use wasm_bindgen::prelude::*;
 
 /// WASM wrapper for spacetime vectors
 #[wasm_bindgen]
@@ -43,7 +43,7 @@ impl WasmSpacetimeVector {
     #[wasm_bindgen]
     pub fn spacelike(x: f64, y: f64, z: f64) -> Self {
         Self {
-            inner: SpacetimeVector::spacelike(Vector3::new(x, y, z)),
+            inner: SpacetimeVector::spacelike(x, y, z),
         }
     }
 
@@ -103,9 +103,15 @@ impl WasmSpacetimeVector {
 
     /// Get string representation
     #[wasm_bindgen]
+    #[allow(clippy::inherent_to_string)]
     pub fn to_string(&self) -> String {
-        format!("SpacetimeVector({:.6}, {:.6}, {:.6}, {:.6})",
-                self.t(), self.x(), self.y(), self.z())
+        format!(
+            "SpacetimeVector({:.6}, {:.6}, {:.6}, {:.6})",
+            self.t(),
+            self.x(),
+            self.y(),
+            self.z()
+        )
     }
 }
 
@@ -123,7 +129,9 @@ impl WasmFourVelocity {
         let velocity = Vector3::new(vx, vy, vz);
         let four_velocity = FourVelocity::from_velocity(velocity);
 
-        Ok(Self { inner: four_velocity })
+        Ok(Self {
+            inner: four_velocity,
+        })
     }
 
     /// Get Lorentz factor γ
@@ -141,14 +149,14 @@ impl WasmFourVelocity {
     /// Get spatial velocity magnitude
     #[wasm_bindgen]
     pub fn spatial_velocity_magnitude(&self) -> f64 {
-        self.inner.spatial_velocity_magnitude()
+        self.inner.velocity().magnitude()
     }
 
     /// Get as spacetime vector
     #[wasm_bindgen]
     pub fn as_spacetime_vector(&self) -> WasmSpacetimeVector {
         WasmSpacetimeVector {
-            inner: *self.inner.as_spacetime_vector(),
+            inner: self.inner.as_spacetime_vector().clone(),
         }
     }
 
@@ -162,9 +170,13 @@ impl WasmFourVelocity {
 
     /// Get string representation
     #[wasm_bindgen]
+    #[allow(clippy::inherent_to_string)]
     pub fn to_string(&self) -> String {
-        format!("FourVelocity(γ={:.6}, v={:.6}c)",
-                self.gamma(), self.spatial_velocity_magnitude() / C)
+        format!(
+            "FourVelocity(γ={:.6}, v={:.6}c)",
+            self.gamma(),
+            self.spatial_velocity_magnitude() / C
+        )
     }
 }
 
@@ -178,37 +190,53 @@ pub struct WasmRelativisticParticle {
 impl WasmRelativisticParticle {
     /// Create a new relativistic particle
     #[wasm_bindgen(constructor)]
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
-        x: f64, y: f64, z: f64,        // Position
-        vx: f64, vy: f64, vz: f64,     // Velocity
-        spin: f64,                      // Spin
-        mass: f64,                      // Rest mass
-        charge: f64,                    // Electric charge
+        x: f64,
+        y: f64,
+        z: f64, // Position
+        vx: f64,
+        vy: f64,
+        vz: f64,     // Velocity
+        spin: f64,   // Spin
+        mass: f64,   // Rest mass
+        charge: f64, // Electric charge
     ) -> Result<WasmRelativisticParticle, JsValue> {
         let position = Vector3::new(x, y, z);
         let velocity = Vector3::new(vx, vy, vz);
 
         match RelativisticParticle::new(position, velocity, spin, mass, charge) {
             Ok(particle) => Ok(Self { inner: particle }),
-            Err(e) => Err(JsValue::from_str(&format!("Failed to create particle: {}", e))),
+            Err(e) => Err(JsValue::from_str(&format!(
+                "Failed to create particle: {}",
+                e
+            ))),
         }
     }
 
     /// Create particle with specified energy
     #[wasm_bindgen]
+    #[allow(clippy::too_many_arguments)]
     pub fn with_energy(
-        x: f64, y: f64, z: f64,        // Position
-        direction_x: f64, direction_y: f64, direction_z: f64, // Direction
-        kinetic_energy: f64,            // Kinetic energy
-        mass: f64,                      // Rest mass
-        charge: f64,                    // Electric charge
+        x: f64,
+        y: f64,
+        z: f64, // Position
+        direction_x: f64,
+        direction_y: f64,
+        direction_z: f64,    // Direction
+        kinetic_energy: f64, // Kinetic energy
+        mass: f64,           // Rest mass
+        charge: f64,         // Electric charge
     ) -> Result<WasmRelativisticParticle, JsValue> {
         let position = Vector3::new(x, y, z);
         let direction = Vector3::new(direction_x, direction_y, direction_z);
 
         match RelativisticParticle::with_energy(position, direction, kinetic_energy, mass, charge) {
             Ok(particle) => Ok(Self { inner: particle }),
-            Err(e) => Err(JsValue::from_str(&format!("Failed to create particle: {}", e))),
+            Err(e) => Err(JsValue::from_str(&format!(
+                "Failed to create particle: {}",
+                e
+            ))),
         }
     }
 
@@ -216,7 +244,7 @@ impl WasmRelativisticParticle {
     #[wasm_bindgen]
     pub fn position_4d(&self) -> WasmSpacetimeVector {
         WasmSpacetimeVector {
-            inner: self.inner.position_4d(),
+            inner: self.inner.position.clone(),
         }
     }
 
@@ -235,20 +263,20 @@ impl WasmRelativisticParticle {
     #[wasm_bindgen]
     pub fn four_velocity(&self) -> WasmFourVelocity {
         WasmFourVelocity {
-            inner: self.inner.four_velocity().clone(),
+            inner: self.inner.four_velocity.clone(),
         }
     }
 
     /// Get rest mass
     #[wasm_bindgen]
     pub fn mass(&self) -> f64 {
-        self.inner.mass()
+        self.inner.mass
     }
 
     /// Get electric charge
     #[wasm_bindgen]
     pub fn charge(&self) -> f64 {
-        self.inner.charge()
+        self.inner.charge
     }
 
     /// Get total energy
@@ -266,15 +294,22 @@ impl WasmRelativisticParticle {
     /// Get momentum magnitude
     #[wasm_bindgen]
     pub fn momentum_magnitude(&self) -> f64 {
-        self.inner.momentum_magnitude()
+        self.inner.momentum()
     }
 
     /// Get string representation
     #[wasm_bindgen]
+    #[allow(clippy::inherent_to_string)]
     pub fn to_string(&self) -> String {
         let pos = self.inner.position_3d();
-        format!("RelativisticParticle(pos=[{:.3}, {:.3}, {:.3}], E={:.3e}, m={:.3e})",
-                pos.x, pos.y, pos.z, self.total_energy(), self.mass())
+        format!(
+            "RelativisticParticle(pos=[{:.3}, {:.3}, {:.3}], E={:.3e}, m={:.3e})",
+            pos.x,
+            pos.y,
+            pos.z,
+            self.total_energy(),
+            self.mass()
+        )
     }
 }
 
@@ -298,7 +333,7 @@ impl WasmSchwarzschildMetric {
     #[wasm_bindgen]
     pub fn earth() -> Self {
         Self {
-            inner: SchwarzschildMetric::earth(),
+            inner: SchwarzschildMetric::new(EARTH_MASS, Vector3::zeros()),
         }
     }
 
@@ -306,7 +341,7 @@ impl WasmSchwarzschildMetric {
     #[wasm_bindgen]
     pub fn from_mass(mass: f64) -> Self {
         Self {
-            inner: SchwarzschildMetric::from_mass(mass),
+            inner: SchwarzschildMetric::new(mass, Vector3::zeros()),
         }
     }
 
@@ -325,7 +360,7 @@ impl WasmSchwarzschildMetric {
     /// Check for singularity at given position
     #[wasm_bindgen]
     pub fn has_singularity(&self, position: &WasmSpacetimeVector) -> bool {
-        self.inner.has_singularity(&position.inner)
+        <SchwarzschildMetric as Metric>::has_singularity(&self.inner, &position.inner)
     }
 
     /// Compute effective potential for circular orbits
@@ -350,7 +385,7 @@ impl WasmTrajectoryPoint {
     #[wasm_bindgen(getter)]
     pub fn position(&self) -> WasmSpacetimeVector {
         WasmSpacetimeVector {
-            inner: self.position.inner,
+            inner: self.position.inner.clone(),
         }
     }
 }
@@ -388,12 +423,24 @@ impl WasmGeodesicIntegrator {
         ) {
             Ok(trajectory) => {
                 let js_array = Array::new();
-                for (time, position) in trajectory {
+                for (time, position, _velocity) in trajectory {
+                    let spacetime_pos = SpacetimeVector::from_position_and_time(position, time);
                     let point = WasmTrajectoryPoint {
                         time,
-                        position: WasmSpacetimeVector { inner: position },
+                        position: WasmSpacetimeVector {
+                            inner: spacetime_pos,
+                        },
                     };
-                    js_array.push(&serde_wasm_bindgen::to_value(&point).unwrap());
+                    let js_point = js_sys::Object::new();
+                    js_sys::Reflect::set(&js_point, &"time".into(), &JsValue::from(point.time))
+                        .unwrap();
+                    js_sys::Reflect::set(
+                        &js_point,
+                        &"position".into(),
+                        &JsValue::from(point.position),
+                    )
+                    .unwrap();
+                    js_array.push(&js_point);
                 }
                 Ok(js_array)
             }
@@ -443,7 +490,9 @@ pub fn light_deflection_angle(impact_parameter: f64, mass: f64) -> f64 {
 #[wasm_bindgen]
 pub fn velocity_to_gamma(velocity_magnitude: f64) -> Result<f64, JsValue> {
     if velocity_magnitude >= C {
-        return Err(JsValue::from_str("Velocity must be less than speed of light"));
+        return Err(JsValue::from_str(
+            "Velocity must be less than speed of light",
+        ));
     }
 
     let beta = velocity_magnitude / C;
