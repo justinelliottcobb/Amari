@@ -130,6 +130,77 @@ impl WasmDualNumber {
             inner: self.inner.sqrt(),
         })
     }
+
+    /// Tangent function
+    pub fn tan(&self) -> WasmDualNumber {
+        Self {
+            inner: self.inner.tan(),
+        }
+    }
+
+    /// Hyperbolic sine
+    pub fn sinh(&self) -> WasmDualNumber {
+        Self {
+            inner: self.inner.sinh(),
+        }
+    }
+
+    /// Hyperbolic cosine
+    pub fn cosh(&self) -> WasmDualNumber {
+        Self {
+            inner: self.inner.cosh(),
+        }
+    }
+
+    /// Hyperbolic tangent
+    pub fn tanh(&self) -> WasmDualNumber {
+        Self {
+            inner: self.inner.tanh(),
+        }
+    }
+
+    /// ReLU activation function
+    pub fn relu(&self) -> WasmDualNumber {
+        Self {
+            inner: self.inner.relu(),
+        }
+    }
+
+    /// Sigmoid activation function
+    pub fn sigmoid(&self) -> WasmDualNumber {
+        Self {
+            inner: self.inner.sigmoid(),
+        }
+    }
+
+    /// Softplus activation function
+    pub fn softplus(&self) -> WasmDualNumber {
+        Self {
+            inner: self.inner.softplus(),
+        }
+    }
+
+    /// Maximum of two dual numbers
+    pub fn max(&self, other: &WasmDualNumber) -> WasmDualNumber {
+        Self {
+            inner: self.inner.max(other.inner),
+        }
+    }
+
+    /// Minimum of two dual numbers
+    pub fn min(&self, other: &WasmDualNumber) -> WasmDualNumber {
+        Self {
+            inner: self.inner.min(other.inner),
+        }
+    }
+
+    /// Integer power
+    #[wasm_bindgen(js_name = powi)]
+    pub fn powi(&self, n: i32) -> WasmDualNumber {
+        Self {
+            inner: self.inner.powi(n),
+        }
+    }
 }
 
 /// WASM wrapper for multi-variable dual numbers
@@ -271,6 +342,273 @@ impl AutoDiff {
         }
 
         result
+    }
+
+    /// Compute mean squared error with automatic gradients
+    #[wasm_bindgen(js_name = meanSquaredError)]
+    pub fn mean_squared_error(
+        predictions: &[f64],
+        targets: &[f64],
+    ) -> Result<WasmDualNumber, JsValue> {
+        if predictions.len() != targets.len() {
+            return Err(JsValue::from_str(
+                "Predictions and targets must have same length",
+            ));
+        }
+
+        let n = predictions.len();
+        let mut mse = WasmDualNumber::constant(0.0);
+
+        for (pred_val, target_val) in predictions.iter().zip(targets.iter()) {
+            let pred = WasmDualNumber::variable(*pred_val);
+            let target = WasmDualNumber::constant(*target_val);
+            let diff = pred.sub(&target);
+            let squared = diff.mul(&diff);
+            mse = mse.add(&squared);
+        }
+
+        let n_dual = WasmDualNumber::constant(n as f64);
+        mse.div(&n_dual)
+    }
+
+    /// Linear layer forward pass (y = Wx + b) with automatic gradients
+    #[wasm_bindgen(js_name = linearLayer)]
+    pub fn linear_layer(
+        inputs: &[f64],
+        weights: &[f64], // Flattened weight matrix
+        bias: &[f64],
+        input_size: usize,
+        output_size: usize,
+    ) -> Result<Vec<f64>, JsValue> {
+        if weights.len() != input_size * output_size {
+            return Err(JsValue::from_str("Weight matrix size mismatch"));
+        }
+        if bias.len() != output_size {
+            return Err(JsValue::from_str("Bias vector size mismatch"));
+        }
+        if inputs.len() != input_size {
+            return Err(JsValue::from_str("Input vector size mismatch"));
+        }
+
+        let mut outputs = Vec::new();
+
+        for i in 0..output_size {
+            let mut output = WasmDualNumber::constant(bias[i]);
+
+            for j in 0..input_size {
+                let input_dual = WasmDualNumber::variable(inputs[j]);
+                let weight_dual = WasmDualNumber::constant(weights[i * input_size + j]);
+                let product = input_dual.mul(&weight_dual);
+                output = output.add(&product);
+            }
+
+            outputs.push(output.get_real());
+        }
+
+        Ok(outputs)
+    }
+}
+
+/// Advanced machine learning operations using dual numbers
+#[wasm_bindgen]
+pub struct MLOps;
+
+#[wasm_bindgen]
+impl MLOps {
+    /// Compute softmax with automatic gradients
+    #[wasm_bindgen(js_name = softmax)]
+    pub fn softmax(inputs: &[f64]) -> Vec<f64> {
+        let mut dual_inputs = Vec::new();
+
+        // Convert inputs to dual numbers
+        for &val in inputs {
+            dual_inputs.push(WasmDualNumber::variable(val));
+        }
+
+        // Find max for numerical stability
+        let max_val = inputs.iter().fold(f64::NEG_INFINITY, |a, &b| a.max(b));
+        let max_dual = WasmDualNumber::constant(max_val);
+
+        // Compute exp(x_i - max) for each input
+        let mut exp_vals = Vec::new();
+        for dual in &dual_inputs {
+            let shifted = dual.sub(&max_dual);
+            exp_vals.push(shifted.exp());
+        }
+
+        // Compute sum of exponentials
+        let mut sum = WasmDualNumber::constant(0.0);
+        for exp_val in &exp_vals {
+            sum = sum.add(exp_val);
+        }
+
+        // Divide each by sum to get softmax
+        let mut result = Vec::new();
+        for exp_val in exp_vals {
+            let softmax_val = exp_val.div(&sum).unwrap();
+            result.push(softmax_val.get_real());
+        }
+
+        result
+    }
+
+    /// Batch apply activation function with gradients
+    #[wasm_bindgen(js_name = batchActivation)]
+    pub fn batch_activation(inputs: &[f64], activation: &str) -> Result<Vec<f64>, JsValue> {
+        let mut outputs = Vec::new();
+
+        for &input in inputs {
+            let dual = WasmDualNumber::variable(input);
+            let output = match activation {
+                "relu" => dual.relu(),
+                "sigmoid" => dual.sigmoid(),
+                "tanh" => dual.tanh(),
+                "softplus" => dual.softplus(),
+                "sin" => dual.sin(),
+                "cos" => dual.cos(),
+                "exp" => dual.exp(),
+                _ => return Err(JsValue::from_str("Unsupported activation function")),
+            };
+            outputs.push(output.get_real());
+        }
+
+        Ok(outputs)
+    }
+
+    /// Gradient descent step
+    #[wasm_bindgen(js_name = gradientDescentStep)]
+    pub fn gradient_descent_step(
+        parameters: &[f64],
+        gradients: &[f64],
+        learning_rate: f64,
+    ) -> Result<Vec<f64>, JsValue> {
+        if parameters.len() != gradients.len() {
+            return Err(JsValue::from_str(
+                "Parameters and gradients must have same length",
+            ));
+        }
+
+        let mut updated_params = Vec::new();
+        for (&param, &grad) in parameters.iter().zip(gradients.iter()) {
+            let new_param = param - learning_rate * grad;
+            updated_params.push(new_param);
+        }
+
+        Ok(updated_params)
+    }
+
+    /// Compute cross-entropy loss with automatic gradients
+    #[wasm_bindgen(js_name = crossEntropyLoss)]
+    pub fn cross_entropy_loss(
+        predictions: &[f64],
+        targets: &[f64],
+    ) -> Result<WasmDualNumber, JsValue> {
+        if predictions.len() != targets.len() {
+            return Err(JsValue::from_str(
+                "Predictions and targets must have same length",
+            ));
+        }
+
+        let mut loss = WasmDualNumber::constant(0.0);
+        let eps = 1e-8; // Small value to prevent log(0)
+
+        for (&pred, &target) in predictions.iter().zip(targets.iter()) {
+            let pred_dual = WasmDualNumber::variable((pred + eps).max(eps).min(1.0 - eps));
+            let target_dual = WasmDualNumber::constant(target);
+
+            let log_pred = pred_dual.ln()?;
+            let term = target_dual.mul(&log_pred);
+            loss = loss.sub(&term);
+        }
+
+        Ok(loss)
+    }
+}
+
+/// Batch operations for efficient computation
+#[wasm_bindgen]
+pub struct BatchOps;
+
+#[wasm_bindgen]
+impl BatchOps {
+    /// Matrix multiplication with automatic gradients
+    #[wasm_bindgen(js_name = matrixMultiply)]
+    pub fn matrix_multiply(
+        a: &[f64],
+        b: &[f64],
+        a_rows: usize,
+        a_cols: usize,
+        b_rows: usize,
+        b_cols: usize,
+    ) -> Result<Vec<f64>, JsValue> {
+        if a_cols != b_rows {
+            return Err(JsValue::from_str(
+                "Matrix dimensions incompatible for multiplication",
+            ));
+        }
+        if a.len() != a_rows * a_cols || b.len() != b_rows * b_cols {
+            return Err(JsValue::from_str("Matrix data size mismatch"));
+        }
+
+        let mut result = Vec::with_capacity(a_rows * b_cols);
+
+        for i in 0..a_rows {
+            for j in 0..b_cols {
+                let mut sum = WasmDualNumber::constant(0.0);
+
+                for k in 0..a_cols {
+                    let a_val = WasmDualNumber::variable(a[i * a_cols + k]);
+                    let b_val = WasmDualNumber::constant(b[k * b_cols + j]);
+                    let product = a_val.mul(&b_val);
+                    sum = sum.add(&product);
+                }
+
+                result.push(sum.get_real());
+            }
+        }
+
+        Ok(result)
+    }
+
+    /// Compute Jacobian matrix for vector function
+    #[wasm_bindgen(js_name = computeJacobian)]
+    pub fn compute_jacobian(
+        input_values: &[f64],
+        function_name: &str,
+    ) -> Result<Vec<f64>, JsValue> {
+        let mut jacobian = Vec::new();
+
+        for &input_val in input_values {
+            let dual = WasmDualNumber::variable(input_val);
+
+            let result = match function_name {
+                "sin" => dual.sin(),
+                "cos" => dual.cos(),
+                "exp" => dual.exp(),
+                "tanh" => dual.tanh(),
+                "sigmoid" => dual.sigmoid(),
+                "square" => dual.mul(&dual),
+                _ => return Err(JsValue::from_str("Unsupported function")),
+            };
+
+            jacobian.push(result.get_dual());
+        }
+
+        Ok(jacobian)
+    }
+
+    /// Batch evaluate polynomial with derivatives
+    #[wasm_bindgen(js_name = batchPolynomial)]
+    pub fn batch_polynomial(x_values: &[f64], coefficients: &[f64]) -> Result<Vec<f64>, JsValue> {
+        let mut results = Vec::new();
+
+        for &x in x_values {
+            let poly_result = AutoDiff::evaluate_polynomial(x, coefficients);
+            results.push(poly_result.get_real());
+            results.push(poly_result.get_dual()); // Include derivative
+        }
+
+        Ok(results)
     }
 }
 
