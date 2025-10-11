@@ -15,8 +15,8 @@ use wasm_bindgen::prelude::*;
 pub mod dual; // Enabled for v0.9.3 - automatic differentiation for machine learning in web
 pub mod relativistic;
 pub mod tropical; // Enabled for v0.9.3 - critical for optimization algorithms in web
-// #[cfg(feature = "fusion")] pub mod fusion;
-// #[cfg(feature = "info-geom")] pub mod info_geom;
+                  // #[cfg(feature = "fusion")] pub mod fusion;
+                  // #[cfg(feature = "info-geom")] pub mod info_geom;
 
 /// Number of coefficients in a 3D Clifford algebra multivector (2^3 = 8)
 /// Basis elements: 1, e1, e2, e3, e12, e13, e23, e123
