@@ -640,11 +640,11 @@ pub fn init_automata() {
 }
 
 #[cfg(test)]
+#[allow(dead_code)]
 mod tests {
     use super::*;
     use wasm_bindgen_test::*;
 
-    #[allow(dead_code)]
     #[wasm_bindgen_test]
     fn test_geometric_ca_creation() {
         let ca = WasmGeometricCA::new(10, 10);
@@ -652,7 +652,6 @@ mod tests {
         assert_eq!(ca.generation(), 0);
     }
 
-    #[allow(dead_code)]
     #[wasm_bindgen_test]
     fn test_ca_cell_operations() {
         let mut ca = WasmGeometricCA::new(5, 5);
@@ -665,7 +664,6 @@ mod tests {
         assert_eq!(retrieved[1], 0.5);
     }
 
-    #[allow(dead_code)]
     #[wasm_bindgen_test]
     fn test_ca_evolution() {
         let mut ca = WasmGeometricCA::new(5, 5);
@@ -679,7 +677,6 @@ mod tests {
         assert_eq!(ca.generation(), initial_generation + 1);
     }
 
-    #[allow(dead_code)]
     #[wasm_bindgen_test]
     fn test_inverse_designer() {
         let mut designer = WasmInverseCADesigner::new(3, 3);
@@ -689,7 +686,6 @@ mod tests {
         assert!(designer.set_target(&target).is_ok());
     }
 
-    #[allow(dead_code)]
     #[wasm_bindgen_test]
     fn test_self_assembler() {
         let mut assembler = WasmSelfAssembler::new();
@@ -706,7 +702,6 @@ mod tests {
     // Note: WasmCayleyNavigator and WasmTropicalSolver are not implemented yet
     // Tests for these components would be added in future iterations
 
-    #[allow(dead_code)]
     #[wasm_bindgen_test]
     fn test_batch_operations() {
         let grid = AutomataUtils::create_life_pattern("glider", 5, 5).unwrap();
@@ -718,7 +713,6 @@ mod tests {
         assert_eq!(results.unwrap().len(), 5 * 5 * 8);
     }
 
-    #[allow(dead_code)]
     #[wasm_bindgen_test]
     fn test_pattern_creation() {
         let glider = AutomataUtils::create_life_pattern("glider", 10, 10).unwrap();
