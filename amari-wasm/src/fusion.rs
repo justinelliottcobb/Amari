@@ -1,6 +1,22 @@
-//! WASM bindings for tropical-dual-Clifford fusion systems
+//! WASM bindings for amari-fusion: TropicalDualClifford LLM evaluation system
+//!
+//! This module provides WebAssembly bindings for the revolutionary TropicalDualClifford
+//! system that combines three exotic number systems for efficient LLM evaluation:
+//!
+//! - **Tropical Algebra**: Converts expensive softmax to efficient max operations
+//! - **Dual Numbers**: Provides automatic differentiation without computational graphs
+//! - **Clifford Algebra**: Handles geometric relationships and rotations
+//!
+//! Perfect for:
+//! - Real-time LLM inference in browsers
+//! - Attention mechanism optimization
+//! - Neural network parameter optimization
+//! - Interactive machine learning demonstrations
 
-use amari_fusion::TropicalDualClifford;
+use amari_fusion::{
+    EvaluationResult, SensitivityMap, TropicalDualClifford, TropicalDualDistribution,
+};
+use js_sys::Object;
 use wasm_bindgen::prelude::*;
 
 /// WASM wrapper for TropicalDualClifford fusion system
@@ -24,6 +40,14 @@ impl WasmTropicalDualClifford {
     pub fn from_logits(logits: &[f64]) -> Self {
         Self {
             inner: TropicalDualClifford::from_logits(logits),
+        }
+    }
+
+    /// Create from probability distribution
+    #[wasm_bindgen(js_name = fromProbabilities)]
+    pub fn from_probabilities(probs: &[f64]) -> Self {
+        Self {
+            inner: TropicalDualClifford::from_probabilities(probs),
         }
     }
 
@@ -55,7 +79,7 @@ impl WasmTropicalDualClifford {
         self.inner
             .extract_tropical_features()
             .into_iter()
-            .map(|t| t.value())
+            .map(|t: amari_tropical::TropicalNumber<f64>| t.value())
             .collect()
     }
 
@@ -179,6 +203,42 @@ impl WasmTropicalDualClifford {
             mv.reverse().magnitude(), // reverse magnitude
         ]
     }
+
+    /// Evaluate two TDC systems (core LLM comparison operation)
+    pub fn evaluate(&self, other: &WasmTropicalDualClifford) -> WasmEvaluationResult {
+        let result = self.inner.evaluate(&other.inner);
+        WasmEvaluationResult { inner: result }
+    }
+
+    /// Transform using another TDC (advanced operation)
+    pub fn transform(&self, transformation: &WasmTropicalDualClifford) -> WasmTropicalDualClifford {
+        Self {
+            inner: self.inner.transform(&transformation.inner),
+        }
+    }
+
+    /// Compute distance between two TDC systems
+    pub fn distance(&self, other: &WasmTropicalDualClifford) -> f64 {
+        self.inner.distance(&other.inner)
+    }
+
+    /// Interpolate between two TDC systems (useful for animation)
+    pub fn interpolate(
+        &self,
+        other: &WasmTropicalDualClifford,
+        t: f64,
+    ) -> WasmTropicalDualClifford {
+        Self {
+            inner: self.inner.interpolate(&other.inner, t),
+        }
+    }
+
+    /// Perform sensitivity analysis for gradient-based optimization
+    #[wasm_bindgen(js_name = sensitivityAnalysis)]
+    pub fn sensitivity_analysis(&self) -> WasmSensitivityMap {
+        let sensitivity = self.inner.sensitivity_analysis();
+        WasmSensitivityMap { inner: sensitivity }
+    }
 }
 
 impl Default for WasmTropicalDualClifford {
@@ -187,12 +247,190 @@ impl Default for WasmTropicalDualClifford {
     }
 }
 
-/// Fusion utilities for batch operations
+/// WASM wrapper for evaluation results
 #[wasm_bindgen]
-pub struct FusionBatch;
+pub struct WasmEvaluationResult {
+    inner: EvaluationResult<f64>,
+}
 
 #[wasm_bindgen]
-impl FusionBatch {
+impl WasmEvaluationResult {
+    /// Get the best path score from tropical algebra
+    #[wasm_bindgen(js_name = getBestPathScore)]
+    pub fn get_best_path_score(&self) -> f64 {
+        self.inner.best_path_score.value()
+    }
+
+    /// Get gradient norm from dual numbers
+    #[wasm_bindgen(js_name = getGradientNorm)]
+    pub fn get_gradient_norm(&self) -> f64 {
+        self.inner.gradient_norm
+    }
+
+    /// Get geometric distance from Clifford algebra
+    #[wasm_bindgen(js_name = getGeometricDistance)]
+    pub fn get_geometric_distance(&self) -> f64 {
+        self.inner.geometric_distance
+    }
+
+    /// Get combined score using all three algebras
+    #[wasm_bindgen(js_name = getCombinedScore)]
+    pub fn get_combined_score(&self) -> f64 {
+        self.inner.combined_score
+    }
+
+    /// Convert to JavaScript object for easy access
+    #[wasm_bindgen(js_name = toObject)]
+    pub fn to_object(&self) -> Result<JsValue, JsValue> {
+        let obj = Object::new();
+
+        js_sys::Reflect::set(
+            &obj,
+            &"bestPathScore".into(),
+            &self.get_best_path_score().into(),
+        )?;
+
+        js_sys::Reflect::set(
+            &obj,
+            &"gradientNorm".into(),
+            &self.get_gradient_norm().into(),
+        )?;
+
+        js_sys::Reflect::set(
+            &obj,
+            &"geometricDistance".into(),
+            &self.get_geometric_distance().into(),
+        )?;
+
+        js_sys::Reflect::set(
+            &obj,
+            &"combinedScore".into(),
+            &self.get_combined_score().into(),
+        )?;
+
+        Ok(obj.into())
+    }
+}
+
+/// WASM wrapper for sensitivity analysis results
+#[wasm_bindgen]
+pub struct WasmSensitivityMap {
+    inner: SensitivityMap<f64>,
+}
+
+#[wasm_bindgen]
+impl WasmSensitivityMap {
+    /// Get components with highest sensitivity (for optimization)
+    #[wasm_bindgen(js_name = getMostSensitive)]
+    pub fn get_most_sensitive(&self, n: usize) -> Vec<usize> {
+        self.inner.most_sensitive(n)
+    }
+
+    /// Get total sensitivity across all components
+    #[wasm_bindgen(js_name = getTotalSensitivity)]
+    pub fn get_total_sensitivity(&self) -> f64 {
+        self.inner.total_sensitivity()
+    }
+
+    /// Get all sensitivities as JavaScript arrays
+    #[wasm_bindgen(js_name = getAllSensitivities)]
+    pub fn get_all_sensitivities(&self) -> Result<JsValue, JsValue> {
+        let components: Vec<usize> = self
+            .inner
+            .sensitivities
+            .iter()
+            .map(|s| s.component)
+            .collect();
+        let values: Vec<f64> = self.inner.sensitivities.iter().map(|s| s.value).collect();
+        let sensitivities: Vec<f64> = self
+            .inner
+            .sensitivities
+            .iter()
+            .map(|s| s.sensitivity)
+            .collect();
+
+        let obj = Object::new();
+        js_sys::Reflect::set(
+            &obj,
+            &"components".into(),
+            &js_sys::Array::from_iter(components.into_iter().map(JsValue::from)).into(),
+        )?;
+        js_sys::Reflect::set(
+            &obj,
+            &"values".into(),
+            &js_sys::Array::from_iter(values.into_iter().map(JsValue::from)).into(),
+        )?;
+        js_sys::Reflect::set(
+            &obj,
+            &"sensitivities".into(),
+            &js_sys::Array::from_iter(sensitivities.into_iter().map(JsValue::from)).into(),
+        )?;
+
+        Ok(obj.into())
+    }
+}
+
+/// WASM wrapper for LLM token distributions
+#[wasm_bindgen]
+pub struct WasmTropicalDualDistribution {
+    inner: TropicalDualDistribution<f64>,
+}
+
+#[wasm_bindgen]
+impl WasmTropicalDualDistribution {
+    /// Create from logit vector (typical LLM output)
+    #[wasm_bindgen(constructor)]
+    pub fn new(logits: &[f64]) -> Self {
+        Self {
+            inner: TropicalDualDistribution::from_logits(logits),
+        }
+    }
+
+    /// Compute KL divergence with automatic gradients
+    #[wasm_bindgen(js_name = klDivergence)]
+    pub fn kl_divergence(&self, other: &WasmTropicalDualDistribution) -> Result<JsValue, JsValue> {
+        let kl = self.inner.kl_divergence(&other.inner);
+
+        let obj = Object::new();
+        js_sys::Reflect::set(&obj, &"value".into(), &kl.real.into())?;
+        js_sys::Reflect::set(&obj, &"gradient".into(), &kl.dual.into())?;
+
+        Ok(obj.into())
+    }
+
+    /// Generate most likely sequence using tropical algebra (Viterbi-like)
+    #[wasm_bindgen(js_name = mostLikelySequence)]
+    pub fn most_likely_sequence(&self, length: usize) -> Vec<usize> {
+        self.inner.most_likely_sequence(length)
+    }
+
+    /// Compute geometric alignment with reference distribution
+    #[wasm_bindgen(js_name = geometricAlignment)]
+    pub fn geometric_alignment(&self, reference: &WasmTropicalDualDistribution) -> f64 {
+        self.inner.geometric_alignment(&reference.inner)
+    }
+
+    /// Get attention pattern as tropical polytope vertices
+    #[wasm_bindgen(js_name = attentionPolytope)]
+    pub fn attention_polytope(&self) -> Vec<f64> {
+        let polytope = self.inner.attention_polytope();
+        // Flatten the polytope vertices for JavaScript
+        polytope.into_iter().flatten().collect()
+    }
+
+    /// Get vocabulary size
+    #[wasm_bindgen(js_name = getVocabSize)]
+    pub fn get_vocab_size(&self) -> usize {
+        self.inner.vocab_size
+    }
+}
+
+/// High-performance batch operations for LLM workloads
+#[wasm_bindgen]
+pub struct FusionBatchOperations;
+
+#[wasm_bindgen]
+impl FusionBatchOperations {
     /// Batch tropical attention across multiple queries
     #[wasm_bindgen(js_name = batchTropicalAttention)]
     pub fn batch_tropical_attention(
@@ -291,6 +529,151 @@ impl FusionBatch {
 
         WasmTropicalDualClifford::from_logits(&new_logits)
     }
+
+    /// Batch evaluation of multiple TDC pairs (optimized for WASM)
+    #[wasm_bindgen(js_name = batchEvaluate)]
+    pub fn batch_evaluate(
+        tdc_a_batch: &[f64], // Flattened TDC coefficients
+        tdc_b_batch: &[f64], // Flattened TDC coefficients
+        batch_size: usize,
+    ) -> Result<Vec<f64>, JsValue> {
+        if tdc_a_batch.len() != tdc_b_batch.len() {
+            return Err(JsValue::from_str("Batch arrays must have the same length"));
+        }
+
+        if tdc_a_batch.len() != batch_size * 8 {
+            return Err(JsValue::from_str("Invalid batch dimensions"));
+        }
+
+        let mut results = Vec::with_capacity(batch_size * 4); // 4 scores per evaluation
+
+        for i in 0..batch_size {
+            let start = i * 8;
+            let end = start + 8;
+
+            // Create TDC from coefficients
+            let tdc_a: TropicalDualClifford<f64, 8> =
+                TropicalDualClifford::from_logits(&tdc_a_batch[start..end]);
+            let tdc_b: TropicalDualClifford<f64, 8> =
+                TropicalDualClifford::from_logits(&tdc_b_batch[start..end]);
+
+            // Evaluate
+            let eval_result = tdc_a.evaluate(&tdc_b);
+
+            // Pack results
+            results.push(eval_result.best_path_score.value());
+            results.push(eval_result.gradient_norm);
+            results.push(eval_result.geometric_distance);
+            results.push(eval_result.combined_score);
+        }
+
+        Ok(results)
+    }
+
+    /// Batch distance computation (optimized for similarity search)
+    #[wasm_bindgen(js_name = batchDistance)]
+    pub fn batch_distance(
+        query_logits: &[f64], // Single query TDC
+        corpus_batch: &[f64], // Multiple corpus TDCs
+        corpus_size: usize,
+    ) -> Result<Vec<f64>, JsValue> {
+        if query_logits.len() != 8 {
+            return Err(JsValue::from_str("Query must have 8 components"));
+        }
+
+        if corpus_batch.len() != corpus_size * 8 {
+            return Err(JsValue::from_str("Invalid corpus batch dimensions"));
+        }
+
+        let query_tdc: TropicalDualClifford<f64, 8> =
+            TropicalDualClifford::from_logits(query_logits);
+        let mut distances = Vec::with_capacity(corpus_size);
+
+        for i in 0..corpus_size {
+            let start = i * 8;
+            let end = start + 8;
+
+            let corpus_tdc: TropicalDualClifford<f64, 8> =
+                TropicalDualClifford::from_logits(&corpus_batch[start..end]);
+            distances.push(query_tdc.distance(&corpus_tdc));
+        }
+
+        Ok(distances)
+    }
+
+    /// Batch sensitivity analysis for gradient-based optimization
+    #[wasm_bindgen(js_name = batchSensitivity)]
+    pub fn batch_sensitivity(
+        tdc_batch: &[f64], // Flattened TDC coefficients
+        batch_size: usize,
+    ) -> Result<Vec<f64>, JsValue> {
+        if tdc_batch.len() != batch_size * 8 {
+            return Err(JsValue::from_str("Invalid batch dimensions"));
+        }
+
+        let mut total_sensitivities = Vec::with_capacity(batch_size);
+
+        for i in 0..batch_size {
+            let start = i * 8;
+            let end = start + 8;
+
+            let tdc: TropicalDualClifford<f64, 8> =
+                TropicalDualClifford::from_logits(&tdc_batch[start..end]);
+            let sensitivity_map = tdc.sensitivity_analysis();
+            total_sensitivities.push(sensitivity_map.total_sensitivity());
+        }
+
+        Ok(total_sensitivities)
+    }
+}
+
+/// Conversion utilities for JavaScript interoperability
+#[wasm_bindgen]
+pub struct FusionUtils;
+
+#[wasm_bindgen]
+impl FusionUtils {
+    /// Convert softmax probabilities to tropical representation
+    #[wasm_bindgen(js_name = softmaxToTropical)]
+    pub fn softmax_to_tropical(probs: &[f64]) -> Vec<f64> {
+        amari_fusion::conversion::softmax_to_tropical(probs)
+            .into_iter()
+            .map(|tn: amari_tropical::TropicalNumber<f64>| tn.value())
+            .collect()
+    }
+
+    /// Convert tropical numbers back to softmax probabilities
+    #[wasm_bindgen(js_name = tropicalToSoftmax)]
+    pub fn tropical_to_softmax(tropical_values: &[f64]) -> Vec<f64> {
+        let tropical_numbers: Vec<_> = tropical_values
+            .iter()
+            .map(|&v| amari_tropical::TropicalNumber::new(v))
+            .collect();
+        amari_fusion::conversion::tropical_to_softmax(&tropical_numbers)
+    }
+
+    /// Validate logits for numerical stability
+    #[wasm_bindgen(js_name = validateLogits)]
+    pub fn validate_logits(logits: &[f64]) -> bool {
+        logits.iter().all(|&x| x.is_finite()) && !logits.is_empty()
+    }
+
+    /// Normalize logits to prevent overflow
+    #[wasm_bindgen(js_name = normalizeLogits)]
+    pub fn normalize_logits(logits: &[f64]) -> Vec<f64> {
+        if logits.is_empty() {
+            return Vec::new();
+        }
+
+        let max_logit = logits.iter().fold(f64::NEG_INFINITY, |a, &b| a.max(b));
+        logits.iter().map(|&x| x - max_logit).collect()
+    }
+}
+
+/// Initialize the fusion module
+#[wasm_bindgen(js_name = initFusion)]
+pub fn init_fusion() {
+    web_sys::console::log_1(&"Amari Fusion WASM module initialized: TropicalDualClifford system ready for LLM evaluation".into());
 }
 
 #[cfg(test)]
@@ -345,5 +728,79 @@ mod tests {
 
         let result = tdc.tropical_attention(&keys, &values).unwrap();
         assert_eq!(result.len(), 1);
+    }
+
+    #[allow(dead_code)]
+    #[wasm_bindgen_test]
+    fn test_evaluation_system() {
+        let logits1 = vec![1.0, 2.0, 3.0, 0.5, 1.5, 0.8, 2.2, 1.1];
+        let logits2 = vec![1.5, 1.8, 2.5, 1.0, 1.2, 1.3, 1.9, 0.9];
+
+        let tdc1 = WasmTropicalDualClifford::from_logits(&logits1);
+        let tdc2 = WasmTropicalDualClifford::from_logits(&logits2);
+
+        let result = tdc1.evaluate(&tdc2);
+
+        assert!(result.get_combined_score() != 0.0);
+        assert!(result.get_geometric_distance() >= 0.0);
+    }
+
+    #[allow(dead_code)]
+    #[wasm_bindgen_test]
+    fn test_sensitivity_analysis() {
+        let logits = vec![1.0, 2.0, 3.0, 0.5, 1.5, 0.8, 2.2, 1.1];
+        let tdc = WasmTropicalDualClifford::from_logits(&logits);
+
+        let sensitivity = tdc.sensitivity_analysis();
+        let most_sensitive = sensitivity.get_most_sensitive(3);
+
+        assert_eq!(most_sensitive.len(), 3);
+        assert!(sensitivity.get_total_sensitivity() >= 0.0);
+    }
+
+    #[allow(dead_code)]
+    #[wasm_bindgen_test]
+    fn test_batch_operations() {
+        let batch_a = vec![1.0, 2.0, 3.0, 0.5, 1.5, 0.8, 2.2, 1.1];
+        let batch_b = vec![1.5, 1.8, 2.5, 1.0, 1.2, 1.3, 1.9, 0.9];
+
+        let results = FusionBatchOperations::batch_evaluate(&batch_a, &batch_b, 1);
+        assert!(results.is_ok());
+        assert_eq!(results.unwrap().len(), 4); // 4 scores per evaluation
+    }
+
+    #[allow(dead_code)]
+    #[wasm_bindgen_test]
+    fn test_tropical_dual_distribution() {
+        let logits = vec![1.0, 2.0, 3.0, 0.5, 1.5];
+        let dist1 = WasmTropicalDualDistribution::new(&logits);
+        let dist2 = WasmTropicalDualDistribution::new(&[2.0, 1.0, 2.5, 1.0, 1.8]);
+
+        // Test KL divergence
+        let kl = dist1.kl_divergence(&dist2).unwrap();
+        assert!(kl.is_object());
+
+        // Test sequence generation
+        let sequence = dist1.most_likely_sequence(3);
+        assert_eq!(sequence.len(), 3);
+
+        // Test geometric alignment
+        let alignment = dist1.geometric_alignment(&dist2);
+        assert!(alignment.is_finite());
+    }
+
+    #[allow(dead_code)]
+    #[wasm_bindgen_test]
+    fn test_utils() {
+        let logits = vec![1.0, 2.0, 3.0, 0.5];
+
+        // Test validation
+        assert!(FusionUtils::validate_logits(&logits));
+        assert!(!FusionUtils::validate_logits(&[f64::NAN]));
+
+        // Test normalization
+        let normalized = FusionUtils::normalize_logits(&logits);
+        assert_eq!(normalized.len(), 4);
+        assert!(normalized.iter().all(|&x| x.is_finite()));
     }
 }
