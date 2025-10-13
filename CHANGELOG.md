@@ -5,6 +5,57 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.4] - 2025-01-13
+
+### Added - Complete WebAssembly Coverage Achieved 🎯
+
+#### 🌐 **100% WASM Coverage Milestone**
+This release achieves complete WebAssembly coverage across all applicable mathematical domains, making Amari the first comprehensive mathematical computing platform fully available in web browsers.
+
+#### **New Mathematical Systems in WASM**
+- **`amari-enumerative` WASM bindings**: Complete enumerative geometry and intersection theory
+  - `WasmChowClass`: Chow classes and intersection numbers in browsers
+  - `WasmProjectiveSpace`: Projective spaces and Bézout's theorem calculations
+  - `WasmGrassmannian`: Grassmannian varieties and Schubert calculus
+  - `WasmTropicalCurve`: Tropical curves and moduli spaces
+  - Comprehensive batch operations for high-performance web applications
+
+- **`amari-network` WASM bindings**: Advanced geometric network analysis for web
+  - `WasmGeometricNetwork`: Networks embedded in Clifford algebra space
+  - `WasmTropicalNetwork`: Tropical algebra pathfinding algorithms
+  - Community detection and centrality measures in browsers
+  - Information diffusion modeling and spectral clustering
+  - Small-world and random network generation utilities
+
+#### **Enhanced WASM Infrastructure**
+- **Universal multivector access**: Helper functions for coefficient extraction across all modules
+- **Comprehensive error handling**: JsValue error conversion for robust web applications
+- **TypeScript-ready interfaces**: Full type definitions for all mathematical operations
+- **Performance optimizations**: Optimized memory management and batch operations
+- **Production-grade reliability**: Extensive testing and validation across all WASM modules
+
+#### **Complete Mathematical Web Platform**
+All 9 applicable Amari crates now provide full WebAssembly functionality:
+1. ✅ `amari-core` - Geometric algebra foundations
+2. ✅ `amari-tropical` - Tropical algebra and optimization
+3. ✅ `amari-dual` - Automatic differentiation
+4. ✅ `amari-fusion` - LLM evaluation fusion systems
+5. ✅ `amari-info-geom` - Information geometry and statistical manifolds
+6. ✅ `amari-automata` - Cellular automata and self-assembly
+7. ✅ `amari-enumerative` - Enumerative geometry and intersection theory *(NEW)*
+8. ✅ `amari-network` - Geometric network analysis *(NEW)*
+9. ✅ `amari-relativistic` - Relativistic physics and spacetime algebra
+
+### Changed
+- **Documentation updated**: All examples and installation instructions reflect 100% WASM coverage
+- **Version consistency**: All crates updated to v0.9.4 for coordinated release
+- **API improvements**: Enhanced error handling and memory management across WASM bindings
+
+### Technical Notes
+- `amari-gpu` intentionally excluded from WASM (GPU/CUDA operations not available in WebAssembly)
+- Complete GPU coverage planned for v0.9.5
+- All WASM modules pass comprehensive Clippy checks and formatting standards
+
 ## [0.7.0] - 2025-01-02
 
 ### Added - Phase 4B: GPU Verification Framework

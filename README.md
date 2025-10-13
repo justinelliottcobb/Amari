@@ -1,8 +1,8 @@
-# Amari v0.9.1
+# Amari v0.9.4
 
-**Unified Mathematical Computing Platform with WebAssembly-Compatible High-Precision Arithmetic**
+**Complete Mathematical Computing Platform with 100% WebAssembly Coverage**
 
-A comprehensive mathematical computing library featuring geometric algebra, relativistic physics, cross-platform high-precision arithmetic for spacecraft orbital mechanics, tropical algebra, automatic differentiation, and information geometry. Now with full WebAssembly compatibility and multi-backend precision support for both native and WASM environments.
+A comprehensive mathematical computing library featuring geometric algebra, relativistic physics, enumerative geometry, network analysis, tropical algebra, automatic differentiation, fusion systems, cellular automata, and information geometry. Now with complete WebAssembly coverage across all mathematical domains and multi-backend precision support for both native and WASM environments.
 
 [![Rust](https://img.shields.io/badge/Rust-1.75+-orange.svg)](https://www.rust-lang.org/)
 [![WebAssembly](https://img.shields.io/badge/WebAssembly-Ready-blue.svg)](https://webassembly.org/)
@@ -11,13 +11,13 @@ A comprehensive mathematical computing library featuring geometric algebra, rela
 
 ## Features
 
-### New in v0.9.1: WebAssembly-Compatible Multi-Backend Precision
-- **Universal High-Precision**: Seamless high-precision arithmetic that works in both native and WebAssembly environments
-- **Multi-Backend Architecture**: Automatically uses rug (GMP/MPFR) for native performance and dashu for WASM compatibility
-- **WebAssembly 3.0 Ready**: Leverages latest WASM features including 64-bit address space for enhanced precision
-- **Cross-Platform Orbital Mechanics**: Spacecraft simulations now work identically in browsers and native applications
-- **Conditional Compilation**: Smart feature-based backend selection for optimal performance per platform
-- **Pure Rust WASM**: No native dependencies required for WebAssembly builds, enabling deployment anywhere
+### New in v0.9.4: Complete WebAssembly Coverage Achieved
+- **100% WASM Coverage**: All 9 applicable mathematical crates now have comprehensive WebAssembly bindings
+- **Enumerative Geometry on Web**: Chow classes, intersection theory, Schubert calculus, and projective spaces in browsers
+- **Geometric Networks in WASM**: Community detection, centrality measures, and tropical pathfinding for web applications
+- **Advanced Mathematical Web Apps**: Complete access to research-grade mathematical computing in any browser
+- **Universal Mathematical Platform**: Same APIs and capabilities across native Rust, WebAssembly, and TypeScript
+- **Production-Ready WASM**: Optimized bindings with comprehensive error handling and performance optimizations
 
 ### Established Features: Relativistic Physics & Mathematical Systems
 - **Relativistic Physics**: Complete spacetime algebra (Cl(1,3)) with Minkowski signature for relativistic calculations
@@ -26,21 +26,25 @@ A comprehensive mathematical computing library featuring geometric algebra, rela
 - **Schwarzschild Metric**: Spherically symmetric gravitational fields for astrophysics applications
 - **Phantom Types**: Compile-time verification of relativistic invariants and spacetime signatures
 
-### Core Mathematical Systems
+### Complete Mathematical Systems Portfolio
 - **Geometric Algebra (Clifford Algebra)**: Multivectors, rotors, and geometric products for 3D rotations and spatial transformations
+- **Enumerative Geometry**: Chow classes, intersection theory, Schubert calculus, projective spaces, and Grassmannian varieties
+- **Geometric Network Analysis**: Community detection, centrality measures, information diffusion, and spectral clustering
 - **Tropical Algebra**: Max-plus semiring operations for optimization and neural network applications
 - **Automatic Differentiation**: Forward-mode AD with dual numbers for exact derivatives
-- **Fusion Systems**: Tropical-dual-Clifford fusion combining three algebraic systems
-- **Information Geometry**: Statistical manifolds, KL/JS divergences, and Fisher information
+- **Fusion Systems**: Tropical-dual-Clifford fusion combining three algebraic systems for LLM evaluation
+- **Cellular Automata**: Self-assembly, inverse design, and emergent behavior modeling
+- **Information Geometry**: Statistical manifolds, KL/JS divergences, Fisher information, and Chentsov-Amari connections
+- **Relativistic Physics**: Complete spacetime algebra with geodesic integration and Schwarzschild metrics
 
-### Platform Support
+### Platform Support & Deployment
 - **Native Rust**: Ultimate performance with rug (GMP/MPFR) backend for high-precision arithmetic
-- **WebAssembly**: Full-featured WASM bindings with dashu backend for browser compatibility
+- **WebAssembly**: Complete WASM coverage (100%) with comprehensive bindings for all mathematical domains
 - **Universal Precision**: Same API and mathematical accuracy across all platforms
-- **GPU Acceleration**: WebGPU support for large-scale parallel computations
-- **TypeScript Support**: Full TypeScript definitions included
-- **Deployment Freedom**: Pure Rust WASM builds deploy anywhere without system dependencies
-- **Cross-Platform**: Linux, macOS, Windows, browsers, Node.js, and edge computing environments
+- **GPU Acceleration**: WebGPU support for relativistic physics, networks, and information geometry (v0.9.5: Complete GPU coverage planned)
+- **TypeScript Support**: Full TypeScript definitions for all WASM modules
+- **Production Ready**: Optimized for performance with comprehensive error handling and memory management
+- **Cross-Platform**: Linux, macOS, Windows, browsers, Node.js, edge computing, and cloud environments
 
 ## Installation
 
@@ -50,28 +54,34 @@ Add to your `Cargo.toml`:
 
 ```toml
 [dependencies]
+# Complete mathematical computing suite with 100% WASM coverage
+amari = "0.9.4"  # Includes all mathematical systems
+
+# Or use individual crates for specific needs:
 # Core geometric algebra and mathematical foundations
-amari-core = "0.9.1"
+amari-core = "0.9.4"
 
-# High-precision relativistic physics with multi-backend support
-amari-relativistic = { version = "0.9.1", features = ["high-precision"] }
+# Complete mathematical system coverage
+amari-relativistic = "0.9.4"     # Relativistic physics and spacetime algebra
+amari-network = "0.9.4"          # Geometric network analysis and graph theory
+amari-enumerative = "0.9.4"      # Enumerative geometry and intersection theory
+amari-tropical = "0.9.4"         # Tropical algebra and optimization
+amari-dual = "0.9.4"             # Automatic differentiation with dual numbers
+amari-fusion = "0.9.4"           # Fusion systems for LLM evaluation
+amari-automata = "0.9.4"         # Cellular automata and self-assembly
+amari-info-geom = "0.9.4"        # Information geometry and statistical manifolds
 
-# For native applications (uses rug/GMP backend)
-amari-relativistic = { version = "0.9.1", features = ["native-precision"] }
+# GPU acceleration (partial coverage, complete in v0.9.5)
+amari-gpu = "0.9.4"
 
-# For WebAssembly targets (uses dashu backend)
-amari-relativistic = { version = "0.9.1", features = ["wasm-precision"] }
+# For native applications with ultimate precision
+amari-relativistic = { version = "0.9.4", features = ["native-precision"] }
 
-# GPU acceleration and verification
-amari-gpu = "0.9.1"
-
-# Additional mathematical systems
-amari-tropical = "0.9.1"
-amari-dual = "0.9.1"
-amari-info-geom = "0.9.1"
+# For WebAssembly targets (now with 100% coverage)
+amari = { version = "0.9.4", features = ["wasm-precision"] }
 ```
 
-### JavaScript/TypeScript (WebAssembly)
+### JavaScript/TypeScript (WebAssembly) - 100% Coverage Available
 
 ```bash
 npm install @justinelliottcobb/amari-wasm
@@ -82,6 +92,11 @@ Or with yarn:
 ```bash
 yarn add @justinelliottcobb/amari-wasm
 ```
+
+**New in v0.9.4**: Complete WASM coverage includes all mathematical systems:
+- Enumerative geometry (Chow classes, intersection theory)
+- Geometric network analysis (community detection, pathfinding)
+- All existing systems (relativistic physics, tropical algebra, etc.)
 
 ## Quick Start
 
@@ -214,28 +229,72 @@ let spacecraft_trajectory = propagate_orbital_mechanics(
 )?;
 ```
 
+### New WASM Examples (v0.9.4)
+
+**Enumerative Geometry in Browser:**
+```typescript
+import init, { WasmChowClass, WasmProjectiveSpace } from '@justinelliottcobb/amari-wasm';
+
+await init();
+
+// Intersection theory in the browser
+const projective3D = new WasmProjectiveSpace(3);
+const curve1 = WasmChowClass.hypersurface(2); // Quadric surface
+const curve2 = WasmChowClass.hypersurface(3); // Cubic surface
+
+// Compute Bézout intersection number
+const intersectionCount = projective3D.bezoutIntersection(2, 3);
+console.log(`Intersection points: ${intersectionCount}`); // 6 points
+```
+
+**Geometric Network Analysis in Browser:**
+```typescript
+import { WasmGeometricNetwork, NetworkUtils } from '@justinelliottcobb/amari-wasm';
+
+// Create a small-world network for web visualization
+const network = NetworkUtils.createSmallWorldNetwork(100, 6, 0.1);
+
+// Community detection
+const communities = network.findCommunities(5);
+
+// Compute centrality measures
+const centrality = network.computeGeometricCentrality();
+const betweenness = network.computeBetweennessCentrality();
+```
+
 ## Use Cases
 
+- **Advanced Mathematical Research**: Full enumerative geometry and intersection theory in web applications
+- **Interactive Network Visualization**: Community detection and centrality analysis in browsers
 - **Computer Graphics**: 3D rotations and transformations using rotors
-- **Physics Simulations**: Geometric algebra for electromagnetic fields
-- **Machine Learning**: Tropical neural networks and automatic differentiation
+- **Physics Simulations**: Geometric algebra for electromagnetic fields and relativistic calculations
+- **Machine Learning**: Tropical neural networks, automatic differentiation, and fusion systems
 - **Optimization**: Tropical algebra for shortest path and scheduling problems
-- **Scientific Computing**: High-performance mathematical operations
+- **Scientific Computing**: High-performance mathematical operations across all platforms
 - **Game Development**: Efficient spatial transformations and physics
+- **Educational Tools**: Interactive mathematical demonstrations with research-grade algorithms
 
 ## Architecture
 
-### Crates
+### Complete Mathematical Computing Ecosystem (v0.9.4)
 
-- `amari-core`: Core Clifford algebra types and CPU implementations
-- `amari-tropical`: Tropical (max-plus) algebra for neural networks
-- `amari-dual`: Dual numbers for automatic differentiation
-- `amari-fusion`: Unified Tropical-Dual-Clifford system
-- `amari-info-geom`: Information geometry and statistical manifolds
-- `amari-wasm`: WASM bindings for TypeScript/JavaScript (**New in v0.4.0**)
-- `amari-gpu`: Optional GPU acceleration via WebGPU/wgpu
-- `amari-automata`: Cellular automata with geometric algebra
-- `amari-enumerative`: Enumerative geometry and algebraic curves
+**Core Mathematical Systems:**
+- `amari-core`: Foundational Clifford algebra types and CPU implementations
+- `amari-tropical`: Tropical (max-plus) algebra for optimization and neural networks
+- `amari-dual`: Dual numbers for automatic differentiation and gradient computation
+- `amari-fusion`: Unified Tropical-Dual-Clifford system for LLM evaluation
+- `amari-info-geom`: Information geometry, statistical manifolds, and Chentsov-Amari connections
+
+**Advanced Mathematical Domains:**
+- `amari-enumerative`: Enumerative geometry, intersection theory, and Schubert calculus (**New in v0.9.4**)
+- `amari-network`: Geometric network analysis, community detection, and graph algorithms (**New in v0.9.4**)
+- `amari-automata`: Cellular automata, self-assembly, and emergent behavior modeling
+- `amari-relativistic`: Relativistic physics, spacetime algebra, and geodesic integration
+
+**Platform Integration:**
+- `amari-wasm`: Complete WebAssembly bindings for all mathematical systems (**100% coverage in v0.9.4**)
+- `amari-gpu`: GPU acceleration via WebGPU/wgpu (partial coverage, complete in v0.9.5)
+- `amari`: Unified access to all mathematical systems
 
 ### Key Types
 
