@@ -652,8 +652,7 @@ impl NetworkUtils {
     }
 }
 
-/// Export function to initialize the network module
-#[wasm_bindgen(start)]
+/// Initialize network module (called by main init)
 pub fn init_network() {
     // Set up console error panic hook for better debugging
     std::panic::set_hook(Box::new(console_error_panic_hook::hook));

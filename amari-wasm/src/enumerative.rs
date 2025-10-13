@@ -461,7 +461,7 @@ mod tests {
         assert_eq!(EnumerativeUtils::euler_characteristic(2), 3);
 
         // Test partition validation
-        let partition = vec![3, 2, 1];
+        let partition = vec![2, 2, 1]; // Valid partition: all parts <= n-k = 5-3 = 2
         assert!(EnumerativeUtils::validate_partition(&partition, 3, 5));
 
         // Test Bézout multiplicity
