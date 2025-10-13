@@ -3,6 +3,8 @@
 pub mod adaptive;
 pub mod network;
 pub mod relativistic;
+pub mod shaders;
+pub mod unified;
 pub mod verification;
 
 pub use adaptive::{
@@ -17,7 +19,12 @@ pub use network::{AdaptiveNetworkCompute, GpuGeometricNetwork, GpuNetworkError, 
 pub use relativistic::{
     GpuRelativisticParticle, GpuRelativisticPhysics, GpuSpacetimeVector, GpuTrajectoryParams,
 };
+pub use shaders::{ShaderLibrary, DUAL_SHADERS, FUSION_SHADERS, TROPICAL_SHADERS};
 use thiserror::Error;
+pub use unified::{
+    GpuAccelerated, GpuContext, GpuDispatcher, GpuOperationParams, GpuParam, UnifiedGpuError,
+    UnifiedGpuResult,
+};
 pub use verification::{
     GpuBoundaryVerifier, GpuVerificationError, RelativisticVerifier, StatisticalGpuVerifier,
     VerificationConfig, VerificationStrategy, VerifiedMultivector,
