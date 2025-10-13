@@ -263,26 +263,32 @@ impl AdaptiveVerifier {
     /// Detect current execution platform
     async fn detect_platform() -> Result<VerificationPlatform, AdaptiveVerificationError> {
         // Try GPU detection with comprehensive error handling
-        let gpu_available = {
+        let gpu_platform = {
             // Use std::panic::catch_unwind to handle GPU driver panics
             let panic_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                 // Use pollster to handle the async call safely
-                pollster::block_on(async { GpuCliffordAlgebra::new::<3, 0, 0>().await.is_ok() })
+                pollster::block_on(async {
+                    // Try full GPU initialization including capabilities detection
+                    if GpuCliffordAlgebra::new::<3, 0, 0>().await.is_ok() {
+                        let backend = Self::detect_gpu_backend();
+                        let (memory_mb, compute_units) = Self::estimate_gpu_capabilities().await;
+                        Some(VerificationPlatform::Gpu {
+                            backend,
+                            memory_mb,
+                            compute_units,
+                        })
+                    } else {
+                        None
+                    }
+                })
             }));
 
             // GPU initialization panicked or failed - gracefully fall back to CPU
-            panic_result.unwrap_or_default()
+            panic_result.unwrap_or(None)
         };
 
-        if gpu_available {
-            let backend = Self::detect_gpu_backend();
-            let (memory_mb, compute_units) = Self::estimate_gpu_capabilities().await;
-
-            return Ok(VerificationPlatform::Gpu {
-                backend,
-                memory_mb,
-                compute_units,
-            });
+        if let Some(platform) = gpu_platform {
+            return Ok(platform);
         }
 
         // Check for WASM environment

@@ -8,11 +8,14 @@ use crate::{EnumerativeError, EnumerativeResult};
 use num_rational::Rational64;
 use std::collections::HashMap;
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(feature = "wasm")]
 use wasm_bindgen::prelude::*;
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(feature = "wasm")]
 use web_sys::console;
+
+#[cfg(feature = "wasm")]
+use num_traits::ToPrimitive;
 
 /// Performance configuration for WASM deployment
 #[derive(Debug, Clone)]
@@ -574,12 +577,12 @@ pub struct PerformanceMetrics {
 }
 
 /// WASM-specific logging utilities
-#[cfg(target_arch = "wasm32")]
+#[cfg(feature = "wasm")]
 pub fn wasm_log(message: &str) {
     console::log_1(&message.into());
 }
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(feature = "wasm"))]
 pub fn wasm_log(message: &str) {
     println!("{}", message);
 }
@@ -608,14 +611,14 @@ pub fn benchmark_intersection_computation(
 }
 
 /// WebAssembly exports for JavaScript integration
-#[cfg(target_arch = "wasm32")]
+#[cfg(feature = "wasm")]
 #[wasm_bindgen]
 pub struct WasmEnumerativeAPI {
     curve_counter: WasmCurveCounting,
     intersection_computer: FastIntersectionComputer,
 }
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(feature = "wasm")]
 #[wasm_bindgen]
 impl WasmEnumerativeAPI {
     #[wasm_bindgen(constructor)]
@@ -662,5 +665,12 @@ impl WasmEnumerativeAPI {
             metrics.batch_count,
             metrics.worker_utilization * 100.0
         )
+    }
+}
+
+#[cfg(feature = "wasm")]
+impl Default for WasmEnumerativeAPI {
+    fn default() -> Self {
+        Self::new()
     }
 }
