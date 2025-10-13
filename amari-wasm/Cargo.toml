@@ -22,6 +22,8 @@ serde = { workspace = true }
 serde-wasm-bindgen = "0.6"
 nalgebra = { workspace = true }
 fastrand = "2.0"
+num-rational = "0.4"
+console_error_panic_hook = "0.1"
 
 # Amari dependencies - now WASM-compatible by default
 # Note: high-precision now uses pure Rust dashu-float (WASM-compatible)
@@ -33,6 +35,7 @@ amari-dual = { path = "../amari-dual" }
 amari-fusion = { path = "../amari-fusion" }
 amari-automata = { path = "../amari-automata" }
 amari-info-geom = { path = "../amari-info-geom" }
+amari-enumerative = { path = "../amari-enumerative" }
 amari-relativistic = { path = "../amari-relativistic", features = ["phantom-types"] }
 
 [dependencies.web-sys]

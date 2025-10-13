@@ -4,20 +4,30 @@
 //! - Geometric algebra (amari-core)
 //! - Tropical algebra (amari-tropical)
 //! - Automatic differentiation (amari-dual)
-//! - Fusion systems (amari-fusion) - v0.9.4 TropicalDualClifford for LLM evaluation
+//! - Fusion systems (amari-fusion)
 //! - Information geometry (amari-info-geom)
+//! - Cellular automata (amari-automata)
+//! - Enumerative geometry (amari-enumerative) - v0.9.4
+//! - Geometric networks (amari-network) - v0.9.4
+//! - Relativistic physics (amari-relativistic)
+//!
+//! **WASM Coverage Status: 100% Complete** (v0.9.4)
+//! All applicable Amari crates now have WebAssembly bindings.
+//! Note: amari-gpu intentionally excluded (GPU/CUDA not available in WASM)
 
 use amari_core::{rotor::Rotor, Bivector, Multivector};
 use std::cell::RefCell;
 use wasm_bindgen::prelude::*;
 
-// Optional modules - some enabled for expanded WASM functionality
-pub mod automata; // Enabled for v0.9.4 - Cellular automata, inverse design, self-assembly for web
-pub mod dual; // Enabled for v0.9.3 - automatic differentiation for machine learning in web
-pub mod fusion; // Enabled for v0.9.4 - TropicalDualClifford system for LLM evaluation in web
-pub mod info_geom; // Enabled for v0.9.4 - Information geometry and statistical manifolds for web
-pub mod relativistic;
-pub mod tropical; // Enabled for v0.9.3 - critical for optimization algorithms in web
+// WASM modules - 100% coverage complete (v0.9.4)
+pub mod automata; // Cellular automata, inverse design, self-assembly for web
+pub mod dual; // Automatic differentiation for machine learning in web
+pub mod enumerative; // Enumerative geometry, Schubert calculus, intersection theory for web
+pub mod fusion; // TropicalDualClifford system for LLM evaluation in web
+pub mod info_geom; // Information geometry and statistical manifolds for web
+pub mod network; // Geometric network analysis and graph algorithms for web
+pub mod relativistic; // Relativistic physics simulations for web
+pub mod tropical; // Tropical algebra for optimization algorithms in web
 
 /// Number of coefficients in a 3D Clifford algebra multivector (2^3 = 8)
 /// Basis elements: 1, e1, e2, e3, e12, e13, e23, e123
