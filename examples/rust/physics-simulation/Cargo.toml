@@ -1,6 +1,6 @@
 [package]
 name = "physics-simulation"
-version = "0.6.0"
+version = "0.9.4"
 edition = "2021"
 authors = ["Amari Project <amari@example.com>"]
 description = "Physics simulations using geometric algebra with Amari"
