@@ -121,12 +121,47 @@ fn scalar_cell(value: f32) -> GpuCellData {
 fn apply_geometric_rule(center: GpuCellData, neighbors: array<GpuCellData, 8>, rule: GpuRuleConfig) -> GpuCellData {
     var result = center;
 
-    // Apply geometric product with neighbors
-    for (var i = 0u; i < 8u; i++) {
-        let neighbor_magnitude = cell_magnitude(neighbors[i]);
-        if (neighbor_magnitude > rule.threshold) {
-            result = geometric_product(result, neighbors[i]);
-        }
+    // Apply geometric product with neighbors (unrolled for WGSL compatibility)
+    var neighbor_magnitude: f32;
+
+    neighbor_magnitude = cell_magnitude(neighbors[0]);
+    if (neighbor_magnitude > rule.threshold) {
+        result = geometric_product(result, neighbors[0]);
+    }
+
+    neighbor_magnitude = cell_magnitude(neighbors[1]);
+    if (neighbor_magnitude > rule.threshold) {
+        result = geometric_product(result, neighbors[1]);
+    }
+
+    neighbor_magnitude = cell_magnitude(neighbors[2]);
+    if (neighbor_magnitude > rule.threshold) {
+        result = geometric_product(result, neighbors[2]);
+    }
+
+    neighbor_magnitude = cell_magnitude(neighbors[3]);
+    if (neighbor_magnitude > rule.threshold) {
+        result = geometric_product(result, neighbors[3]);
+    }
+
+    neighbor_magnitude = cell_magnitude(neighbors[4]);
+    if (neighbor_magnitude > rule.threshold) {
+        result = geometric_product(result, neighbors[4]);
+    }
+
+    neighbor_magnitude = cell_magnitude(neighbors[5]);
+    if (neighbor_magnitude > rule.threshold) {
+        result = geometric_product(result, neighbors[5]);
+    }
+
+    neighbor_magnitude = cell_magnitude(neighbors[6]);
+    if (neighbor_magnitude > rule.threshold) {
+        result = geometric_product(result, neighbors[6]);
+    }
+
+    neighbor_magnitude = cell_magnitude(neighbors[7]);
+    if (neighbor_magnitude > rule.threshold) {
+        result = geometric_product(result, neighbors[7]);
     }
 
     // Apply damping and normalization
@@ -152,11 +187,30 @@ fn apply_geometric_rule(center: GpuCellData, neighbors: array<GpuCellData, 8>, r
 fn apply_game_of_life_rule(center: GpuCellData, neighbors: array<GpuCellData, 8>, rule: GpuRuleConfig) -> GpuCellData {
     var alive_neighbors = 0u;
 
-    // Count alive neighbors
-    for (var i = 0u; i < 8u; i++) {
-        if (cell_magnitude(neighbors[i]) > rule.threshold) {
-            alive_neighbors++;
-        }
+    // Count alive neighbors (unrolled for WGSL compatibility)
+    if (cell_magnitude(neighbors[0]) > rule.threshold) {
+        alive_neighbors++;
+    }
+    if (cell_magnitude(neighbors[1]) > rule.threshold) {
+        alive_neighbors++;
+    }
+    if (cell_magnitude(neighbors[2]) > rule.threshold) {
+        alive_neighbors++;
+    }
+    if (cell_magnitude(neighbors[3]) > rule.threshold) {
+        alive_neighbors++;
+    }
+    if (cell_magnitude(neighbors[4]) > rule.threshold) {
+        alive_neighbors++;
+    }
+    if (cell_magnitude(neighbors[5]) > rule.threshold) {
+        alive_neighbors++;
+    }
+    if (cell_magnitude(neighbors[6]) > rule.threshold) {
+        alive_neighbors++;
+    }
+    if (cell_magnitude(neighbors[7]) > rule.threshold) {
+        alive_neighbors++;
     }
 
     let center_alive = cell_magnitude(center) > rule.threshold;
@@ -181,11 +235,30 @@ fn apply_game_of_life_rule(center: GpuCellData, neighbors: array<GpuCellData, 8>
 fn apply_conservative_rule(center: GpuCellData, neighbors: array<GpuCellData, 8>, rule: GpuRuleConfig) -> GpuCellData {
     var total_energy = cell_magnitude(center) * cell_magnitude(center);
 
-    // Calculate total energy in neighborhood
-    for (var i = 0u; i < 8u; i++) {
-        let neighbor_mag = cell_magnitude(neighbors[i]);
-        total_energy += neighbor_mag * neighbor_mag;
-    }
+    // Calculate total energy in neighborhood (unrolled for WGSL compatibility)
+    let neighbor_mag_0 = cell_magnitude(neighbors[0]);
+    total_energy += neighbor_mag_0 * neighbor_mag_0;
+
+    let neighbor_mag_1 = cell_magnitude(neighbors[1]);
+    total_energy += neighbor_mag_1 * neighbor_mag_1;
+
+    let neighbor_mag_2 = cell_magnitude(neighbors[2]);
+    total_energy += neighbor_mag_2 * neighbor_mag_2;
+
+    let neighbor_mag_3 = cell_magnitude(neighbors[3]);
+    total_energy += neighbor_mag_3 * neighbor_mag_3;
+
+    let neighbor_mag_4 = cell_magnitude(neighbors[4]);
+    total_energy += neighbor_mag_4 * neighbor_mag_4;
+
+    let neighbor_mag_5 = cell_magnitude(neighbors[5]);
+    total_energy += neighbor_mag_5 * neighbor_mag_5;
+
+    let neighbor_mag_6 = cell_magnitude(neighbors[6]);
+    total_energy += neighbor_mag_6 * neighbor_mag_6;
+
+    let neighbor_mag_7 = cell_magnitude(neighbors[7]);
+    total_energy += neighbor_mag_7 * neighbor_mag_7;
 
     let avg_energy = total_energy / 9.0; // Center + 8 neighbors
     let target_magnitude = sqrt(avg_energy);
@@ -211,17 +284,77 @@ fn apply_conservative_rule(center: GpuCellData, neighbors: array<GpuCellData, 8>
 fn apply_rotor_rule(center: GpuCellData, neighbors: array<GpuCellData, 8>, rule: GpuRuleConfig) -> GpuCellData {
     var result = center;
 
-    // Accumulate bivector parts from neighbors (rotors)
-    for (var i = 0u; i < 8u; i++) {
-        let bivector_magnitude = sqrt(neighbors[i].e12 * neighbors[i].e12 +
-                                     neighbors[i].e13 * neighbors[i].e13 +
-                                     neighbors[i].e23 * neighbors[i].e23);
+    // Accumulate bivector parts from neighbors (rotors) - unrolled for WGSL compatibility
+    let bivector_magnitude_0 = sqrt(neighbors[0].e12 * neighbors[0].e12 +
+                                   neighbors[0].e13 * neighbors[0].e13 +
+                                   neighbors[0].e23 * neighbors[0].e23);
+    if (bivector_magnitude_0 > rule.threshold) {
+        result.e12 += neighbors[0].e12 * rule.geometric_weight;
+        result.e13 += neighbors[0].e13 * rule.geometric_weight;
+        result.e23 += neighbors[0].e23 * rule.geometric_weight;
+    }
 
-        if (bivector_magnitude > rule.threshold) {
-            result.e12 += neighbors[i].e12 * rule.geometric_weight;
-            result.e13 += neighbors[i].e13 * rule.geometric_weight;
-            result.e23 += neighbors[i].e23 * rule.geometric_weight;
-        }
+    let bivector_magnitude_1 = sqrt(neighbors[1].e12 * neighbors[1].e12 +
+                                   neighbors[1].e13 * neighbors[1].e13 +
+                                   neighbors[1].e23 * neighbors[1].e23);
+    if (bivector_magnitude_1 > rule.threshold) {
+        result.e12 += neighbors[1].e12 * rule.geometric_weight;
+        result.e13 += neighbors[1].e13 * rule.geometric_weight;
+        result.e23 += neighbors[1].e23 * rule.geometric_weight;
+    }
+
+    let bivector_magnitude_2 = sqrt(neighbors[2].e12 * neighbors[2].e12 +
+                                   neighbors[2].e13 * neighbors[2].e13 +
+                                   neighbors[2].e23 * neighbors[2].e23);
+    if (bivector_magnitude_2 > rule.threshold) {
+        result.e12 += neighbors[2].e12 * rule.geometric_weight;
+        result.e13 += neighbors[2].e13 * rule.geometric_weight;
+        result.e23 += neighbors[2].e23 * rule.geometric_weight;
+    }
+
+    let bivector_magnitude_3 = sqrt(neighbors[3].e12 * neighbors[3].e12 +
+                                   neighbors[3].e13 * neighbors[3].e13 +
+                                   neighbors[3].e23 * neighbors[3].e23);
+    if (bivector_magnitude_3 > rule.threshold) {
+        result.e12 += neighbors[3].e12 * rule.geometric_weight;
+        result.e13 += neighbors[3].e13 * rule.geometric_weight;
+        result.e23 += neighbors[3].e23 * rule.geometric_weight;
+    }
+
+    let bivector_magnitude_4 = sqrt(neighbors[4].e12 * neighbors[4].e12 +
+                                   neighbors[4].e13 * neighbors[4].e13 +
+                                   neighbors[4].e23 * neighbors[4].e23);
+    if (bivector_magnitude_4 > rule.threshold) {
+        result.e12 += neighbors[4].e12 * rule.geometric_weight;
+        result.e13 += neighbors[4].e13 * rule.geometric_weight;
+        result.e23 += neighbors[4].e23 * rule.geometric_weight;
+    }
+
+    let bivector_magnitude_5 = sqrt(neighbors[5].e12 * neighbors[5].e12 +
+                                   neighbors[5].e13 * neighbors[5].e13 +
+                                   neighbors[5].e23 * neighbors[5].e23);
+    if (bivector_magnitude_5 > rule.threshold) {
+        result.e12 += neighbors[5].e12 * rule.geometric_weight;
+        result.e13 += neighbors[5].e13 * rule.geometric_weight;
+        result.e23 += neighbors[5].e23 * rule.geometric_weight;
+    }
+
+    let bivector_magnitude_6 = sqrt(neighbors[6].e12 * neighbors[6].e12 +
+                                   neighbors[6].e13 * neighbors[6].e13 +
+                                   neighbors[6].e23 * neighbors[6].e23);
+    if (bivector_magnitude_6 > rule.threshold) {
+        result.e12 += neighbors[6].e12 * rule.geometric_weight;
+        result.e13 += neighbors[6].e13 * rule.geometric_weight;
+        result.e23 += neighbors[6].e23 * rule.geometric_weight;
+    }
+
+    let bivector_magnitude_7 = sqrt(neighbors[7].e12 * neighbors[7].e12 +
+                                   neighbors[7].e13 * neighbors[7].e13 +
+                                   neighbors[7].e23 * neighbors[7].e23);
+    if (bivector_magnitude_7 > rule.threshold) {
+        result.e12 += neighbors[7].e12 * rule.geometric_weight;
+        result.e13 += neighbors[7].e13 * rule.geometric_weight;
+        result.e23 += neighbors[7].e23 * rule.geometric_weight;
     }
 
     return result;
