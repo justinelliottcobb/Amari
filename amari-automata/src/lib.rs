@@ -48,6 +48,8 @@ pub use amari_tropical::TropicalMultivector;
 // Core modules
 pub mod cayley_navigation;
 pub mod geometric_ca;
+#[cfg(feature = "gpu")]
+pub mod gpu;
 pub mod inverse_design;
 pub mod self_assembly;
 pub mod tropical_solver;
@@ -71,6 +73,13 @@ pub use tropical_solver::{
     ConstraintType, SolverConfig, TropicalExpression, TropicalSolver, TropicalSystem,
 };
 pub use ui_assembly::{Layout, LayoutConstraint, UIAssembler, UIAssemblyConfig, UIComponent};
+
+// GPU acceleration exports
+#[cfg(feature = "gpu")]
+pub use gpu::{
+    AutomataGpuConfig, AutomataGpuError, AutomataGpuOps, AutomataGpuResult, GpuCellData,
+    GpuEvolutionParams, GpuRuleConfig,
+};
 
 /// Common error types for the automata system
 #[derive(Debug, Clone, PartialEq)]
