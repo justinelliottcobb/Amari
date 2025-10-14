@@ -1,6 +1,6 @@
 {
   "name": "amari-interactive-demos",
-  "version": "0.9.4",
+  "version": "0.9.5",
   "description": "Interactive web demonstrations of Amari geometric algebra and dual numbers",
   "main": "index.js",
   "scripts": {
