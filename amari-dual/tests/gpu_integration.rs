@@ -8,7 +8,7 @@ mod gpu_tests {
             GpuOperationParams, GpuParameter, NeuralNetworkConfig, ObjectiveFunction,
             VectorFunction,
         },
-        DualNumber, MultiDual,
+        DualNumber,
     };
     use approx::assert_relative_eq;
     use std::collections::HashMap;
@@ -31,14 +31,14 @@ mod gpu_tests {
 
     #[tokio::test]
     async fn test_dual_number_gpu_roundtrip() {
-        let original = DualNumber::new(3.14f32, 2.71f32);
+        let original = DualNumber::new(std::f32::consts::PI, 2.71f32);
 
         // Test should handle GPU unavailability gracefully
         if let Ok(context) = DualGpuContext::new().await {
             // Test buffer conversion roundtrip
             let buffer_result = original.to_gpu_buffer(&context);
 
-            if let Ok(buffer) = buffer_result {
+            if let Ok(_buffer) = buffer_result {
                 // Note: from_gpu_buffer would need async context in practice
                 // For now, test the conversion to GPU format
                 let gpu_dual: GpuDualNumber = original.into();
@@ -92,9 +92,10 @@ mod gpu_tests {
                         // Verify that operations were applied (at least structure is correct)
                         for (i, result) in results.iter().enumerate() {
                             // Results should be different from inputs due to operations
-                            println!("   Input {}: ({}, {}) -> ({}, {})",
-                                     i, inputs[i].real, inputs[i].dual,
-                                     result.real, result.dual);
+                            println!(
+                                "   Input {}: ({}, {}) -> ({}, {})",
+                                i, inputs[i].real, inputs[i].dual, result.real, result.dual
+                            );
                         }
                     }
                     Err(_) => {
@@ -132,7 +133,11 @@ mod gpu_tests {
                 Ok(gradients) => {
                     assert_eq!(gradients.len(), weights.len());
                     println!("✅ Neural gradient computation successful");
-                    println!("   Computed {} gradients for {} weights", gradients.len(), weights.len());
+                    println!(
+                        "   Computed {} gradients for {} weights",
+                        gradients.len(),
+                        weights.len()
+                    );
                 }
                 Err(_) => {
                     println!("⚠️  Neural gradient computation failed, but test passes");
@@ -248,20 +253,20 @@ mod gpu_tests {
         let mut params = GpuOperationParams::default();
 
         // Test parameter insertion
-        params.params.insert(
-            "learning_rate".to_string(),
-            GpuParameter::Float(0.01),
-        );
-        params.params.insert(
-            "batch_size".to_string(),
-            GpuParameter::Integer(32),
-        );
+        params
+            .params
+            .insert("learning_rate".to_string(), GpuParameter::Float(0.01));
+        params
+            .params
+            .insert("batch_size".to_string(), GpuParameter::Integer(32));
 
-        let dual_num = GpuDualNumber { real: 2.0, dual: 1.0 };
-        params.params.insert(
-            "dual_input".to_string(),
-            GpuParameter::DualNumber(dual_num),
-        );
+        let dual_num = GpuDualNumber {
+            real: 2.0,
+            dual: 1.0,
+        };
+        params
+            .params
+            .insert("dual_input".to_string(), GpuParameter::DualNumber(dual_num));
 
         params.batch_size = 64;
         params.workgroup_size = (64, 1, 1);
@@ -304,8 +309,8 @@ mod gpu_tests {
         assert_eq!(var.real, 5.0);
         assert_eq!(var.dual, 1.0);
 
-        let constant = DualNumber::<f32>::new_constant_const(3.14);
-        assert_eq!(constant.real, 3.14);
+        let constant = DualNumber::<f32>::new_constant_const(std::f32::consts::PI);
+        assert_eq!(constant.real, std::f32::consts::PI);
         assert_eq!(constant.dual, 0.0);
 
         println!("✅ Dual number constants verified");

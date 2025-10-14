@@ -344,8 +344,7 @@ impl DualGpuOps {
         let num_elements = inputs.len();
 
         // Convert inputs to GPU format
-        let gpu_inputs: Vec<GpuDualNumber> =
-            inputs.iter().map(|&d| d.into()).collect();
+        let gpu_inputs: Vec<GpuDualNumber> = inputs.iter().map(|&d| d.into()).collect();
 
         // Create buffers
         let input_buffer = self.context.create_dual_buffer(
@@ -368,23 +367,26 @@ impl DualGpuOps {
         let bind_group_layout = self.create_batch_ad_layout();
 
         // Create bind group first to avoid borrow conflicts
-        let bind_group = self.context.device.create_bind_group(&wgpu::BindGroupDescriptor {
-            label: Some("Batch Forward AD Bind Group"),
-            layout: &bind_group_layout,
-            entries: &[
-                wgpu::BindGroupEntry {
-                    binding: 0,
-                    resource: input_buffer.as_entire_binding(),
-                },
-                wgpu::BindGroupEntry {
-                    binding: 1,
-                    resource: output_buffer.as_entire_binding(),
-                },
-            ],
-        });
+        let bind_group = self
+            .context
+            .device
+            .create_bind_group(&wgpu::BindGroupDescriptor {
+                label: Some("Batch Forward AD Bind Group"),
+                layout: &bind_group_layout,
+                entries: &[
+                    wgpu::BindGroupEntry {
+                        binding: 0,
+                        resource: input_buffer.as_entire_binding(),
+                    },
+                    wgpu::BindGroupEntry {
+                        binding: 1,
+                        resource: output_buffer.as_entire_binding(),
+                    },
+                ],
+            });
 
         // Get pipeline and execute in one operation to avoid lifetime issues
-        let workgroup_count = ((num_elements + workgroup_size - 1) / workgroup_size) as u32;
+        let workgroup_count = num_elements.div_ceil(workgroup_size) as u32;
         self.execute_pipeline_operation(
             "batch_forward_ad",
             &shader_source,
@@ -394,41 +396,46 @@ impl DualGpuOps {
         )?;
 
         // Read results
-        let results: Vec<GpuDualNumber> = self.context.read_dual_buffer(
-            &output_buffer,
-            (num_elements * std::mem::size_of::<GpuDualNumber>()) as u64,
-        ).await?;
+        let results: Vec<GpuDualNumber> = self
+            .context
+            .read_dual_buffer(
+                &output_buffer,
+                (num_elements * std::mem::size_of::<GpuDualNumber>()) as u64,
+            )
+            .await?;
 
         Ok(results.into_iter().map(|g| g.into()).collect())
     }
 
     /// Create bind group layout for batch AD operations
     fn create_batch_ad_layout(&self) -> wgpu::BindGroupLayout {
-        self.context.device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-            label: Some("Batch Forward AD Layout"),
-            entries: &[
-                wgpu::BindGroupLayoutEntry {
-                    binding: 0,
-                    visibility: wgpu::ShaderStages::COMPUTE,
-                    ty: wgpu::BindingType::Buffer {
-                        ty: wgpu::BufferBindingType::Storage { read_only: true },
-                        has_dynamic_offset: false,
-                        min_binding_size: None,
+        self.context
+            .device
+            .create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+                label: Some("Batch Forward AD Layout"),
+                entries: &[
+                    wgpu::BindGroupLayoutEntry {
+                        binding: 0,
+                        visibility: wgpu::ShaderStages::COMPUTE,
+                        ty: wgpu::BindingType::Buffer {
+                            ty: wgpu::BufferBindingType::Storage { read_only: true },
+                            has_dynamic_offset: false,
+                            min_binding_size: None,
+                        },
+                        count: None,
                     },
-                    count: None,
-                },
-                wgpu::BindGroupLayoutEntry {
-                    binding: 1,
-                    visibility: wgpu::ShaderStages::COMPUTE,
-                    ty: wgpu::BindingType::Buffer {
-                        ty: wgpu::BufferBindingType::Storage { read_only: false },
-                        has_dynamic_offset: false,
-                        min_binding_size: None,
+                    wgpu::BindGroupLayoutEntry {
+                        binding: 1,
+                        visibility: wgpu::ShaderStages::COMPUTE,
+                        ty: wgpu::BindingType::Buffer {
+                            ty: wgpu::BufferBindingType::Storage { read_only: false },
+                            has_dynamic_offset: false,
+                            min_binding_size: None,
+                        },
+                        count: None,
                     },
-                    count: None,
-                },
-            ],
-        })
+                ],
+            })
     }
 
     /// Execute pipeline operation without borrow conflicts
@@ -441,28 +448,35 @@ impl DualGpuOps {
         workgroup_count: (u32, u32, u32),
     ) -> DualGpuResult<()> {
         // Create pipeline directly instead of caching to avoid borrow issues
-        let shader_module = self.context.device
-            .create_shader_module(wgpu::ShaderModuleDescriptor {
-                label: Some("Dual Operation Shader"),
-                source: wgpu::ShaderSource::Wgsl(shader_source.into()),
-            });
+        let shader_module =
+            self.context
+                .device
+                .create_shader_module(wgpu::ShaderModuleDescriptor {
+                    label: Some("Dual Operation Shader"),
+                    source: wgpu::ShaderSource::Wgsl(shader_source.into()),
+                });
 
-        let pipeline_layout = self.context.device
-            .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-                label: Some("Dual Operation Pipeline Layout"),
-                bind_group_layouts: &[bind_group_layout],
-                push_constant_ranges: &[],
-            });
+        let pipeline_layout =
+            self.context
+                .device
+                .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+                    label: Some("Dual Operation Pipeline Layout"),
+                    bind_group_layouts: &[bind_group_layout],
+                    push_constant_ranges: &[],
+                });
 
-        let compute_pipeline = self.context.device
-            .create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
-                label: Some("Dual Operation Pipeline"),
-                layout: Some(&pipeline_layout),
-                module: &shader_module,
-                entry_point: "main",
-            });
+        let compute_pipeline =
+            self.context
+                .device
+                .create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
+                    label: Some("Dual Operation Pipeline"),
+                    layout: Some(&pipeline_layout),
+                    module: &shader_module,
+                    entry_point: "main",
+                });
 
-        self.context.execute_dual_compute(&compute_pipeline, bind_group, workgroup_count);
+        self.context
+            .execute_dual_compute(&compute_pipeline, bind_group, workgroup_count);
         Ok(())
     }
 
@@ -519,30 +533,33 @@ impl DualGpuOps {
 
             let bind_group_layout = self.create_neural_bind_group_layout();
 
-            let bind_group = self.context.device.create_bind_group(&wgpu::BindGroupDescriptor {
-                label: Some("Neural Gradient Bind Group"),
-                layout: &bind_group_layout,
-                entries: &[
-                    wgpu::BindGroupEntry {
-                        binding: 0,
-                        resource: weight_buffer.as_entire_binding(),
-                    },
-                    wgpu::BindGroupEntry {
-                        binding: 1,
-                        resource: input_buffer.as_entire_binding(),
-                    },
-                    wgpu::BindGroupEntry {
-                        binding: 2,
-                        resource: target_buffer.as_entire_binding(),
-                    },
-                    wgpu::BindGroupEntry {
-                        binding: 3,
-                        resource: gradient_buffer.as_entire_binding(),
-                    },
-                ],
-            });
+            let bind_group = self
+                .context
+                .device
+                .create_bind_group(&wgpu::BindGroupDescriptor {
+                    label: Some("Neural Gradient Bind Group"),
+                    layout: &bind_group_layout,
+                    entries: &[
+                        wgpu::BindGroupEntry {
+                            binding: 0,
+                            resource: weight_buffer.as_entire_binding(),
+                        },
+                        wgpu::BindGroupEntry {
+                            binding: 1,
+                            resource: input_buffer.as_entire_binding(),
+                        },
+                        wgpu::BindGroupEntry {
+                            binding: 2,
+                            resource: target_buffer.as_entire_binding(),
+                        },
+                        wgpu::BindGroupEntry {
+                            binding: 3,
+                            resource: gradient_buffer.as_entire_binding(),
+                        },
+                    ],
+                });
 
-            let workgroup_count = ((chunk_size_actual + 63) / 64) as u32;
+            let workgroup_count = chunk_size_actual.div_ceil(64) as u32;
             self.execute_pipeline_operation(
                 "neural_gradient",
                 &shader_source,
@@ -552,10 +569,13 @@ impl DualGpuOps {
             )?;
 
             // Read chunk gradients
-            let chunk_gradients: Vec<f32> = self.context.read_dual_buffer(
-                &gradient_buffer,
-                (chunk_size_actual * std::mem::size_of::<f32>()) as u64,
-            ).await?;
+            let chunk_gradients: Vec<f32> = self
+                .context
+                .read_dual_buffer(
+                    &gradient_buffer,
+                    (chunk_size_actual * std::mem::size_of::<f32>()) as u64,
+                )
+                .await?;
 
             // Copy chunk gradients to full gradient vector
             gradients[chunk_start..chunk_end].copy_from_slice(&chunk_gradients);
@@ -577,10 +597,9 @@ impl DualGpuOps {
 
         for iteration in 0..max_iterations {
             // Compute gradients using forward-mode AD
-            let gradients = self.compute_function_gradients(
-                &current_params,
-                objective_function
-            ).await?;
+            let gradients = self
+                .compute_function_gradients(&current_params, objective_function)
+                .await?;
 
             // Update parameters: param = param - learning_rate * gradient
             for (param, grad) in current_params.iter_mut().zip(gradients.iter()) {
@@ -608,22 +627,23 @@ impl DualGpuOps {
         let mut gradients = vec![0.0; num_params];
 
         // For each parameter, compute partial derivative
-        for i in 0..num_params {
+        for (i, gradient) in gradients.iter_mut().enumerate().take(num_params) {
             // Create dual numbers with derivative=1 for current parameter
-            let dual_params: Vec<GpuDualNumber> = params.iter().enumerate().map(|(j, &p)| {
-                GpuDualNumber {
+            let dual_params: Vec<GpuDualNumber> = params
+                .iter()
+                .enumerate()
+                .map(|(j, &p)| GpuDualNumber {
                     real: p,
                     dual: if i == j { 1.0 } else { 0.0 },
-                }
-            }).collect();
+                })
+                .collect();
 
             // Execute objective function with dual arithmetic
-            let result = self.evaluate_objective_function_gpu(
-                &dual_params,
-                objective_function
-            ).await?;
+            let result = self
+                .evaluate_objective_function_gpu(&dual_params, objective_function)
+                .await?;
 
-            gradients[i] = result.dual; // Gradient is in dual part
+            *gradient = result.dual; // Gradient is in dual part
         }
 
         Ok(gradients)
@@ -631,7 +651,8 @@ impl DualGpuOps {
 
     /// Helper methods for shader generation
     fn get_batch_forward_ad_shader(&self, operations: &[DualOperation]) -> String {
-        let mut shader = String::from(r#"
+        let mut shader = String::from(
+            r#"
 struct DualNumber {
     real: f32,
     dual: f32,
@@ -699,7 +720,8 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
     }
 
     var result = inputs[index];
-"#);
+"#,
+        );
 
         // Add operation-specific code
         for operation in operations {
@@ -711,23 +733,28 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
                 DualOperation::ReLU => shader.push_str("    result = dual_relu(result);\n"),
                 DualOperation::Sigmoid => shader.push_str("    result = dual_sigmoid(result);\n"),
                 DualOperation::Tanh => shader.push_str("    result = dual_tanh(result);\n"),
-                DualOperation::Square => shader.push_str("    result = dual_mul(result, result);\n"),
+                DualOperation::Square => {
+                    shader.push_str("    result = dual_mul(result, result);\n")
+                }
                 DualOperation::Sqrt => shader.push_str("    result = dual_sqrt(result);\n"),
-                DualOperation::Add => {}, // Requires two operands, handled differently
-                DualOperation::Multiply => {}, // Requires two operands, handled differently
+                DualOperation::Add => {} // Requires two operands, handled differently
+                DualOperation::Multiply => {} // Requires two operands, handled differently
             }
         }
 
-        shader.push_str(r#"
+        shader.push_str(
+            r#"
     outputs[index] = result;
 }
-"#);
+"#,
+        );
 
         shader
     }
 
     fn get_neural_gradient_shader(&self, _config: &NeuralNetworkConfig) -> String {
-        String::from(r#"
+        String::from(
+            r#"
 struct DualNumber {
     real: f32,
     dual: f32,
@@ -782,55 +809,58 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
     // Store gradient (dual part of loss)
     gradients[weight_idx] = loss.dual;
 }
-"#)
+"#,
+        )
     }
 
     fn create_neural_bind_group_layout(&self) -> wgpu::BindGroupLayout {
-        self.context.device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-            label: Some("Neural Gradient Layout"),
-            entries: &[
-                wgpu::BindGroupLayoutEntry {
-                    binding: 0,
-                    visibility: wgpu::ShaderStages::COMPUTE,
-                    ty: wgpu::BindingType::Buffer {
-                        ty: wgpu::BufferBindingType::Storage { read_only: true },
-                        has_dynamic_offset: false,
-                        min_binding_size: None,
+        self.context
+            .device
+            .create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+                label: Some("Neural Gradient Layout"),
+                entries: &[
+                    wgpu::BindGroupLayoutEntry {
+                        binding: 0,
+                        visibility: wgpu::ShaderStages::COMPUTE,
+                        ty: wgpu::BindingType::Buffer {
+                            ty: wgpu::BufferBindingType::Storage { read_only: true },
+                            has_dynamic_offset: false,
+                            min_binding_size: None,
+                        },
+                        count: None,
                     },
-                    count: None,
-                },
-                wgpu::BindGroupLayoutEntry {
-                    binding: 1,
-                    visibility: wgpu::ShaderStages::COMPUTE,
-                    ty: wgpu::BindingType::Buffer {
-                        ty: wgpu::BufferBindingType::Storage { read_only: true },
-                        has_dynamic_offset: false,
-                        min_binding_size: None,
+                    wgpu::BindGroupLayoutEntry {
+                        binding: 1,
+                        visibility: wgpu::ShaderStages::COMPUTE,
+                        ty: wgpu::BindingType::Buffer {
+                            ty: wgpu::BufferBindingType::Storage { read_only: true },
+                            has_dynamic_offset: false,
+                            min_binding_size: None,
+                        },
+                        count: None,
                     },
-                    count: None,
-                },
-                wgpu::BindGroupLayoutEntry {
-                    binding: 2,
-                    visibility: wgpu::ShaderStages::COMPUTE,
-                    ty: wgpu::BindingType::Buffer {
-                        ty: wgpu::BufferBindingType::Storage { read_only: true },
-                        has_dynamic_offset: false,
-                        min_binding_size: None,
+                    wgpu::BindGroupLayoutEntry {
+                        binding: 2,
+                        visibility: wgpu::ShaderStages::COMPUTE,
+                        ty: wgpu::BindingType::Buffer {
+                            ty: wgpu::BufferBindingType::Storage { read_only: true },
+                            has_dynamic_offset: false,
+                            min_binding_size: None,
+                        },
+                        count: None,
                     },
-                    count: None,
-                },
-                wgpu::BindGroupLayoutEntry {
-                    binding: 3,
-                    visibility: wgpu::ShaderStages::COMPUTE,
-                    ty: wgpu::BindingType::Buffer {
-                        ty: wgpu::BufferBindingType::Storage { read_only: false },
-                        has_dynamic_offset: false,
-                        min_binding_size: None,
+                    wgpu::BindGroupLayoutEntry {
+                        binding: 3,
+                        visibility: wgpu::ShaderStages::COMPUTE,
+                        ty: wgpu::BindingType::Buffer {
+                            ty: wgpu::BufferBindingType::Storage { read_only: false },
+                            has_dynamic_offset: false,
+                            min_binding_size: None,
+                        },
+                        count: None,
                     },
-                    count: None,
-                },
-            ],
-        })
+                ],
+            })
     }
 
     async fn evaluate_objective_function_gpu(
@@ -840,7 +870,10 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
     ) -> DualGpuResult<GpuDualNumber> {
         // Placeholder implementation
         // In practice, this would execute the objective function using GPU compute shaders
-        Ok(GpuDualNumber { real: 0.0, dual: 0.0 })
+        Ok(GpuDualNumber {
+            real: 0.0,
+            dual: 0.0,
+        })
     }
 }
 
@@ -887,7 +920,9 @@ impl DualGpuAccelerated<DualNumber<f32>> for DualNumber<f32> {
         let buffer = context.create_dual_buffer(
             "DualNumber Buffer",
             &[gpu_dual],
-            wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::COPY_SRC,
+            wgpu::BufferUsages::STORAGE
+                | wgpu::BufferUsages::COPY_DST
+                | wgpu::BufferUsages::COPY_SRC,
         );
         Ok(buffer)
     }
@@ -968,15 +1003,19 @@ impl DualGpuOps {
 
             for input_idx in 0..num_inputs {
                 // Compute partial derivative of output_idx w.r.t. input_idx
-                let dual_inputs: Vec<GpuDualNumber> = inputs.iter().enumerate().map(|(i, &val)| {
-                    GpuDualNumber {
+                let dual_inputs: Vec<GpuDualNumber> = inputs
+                    .iter()
+                    .enumerate()
+                    .map(|(i, &val)| GpuDualNumber {
                         real: val,
                         dual: if i == input_idx { 1.0 } else { 0.0 },
-                    }
-                }).collect();
+                    })
+                    .collect();
 
                 // Evaluate function (placeholder)
-                let result = self.evaluate_vector_function_gpu(&dual_inputs, function, output_idx).await?;
+                let result = self
+                    .evaluate_vector_function_gpu(&dual_inputs, function, output_idx)
+                    .await?;
                 output_gradients.push(result.dual);
             }
 
@@ -993,7 +1032,10 @@ impl DualGpuOps {
         _output_idx: usize,
     ) -> DualGpuResult<GpuDualNumber> {
         // Placeholder implementation
-        Ok(GpuDualNumber { real: 0.0, dual: 0.0 })
+        Ok(GpuDualNumber {
+            real: 0.0,
+            dual: 0.0,
+        })
     }
 }
 
@@ -1026,7 +1068,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_dual_number_conversion() {
-        let dual = DualNumber::new(3.14f32, 2.71f32);
+        let dual = DualNumber::new(std::f32::consts::PI, 2.71f32);
         let gpu_dual: GpuDualNumber = dual.into();
         let converted_back: DualNumber<f32> = gpu_dual.into();
 
