@@ -17,8 +17,15 @@ struct GpuCellData {
     padding: array<f32, 4>,
 }
 
+struct GridParams {
+    width: f32,
+    height: f32,
+    total_cells: f32,
+    boundary_type: f32,
+}
+
 @group(0) @binding(0) var<storage, read> input_cells: array<GpuCellData>;
-@group(0) @binding(1) var<uniform> grid_params: array<f32, 4>; // [width, height, total_cells, boundary_type]
+@group(0) @binding(1) var<uniform> grid_params: GridParams;
 @group(0) @binding(2) var<storage, read_write> neighborhood_output: array<GpuCellData>;
 
 fn zero_cell() -> GpuCellData {
@@ -131,10 +138,15 @@ fn extract_moore_neighborhood(cell_index: u32, grid_width: u32, grid_height: u32
         vec2<i32>( 1,  1)  // Bottom-right
     );
 
-    for (var i = 0u; i < 8u; i++) {
-        let offset = offsets[i];
-        neighbors[i] = get_neighbor_at(x, y, offset.x, offset.y, grid_width, grid_height, boundary_type);
-    }
+    // Unrolled for WGSL compatibility (variable array indexing not allowed)
+    neighbors[0] = get_neighbor_at(x, y, offsets[0].x, offsets[0].y, grid_width, grid_height, boundary_type);
+    neighbors[1] = get_neighbor_at(x, y, offsets[1].x, offsets[1].y, grid_width, grid_height, boundary_type);
+    neighbors[2] = get_neighbor_at(x, y, offsets[2].x, offsets[2].y, grid_width, grid_height, boundary_type);
+    neighbors[3] = get_neighbor_at(x, y, offsets[3].x, offsets[3].y, grid_width, grid_height, boundary_type);
+    neighbors[4] = get_neighbor_at(x, y, offsets[4].x, offsets[4].y, grid_width, grid_height, boundary_type);
+    neighbors[5] = get_neighbor_at(x, y, offsets[5].x, offsets[5].y, grid_width, grid_height, boundary_type);
+    neighbors[6] = get_neighbor_at(x, y, offsets[6].x, offsets[6].y, grid_width, grid_height, boundary_type);
+    neighbors[7] = get_neighbor_at(x, y, offsets[7].x, offsets[7].y, grid_width, grid_height, boundary_type);
 
     return neighbors;
 }
@@ -154,10 +166,11 @@ fn extract_von_neumann_neighborhood(cell_index: u32, grid_width: u32, grid_heigh
         vec2<i32>( 0,  1)  // Bottom
     );
 
-    for (var i = 0u; i < 4u; i++) {
-        let offset = offsets[i];
-        neighbors[i] = get_neighbor_at(x, y, offset.x, offset.y, grid_width, grid_height, boundary_type);
-    }
+    // Unrolled for WGSL compatibility (variable array indexing not allowed)
+    neighbors[0] = get_neighbor_at(x, y, offsets[0].x, offsets[0].y, grid_width, grid_height, boundary_type);
+    neighbors[1] = get_neighbor_at(x, y, offsets[1].x, offsets[1].y, grid_width, grid_height, boundary_type);
+    neighbors[2] = get_neighbor_at(x, y, offsets[2].x, offsets[2].y, grid_width, grid_height, boundary_type);
+    neighbors[3] = get_neighbor_at(x, y, offsets[3].x, offsets[3].y, grid_width, grid_height, boundary_type);
 
     return neighbors;
 }
@@ -170,9 +183,9 @@ fn neighbor_extraction_main(@builtin(global_invocation_id) global_id: vec3<u32>)
         return;
     }
 
-    let grid_width = u32(grid_params[0]);
-    let grid_height = u32(grid_params[1]);
-    let boundary_type = grid_params[3];
+    let grid_width = u32(grid_params.width);
+    let grid_height = u32(grid_params.height);
+    let boundary_type = grid_params.boundary_type;
 
     // Extract Moore neighborhood (8 neighbors)
     let neighbors = extract_moore_neighborhood(cell_index, grid_width, grid_height, boundary_type);
@@ -181,10 +194,29 @@ fn neighbor_extraction_main(@builtin(global_invocation_id) global_id: vec3<u32>)
     // Each cell gets 8 neighbors stored sequentially
     let base_output_index = cell_index * 8u;
 
-    for (var i = 0u; i < 8u; i++) {
-        let output_index = base_output_index + i;
-        if (output_index < arrayLength(&neighborhood_output)) {
-            neighborhood_output[output_index] = neighbors[i];
-        }
+    // Store neighbors in output buffer (unrolled for WGSL compatibility)
+    if (base_output_index + 0u < arrayLength(&neighborhood_output)) {
+        neighborhood_output[base_output_index + 0u] = neighbors[0];
+    }
+    if (base_output_index + 1u < arrayLength(&neighborhood_output)) {
+        neighborhood_output[base_output_index + 1u] = neighbors[1];
+    }
+    if (base_output_index + 2u < arrayLength(&neighborhood_output)) {
+        neighborhood_output[base_output_index + 2u] = neighbors[2];
+    }
+    if (base_output_index + 3u < arrayLength(&neighborhood_output)) {
+        neighborhood_output[base_output_index + 3u] = neighbors[3];
+    }
+    if (base_output_index + 4u < arrayLength(&neighborhood_output)) {
+        neighborhood_output[base_output_index + 4u] = neighbors[4];
+    }
+    if (base_output_index + 5u < arrayLength(&neighborhood_output)) {
+        neighborhood_output[base_output_index + 5u] = neighbors[5];
+    }
+    if (base_output_index + 6u < arrayLength(&neighborhood_output)) {
+        neighborhood_output[base_output_index + 6u] = neighbors[6];
+    }
+    if (base_output_index + 7u < arrayLength(&neighborhood_output)) {
+        neighborhood_output[base_output_index + 7u] = neighbors[7];
     }
 }
