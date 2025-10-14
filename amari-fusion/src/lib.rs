@@ -39,10 +39,9 @@ pub mod gpu;
 // GPU acceleration exports
 #[cfg(feature = "gpu")]
 pub use gpu::{
-    FusionGpuOps, FusionGpuContext, FusionGpuError, FusionGpuResult,
-    GpuTropicalDualClifford, LlmEvaluationConfig, GeometricAttentionConfig,
-    FusionOptimizationConfig, LlmEvaluationEntry, LlmEvaluationResult,
-    FusionObjective,
+    FusionGpuContext, FusionGpuError, FusionGpuOps, FusionGpuResult, FusionObjective,
+    FusionOptimizationConfig, GeometricAttentionConfig, GpuTropicalDualClifford,
+    LlmEvaluationConfig, LlmEvaluationEntry, LlmEvaluationResult,
 };
 
 use thiserror::Error;

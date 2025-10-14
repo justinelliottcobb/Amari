@@ -256,9 +256,9 @@ fn generate_sample_embeddings(count: usize, seed: &str) -> Vec<GpuTropicalDualCl
             // Generate Clifford components
             let mut clifford = [0.0f32; 8];
             for (j, value) in clifford.iter_mut().enumerate() {
-                *value =
-                    ((base_seed.wrapping_mul((j + 1) as u64 * 13) % 1000) as f32 / 1000.0) * 1.0
-                        - 0.5;
+                *value = ((base_seed.wrapping_mul((j + 1) as u64 * 13) % 1000) as f32 / 1000.0)
+                    * 1.0
+                    - 0.5;
             }
 
             GpuTropicalDualClifford {

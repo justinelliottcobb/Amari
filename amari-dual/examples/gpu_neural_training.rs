@@ -29,9 +29,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Create neural network configuration
     let network_config = NeuralNetworkConfig {
-        input_size: 4,    // Example: iris dataset
-        hidden_size: 8,   // Hidden layer
-        output_size: 3,   // 3 classes
+        input_size: 4,  // Example: iris dataset
+        hidden_size: 8, // Hidden layer
+        output_size: 3, // 3 classes
         activation: "relu".to_string(),
     };
 
@@ -47,8 +47,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("\n📊 Training Data:");
     println!("   Batch size: {}", batch_size);
-    println!("   Input features: {} x {}", batch_size, network_config.input_size);
-    println!("   Target labels: {} x {}", batch_size, network_config.output_size);
+    println!(
+        "   Input features: {} x {}",
+        batch_size, network_config.input_size
+    );
+    println!(
+        "   Target labels: {} x {}",
+        batch_size, network_config.output_size
+    );
 
     // Initialize network weights
     let num_weights = network_config.input_size * network_config.hidden_size
@@ -138,14 +144,23 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Performance analysis
     println!("\n📊 Performance Analysis:");
     let throughput = batch_results.len() as f64 / batch_time.as_secs_f64();
-    println!("   Dual number throughput: {:.0} dual numbers/second", throughput);
+    println!(
+        "   Dual number throughput: {:.0} dual numbers/second",
+        throughput
+    );
 
     let ops_per_second = throughput * operations.len() as f64;
-    println!("   Operation throughput: {:.0} operations/second", ops_per_second);
+    println!(
+        "   Operation throughput: {:.0} operations/second",
+        ops_per_second
+    );
 
     // Compare with theoretical speedup
     let theoretical_speedup = estimate_gpu_speedup(batch_results.len(), operations.len());
-    println!("   Theoretical GPU speedup: {:.1}x vs CPU", theoretical_speedup);
+    println!(
+        "   Theoretical GPU speedup: {:.1}x vs CPU",
+        theoretical_speedup
+    );
 
     Ok(())
 }
@@ -169,8 +184,10 @@ fn demonstrate_cpu_training() -> Result<(), Box<dyn std::error::Error>> {
     };
 
     println!("✅ CPU neural network configuration:");
-    println!("   Input: {} -> Hidden: {} -> Output: {}",
-             network_config.input_size, network_config.hidden_size, network_config.output_size);
+    println!(
+        "   Input: {} -> Hidden: {} -> Output: {}",
+        network_config.input_size, network_config.hidden_size, network_config.output_size
+    );
 
     // Demonstrate forward-mode AD for a simple function
     let x = DualNumber::variable(2.0f32);
@@ -197,16 +214,16 @@ fn demonstrate_cpu_training() -> Result<(), Box<dyn std::error::Error>> {
     };
     println!("   Expected: {:.6}", expected_derivative);
     println!("   Computed: {:.6}", result.dual);
-    println!("   Difference: {:.2e}", (result.dual - expected_derivative).abs());
+    println!(
+        "   Difference: {:.2e}",
+        (result.dual - expected_derivative).abs()
+    );
 
     Ok(())
 }
 
 #[cfg(feature = "gpu")]
-fn generate_sample_data(
-    batch_size: usize,
-    config: &NeuralNetworkConfig,
-) -> (Vec<f32>, Vec<f32>) {
+fn generate_sample_data(batch_size: usize, config: &NeuralNetworkConfig) -> (Vec<f32>, Vec<f32>) {
     use std::f32::consts::PI;
 
     let mut inputs = Vec::with_capacity(batch_size * config.input_size);

@@ -34,6 +34,8 @@ pub mod comprehensive_tests;
 pub mod verified_contracts;
 
 pub mod geometric_algebra;
+#[cfg(feature = "gpu")]
+pub mod gpu;
 pub mod gromov_witten;
 pub mod higher_genus;
 pub mod intersection;
@@ -93,6 +95,13 @@ pub enum EnumerativeError {
 
 /// Result type for enumerative geometry computations
 pub type EnumerativeResult<T> = Result<T, EnumerativeError>;
+
+// GPU acceleration exports
+#[cfg(feature = "gpu")]
+pub use gpu::{
+    EnumerativeGpuConfig, EnumerativeGpuContext, EnumerativeGpuError, EnumerativeGpuOps,
+    EnumerativeGpuResult, GpuGromovWittenData, GpuIntersectionData, GpuSchubertClass,
+};
 
 #[cfg(test)]
 mod tests {
