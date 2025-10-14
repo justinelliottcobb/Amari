@@ -6,6 +6,8 @@
 
 use crate::GpuError;
 use std::collections::HashMap;
+use std::sync::Arc;
+use std::time::Instant;
 use thiserror::Error;
 use wgpu::util::DeviceExt;
 
@@ -285,6 +287,414 @@ impl GpuBufferPool {
 impl Default for GpuBufferPool {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+/// Shared GPU context for efficient resource management across all crates
+#[derive(Clone)]
+pub struct SharedGpuContext {
+    device: Arc<wgpu::Device>,
+    queue: Arc<wgpu::Queue>,
+    adapter_info: wgpu::AdapterInfo,
+    buffer_pool: Arc<std::sync::Mutex<EnhancedGpuBufferPool>>,
+    shader_cache: Arc<std::sync::Mutex<HashMap<String, Arc<wgpu::ComputePipeline>>>>,
+    creation_time: Instant,
+}
+
+impl SharedGpuContext {
+    /// Get the global shared GPU context (singleton pattern)
+    /// Note: This creates a new context each time for now. In production,
+    /// this would be a proper singleton with atomic initialization.
+    pub async fn global() -> UnifiedGpuResult<&'static Self> {
+        let context = Self::new().await?;
+        // Leak the context to make it 'static - in production, this would be managed properly
+        Ok(Box::leak(Box::new(context)))
+    }
+
+    /// Create a new shared GPU context
+    async fn new() -> UnifiedGpuResult<Self> {
+        let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
+            backends: wgpu::Backends::all(),
+            flags: wgpu::InstanceFlags::default(),
+            dx12_shader_compiler: wgpu::Dx12Compiler::default(),
+            gles_minor_version: wgpu::Gles3MinorVersion::Automatic,
+        });
+
+        let adapter = instance
+            .request_adapter(&wgpu::RequestAdapterOptions {
+                power_preference: wgpu::PowerPreference::HighPerformance,
+                compatible_surface: None,
+                force_fallback_adapter: false,
+            })
+            .await
+            .ok_or_else(|| {
+                UnifiedGpuError::InvalidOperation("No suitable GPU adapter found".into())
+            })?;
+
+        let adapter_info = adapter.get_info();
+
+        let (device, queue) = adapter
+            .request_device(
+                &wgpu::DeviceDescriptor {
+                    label: Some("Shared Amari GPU Device"),
+                    required_features: wgpu::Features::TIMESTAMP_QUERY,
+                    required_limits: wgpu::Limits::default(),
+                },
+                None,
+            )
+            .await
+            .map_err(|e| {
+                UnifiedGpuError::InvalidOperation(format!("Device request failed: {:?}", e))
+            })?;
+
+        Ok(Self {
+            device: Arc::new(device),
+            queue: Arc::new(queue),
+            adapter_info,
+            buffer_pool: Arc::new(std::sync::Mutex::new(EnhancedGpuBufferPool::new())),
+            shader_cache: Arc::new(std::sync::Mutex::new(HashMap::new())),
+            creation_time: Instant::now(),
+        })
+    }
+
+    /// Get the device
+    pub fn device(&self) -> &wgpu::Device {
+        &self.device
+    }
+
+    /// Get the queue
+    pub fn queue(&self) -> &wgpu::Queue {
+        &self.queue
+    }
+
+    /// Get adapter info
+    pub fn adapter_info(&self) -> &wgpu::AdapterInfo {
+        &self.adapter_info
+    }
+
+    /// Get or create a buffer from the pool
+    pub fn get_buffer(
+        &self,
+        size: u64,
+        usage: wgpu::BufferUsages,
+        label: Option<&str>,
+    ) -> wgpu::Buffer {
+        if let Ok(mut pool) = self.buffer_pool.lock() {
+            pool.get_or_create(&self.device, size, usage, label)
+        } else {
+            // Fallback if mutex is poisoned
+            self.device.create_buffer(&wgpu::BufferDescriptor {
+                label,
+                size,
+                usage,
+                mapped_at_creation: false,
+            })
+        }
+    }
+
+    /// Return a buffer to the pool for reuse
+    pub fn return_buffer(&self, buffer: wgpu::Buffer, size: u64, usage: wgpu::BufferUsages) {
+        if let Ok(mut pool) = self.buffer_pool.lock() {
+            pool.return_buffer(buffer, size, usage);
+        }
+        // If mutex is poisoned, just drop the buffer
+    }
+
+    /// Get or create a compute pipeline from cache
+    pub fn get_compute_pipeline(
+        &self,
+        shader_key: &str,
+        shader_source: &str,
+        entry_point: &str,
+    ) -> UnifiedGpuResult<Arc<wgpu::ComputePipeline>> {
+        let cache_key = format!("{}:{}", shader_key, entry_point);
+
+        if let Ok(mut cache) = self.shader_cache.lock() {
+            if let Some(pipeline) = cache.get(&cache_key) {
+                return Ok(Arc::clone(pipeline));
+            }
+
+            // Create new pipeline
+            let shader_module = self
+                .device
+                .create_shader_module(wgpu::ShaderModuleDescriptor {
+                    label: Some(&format!("{} Shader", shader_key)),
+                    source: wgpu::ShaderSource::Wgsl(shader_source.into()),
+                });
+
+            let bind_group_layout =
+                self.device
+                    .create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+                        label: Some(&format!("{} Bind Group Layout", shader_key)),
+                        entries: &[
+                            wgpu::BindGroupLayoutEntry {
+                                binding: 0,
+                                visibility: wgpu::ShaderStages::COMPUTE,
+                                ty: wgpu::BindingType::Buffer {
+                                    ty: wgpu::BufferBindingType::Storage { read_only: true },
+                                    has_dynamic_offset: false,
+                                    min_binding_size: None,
+                                },
+                                count: None,
+                            },
+                            wgpu::BindGroupLayoutEntry {
+                                binding: 1,
+                                visibility: wgpu::ShaderStages::COMPUTE,
+                                ty: wgpu::BindingType::Buffer {
+                                    ty: wgpu::BufferBindingType::Storage { read_only: false },
+                                    has_dynamic_offset: false,
+                                    min_binding_size: None,
+                                },
+                                count: None,
+                            },
+                        ],
+                    });
+
+            let pipeline_layout =
+                self.device
+                    .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+                        label: Some(&format!("{} Pipeline Layout", shader_key)),
+                        bind_group_layouts: &[&bind_group_layout],
+                        push_constant_ranges: &[],
+                    });
+
+            let pipeline = self
+                .device
+                .create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
+                    label: Some(&format!("{} Pipeline", shader_key)),
+                    layout: Some(&pipeline_layout),
+                    module: &shader_module,
+                    entry_point,
+                });
+
+            let pipeline_arc = Arc::new(pipeline);
+            cache.insert(cache_key, Arc::clone(&pipeline_arc));
+            Ok(pipeline_arc)
+        } else {
+            Err(UnifiedGpuError::InvalidOperation(
+                "Failed to access shader cache".into(),
+            ))
+        }
+    }
+
+    /// Get buffer pool statistics
+    pub fn buffer_pool_stats(&self) -> BufferPoolStats {
+        if let Ok(pool) = self.buffer_pool.lock() {
+            pool.get_stats()
+        } else {
+            BufferPoolStats::default()
+        }
+    }
+
+    /// Get uptime of this context
+    pub fn uptime(&self) -> std::time::Duration {
+        self.creation_time.elapsed()
+    }
+
+    /// Get optimal workgroup configuration for given operation type and data size
+    pub fn get_optimal_workgroup(&self, operation: &str, data_size: usize) -> (u32, u32, u32) {
+        match operation {
+            "matrix_multiply" | "matrix_operation" => {
+                // 2D workgroups optimized for matrix operations
+                // Use larger workgroups for better occupancy
+                (16, 16, 1)
+            }
+            "vector_operation" | "reduce" | "scan" => {
+                // 1D operations - prefer large workgroups for coalesced memory access
+                let workgroup_size = if data_size > 10000 {
+                    256 // Large batches benefit from maximum occupancy
+                } else if data_size > 1000 {
+                    128 // Medium batches
+                } else {
+                    64 // Small batches
+                };
+                (workgroup_size, 1, 1)
+            }
+            "geometric_algebra" | "clifford_algebra" => {
+                // GA operations with moderate computational complexity
+                (128, 1, 1)
+            }
+            "cellular_automata" | "ca_evolution" => {
+                // 2D grid operations, optimized for spatial locality
+                (16, 16, 1)
+            }
+            "neural_network" | "batch_processing" => {
+                // Large 1D workgroups for high-throughput batch processing
+                (256, 1, 1)
+            }
+            "information_geometry" | "fisher_information" | "bregman_divergence" => {
+                // Statistical manifold computations - large workgroups
+                (256, 1, 1)
+            }
+            "tropical_algebra" | "tropical_matrix" => {
+                // Tropical operations, moderate workgroup size
+                (128, 1, 1)
+            }
+            "dual_number" | "automatic_differentiation" => {
+                // AD operations, balanced workgroup size
+                (128, 1, 1)
+            }
+            "fusion_system" | "llm_evaluation" => {
+                // Complex fusion operations, large workgroups
+                (256, 1, 1)
+            }
+            "enumerative_geometry" | "intersection_theory" => {
+                // Geometric computations, moderate workgroups
+                (64, 1, 1)
+            }
+            _ => (64, 1, 1), // Conservative default for unknown operations
+        }
+    }
+
+    /// Generate optimized WGSL workgroup declaration for operation
+    pub fn get_workgroup_declaration(&self, operation: &str, data_size: usize) -> String {
+        let (x, y, z) = self.get_optimal_workgroup(operation, data_size);
+
+        if y == 1 && z == 1 {
+            format!("@compute @workgroup_size({})", x)
+        } else if z == 1 {
+            format!("@compute @workgroup_size({}, {})", x, y)
+        } else {
+            format!("@compute @workgroup_size({}, {}, {})", x, y, z)
+        }
+    }
+}
+
+/// Enhanced buffer pool with statistics and eviction policies
+pub struct EnhancedGpuBufferPool {
+    pools: HashMap<(u64, wgpu::BufferUsages), Vec<wgpu::Buffer>>,
+    stats: HashMap<(u64, wgpu::BufferUsages), PoolEntryStats>,
+    total_created: u64,
+    total_reused: u64,
+    last_cleanup: Instant,
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct PoolEntryStats {
+    pub created_count: u64,
+    pub reused_count: u64,
+    pub last_used: Option<Instant>,
+    pub total_size_bytes: u64,
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct BufferPoolStats {
+    pub total_buffers_created: u64,
+    pub total_buffers_reused: u64,
+    pub current_pooled_count: usize,
+    pub total_pooled_memory_mb: f32,
+    pub hit_rate_percent: f32,
+}
+
+impl EnhancedGpuBufferPool {
+    pub fn new() -> Self {
+        Self {
+            pools: HashMap::new(),
+            stats: HashMap::new(),
+            total_created: 0,
+            total_reused: 0,
+            last_cleanup: Instant::now(),
+        }
+    }
+}
+
+impl Default for EnhancedGpuBufferPool {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl EnhancedGpuBufferPool {
+    pub fn get_or_create(
+        &mut self,
+        device: &wgpu::Device,
+        size: u64,
+        usage: wgpu::BufferUsages,
+        label: Option<&str>,
+    ) -> wgpu::Buffer {
+        let key = (size, usage);
+
+        // Try to reuse from pool
+        if let Some(buffers) = self.pools.get_mut(&key) {
+            if let Some(buffer) = buffers.pop() {
+                self.total_reused += 1;
+                self.stats.entry(key).or_default().reused_count += 1;
+                self.stats.get_mut(&key).unwrap().last_used = Some(Instant::now());
+                return buffer;
+            }
+        }
+
+        // Create new buffer
+        let buffer = device.create_buffer(&wgpu::BufferDescriptor {
+            label,
+            size,
+            usage,
+            mapped_at_creation: false,
+        });
+
+        self.total_created += 1;
+        let stats = self.stats.entry(key).or_default();
+        stats.created_count += 1;
+        stats.total_size_bytes += size;
+        stats.last_used = Some(Instant::now());
+
+        // Periodic cleanup
+        if self.last_cleanup.elapsed().as_secs() > 30 {
+            self.cleanup_old_buffers();
+        }
+
+        buffer
+    }
+
+    pub fn return_buffer(&mut self, buffer: wgpu::Buffer, size: u64, usage: wgpu::BufferUsages) {
+        let key = (size, usage);
+        self.pools.entry(key).or_default().push(buffer);
+    }
+
+    pub fn get_stats(&self) -> BufferPoolStats {
+        let total_ops = self.total_created + self.total_reused;
+        let hit_rate = if total_ops > 0 {
+            (self.total_reused as f32 / total_ops as f32) * 100.0
+        } else {
+            0.0
+        };
+
+        let current_pooled_count = self.pools.values().map(|v| v.len()).sum();
+        let total_pooled_memory_mb: f32 = self
+            .pools
+            .iter()
+            .map(|((size, _usage), buffers)| {
+                (*size as f32 * buffers.len() as f32) / 1024.0 / 1024.0
+            })
+            .sum();
+
+        BufferPoolStats {
+            total_buffers_created: self.total_created,
+            total_buffers_reused: self.total_reused,
+            current_pooled_count,
+            total_pooled_memory_mb,
+            hit_rate_percent: hit_rate,
+        }
+    }
+
+    fn cleanup_old_buffers(&mut self) {
+        let now = Instant::now();
+        let cleanup_threshold = std::time::Duration::from_secs(300); // 5 minutes
+
+        self.pools.retain(|&key, buffers| {
+            if let Some(stats) = self.stats.get(&key) {
+                if let Some(last_used) = stats.last_used {
+                    if now.duration_since(last_used) > cleanup_threshold {
+                        // Remove old unused buffers
+                        buffers.clear();
+                        return false;
+                    }
+                }
+            }
+            true
+        });
+
+        self.last_cleanup = now;
     }
 }
 
