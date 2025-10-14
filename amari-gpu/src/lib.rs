@@ -2,7 +2,10 @@
 
 pub mod adaptive;
 pub mod network;
+pub mod performance;
 pub mod relativistic;
+pub mod shaders;
+pub mod unified;
 pub mod verification;
 
 pub use adaptive::{
@@ -14,10 +17,20 @@ use amari_core::Multivector;
 use amari_info_geom::amari_chentsov_tensor;
 use bytemuck::{Pod, Zeroable};
 pub use network::{AdaptiveNetworkCompute, GpuGeometricNetwork, GpuNetworkError, GpuNetworkResult};
+pub use performance::{
+    AdaptiveDispatchPolicy, CalibrationResult, GpuProfile, GpuProfiler, WorkgroupConfig,
+    WorkgroupOptimizer,
+};
 pub use relativistic::{
     GpuRelativisticParticle, GpuRelativisticPhysics, GpuSpacetimeVector, GpuTrajectoryParams,
 };
+pub use shaders::{ShaderLibrary, DUAL_SHADERS, FUSION_SHADERS, TROPICAL_SHADERS};
 use thiserror::Error;
+pub use unified::{
+    BufferPoolStats, EnhancedGpuBufferPool, GpuAccelerated, GpuContext, GpuDispatcher,
+    GpuOperationParams, GpuParam, PoolEntryStats, SharedGpuContext, UnifiedGpuError,
+    UnifiedGpuResult,
+};
 pub use verification::{
     GpuBoundaryVerifier, GpuVerificationError, RelativisticVerifier, StatisticalGpuVerifier,
     VerificationConfig, VerificationStrategy, VerifiedMultivector,

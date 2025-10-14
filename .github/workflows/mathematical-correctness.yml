@@ -87,8 +87,8 @@ jobs:
       run: |
         echo "🔍 Analyzing mathematical properties..."
         # Count total tests
-        TOTAL_TESTS=$(cargo test --all --lib --bins -- --list 2>/dev/null | grep -c "test " || echo "0")
-        VERIFICATION_TESTS=$(cargo test --all --features formal-verification -- --list 2>/dev/null | grep -c "test " || echo "0")
+        TOTAL_TESTS=$(cargo test --all --lib --bins -- --list 2>/dev/null | grep -c ": test$" || echo "0")
+        VERIFICATION_TESTS=$(cargo test --all --features formal-verification -- --list 2>/dev/null | grep -c ": test$" || echo "0")
 
         echo "📊 Test Coverage Summary:"
         echo "  Total tests: $TOTAL_TESTS"

@@ -23,9 +23,20 @@ pub mod multivector;
 pub mod verified;
 pub mod verified_contracts;
 
+#[cfg(feature = "gpu")]
+pub mod gpu;
+
 // Re-export commonly used types
 pub use error::{DualError, DualResult};
 pub use multivector::{DualMultivector, MultiDualMultivector};
+
+// GPU acceleration exports
+#[cfg(feature = "gpu")]
+pub use gpu::{
+    DualGpuAccelerated, DualGpuContext, DualGpuError, DualGpuOps, DualGpuResult, DualOperation,
+    GpuDualNumber, GpuMultiDual, GpuOperationParams, GpuParameter, NeuralNetworkConfig,
+    ObjectiveFunction, VectorFunction,
+};
 
 // Precision-aware type aliases for dual numbers
 /// Standard precision dual number using f64
@@ -329,6 +340,37 @@ impl<T: Float> DualNumber<T> {
         Self {
             real: real_result,
             dual: dual_result,
+        }
+    }
+}
+
+// GPU-compatible constants for f32 dual numbers
+impl DualNumber<f32> {
+    /// Zero dual number (0 + 0ε)
+    pub const ZERO: Self = Self {
+        real: 0.0,
+        dual: 0.0,
+    };
+
+    /// One dual number (1 + 0ε)
+    pub const ONE: Self = Self {
+        real: 1.0,
+        dual: 0.0,
+    };
+
+    /// Variable dual number (value + 1ε) - useful for GPU operations
+    pub const fn new_variable_const(value: f32) -> Self {
+        Self {
+            real: value,
+            dual: 1.0,
+        }
+    }
+
+    /// Constant dual number (value + 0ε) - useful for GPU operations
+    pub const fn new_constant_const(value: f32) -> Self {
+        Self {
+            real: value,
+            dual: 0.0,
         }
     }
 }

@@ -687,6 +687,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[ignore = "GPU hardware required, may fail in CI/CD environments"]
     async fn test_adaptive_verifier_creation() {
         // This test may fail in environments without GPU access
         match AdaptiveVerifier::new().await {

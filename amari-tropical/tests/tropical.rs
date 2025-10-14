@@ -24,7 +24,7 @@ mod tropical_tests {
 
     #[test]
     fn test_tropical_zero_is_negative_infinity() {
-        let zero = TropicalNumber::ZERO;
+        let zero = TropicalNumber::<f64>::ZERO;
         let a = TropicalNumber(5.0);
 
         let sum = zero.add(a);
@@ -36,7 +36,7 @@ mod tropical_tests {
 
     #[test]
     fn test_tropical_one_is_zero() {
-        let one = TropicalNumber::ONE;
+        let one = TropicalNumber::<f64>::ONE;
         let a = TropicalNumber(5.0);
 
         let product = one.mul(a);

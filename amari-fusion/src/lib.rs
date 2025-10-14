@@ -33,6 +33,17 @@ pub mod optimizer;
 pub mod verified;
 pub mod verified_contracts;
 
+#[cfg(feature = "gpu")]
+pub mod gpu;
+
+// GPU acceleration exports
+#[cfg(feature = "gpu")]
+pub use gpu::{
+    FusionGpuContext, FusionGpuError, FusionGpuOps, FusionGpuResult, FusionObjective,
+    FusionOptimizationConfig, GeometricAttentionConfig, GpuTropicalDualClifford,
+    LlmEvaluationConfig, LlmEvaluationEntry, LlmEvaluationResult,
+};
+
 use thiserror::Error;
 
 /// Error types for the fusion system

@@ -20,8 +20,18 @@ pub mod error;
 pub mod polytope;
 pub mod viterbi;
 
+#[cfg(feature = "gpu")]
+pub mod gpu;
+
 // Re-export error types
 pub use error::{TropicalError, TropicalResult};
+
+// Re-export GPU functionality when available
+#[cfg(feature = "gpu")]
+pub use gpu::{
+    GpuParameter, GpuTropicalNumber, TropicalGpuAccelerated, TropicalGpuContext, TropicalGpuError,
+    TropicalGpuOps, TropicalGpuResult, TROPICAL_ATTENTION_SHADER, TROPICAL_MATRIX_MULTIPLY_SHADER,
+};
 
 // Precision-aware type aliases for tropical numbers
 /// Standard precision tropical number using f64
@@ -154,6 +164,12 @@ impl<T: Float> Neg for TropicalNumber<T> {
 // Convenient constants for f64
 impl TropicalNumber<f64> {
     pub const ZERO: Self = Self(f64::NEG_INFINITY);
+    pub const ONE: Self = Self(0.0);
+}
+
+// Convenient constants for f32 (for GPU compatibility)
+impl TropicalNumber<f32> {
+    pub const ZERO: Self = Self(f32::NEG_INFINITY);
     pub const ONE: Self = Self(0.0);
 }
 
@@ -402,6 +418,21 @@ pub struct TropicalMatrix<T: Float> {
 }
 
 impl<T: Float> TropicalMatrix<T> {
+    /// Get number of rows
+    pub fn rows(&self) -> usize {
+        self.rows
+    }
+
+    /// Get number of columns
+    pub fn cols(&self) -> usize {
+        self.cols
+    }
+
+    /// Get element at position (i, j)
+    pub fn get(&self, i: usize, j: usize) -> Option<TropicalNumber<T>> {
+        self.data.get(i).and_then(|row| row.get(j).copied())
+    }
+
     /// Create new tropical matrix
     pub fn new(rows: usize, cols: usize) -> Self {
         let mut data = Vec::with_capacity(rows);
@@ -547,8 +578,8 @@ mod tests {
         assert_eq!(b * a, TropicalNumber::new(5.0));
 
         // Identity elements
-        assert_eq!(a + TropicalNumber::ZERO, a);
-        assert_eq!(a * TropicalNumber::ONE, a);
+        assert_eq!(a + TropicalNumber::<f64>::ZERO, a);
+        assert_eq!(a * TropicalNumber::<f64>::ONE, a);
     }
 
     #[test]
@@ -597,7 +628,7 @@ mod tests {
 
         let path_prob = transitions
             .into_iter()
-            .fold(TropicalNumber::ONE, |acc, x| acc * x);
+            .fold(TropicalNumber::<f64>::ONE, |acc, x| acc * x);
 
         // Should equal sum of log probabilities
         assert_relative_eq!(path_prob.value(), -1.8, epsilon = 1e-10);
@@ -670,10 +701,10 @@ mod tests {
             assert_eq!((a * b) * c, a * (b * c));
 
             // Identity elements
-            assert_eq!(a + TropicalNumber::ZERO, a);
-            assert_eq!(TropicalNumber::ZERO + a, a);
-            assert_eq!(a * TropicalNumber::ONE, a);
-            assert_eq!(TropicalNumber::ONE * a, a);
+            assert_eq!(a + TropicalNumber::<f64>::ZERO, a);
+            assert_eq!(TropicalNumber::<f64>::ZERO + a, a);
+            assert_eq!(a * TropicalNumber::<f64>::ONE, a);
+            assert_eq!(TropicalNumber::<f64>::ONE * a, a);
 
             // Distributivity: a * (b + c) = (a * b) + (a * c)
             let left = a * (b + c);
@@ -709,7 +740,7 @@ mod tests {
             assert_eq!(result.value(), 5.0);
 
             // Test with zero (neg infinity)
-            let zero = TropicalNumber::ZERO;
+            let zero = TropicalNumber::<f64>::ZERO;
             let result2 = a.tropical_mul(zero);
             assert!(result2.is_zero());
         }
@@ -720,7 +751,7 @@ mod tests {
             let result = a.tropical_pow(3.0);
             assert_eq!(result.value(), 6.0); // 2 * 3 = 6
 
-            let zero = TropicalNumber::ZERO;
+            let zero = TropicalNumber::<f64>::ZERO;
             let result2 = zero.tropical_pow(5.0);
             assert!(result2.is_zero());
         }
@@ -735,7 +766,7 @@ mod tests {
             assert_relative_eq!(prob, (-1.0f64).exp(), epsilon = 1e-10);
 
             // Test zero conversion
-            let zero = TropicalNumber::ZERO;
+            let zero = TropicalNumber::<f64>::ZERO;
             assert_eq!(zero.to_prob(), 0.0);
         }
 
