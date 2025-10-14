@@ -33,3 +33,7 @@ gpu = ["bytemuck", "wgpu", "pollster", "futures", "tokio"]
 approx = { workspace = true }
 criterion = "0.5"
 
+[[example]]
+name = "gpu_cellular_automata"
+required-features = ["gpu"]
+

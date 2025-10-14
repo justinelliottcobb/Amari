@@ -3,14 +3,10 @@
 //! This example demonstrates GPU-accelerated cellular automata using WebGPU for
 //! high-performance evolution of geometric cellular automata systems.
 
-use amari_automata::{
-    AutomataResult, Evolvable, GeometricCA, RuleType,
-};
+use amari_automata::{AutomataResult, Evolvable, GeometricCA};
 
 #[cfg(feature = "gpu")]
-use amari_automata::{
-    AutomataGpuOps, GpuCellData, GpuEvolutionParams, GpuRuleConfig,
-};
+use amari_automata::{AutomataGpuOps, GpuCellData, GpuEvolutionParams, GpuRuleConfig};
 
 use amari_core::Multivector;
 use std::time::Instant;
@@ -31,7 +27,9 @@ async fn main() -> AutomataResult<()> {
 
     #[cfg(not(feature = "gpu"))]
     {
-        println!("⚠️  GPU features not enabled. Compile with --features gpu to see GPU acceleration.");
+        println!(
+            "⚠️  GPU features not enabled. Compile with --features gpu to see GPU acceleration."
+        );
         cpu_fallback_demo()?;
     }
 
@@ -56,8 +54,11 @@ async fn gpu_cellular_automata_demo() -> AutomataResult<()> {
 
             // Set up a glider pattern (adapted for geometric CA)
             let glider_pattern = [
-                (32, 32), (33, 32), (34, 32), // Line
-                (34, 33), (33, 34),           // L-shape continuation
+                (32, 32),
+                (33, 32),
+                (34, 32), // Line
+                (34, 33),
+                (33, 34), // L-shape continuation
             ];
 
             for &(x, y) in &glider_pattern {
@@ -133,9 +134,14 @@ async fn gpu_cellular_automata_demo() -> AutomataResult<()> {
             println!("   📊 Initial energy: {:.6}", initial_energy);
             println!("   📊 Final energy: {:.6}", final_energy);
             println!("   📊 Energy change: {:.6}", final_energy - initial_energy);
-            println!("   📊 Active cells: {}/{}",
-                evolved_cells.iter().filter(|c| cell_magnitude(c) > 0.1).count(),
-                total_cells);
+            println!(
+                "   📊 Active cells: {}/{}",
+                evolved_cells
+                    .iter()
+                    .filter(|c| cell_magnitude(c) > 0.1)
+                    .count(),
+                total_cells
+            );
 
             // Analyze pattern evolution
             analyze_pattern_evolution(&initial_cells, &evolved_cells, grid_size);
@@ -160,7 +166,10 @@ async fn gpu_performance_comparison() -> AutomataResult<()> {
     let generations = 50;
 
     for &grid_size in &grid_sizes {
-        println!("📏 Testing {}×{} grid with {} generations", grid_size, grid_size, generations);
+        println!(
+            "📏 Testing {}×{} grid with {} generations",
+            grid_size, grid_size, generations
+        );
 
         // GPU timing
         let gpu_time = match AutomataGpuOps::new().await {
@@ -177,7 +186,9 @@ async fn gpu_performance_comparison() -> AutomataResult<()> {
                 };
 
                 let start = Instant::now();
-                let _ = gpu_ops.batch_evolve_ca(&initial_cells, &rule_configs, &evolution_params).await?;
+                let _ = gpu_ops
+                    .batch_evolve_ca(&initial_cells, &rule_configs, &evolution_params)
+                    .await?;
                 start.elapsed()
             }
             Err(_) => {
@@ -193,7 +204,8 @@ async fn gpu_performance_comparison() -> AutomataResult<()> {
             // Set random initial state
             for x in 0..grid_size {
                 for y in 0..grid_size {
-                    if (x + y) % 3 == 0 {  // Simple deterministic pattern instead of rand
+                    if (x + y) % 3 == 0 {
+                        // Simple deterministic pattern instead of rand
                         let _ = ca.set_cell_2d(x, y, Multivector::scalar(0.8));
                     }
                 }
@@ -272,9 +284,14 @@ async fn gpu_rule_variants_demo() -> AutomataResult<()> {
 
         println!("   ⏱️  Evolution time: {:?}", evolution_time);
         println!("   📊 Energy conservation: {:.1}%", energy_conservation);
-        println!("   📊 Active cells: {}/{}",
-            evolved_cells.iter().filter(|c| cell_magnitude(c) > 0.1).count(),
-            total_cells);
+        println!(
+            "   📊 Active cells: {}/{}",
+            evolved_cells
+                .iter()
+                .filter(|c| cell_magnitude(c) > 0.1)
+                .count(),
+            total_cells
+        );
         println!();
     }
 
@@ -298,7 +315,10 @@ async fn gpu_large_scale_simulation() -> AutomataResult<()> {
     let total_cells = grid_size * grid_size;
     let generations = 100;
 
-    println!("📏 Grid size: {}×{} ({} cells)", grid_size, grid_size, total_cells);
+    println!(
+        "📏 Grid size: {}×{} ({} cells)",
+        grid_size, grid_size, total_cells
+    );
     println!("🔄 Generations: {}", generations);
 
     // Create complex initial pattern
@@ -311,9 +331,10 @@ async fn gpu_large_scale_simulation() -> AutomataResult<()> {
     add_glider_pattern(&mut initial_cells, grid_size, 192, 192);
 
     // Add some random noise
-    for i in 0..total_cells {
-        if (i % 97) == 0 {  // Deterministic sparse pattern
-            initial_cells[i] = random_cell();
+    for (i, cell) in initial_cells.iter_mut().enumerate().take(total_cells) {
+        if (i % 97) == 0 {
+            // Deterministic sparse pattern
+            *cell = random_cell();
         }
     }
 
@@ -359,10 +380,20 @@ async fn gpu_large_scale_simulation() -> AutomataResult<()> {
     println!("   📊 Final energy: {:.6}", final_energy);
     println!("   📊 Energy ratio: {:.3}", final_energy / initial_energy);
 
-    let active_initial = initial_cells.iter().filter(|c| cell_magnitude(c) > 0.1).count();
-    let active_final = evolved_cells.iter().filter(|c| cell_magnitude(c) > 0.1).count();
-    println!("   📊 Active cells: {} → {} ({:+})",
-        active_initial, active_final, active_final as i32 - active_initial as i32);
+    let active_initial = initial_cells
+        .iter()
+        .filter(|c| cell_magnitude(c) > 0.1)
+        .count();
+    let active_final = evolved_cells
+        .iter()
+        .filter(|c| cell_magnitude(c) > 0.1)
+        .count();
+    println!(
+        "   📊 Active cells: {} → {} ({:+})",
+        active_initial,
+        active_final,
+        active_final as i32 - active_initial as i32
+    );
 
     Ok(())
 }
@@ -417,8 +448,15 @@ fn random_cell() -> GpuCellData {
 
 #[cfg(feature = "gpu")]
 fn cell_magnitude(cell: &GpuCellData) -> f32 {
-    (cell.scalar * cell.scalar + cell.e1 * cell.e1 + cell.e2 * cell.e2 + cell.e3 * cell.e3 +
-     cell.e12 * cell.e12 + cell.e13 * cell.e13 + cell.e23 * cell.e23 + cell.e123 * cell.e123).sqrt()
+    (cell.scalar * cell.scalar
+        + cell.e1 * cell.e1
+        + cell.e2 * cell.e2
+        + cell.e3 * cell.e3
+        + cell.e12 * cell.e12
+        + cell.e13 * cell.e13
+        + cell.e23 * cell.e23
+        + cell.e123 * cell.e123)
+        .sqrt()
 }
 
 #[cfg(feature = "gpu")]
@@ -442,28 +480,29 @@ fn add_glider_pattern(cells: &mut [GpuCellData], grid_size: usize, start_x: usiz
 }
 
 #[cfg(feature = "gpu")]
-fn analyze_pattern_evolution(
-    initial: &[GpuCellData],
-    evolved: &[GpuCellData],
-    grid_size: usize,
-) {
+fn analyze_pattern_evolution(initial: &[GpuCellData], evolved: &[GpuCellData], grid_size: usize) {
     println!("🔍 Pattern Evolution Analysis:");
 
     // Calculate pattern metrics
     let initial_active = initial.iter().filter(|c| cell_magnitude(c) > 0.1).count();
     let evolved_active = evolved.iter().filter(|c| cell_magnitude(c) > 0.1).count();
 
-    println!("   📊 Active cells: {} → {}", initial_active, evolved_active);
+    println!(
+        "   📊 Active cells: {} → {}",
+        initial_active, evolved_active
+    );
 
     // Calculate center of mass
     let initial_com = calculate_center_of_mass(initial, grid_size);
     let evolved_com = calculate_center_of_mass(evolved, grid_size);
 
-    println!("   📍 Center of mass: ({:.1}, {:.1}) → ({:.1}, {:.1})",
-        initial_com.0, initial_com.1, evolved_com.0, evolved_com.1);
+    println!(
+        "   📍 Center of mass: ({:.1}, {:.1}) → ({:.1}, {:.1})",
+        initial_com.0, initial_com.1, evolved_com.0, evolved_com.1
+    );
 
-    let displacement = ((evolved_com.0 - initial_com.0).powi(2) +
-                        (evolved_com.1 - initial_com.1).powi(2)).sqrt();
+    let displacement =
+        ((evolved_com.0 - initial_com.0).powi(2) + (evolved_com.1 - initial_com.1).powi(2)).sqrt();
     println!("   📏 Pattern displacement: {:.2} cells", displacement);
 }
 

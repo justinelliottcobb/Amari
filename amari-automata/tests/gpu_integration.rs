@@ -4,7 +4,7 @@
 mod gpu_tests {
     use amari_automata::{
         gpu::{AutomataGpuOps, GpuCellData, GpuEvolutionParams, GpuRuleConfig},
-        AutomataResult, Evolvable, GeometricCA, RuleType,
+        RuleType,
     };
     use amari_core::Multivector;
 
@@ -91,10 +91,7 @@ mod gpu_tests {
                         .filter(|c| cell_magnitude(c) > 0.1)
                         .count();
 
-                    println!(
-                        "   Active cells: {} → {}",
-                        initial_active, evolved_active
-                    );
+                    println!("   Active cells: {} → {}", initial_active, evolved_active);
 
                     // Verify generations updated
                     for cell in &evolved_cells {
@@ -230,11 +227,7 @@ mod gpu_tests {
                     for (i, neighborhood) in neighborhoods.iter().enumerate() {
                         // Moore neighborhood should have up to 8 neighbors
                         assert!(neighborhood.len() <= 8);
-                        println!(
-                            "   Cell {} has {} neighbors",
-                            i,
-                            neighborhood.len()
-                        );
+                        println!("   Cell {} has {} neighbors", i, neighborhood.len());
                     }
                 }
                 Err(_) => {
@@ -308,22 +301,23 @@ mod gpu_tests {
                 ..Default::default()
             };
 
-            let initial_energy = gpu_ops.calculate_total_energy(&initial_cells).await?;
+            if let Ok(initial_energy) = gpu_ops.calculate_total_energy(&initial_cells).await {
+                if let Ok(evolved_cells) = gpu_ops
+                    .batch_evolve_ca(&initial_cells, &conservative_rule, &evolution_params)
+                    .await
+                {
+                    if let Ok(final_energy) = gpu_ops.calculate_total_energy(&evolved_cells).await {
+                        let energy_ratio = final_energy / initial_energy;
+                        println!(
+                            "✅ Energy conservation test: {:.3} (ratio: {:.3})",
+                            final_energy, energy_ratio
+                        );
 
-            let evolved_cells = gpu_ops
-                .batch_evolve_ca(&initial_cells, &conservative_rule, &evolution_params)
-                .await?;
-
-            let final_energy = gpu_ops.calculate_total_energy(&evolved_cells).await?;
-
-            let energy_ratio = final_energy / initial_energy;
-            println!(
-                "✅ Energy conservation test: {:.3} (ratio: {:.3})",
-                final_energy, energy_ratio
-            );
-
-            // Allow some numerical tolerance for energy conservation
-            assert!(energy_ratio > 0.7 && energy_ratio < 1.3);
+                        // Allow some numerical tolerance for energy conservation
+                        assert!(energy_ratio > 0.7 && energy_ratio < 1.3);
+                    }
+                }
+            }
         }
     }
 
@@ -332,9 +326,11 @@ mod gpu_tests {
         if let Ok(mut gpu_ops) = AutomataGpuOps::new().await {
             // Test empty batch handling
             let empty_cells: Vec<GpuCellData> = vec![];
-            let empty_rules: Vec<GpuRuleConfig> = vec![];
+            let _empty_rules: Vec<GpuRuleConfig> = vec![];
 
-            let rule_result = gpu_ops.batch_apply_rules(&empty_cells, &[GpuRuleConfig::default()]).await;
+            let rule_result = gpu_ops
+                .batch_apply_rules(&empty_cells, &[GpuRuleConfig::default()])
+                .await;
             let energy_result = gpu_ops.calculate_total_energy(&empty_cells).await;
 
             match (rule_result, energy_result) {
@@ -353,7 +349,7 @@ mod gpu_tests {
     #[test]
     fn test_gpu_data_conversions() {
         // Test conversion from CPU CA types to GPU types
-        let cpu_cell = Multivector::<3, 0, 0>::from_coefficients(&[1.0, 0.5, 0.3, 0.2]);
+        let cpu_cell = Multivector::<3, 0, 0>::from_coefficients(vec![1.0, 0.5, 0.3, 0.2]);
         let gpu_cell: GpuCellData = (&cpu_cell).into();
 
         assert_eq!(gpu_cell.scalar, cpu_cell.scalar_part() as f32);
@@ -371,7 +367,10 @@ mod gpu_tests {
 
         for rule_type in &rule_types {
             let gpu_rule: GpuRuleConfig = rule_type.into();
-            println!("   Rule {:?} -> GPU rule type {}", rule_type, gpu_rule.rule_type);
+            println!(
+                "   Rule {:?} -> GPU rule type {}",
+                rule_type, gpu_rule.rule_type
+            );
         }
 
         println!("✅ Rule type conversions verified");

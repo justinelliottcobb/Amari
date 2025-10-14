@@ -8,8 +8,17 @@ use amari_core::Multivector;
 use num_traits::{Float, Zero};
 use thiserror::Error;
 
+// GPU acceleration exports
+#[cfg(feature = "gpu")]
+pub use gpu::{
+    GpuBregmanData, GpuFisherData, GpuStatisticalManifold, InfoGeomGpuConfig, InfoGeomGpuError,
+    InfoGeomGpuOps, InfoGeomGpuResult,
+};
+
 #[cfg(test)]
 pub mod comprehensive_tests;
+#[cfg(feature = "gpu")]
+pub mod gpu;
 pub mod verified_contracts;
 
 // pub mod fisher;

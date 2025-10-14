@@ -10,7 +10,13 @@ pub use self::gpu_impl::*;
 #[cfg(feature = "gpu")]
 mod gpu_impl {
     use crate::{AutomataError, RuleType};
-    use alloc::{format, string::{String, ToString}, vec, vec::Vec, collections::BTreeMap as HashMap};
+    use alloc::{
+        collections::BTreeMap as HashMap,
+        format,
+        string::{String, ToString},
+        vec,
+        vec::Vec,
+    };
     use bytemuck::{Pod, Zeroable};
     use core::{fmt, mem};
     use wgpu::util::DeviceExt;
@@ -97,13 +103,17 @@ mod gpu_impl {
     pub type AutomataGpuResult<T> = Result<T, AutomataGpuError>;
 
     /// GPU context for cellular automata operations
+    #[allow(dead_code)]
     pub struct AutomataGpuContext {
         device: wgpu::Device,
         queue: wgpu::Queue,
+        #[allow(dead_code)]
         ca_evolution_pipeline: wgpu::ComputePipeline,
         rule_application_pipeline: wgpu::ComputePipeline,
         energy_calculation_pipeline: wgpu::ComputePipeline,
+        #[allow(dead_code)]
         neighbor_extraction_pipeline: wgpu::ComputePipeline,
+        #[allow(dead_code)]
         config: AutomataGpuConfig,
     }
 
@@ -132,7 +142,9 @@ mod gpu_impl {
     /// Main GPU operations for cellular automata
     pub struct AutomataGpuOps {
         context: AutomataGpuContext,
+        #[allow(dead_code)]
         evolution_cache: HashMap<String, Vec<f32>>,
+        #[allow(dead_code)]
         energy_cache: HashMap<String, f32>,
     }
 
@@ -168,12 +180,9 @@ mod gpu_impl {
             let mut current_states = initial_states.to_vec();
 
             for step in 0..steps {
-                current_states = self.single_evolution_step(
-                    &current_states,
-                    rule_configs,
-                    evolution_params,
-                    step,
-                ).await?;
+                current_states = self
+                    .single_evolution_step(&current_states, rule_configs, evolution_params, step)
+                    .await?;
             }
 
             Ok(current_states)
@@ -190,50 +199,67 @@ mod gpu_impl {
             }
 
             // Create buffers
-            let cell_buffer = self.context.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-                label: Some("Cell Data Buffer"),
-                contents: bytemuck::cast_slice(cells),
-                usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::COPY_SRC,
-            });
+            let cell_buffer =
+                self.context
+                    .device
+                    .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                        label: Some("Cell Data Buffer"),
+                        contents: bytemuck::cast_slice(cells),
+                        usage: wgpu::BufferUsages::STORAGE
+                            | wgpu::BufferUsages::COPY_DST
+                            | wgpu::BufferUsages::COPY_SRC,
+                    });
 
-            let rule_buffer = self.context.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-                label: Some("Rule Config Buffer"),
-                contents: bytemuck::cast_slice(rules),
-                usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
-            });
+            let rule_buffer =
+                self.context
+                    .device
+                    .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                        label: Some("Rule Config Buffer"),
+                        contents: bytemuck::cast_slice(rules),
+                        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
+                    });
 
             let output_buffer = self.context.device.create_buffer(&wgpu::BufferDescriptor {
                 label: Some("Output Buffer"),
-                size: (cells.len() * mem::size_of::<GpuCellData>()) as u64,
+                size: core::mem::size_of_val(cells) as u64,
                 usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
                 mapped_at_creation: false,
             });
 
             // Create bind group
-            let bind_group_layout = self.context.rule_application_pipeline.get_bind_group_layout(0);
-            let bind_group = self.context.device.create_bind_group(&wgpu::BindGroupDescriptor {
-                label: Some("Rule Application Bind Group"),
-                layout: &bind_group_layout,
-                entries: &[
-                    wgpu::BindGroupEntry {
-                        binding: 0,
-                        resource: cell_buffer.as_entire_binding(),
-                    },
-                    wgpu::BindGroupEntry {
-                        binding: 1,
-                        resource: rule_buffer.as_entire_binding(),
-                    },
-                    wgpu::BindGroupEntry {
-                        binding: 2,
-                        resource: output_buffer.as_entire_binding(),
-                    },
-                ],
-            });
+            let bind_group_layout = self
+                .context
+                .rule_application_pipeline
+                .get_bind_group_layout(0);
+            let bind_group = self
+                .context
+                .device
+                .create_bind_group(&wgpu::BindGroupDescriptor {
+                    label: Some("Rule Application Bind Group"),
+                    layout: &bind_group_layout,
+                    entries: &[
+                        wgpu::BindGroupEntry {
+                            binding: 0,
+                            resource: cell_buffer.as_entire_binding(),
+                        },
+                        wgpu::BindGroupEntry {
+                            binding: 1,
+                            resource: rule_buffer.as_entire_binding(),
+                        },
+                        wgpu::BindGroupEntry {
+                            binding: 2,
+                            resource: output_buffer.as_entire_binding(),
+                        },
+                    ],
+                });
 
             // Execute compute pass
-            let mut encoder = self.context.device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
-                label: Some("Rule Application Encoder"),
-            });
+            let mut encoder =
+                self.context
+                    .device
+                    .create_command_encoder(&wgpu::CommandEncoderDescriptor {
+                        label: Some("Rule Application Encoder"),
+                    });
 
             {
                 let mut compute_pass = encoder.begin_compute_pass(&wgpu::ComputePassDescriptor {
@@ -244,7 +270,7 @@ mod gpu_impl {
                 compute_pass.set_pipeline(&self.context.rule_application_pipeline);
                 compute_pass.set_bind_group(0, &bind_group, &[]);
 
-                let workgroup_count = ((cells.len() + 255) / 256) as u32;
+                let workgroup_count = cells.len().div_ceil(256) as u32;
                 compute_pass.dispatch_workgroups(workgroup_count, 1, 1);
             }
 
@@ -256,7 +282,13 @@ mod gpu_impl {
                 mapped_at_creation: false,
             });
 
-            encoder.copy_buffer_to_buffer(&output_buffer, 0, &staging_buffer, 0, output_buffer.size());
+            encoder.copy_buffer_to_buffer(
+                &output_buffer,
+                0,
+                &staging_buffer,
+                0,
+                output_buffer.size(),
+            );
             self.context.queue.submit(Some(encoder.finish()));
 
             let buffer_slice = staging_buffer.slice(..);
@@ -266,7 +298,12 @@ mod gpu_impl {
             });
 
             self.context.device.poll(wgpu::Maintain::Wait);
-            receiver.await.unwrap().map_err(|e| AutomataGpuError::EvolutionComputationFailed(format!("Buffer mapping failed: {:?}", e)))?;
+            receiver.await.unwrap().map_err(|e| {
+                AutomataGpuError::EvolutionComputationFailed(format!(
+                    "Buffer mapping failed: {:?}",
+                    e
+                ))
+            })?;
 
             let data = buffer_slice.get_mapped_range();
             let result: Vec<GpuCellData> = bytemuck::cast_slice(&data).to_vec();
@@ -284,11 +321,14 @@ mod gpu_impl {
             }
 
             // Create energy calculation buffers
-            let cell_buffer = self.context.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-                label: Some("Cell Energy Buffer"),
-                contents: bytemuck::cast_slice(cells),
-                usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
-            });
+            let cell_buffer =
+                self.context
+                    .device
+                    .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                        label: Some("Cell Energy Buffer"),
+                        contents: bytemuck::cast_slice(cells),
+                        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
+                    });
 
             let energy_buffer = self.context.device.create_buffer(&wgpu::BufferDescriptor {
                 label: Some("Energy Result Buffer"),
@@ -298,26 +338,35 @@ mod gpu_impl {
             });
 
             // Create bind group
-            let bind_group_layout = self.context.energy_calculation_pipeline.get_bind_group_layout(0);
-            let bind_group = self.context.device.create_bind_group(&wgpu::BindGroupDescriptor {
-                label: Some("Energy Calculation Bind Group"),
-                layout: &bind_group_layout,
-                entries: &[
-                    wgpu::BindGroupEntry {
-                        binding: 0,
-                        resource: cell_buffer.as_entire_binding(),
-                    },
-                    wgpu::BindGroupEntry {
-                        binding: 1,
-                        resource: energy_buffer.as_entire_binding(),
-                    },
-                ],
-            });
+            let bind_group_layout = self
+                .context
+                .energy_calculation_pipeline
+                .get_bind_group_layout(0);
+            let bind_group = self
+                .context
+                .device
+                .create_bind_group(&wgpu::BindGroupDescriptor {
+                    label: Some("Energy Calculation Bind Group"),
+                    layout: &bind_group_layout,
+                    entries: &[
+                        wgpu::BindGroupEntry {
+                            binding: 0,
+                            resource: cell_buffer.as_entire_binding(),
+                        },
+                        wgpu::BindGroupEntry {
+                            binding: 1,
+                            resource: energy_buffer.as_entire_binding(),
+                        },
+                    ],
+                });
 
             // Execute compute pass
-            let mut encoder = self.context.device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
-                label: Some("Energy Calculation Encoder"),
-            });
+            let mut encoder =
+                self.context
+                    .device
+                    .create_command_encoder(&wgpu::CommandEncoderDescriptor {
+                        label: Some("Energy Calculation Encoder"),
+                    });
 
             {
                 let mut compute_pass = encoder.begin_compute_pass(&wgpu::ComputePassDescriptor {
@@ -338,7 +387,13 @@ mod gpu_impl {
                 mapped_at_creation: false,
             });
 
-            encoder.copy_buffer_to_buffer(&energy_buffer, 0, &staging_buffer, 0, mem::size_of::<f32>() as u64);
+            encoder.copy_buffer_to_buffer(
+                &energy_buffer,
+                0,
+                &staging_buffer,
+                0,
+                mem::size_of::<f32>() as u64,
+            );
             self.context.queue.submit(Some(encoder.finish()));
 
             let buffer_slice = staging_buffer.slice(..);
@@ -348,7 +403,12 @@ mod gpu_impl {
             });
 
             self.context.device.poll(wgpu::Maintain::Wait);
-            receiver.await.unwrap().map_err(|e| AutomataGpuError::EvolutionComputationFailed(format!("Buffer mapping failed: {:?}", e)))?;
+            receiver.await.unwrap().map_err(|e| {
+                AutomataGpuError::EvolutionComputationFailed(format!(
+                    "Buffer mapping failed: {:?}",
+                    e
+                ))
+            })?;
 
             let data = buffer_slice.get_mapped_range();
             let energy: f32 = bytemuck::cast_slice(&data)[0];
@@ -368,18 +428,29 @@ mod gpu_impl {
             }
 
             // Create buffers for neighborhood extraction
-            let _cell_buffer = self.context.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-                label: Some("Cell Neighborhood Buffer"),
-                contents: bytemuck::cast_slice(cells),
-                usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
-            });
+            let _cell_buffer =
+                self.context
+                    .device
+                    .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                        label: Some("Cell Neighborhood Buffer"),
+                        contents: bytemuck::cast_slice(cells),
+                        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
+                    });
 
-            let params_data = [grid_width as f32, grid_height as f32, cells.len() as f32, 0.0];
-            let _params_buffer = self.context.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-                label: Some("Neighborhood Params Buffer"),
-                contents: bytemuck::cast_slice(&params_data),
-                usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
-            });
+            let params_data = [
+                grid_width as f32,
+                grid_height as f32,
+                cells.len() as f32,
+                0.0,
+            ];
+            let _params_buffer =
+                self.context
+                    .device
+                    .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                        label: Some("Neighborhood Params Buffer"),
+                        contents: bytemuck::cast_slice(&params_data),
+                        usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+                    });
 
             // For Moore neighborhood (8 neighbors max per cell)
             let _neighborhood_buffer = self.context.device.create_buffer(&wgpu::BufferDescriptor {
@@ -391,7 +462,8 @@ mod gpu_impl {
 
             // Create bind group and execute (implementation continues...)
             // For brevity, returning simplified result
-            let neighborhoods: Vec<Vec<GpuCellData>> = cells.iter()
+            let neighborhoods: Vec<Vec<GpuCellData>> = cells
+                .iter()
                 .map(|_| vec![GpuCellData::default(); 8])
                 .collect();
 
@@ -436,7 +508,9 @@ mod gpu_impl {
                     force_fallback_adapter: false,
                 })
                 .await
-                .ok_or_else(|| AutomataGpuError::DeviceCreationFailed("No suitable adapter found".to_string()))?;
+                .ok_or_else(|| {
+                    AutomataGpuError::DeviceCreationFailed("No suitable adapter found".to_string())
+                })?;
 
             // Request device and queue
             let (device, queue) = adapter
@@ -449,7 +523,12 @@ mod gpu_impl {
                     None,
                 )
                 .await
-                .map_err(|e| AutomataGpuError::DeviceCreationFailed(format!("Device request failed: {:?}", e)))?;
+                .map_err(|e| {
+                    AutomataGpuError::DeviceCreationFailed(format!(
+                        "Device request failed: {:?}",
+                        e
+                    ))
+                })?;
 
             // Create compute pipelines
             let ca_evolution_pipeline = Self::create_ca_evolution_pipeline(&device)?;
@@ -469,48 +548,51 @@ mod gpu_impl {
         }
 
         /// Create CA evolution compute pipeline
-        fn create_ca_evolution_pipeline(device: &wgpu::Device) -> AutomataGpuResult<wgpu::ComputePipeline> {
+        fn create_ca_evolution_pipeline(
+            device: &wgpu::Device,
+        ) -> AutomataGpuResult<wgpu::ComputePipeline> {
             let shader_source = include_str!("shaders/ca_evolution.wgsl");
             let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
                 label: Some("CA Evolution Shader"),
                 source: wgpu::ShaderSource::Wgsl(shader_source.into()),
             });
 
-            let bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-                label: Some("CA Evolution Bind Group Layout"),
-                entries: &[
-                    wgpu::BindGroupLayoutEntry {
-                        binding: 0,
-                        visibility: wgpu::ShaderStages::COMPUTE,
-                        ty: wgpu::BindingType::Buffer {
-                            ty: wgpu::BufferBindingType::Storage { read_only: true },
-                            has_dynamic_offset: false,
-                            min_binding_size: None,
+            let bind_group_layout =
+                device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+                    label: Some("CA Evolution Bind Group Layout"),
+                    entries: &[
+                        wgpu::BindGroupLayoutEntry {
+                            binding: 0,
+                            visibility: wgpu::ShaderStages::COMPUTE,
+                            ty: wgpu::BindingType::Buffer {
+                                ty: wgpu::BufferBindingType::Storage { read_only: true },
+                                has_dynamic_offset: false,
+                                min_binding_size: None,
+                            },
+                            count: None,
                         },
-                        count: None,
-                    },
-                    wgpu::BindGroupLayoutEntry {
-                        binding: 1,
-                        visibility: wgpu::ShaderStages::COMPUTE,
-                        ty: wgpu::BindingType::Buffer {
-                            ty: wgpu::BufferBindingType::Storage { read_only: true },
-                            has_dynamic_offset: false,
-                            min_binding_size: None,
+                        wgpu::BindGroupLayoutEntry {
+                            binding: 1,
+                            visibility: wgpu::ShaderStages::COMPUTE,
+                            ty: wgpu::BindingType::Buffer {
+                                ty: wgpu::BufferBindingType::Storage { read_only: true },
+                                has_dynamic_offset: false,
+                                min_binding_size: None,
+                            },
+                            count: None,
                         },
-                        count: None,
-                    },
-                    wgpu::BindGroupLayoutEntry {
-                        binding: 2,
-                        visibility: wgpu::ShaderStages::COMPUTE,
-                        ty: wgpu::BindingType::Buffer {
-                            ty: wgpu::BufferBindingType::Storage { read_only: false },
-                            has_dynamic_offset: false,
-                            min_binding_size: None,
+                        wgpu::BindGroupLayoutEntry {
+                            binding: 2,
+                            visibility: wgpu::ShaderStages::COMPUTE,
+                            ty: wgpu::BindingType::Buffer {
+                                ty: wgpu::BufferBindingType::Storage { read_only: false },
+                                has_dynamic_offset: false,
+                                min_binding_size: None,
+                            },
+                            count: None,
                         },
-                        count: None,
-                    },
-                ],
-            });
+                    ],
+                });
 
             let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("CA Evolution Pipeline Layout"),
@@ -518,57 +600,62 @@ mod gpu_impl {
                 push_constant_ranges: &[],
             });
 
-            Ok(device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
-                label: Some("CA Evolution Pipeline"),
-                layout: Some(&pipeline_layout),
-                module: &shader,
-                entry_point: "ca_evolution_main",
-            }))
+            Ok(
+                device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
+                    label: Some("CA Evolution Pipeline"),
+                    layout: Some(&pipeline_layout),
+                    module: &shader,
+                    entry_point: "ca_evolution_main",
+                }),
+            )
         }
 
         /// Create rule application compute pipeline
-        fn create_rule_application_pipeline(device: &wgpu::Device) -> AutomataGpuResult<wgpu::ComputePipeline> {
+        fn create_rule_application_pipeline(
+            device: &wgpu::Device,
+        ) -> AutomataGpuResult<wgpu::ComputePipeline> {
             let shader_source = include_str!("shaders/rule_application.wgsl");
             let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
                 label: Some("Rule Application Shader"),
                 source: wgpu::ShaderSource::Wgsl(shader_source.into()),
             });
 
-            let bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-                label: Some("Rule Application Bind Group Layout"),
-                entries: &[
-                    wgpu::BindGroupLayoutEntry {
-                        binding: 0,
-                        visibility: wgpu::ShaderStages::COMPUTE,
-                        ty: wgpu::BindingType::Buffer {
-                            ty: wgpu::BufferBindingType::Storage { read_only: true },
-                            has_dynamic_offset: false,
-                            min_binding_size: None,
+            let bind_group_layout =
+                device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+                    label: Some("Rule Application Bind Group Layout"),
+                    entries: &[
+                        wgpu::BindGroupLayoutEntry {
+                            binding: 0,
+                            visibility: wgpu::ShaderStages::COMPUTE,
+                            ty: wgpu::BindingType::Buffer {
+                                ty: wgpu::BufferBindingType::Storage { read_only: true },
+                                has_dynamic_offset: false,
+                                min_binding_size: None,
+                            },
+                            count: None,
                         },
-                        count: None,
-                    },
-                    wgpu::BindGroupLayoutEntry {
-                        binding: 1,
-                        visibility: wgpu::ShaderStages::COMPUTE,
-                        ty: wgpu::BindingType::Buffer {
-                            ty: wgpu::BufferBindingType::Storage { read_only: true },
-                            has_dynamic_offset: false,
-                            min_binding_size: None,
+                        wgpu::BindGroupLayoutEntry {
+                            binding: 1,
+                            visibility: wgpu::ShaderStages::COMPUTE,
+                            ty: wgpu::BindingType::Buffer {
+                                ty: wgpu::BufferBindingType::Storage { read_only: true },
+                                has_dynamic_offset: false,
+                                min_binding_size: None,
+                            },
+                            count: None,
                         },
-                        count: None,
-                    },
-                    wgpu::BindGroupLayoutEntry {
-                        binding: 2,
-                        visibility: wgpu::ShaderStages::COMPUTE,
-                        ty: wgpu::BindingType::Buffer {
-                            ty: wgpu::BufferBindingType::Storage { read_only: false },
-                            has_dynamic_offset: false,
-                            min_binding_size: None,
+                        wgpu::BindGroupLayoutEntry {
+                            binding: 2,
+                            visibility: wgpu::ShaderStages::COMPUTE,
+                            ty: wgpu::BindingType::Buffer {
+                                ty: wgpu::BufferBindingType::Storage { read_only: false },
+                                has_dynamic_offset: false,
+                                min_binding_size: None,
+                            },
+                            count: None,
                         },
-                        count: None,
-                    },
-                ],
-            });
+                    ],
+                });
 
             let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("Rule Application Pipeline Layout"),
@@ -576,47 +663,52 @@ mod gpu_impl {
                 push_constant_ranges: &[],
             });
 
-            Ok(device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
-                label: Some("Rule Application Pipeline"),
-                layout: Some(&pipeline_layout),
-                module: &shader,
-                entry_point: "rule_application_main",
-            }))
+            Ok(
+                device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
+                    label: Some("Rule Application Pipeline"),
+                    layout: Some(&pipeline_layout),
+                    module: &shader,
+                    entry_point: "rule_application_main",
+                }),
+            )
         }
 
         /// Create energy calculation pipeline
-        fn create_energy_calculation_pipeline(device: &wgpu::Device) -> AutomataGpuResult<wgpu::ComputePipeline> {
+        fn create_energy_calculation_pipeline(
+            device: &wgpu::Device,
+        ) -> AutomataGpuResult<wgpu::ComputePipeline> {
             let shader_source = include_str!("shaders/energy_calculation.wgsl");
             let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
                 label: Some("Energy Calculation Shader"),
                 source: wgpu::ShaderSource::Wgsl(shader_source.into()),
             });
 
-            let bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-                label: Some("Energy Calculation Bind Group Layout"),
-                entries: &[
-                    wgpu::BindGroupLayoutEntry {
-                        binding: 0,
-                        visibility: wgpu::ShaderStages::COMPUTE,
-                        ty: wgpu::BindingType::Buffer {
-                            ty: wgpu::BufferBindingType::Storage { read_only: true },
-                            has_dynamic_offset: false,
-                            min_binding_size: None,
+            let bind_group_layout =
+                device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+                    label: Some("Energy Calculation Bind Group Layout"),
+                    entries: &[
+                        wgpu::BindGroupLayoutEntry {
+                            binding: 0,
+                            visibility: wgpu::ShaderStages::COMPUTE,
+                            ty: wgpu::BindingType::Buffer {
+                                ty: wgpu::BufferBindingType::Storage { read_only: true },
+                                has_dynamic_offset: false,
+                                min_binding_size: None,
+                            },
+                            count: None,
                         },
-                        count: None,
-                    },
-                    wgpu::BindGroupLayoutEntry {
-                        binding: 1,
-                        visibility: wgpu::ShaderStages::COMPUTE,
-                        ty: wgpu::BindingType::Buffer {
-                            ty: wgpu::BufferBindingType::Storage { read_only: false },
-                            has_dynamic_offset: false,
-                            min_binding_size: None,
+                        wgpu::BindGroupLayoutEntry {
+                            binding: 1,
+                            visibility: wgpu::ShaderStages::COMPUTE,
+                            ty: wgpu::BindingType::Buffer {
+                                ty: wgpu::BufferBindingType::Storage { read_only: false },
+                                has_dynamic_offset: false,
+                                min_binding_size: None,
+                            },
+                            count: None,
                         },
-                        count: None,
-                    },
-                ],
-            });
+                    ],
+                });
 
             let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("Energy Calculation Pipeline Layout"),
@@ -624,57 +716,62 @@ mod gpu_impl {
                 push_constant_ranges: &[],
             });
 
-            Ok(device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
-                label: Some("Energy Calculation Pipeline"),
-                layout: Some(&pipeline_layout),
-                module: &shader,
-                entry_point: "energy_calculation_main",
-            }))
+            Ok(
+                device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
+                    label: Some("Energy Calculation Pipeline"),
+                    layout: Some(&pipeline_layout),
+                    module: &shader,
+                    entry_point: "energy_calculation_main",
+                }),
+            )
         }
 
         /// Create neighbor extraction pipeline
-        fn create_neighbor_extraction_pipeline(device: &wgpu::Device) -> AutomataGpuResult<wgpu::ComputePipeline> {
+        fn create_neighbor_extraction_pipeline(
+            device: &wgpu::Device,
+        ) -> AutomataGpuResult<wgpu::ComputePipeline> {
             let shader_source = include_str!("shaders/neighbor_extraction.wgsl");
             let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
                 label: Some("Neighbor Extraction Shader"),
                 source: wgpu::ShaderSource::Wgsl(shader_source.into()),
             });
 
-            let bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-                label: Some("Neighbor Extraction Bind Group Layout"),
-                entries: &[
-                    wgpu::BindGroupLayoutEntry {
-                        binding: 0,
-                        visibility: wgpu::ShaderStages::COMPUTE,
-                        ty: wgpu::BindingType::Buffer {
-                            ty: wgpu::BufferBindingType::Storage { read_only: true },
-                            has_dynamic_offset: false,
-                            min_binding_size: None,
+            let bind_group_layout =
+                device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+                    label: Some("Neighbor Extraction Bind Group Layout"),
+                    entries: &[
+                        wgpu::BindGroupLayoutEntry {
+                            binding: 0,
+                            visibility: wgpu::ShaderStages::COMPUTE,
+                            ty: wgpu::BindingType::Buffer {
+                                ty: wgpu::BufferBindingType::Storage { read_only: true },
+                                has_dynamic_offset: false,
+                                min_binding_size: None,
+                            },
+                            count: None,
                         },
-                        count: None,
-                    },
-                    wgpu::BindGroupLayoutEntry {
-                        binding: 1,
-                        visibility: wgpu::ShaderStages::COMPUTE,
-                        ty: wgpu::BindingType::Buffer {
-                            ty: wgpu::BufferBindingType::Uniform,
-                            has_dynamic_offset: false,
-                            min_binding_size: None,
+                        wgpu::BindGroupLayoutEntry {
+                            binding: 1,
+                            visibility: wgpu::ShaderStages::COMPUTE,
+                            ty: wgpu::BindingType::Buffer {
+                                ty: wgpu::BufferBindingType::Uniform,
+                                has_dynamic_offset: false,
+                                min_binding_size: None,
+                            },
+                            count: None,
                         },
-                        count: None,
-                    },
-                    wgpu::BindGroupLayoutEntry {
-                        binding: 2,
-                        visibility: wgpu::ShaderStages::COMPUTE,
-                        ty: wgpu::BindingType::Buffer {
-                            ty: wgpu::BufferBindingType::Storage { read_only: false },
-                            has_dynamic_offset: false,
-                            min_binding_size: None,
+                        wgpu::BindGroupLayoutEntry {
+                            binding: 2,
+                            visibility: wgpu::ShaderStages::COMPUTE,
+                            ty: wgpu::BindingType::Buffer {
+                                ty: wgpu::BufferBindingType::Storage { read_only: false },
+                                has_dynamic_offset: false,
+                                min_binding_size: None,
+                            },
+                            count: None,
                         },
-                        count: None,
-                    },
-                ],
-            });
+                    ],
+                });
 
             let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("Neighbor Extraction Pipeline Layout"),
@@ -682,12 +779,14 @@ mod gpu_impl {
                 push_constant_ranges: &[],
             });
 
-            Ok(device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
-                label: Some("Neighbor Extraction Pipeline"),
-                layout: Some(&pipeline_layout),
-                module: &shader,
-                entry_point: "neighbor_extraction_main",
-            }))
+            Ok(
+                device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
+                    label: Some("Neighbor Extraction Pipeline"),
+                    layout: Some(&pipeline_layout),
+                    module: &shader,
+                    entry_point: "neighbor_extraction_main",
+                }),
+            )
         }
     }
 
@@ -775,16 +874,17 @@ mod gpu_impl {
 
     impl From<&RuleType> for GpuRuleConfig {
         fn from(rule_type: &RuleType) -> Self {
-            let mut config = Self::default();
-            config.rule_type = match rule_type {
-                RuleType::Geometric => 0.0,
-                RuleType::GameOfLife => 1.0,
-                RuleType::Reversible => 2.0,
-                RuleType::RotorCA => 3.0,
-                RuleType::GradePreserving => 4.0,
-                RuleType::Conservative => 5.0,
-            };
-            config
+            Self {
+                rule_type: match rule_type {
+                    RuleType::Geometric => 0.0,
+                    RuleType::GameOfLife => 1.0,
+                    RuleType::Reversible => 2.0,
+                    RuleType::RotorCA => 3.0,
+                    RuleType::GradePreserving => 4.0,
+                    RuleType::Conservative => 5.0,
+                },
+                ..Self::default()
+            }
         }
     }
 
@@ -792,10 +892,14 @@ mod gpu_impl {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
             match self {
                 Self::DeviceCreationFailed(msg) => write!(f, "GPU device creation failed: {}", msg),
-                Self::ShaderCompilationFailed(msg) => write!(f, "Shader compilation failed: {}", msg),
+                Self::ShaderCompilationFailed(msg) => {
+                    write!(f, "Shader compilation failed: {}", msg)
+                }
                 Self::BufferAllocationFailed(msg) => write!(f, "Buffer allocation failed: {}", msg),
                 Self::PipelineCreationFailed(msg) => write!(f, "Pipeline creation failed: {}", msg),
-                Self::EvolutionComputationFailed(msg) => write!(f, "Evolution computation failed: {}", msg),
+                Self::EvolutionComputationFailed(msg) => {
+                    write!(f, "Evolution computation failed: {}", msg)
+                }
                 Self::GpuError(msg) => write!(f, "GPU error: {}", msg),
             }
         }
