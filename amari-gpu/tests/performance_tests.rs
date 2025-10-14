@@ -11,8 +11,18 @@
 use amari_gpu::*;
 use std::time::Instant;
 
+/// Skip GPU tests in CI environments where GPU is not available
+fn skip_if_ci() -> bool {
+    std::env::var("CI").is_ok() || std::env::var("GITHUB_ACTIONS").is_ok()
+}
+
 #[tokio::test]
 async fn test_shared_gpu_context_creation() {
+    if skip_if_ci() {
+        println!("Skipping GPU test in CI environment");
+        return;
+    }
+
     // Test that GPU context can be created successfully
     let start = Instant::now();
     let context1 = SharedGpuContext::global().await;
@@ -31,6 +41,11 @@ async fn test_shared_gpu_context_creation() {
 
 #[tokio::test]
 async fn test_buffer_pool_performance() {
+    if skip_if_ci() {
+        println!("Skipping GPU test in CI environment");
+        return;
+    }
+
     let context = SharedGpuContext::global().await.unwrap();
 
     // Test buffer pool hit rate improves over time
@@ -61,6 +76,11 @@ async fn test_buffer_pool_performance() {
 
 #[tokio::test]
 async fn test_workgroup_optimization() {
+    if skip_if_ci() {
+        println!("Skipping GPU test in CI environment");
+        return;
+    }
+
     let context = SharedGpuContext::global().await.unwrap();
 
     // Test different operation types get appropriate workgroup sizes
@@ -84,6 +104,11 @@ async fn test_workgroup_optimization() {
 
 #[tokio::test]
 async fn test_cross_crate_gpu_sharing() {
+    if skip_if_ci() {
+        println!("Skipping GPU test in CI environment");
+        return;
+    }
+
     // Simulate accessing GPU resources sequentially (representing different crates)
     let context1 = SharedGpuContext::global().await.unwrap();
     let context2 = SharedGpuContext::global().await.unwrap();
@@ -116,6 +141,11 @@ async fn test_cross_crate_gpu_sharing() {
 
 #[tokio::test]
 async fn test_memory_usage_tracking() {
+    if skip_if_ci() {
+        println!("Skipping GPU test in CI environment");
+        return;
+    }
+
     let context = SharedGpuContext::global().await.unwrap();
 
     let initial_stats = context.buffer_pool_stats();
@@ -146,6 +176,11 @@ async fn test_memory_usage_tracking() {
 
 #[tokio::test]
 async fn test_shader_caching_performance() {
+    if skip_if_ci() {
+        println!("Skipping GPU test in CI environment");
+        return;
+    }
+
     let context = SharedGpuContext::global().await.unwrap();
 
     let simple_shader = r#"
@@ -212,6 +247,11 @@ mod integration_tests {
 
     #[tokio::test]
     async fn test_end_to_end_optimization() {
+        if skip_if_ci() {
+            println!("Skipping GPU test in CI environment");
+            return;
+        }
+
         // Test complete optimization pipeline across multiple operations
         let context = SharedGpuContext::global().await.unwrap();
 
@@ -248,6 +288,11 @@ mod integration_tests {
 
     #[tokio::test]
     async fn test_memory_efficiency() {
+        if skip_if_ci() {
+            println!("Skipping GPU test in CI environment");
+            return;
+        }
+
         let context = SharedGpuContext::global().await.unwrap();
 
         let initial_stats = context.buffer_pool_stats();
