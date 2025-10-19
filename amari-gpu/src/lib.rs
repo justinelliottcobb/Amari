@@ -16,13 +16,18 @@ pub use adaptive::{
     GpuBackend, PlatformCapabilities, PlatformPerformanceProfile, VerificationPlatform,
     WasmEnvironment,
 };
+use amari_core::Multivector;
+use amari_info_geom::amari_chentsov_tensor;
 pub use benchmarks::{
     AmariMultiGpuBenchmarks, BenchmarkConfig, BenchmarkResult, BenchmarkRunner,
     BenchmarkSuiteResults, BenchmarkSummary, ScalingAnalysis,
 };
-use amari_core::Multivector;
-use amari_info_geom::amari_chentsov_tensor;
 use bytemuck::{Pod, Zeroable};
+pub use multi_gpu::{
+    ComputeIntensity, DeviceCapabilities, DeviceId, DeviceWorkload, GpuArchitecture, GpuDevice,
+    IntelligentLoadBalancer, LoadBalancingStrategy, MultiGpuBarrier, PerformanceRecord,
+    PerformanceStats, SynchronizationManager, Workload, WorkloadCoordinator,
+};
 pub use network::{AdaptiveNetworkCompute, GpuGeometricNetwork, GpuNetworkError, GpuNetworkResult};
 pub use performance::{
     AdaptiveDispatchPolicy, CalibrationResult, GpuProfile, GpuProfiler, WorkgroupConfig,
@@ -32,18 +37,13 @@ pub use relativistic::{
     GpuRelativisticParticle, GpuRelativisticPhysics, GpuSpacetimeVector, GpuTrajectoryParams,
 };
 pub use shaders::{ShaderLibrary, DUAL_SHADERS, FUSION_SHADERS, TROPICAL_SHADERS};
+use thiserror::Error;
 pub use timeline::{
     BottleneckAnalysis, DeviceUtilizationStats, GpuTimelineAnalyzer, MultiGpuPerformanceMonitor,
     OptimizationRecommendation, PerformanceAnalysisReport, PerformanceBottleneck,
     PerformanceSummary, RecommendationPriority, SynchronizationAnalysis, TimelineEvent,
     UtilizationAnalysis,
 };
-pub use multi_gpu::{
-    ComputeIntensity, DeviceCapabilities, DeviceId, DeviceWorkload, GpuArchitecture, GpuDevice,
-    IntelligentLoadBalancer, LoadBalancingStrategy, MultiGpuBarrier, PerformanceRecord,
-    PerformanceStats, SynchronizationManager, Workload, WorkloadCoordinator,
-};
-use thiserror::Error;
 pub use unified::{
     BufferPoolStats, EnhancedGpuBufferPool, GpuAccelerated, GpuContext, GpuDispatcher,
     GpuOperationParams, GpuParam, MultiGpuStats, PoolEntryStats, SharedGpuContext, UnifiedGpuError,

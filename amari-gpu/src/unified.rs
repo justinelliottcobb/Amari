@@ -4,7 +4,13 @@
 //! across tropical algebra, automatic differentiation, fusion systems, and other
 //! mathematical domains in the Amari library.
 
-use crate::{multi_gpu::{DeviceId, GpuDevice, IntelligentLoadBalancer, LoadBalancingStrategy, Workload, WorkloadCoordinator}, GpuError};
+use crate::{
+    multi_gpu::{
+        DeviceId, GpuDevice, IntelligentLoadBalancer, LoadBalancingStrategy, Workload,
+        WorkloadCoordinator,
+    },
+    GpuError,
+};
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Instant;
@@ -360,12 +366,13 @@ impl SharedGpuContext {
         let primary_device_id = DeviceId(0);
 
         // Create single-GPU device for multi-GPU compatibility
-        let gpu_device = Arc::new(GpuDevice::new(
-            primary_device_id,
-            &adapter,
-            device,
-            queue,
-        ).await.map_err(|_| UnifiedGpuError::InvalidOperation("Failed to create GPU device".into()))?);
+        let gpu_device = Arc::new(
+            GpuDevice::new(primary_device_id, &adapter, device, queue)
+                .await
+                .map_err(|_| {
+                    UnifiedGpuError::InvalidOperation("Failed to create GPU device".into())
+                })?,
+        );
 
         let device_arc = Arc::clone(&gpu_device.device);
         let queue_arc = Arc::clone(&gpu_device.queue);
@@ -384,7 +391,9 @@ impl SharedGpuContext {
             // Multi-GPU fields (initially single-GPU mode)
             multi_gpu_enabled: false,
             gpu_devices: Arc::new(RwLock::new(gpu_devices)),
-            load_balancer: Arc::new(IntelligentLoadBalancer::new(LoadBalancingStrategy::Balanced)),
+            load_balancer: Arc::new(IntelligentLoadBalancer::new(
+                LoadBalancingStrategy::Balanced,
+            )),
             workload_coordinator: Arc::new(WorkloadCoordinator::new()),
             primary_device_id,
         })
@@ -403,7 +412,9 @@ impl SharedGpuContext {
         let adapters: Vec<_> = instance.enumerate_adapters(wgpu::Backends::all());
 
         if adapters.is_empty() {
-            return Err(UnifiedGpuError::InvalidOperation("No GPU adapters found".into()));
+            return Err(UnifiedGpuError::InvalidOperation(
+                "No GPU adapters found".into(),
+            ));
         }
 
         // Initialize devices from adapters
@@ -442,11 +453,15 @@ impl SharedGpuContext {
         }
 
         if gpu_devices.is_empty() {
-            return Err(UnifiedGpuError::InvalidOperation("No usable GPU devices found".into()));
+            return Err(UnifiedGpuError::InvalidOperation(
+                "No usable GPU devices found".into(),
+            ));
         }
 
         let primary_device_id = DeviceId(0);
-        let load_balancer = Arc::new(IntelligentLoadBalancer::new(LoadBalancingStrategy::CapabilityAware));
+        let load_balancer = Arc::new(IntelligentLoadBalancer::new(
+            LoadBalancingStrategy::CapabilityAware,
+        ));
 
         // Add all devices to load balancer
         for device in gpu_devices.values() {
@@ -706,7 +721,11 @@ impl SharedGpuContext {
     }
 
     /// Get the optimal device for a specific operation
-    pub async fn optimal_device_for_operation(&self, operation: &str, _data_size: usize) -> DeviceId {
+    pub async fn optimal_device_for_operation(
+        &self,
+        operation: &str,
+        _data_size: usize,
+    ) -> DeviceId {
         if !self.multi_gpu_enabled {
             return self.primary_device_id;
         }
@@ -734,7 +753,10 @@ impl SharedGpuContext {
     }
 
     /// Distribute a workload across multiple GPUs
-    pub async fn distribute_workload(&self, workload: Workload) -> UnifiedGpuResult<Vec<crate::multi_gpu::DeviceWorkload>> {
+    pub async fn distribute_workload(
+        &self,
+        workload: Workload,
+    ) -> UnifiedGpuResult<Vec<crate::multi_gpu::DeviceWorkload>> {
         if !self.multi_gpu_enabled {
             // Single GPU fallback
             return Ok(vec![crate::multi_gpu::DeviceWorkload {
@@ -746,8 +768,12 @@ impl SharedGpuContext {
             }]);
         }
 
-        self.load_balancer.distribute_workload(&workload).await
-            .map_err(|e| UnifiedGpuError::InvalidOperation(format!("Workload distribution failed: {:?}", e)))
+        self.load_balancer
+            .distribute_workload(&workload)
+            .await
+            .map_err(|e| {
+                UnifiedGpuError::InvalidOperation(format!("Workload distribution failed: {:?}", e))
+            })
     }
 
     /// Execute a workload on multiple GPUs and aggregate results
@@ -758,7 +784,7 @@ impl SharedGpuContext {
     ) -> UnifiedGpuResult<Vec<Vec<u8>>> {
         if !self.multi_gpu_enabled {
             return Err(UnifiedGpuError::InvalidOperation(
-                "Multi-GPU mode not enabled".into()
+                "Multi-GPU mode not enabled".into(),
             ));
         }
 
@@ -769,19 +795,24 @@ impl SharedGpuContext {
         self.workload_coordinator
             .submit_workload(workload_id.clone(), assignments)
             .await
-            .map_err(|e| UnifiedGpuError::InvalidOperation(format!("Workload submission failed: {:?}", e)))?;
+            .map_err(|e| {
+                UnifiedGpuError::InvalidOperation(format!("Workload submission failed: {:?}", e))
+            })?;
 
         // Wait for completion (with timeout)
         let timeout = std::time::Duration::from_secs(30);
         self.workload_coordinator
             .wait_for_completion(&workload_id, timeout)
             .await
-            .map_err(|e| UnifiedGpuError::InvalidOperation(format!("Workload execution failed: {:?}", e)))
+            .map_err(|e| {
+                UnifiedGpuError::InvalidOperation(format!("Workload execution failed: {:?}", e))
+            })
     }
 
     /// Get real-time GPU utilization across all devices
     pub async fn get_gpu_utilization(&self) -> HashMap<DeviceId, f32> {
-        let devices: tokio::sync::RwLockReadGuard<HashMap<DeviceId, Arc<GpuDevice>>> = self.gpu_devices.read().await;
+        let devices: tokio::sync::RwLockReadGuard<HashMap<DeviceId, Arc<GpuDevice>>> =
+            self.gpu_devices.read().await;
         devices
             .iter()
             .map(|(id, device): (&DeviceId, &Arc<GpuDevice>)| (*id, device.current_load()))
@@ -790,24 +821,34 @@ impl SharedGpuContext {
 
     /// Get performance statistics for multi-GPU operations
     pub async fn get_multi_gpu_stats(&self) -> MultiGpuStats {
-        let devices: tokio::sync::RwLockReadGuard<HashMap<DeviceId, Arc<GpuDevice>>> = self.gpu_devices.read().await;
+        let devices: tokio::sync::RwLockReadGuard<HashMap<DeviceId, Arc<GpuDevice>>> =
+            self.gpu_devices.read().await;
         let device_count = devices.len();
 
         let total_operations: usize = devices
             .values()
-            .map(|device| device.total_operations.load(std::sync::atomic::Ordering::Relaxed))
+            .map(|device| {
+                device
+                    .total_operations
+                    .load(std::sync::atomic::Ordering::Relaxed)
+            })
             .sum();
 
         let total_errors: usize = devices
             .values()
-            .map(|device| device.error_count.load(std::sync::atomic::Ordering::Relaxed))
+            .map(|device| {
+                device
+                    .error_count
+                    .load(std::sync::atomic::Ordering::Relaxed)
+            })
             .sum();
 
         let avg_utilization = if !devices.is_empty() {
             devices
                 .values()
                 .map(|device: &Arc<GpuDevice>| device.current_load())
-                .sum::<f32>() / devices.len() as f32
+                .sum::<f32>()
+                / devices.len() as f32
         } else {
             0.0
         };
@@ -822,10 +863,13 @@ impl SharedGpuContext {
     }
 
     /// Set load balancing strategy for multi-GPU operations
-    pub async fn set_load_balancing_strategy(&self, _strategy: LoadBalancingStrategy) -> UnifiedGpuResult<()> {
+    pub async fn set_load_balancing_strategy(
+        &self,
+        _strategy: LoadBalancingStrategy,
+    ) -> UnifiedGpuResult<()> {
         if !self.multi_gpu_enabled {
             return Err(UnifiedGpuError::InvalidOperation(
-                "Multi-GPU mode not enabled".into()
+                "Multi-GPU mode not enabled".into(),
             ));
         }
 
@@ -838,11 +882,12 @@ impl SharedGpuContext {
     pub async fn add_gpu_device(&self, device: Arc<GpuDevice>) -> UnifiedGpuResult<()> {
         if !self.multi_gpu_enabled {
             return Err(UnifiedGpuError::InvalidOperation(
-                "Multi-GPU mode not enabled".into()
+                "Multi-GPU mode not enabled".into(),
             ));
         }
 
-        let mut devices: tokio::sync::RwLockWriteGuard<HashMap<DeviceId, Arc<GpuDevice>>> = self.gpu_devices.write().await;
+        let mut devices: tokio::sync::RwLockWriteGuard<HashMap<DeviceId, Arc<GpuDevice>>> =
+            self.gpu_devices.write().await;
         devices.insert(device.id, Arc::clone(&device));
 
         // Add to load balancer
@@ -855,11 +900,12 @@ impl SharedGpuContext {
     pub async fn remove_gpu_device(&self, device_id: DeviceId) -> UnifiedGpuResult<()> {
         if !self.multi_gpu_enabled {
             return Err(UnifiedGpuError::InvalidOperation(
-                "Multi-GPU mode not enabled".into()
+                "Multi-GPU mode not enabled".into(),
             ));
         }
 
-        let mut devices: tokio::sync::RwLockWriteGuard<HashMap<DeviceId, Arc<GpuDevice>>> = self.gpu_devices.write().await;
+        let mut devices: tokio::sync::RwLockWriteGuard<HashMap<DeviceId, Arc<GpuDevice>>> =
+            self.gpu_devices.write().await;
         devices.remove(&device_id);
 
         // Remove from load balancer

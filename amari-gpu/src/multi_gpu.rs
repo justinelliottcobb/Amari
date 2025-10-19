@@ -100,9 +100,13 @@ impl GpuDevice {
 
         // Estimate capabilities based on adapter info and limits
         let architecture = match adapter_info.vendor {
-            0x10DE => GpuArchitecture::Nvidia { compute_capability: (8, 0) }, // Estimate
+            0x10DE => GpuArchitecture::Nvidia {
+                compute_capability: (8, 0),
+            }, // Estimate
             0x1002 | 0x1022 => GpuArchitecture::Amd { gcn_generation: 5 },
-            0x8086 => GpuArchitecture::Intel { generation: "Gen12".to_string() },
+            0x8086 => GpuArchitecture::Intel {
+                generation: "Gen12".to_string(),
+            },
             _ => GpuArchitecture::Unknown,
         };
 
@@ -141,7 +145,8 @@ impl GpuDevice {
 
     /// Update device load metrics
     pub fn update_load(&self, load_percent: f32) {
-        self.current_load.store(load_percent.to_bits(), Ordering::Relaxed);
+        self.current_load
+            .store(load_percent.to_bits(), Ordering::Relaxed);
         if let Ok(mut last_activity) = self.last_activity.lock() {
             *last_activity = Instant::now();
         }
@@ -162,8 +167,10 @@ impl GpuDevice {
         let base_score = match operation_type {
             "matrix_multiply" => self.capabilities.peak_flops as f32 / 1e12,
             "memory_intensive" => self.capabilities.memory_bandwidth_gb_s,
-            _ => (self.capabilities.peak_flops as f32 / 1e12) * 0.5
-                 + self.capabilities.memory_bandwidth_gb_s * 0.5,
+            _ => {
+                (self.capabilities.peak_flops as f32 / 1e12) * 0.5
+                    + self.capabilities.memory_bandwidth_gb_s * 0.5
+            }
         };
 
         // Adjust for current load
@@ -185,10 +192,10 @@ pub struct Workload {
 
 #[derive(Debug, Clone)]
 pub enum ComputeIntensity {
-    Light,      // Memory-bound operations
-    Moderate,   // Balanced compute/memory
-    Heavy,      // Compute-bound operations
-    Extreme,    // Very high arithmetic intensity
+    Light,    // Memory-bound operations
+    Moderate, // Balanced compute/memory
+    Heavy,    // Compute-bound operations
+    Extreme,  // Very high arithmetic intensity
 }
 
 /// Device-specific workload assignment
@@ -245,19 +252,25 @@ impl IntelligentLoadBalancer {
 
     /// Add a device to the load balancer
     pub async fn add_device(&self, device: Arc<GpuDevice>) {
-        let mut devices: tokio::sync::RwLockWriteGuard<HashMap<DeviceId, Arc<GpuDevice>>> = self.devices.write().await;
+        let mut devices: tokio::sync::RwLockWriteGuard<HashMap<DeviceId, Arc<GpuDevice>>> =
+            self.devices.write().await;
         devices.insert(device.id, device);
     }
 
     /// Remove a device from the load balancer
     pub async fn remove_device(&self, device_id: DeviceId) {
-        let mut devices: tokio::sync::RwLockWriteGuard<HashMap<DeviceId, Arc<GpuDevice>>> = self.devices.write().await;
+        let mut devices: tokio::sync::RwLockWriteGuard<HashMap<DeviceId, Arc<GpuDevice>>> =
+            self.devices.write().await;
         devices.remove(&device_id);
     }
 
     /// Distribute workload across available devices
-    pub async fn distribute_workload(&self, workload: &Workload) -> UnifiedGpuResult<Vec<DeviceWorkload>> {
-        let devices: tokio::sync::RwLockReadGuard<HashMap<DeviceId, Arc<GpuDevice>>> = self.devices.read().await;
+    pub async fn distribute_workload(
+        &self,
+        workload: &Workload,
+    ) -> UnifiedGpuResult<Vec<DeviceWorkload>> {
+        let devices: tokio::sync::RwLockReadGuard<HashMap<DeviceId, Arc<GpuDevice>>> =
+            self.devices.read().await;
         let available_devices: Vec<&Arc<GpuDevice>> = devices
             .values()
             .filter(|device| device.is_available())
@@ -265,16 +278,26 @@ impl IntelligentLoadBalancer {
 
         if available_devices.is_empty() {
             return Err(UnifiedGpuError::InvalidOperation(
-                "No available devices for workload distribution".into()
+                "No available devices for workload distribution".into(),
             ));
         }
 
         match self.balancing_strategy {
-            LoadBalancingStrategy::Balanced => self.distribute_balanced(&available_devices, workload),
-            LoadBalancingStrategy::CapabilityAware => self.distribute_capability_aware(&available_devices, workload),
-            LoadBalancingStrategy::MemoryAware => self.distribute_memory_aware(&available_devices, workload),
-            LoadBalancingStrategy::LatencyOptimized => self.distribute_latency_optimized(&available_devices, workload),
-            LoadBalancingStrategy::Adaptive => self.distribute_adaptive(&available_devices, workload).await,
+            LoadBalancingStrategy::Balanced => {
+                self.distribute_balanced(&available_devices, workload)
+            }
+            LoadBalancingStrategy::CapabilityAware => {
+                self.distribute_capability_aware(&available_devices, workload)
+            }
+            LoadBalancingStrategy::MemoryAware => {
+                self.distribute_memory_aware(&available_devices, workload)
+            }
+            LoadBalancingStrategy::LatencyOptimized => {
+                self.distribute_latency_optimized(&available_devices, workload)
+            }
+            LoadBalancingStrategy::Adaptive => {
+                self.distribute_adaptive(&available_devices, workload).await
+            }
         }
     }
 
@@ -368,7 +391,7 @@ impl IntelligentLoadBalancer {
 
         if viable_devices.is_empty() {
             return Err(UnifiedGpuError::InvalidOperation(
-                "No devices with sufficient memory for workload".into()
+                "No devices with sufficient memory for workload".into(),
             ));
         }
 
@@ -430,7 +453,8 @@ impl IntelligentLoadBalancer {
                     .rev()
                     .take(10) // Last 10 operations
                     .map(|record| record.throughput_gops)
-                    .sum::<f32>() / device_history.len().min(10) as f32;
+                    .sum::<f32>()
+                    / device_history.len().min(10) as f32;
                 recent_throughput
             };
 
@@ -492,10 +516,12 @@ impl IntelligentLoadBalancer {
                     return None;
                 }
 
-                let completion_times: Vec<f32> = records.iter().map(|r| r.completion_time_ms).collect();
+                let completion_times: Vec<f32> =
+                    records.iter().map(|r| r.completion_time_ms).collect();
                 let throughputs: Vec<f32> = records.iter().map(|r| r.throughput_gops).collect();
 
-                let avg_completion_time = completion_times.iter().sum::<f32>() / completion_times.len() as f32;
+                let avg_completion_time =
+                    completion_times.iter().sum::<f32>() / completion_times.len() as f32;
                 let avg_throughput = throughputs.iter().sum::<f32>() / throughputs.len() as f32;
 
                 return Some(PerformanceStats {
@@ -596,14 +622,18 @@ impl WorkloadCoordinator {
         loop {
             if start.elapsed() > timeout {
                 return Err(UnifiedGpuError::InvalidOperation(
-                    "Workload completion timeout".into()
+                    "Workload completion timeout".into(),
                 ));
             }
 
             // Check completion status
             if let Ok(workloads) = self.active_workloads.lock() {
                 if let Some(workload) = workloads.get(workload_id) {
-                    if workload.completion_status.iter().all(|&completed| completed) {
+                    if workload
+                        .completion_status
+                        .iter()
+                        .all(|&completed| completed)
+                    {
                         // All devices completed - aggregate results
                         let results: Vec<Vec<u8>> = workload
                             .results
@@ -675,7 +705,11 @@ impl SynchronizationManager {
     }
 
     /// Wait for all devices to reach the barrier
-    pub async fn wait_barrier(&self, barrier_id: &str, _device_id: DeviceId) -> UnifiedGpuResult<()> {
+    pub async fn wait_barrier(
+        &self,
+        barrier_id: &str,
+        _device_id: DeviceId,
+    ) -> UnifiedGpuResult<()> {
         let (notifier, _device_count) = {
             if let Ok(barriers) = self.barriers.lock() {
                 if let Some(barrier) = barriers.get(barrier_id) {
@@ -687,14 +721,20 @@ impl SynchronizationManager {
                         return Ok(());
                     }
 
-                    (Arc::clone(&barrier.completion_notifier), barrier.device_count)
+                    (
+                        Arc::clone(&barrier.completion_notifier),
+                        barrier.device_count,
+                    )
                 } else {
-                    return Err(UnifiedGpuError::InvalidOperation(
-                        format!("Barrier {} not found", barrier_id)
-                    ));
+                    return Err(UnifiedGpuError::InvalidOperation(format!(
+                        "Barrier {} not found",
+                        barrier_id
+                    )));
                 }
             } else {
-                return Err(UnifiedGpuError::InvalidOperation("Failed to access barriers".into()));
+                return Err(UnifiedGpuError::InvalidOperation(
+                    "Failed to access barriers".into(),
+                ));
             }
         };
 
@@ -748,7 +788,10 @@ mod tests {
     #[test]
     fn test_load_balancer_creation() {
         let balancer = IntelligentLoadBalancer::new(LoadBalancingStrategy::Balanced);
-        assert!(matches!(balancer.balancing_strategy, LoadBalancingStrategy::Balanced));
+        assert!(matches!(
+            balancer.balancing_strategy,
+            LoadBalancingStrategy::Balanced
+        ));
     }
 
     #[tokio::test]
@@ -772,7 +815,9 @@ mod tests {
             },
         ];
 
-        let result = coordinator.submit_workload("test_workload".to_string(), assignments).await;
+        let result = coordinator
+            .submit_workload("test_workload".to_string(), assignments)
+            .await;
         assert!(result.is_ok());
     }
 }

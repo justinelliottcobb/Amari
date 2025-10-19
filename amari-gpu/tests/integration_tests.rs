@@ -4,9 +4,9 @@
 //! to gracefully handle environments without GPU access.
 
 use amari_gpu::{
-    AmariMultiGpuBenchmarks, BenchmarkConfig, BenchmarkRunner, DeviceId,
-    IntelligentLoadBalancer, LoadBalancingStrategy, MultiGpuPerformanceMonitor,
-    SharedGpuContext, Workload, ComputeIntensity,
+    AmariMultiGpuBenchmarks, BenchmarkConfig, BenchmarkRunner, ComputeIntensity, DeviceId,
+    IntelligentLoadBalancer, LoadBalancingStrategy, MultiGpuPerformanceMonitor, SharedGpuContext,
+    Workload,
 };
 use std::time::Duration;
 
@@ -17,7 +17,10 @@ async fn test_multi_gpu_context_graceful_fallback() {
         Ok(context) => {
             // GPU available - test basic functionality
             assert!(context.device_count().await >= 1);
-            println!("Multi-GPU context created with {} devices", context.device_count().await);
+            println!(
+                "Multi-GPU context created with {} devices",
+                context.device_count().await
+            );
 
             // Test device enumeration
             let device_info = context.get_device_info().await;
@@ -51,7 +54,10 @@ async fn test_load_balancer_integration() {
     // This should work even without real GPUs as it will gracefully handle the case
     match load_balancer.distribute_workload(&workload).await {
         Ok(assignments) => {
-            println!("Workload distributed across {} assignments", assignments.len());
+            println!(
+                "Workload distributed across {} assignments",
+                assignments.len()
+            );
 
             // Verify assignments are reasonable
             for assignment in &assignments {
@@ -65,7 +71,10 @@ async fn test_load_balancer_integration() {
             assert!((total_fraction - 1.0).abs() < 0.1);
         }
         Err(e) => {
-            println!("Load balancer distribution failed: {:?} (expected without GPU)", e);
+            println!(
+                "Load balancer distribution failed: {:?} (expected without GPU)",
+                e
+            );
         }
     }
 }
@@ -111,7 +120,10 @@ async fn test_benchmark_runner_quick_validation() {
     // Test quick validation benchmarks
     match BenchmarkRunner::run_quick_validation().await {
         Ok(results) => {
-            println!("Quick validation completed with {} results", results.results.len());
+            println!(
+                "Quick validation completed with {} results",
+                results.results.len()
+            );
 
             // Verify benchmark results structure
             assert!(!results.results.is_empty());
@@ -159,7 +171,11 @@ async fn test_workload_distribution_algorithms() {
 
         match load_balancer.distribute_workload(&workload).await {
             Ok(assignments) => {
-                println!("Strategy {:?} produced {} assignments", strategy, assignments.len());
+                println!(
+                    "Strategy {:?} produced {} assignments",
+                    strategy,
+                    assignments.len()
+                );
 
                 // Basic sanity checks
                 for assignment in &assignments {
@@ -233,7 +249,10 @@ async fn test_benchmark_configuration_validation() {
                 println!("Benchmark configuration {} created successfully", i);
             }
             Err(e) => {
-                println!("Benchmark configuration {} failed: {:?} (expected without GPU)", i, e);
+                println!(
+                    "Benchmark configuration {} failed: {:?} (expected without GPU)",
+                    i, e
+                );
             }
         }
     }
@@ -266,7 +285,10 @@ async fn test_memory_management_under_load() {
                 assert!(total_memory <= workload.memory_requirement_mb * 1.1); // Allow small overhead
             }
             Err(_) => {
-                println!("Memory test with size {} failed (expected without GPU)", size);
+                println!(
+                    "Memory test with size {} failed (expected without GPU)",
+                    size
+                );
             }
         }
     }

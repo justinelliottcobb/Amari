@@ -175,7 +175,9 @@ impl AmariMultiGpuBenchmarks {
         // Rotor Application Benchmark
         for &data_size in &self.config.data_sizes {
             for devices in &self.config.device_combinations {
-                let result = self.benchmark_rotor_application(data_size, devices.clone()).await?;
+                let result = self
+                    .benchmark_rotor_application(data_size, devices.clone())
+                    .await?;
                 results.push(result);
             }
         }
@@ -183,7 +185,9 @@ impl AmariMultiGpuBenchmarks {
         // Multivector Normalization Benchmark
         for &data_size in &self.config.data_sizes {
             for devices in &self.config.device_combinations {
-                let result = self.benchmark_multivector_normalization(data_size, devices.clone()).await?;
+                let result = self
+                    .benchmark_multivector_normalization(data_size, devices.clone())
+                    .await?;
                 results.push(result);
             }
         }
@@ -198,7 +202,9 @@ impl AmariMultiGpuBenchmarks {
         // Tropical Matrix Multiplication
         for &data_size in &self.config.data_sizes {
             for devices in &self.config.device_combinations {
-                let result = self.benchmark_tropical_matrix_multiply(data_size, devices.clone()).await?;
+                let result = self
+                    .benchmark_tropical_matrix_multiply(data_size, devices.clone())
+                    .await?;
                 results.push(result);
             }
         }
@@ -206,7 +212,9 @@ impl AmariMultiGpuBenchmarks {
         // Tropical Neural Network Forward Pass
         for &data_size in &self.config.data_sizes {
             for devices in &self.config.device_combinations {
-                let result = self.benchmark_tropical_neural_network(data_size, devices.clone()).await?;
+                let result = self
+                    .benchmark_tropical_neural_network(data_size, devices.clone())
+                    .await?;
                 results.push(result);
             }
         }
@@ -221,7 +229,9 @@ impl AmariMultiGpuBenchmarks {
         // Forward Mode AD
         for &data_size in &self.config.data_sizes {
             for devices in &self.config.device_combinations {
-                let result = self.benchmark_forward_mode_ad(data_size, devices.clone()).await?;
+                let result = self
+                    .benchmark_forward_mode_ad(data_size, devices.clone())
+                    .await?;
                 results.push(result);
             }
         }
@@ -229,7 +239,9 @@ impl AmariMultiGpuBenchmarks {
         // Batch Gradient Computation
         for &data_size in &self.config.data_sizes {
             for devices in &self.config.device_combinations {
-                let result = self.benchmark_batch_gradients(data_size, devices.clone()).await?;
+                let result = self
+                    .benchmark_batch_gradients(data_size, devices.clone())
+                    .await?;
                 results.push(result);
             }
         }
@@ -244,7 +256,9 @@ impl AmariMultiGpuBenchmarks {
         // Fisher Information Matrix
         for &data_size in &self.config.data_sizes {
             for devices in &self.config.device_combinations {
-                let result = self.benchmark_fisher_information(data_size, devices.clone()).await?;
+                let result = self
+                    .benchmark_fisher_information(data_size, devices.clone())
+                    .await?;
                 results.push(result);
             }
         }
@@ -252,7 +266,9 @@ impl AmariMultiGpuBenchmarks {
         // Bregman Divergence Computation
         for &data_size in &self.config.data_sizes {
             for devices in &self.config.device_combinations {
-                let result = self.benchmark_bregman_divergence(data_size, devices.clone()).await?;
+                let result = self
+                    .benchmark_bregman_divergence(data_size, devices.clone())
+                    .await?;
                 results.push(result);
             }
         }
@@ -267,7 +283,9 @@ impl AmariMultiGpuBenchmarks {
         // Tropical-Dual-Clifford Fusion
         for &data_size in &self.config.data_sizes {
             for devices in &self.config.device_combinations {
-                let result = self.benchmark_tdc_fusion(data_size, devices.clone()).await?;
+                let result = self
+                    .benchmark_tdc_fusion(data_size, devices.clone())
+                    .await?;
                 results.push(result);
             }
         }
@@ -282,7 +300,9 @@ impl AmariMultiGpuBenchmarks {
         // Graph Neural Network Operations
         for &data_size in &self.config.data_sizes {
             for devices in &self.config.device_combinations {
-                let result = self.benchmark_graph_neural_network(data_size, devices.clone()).await?;
+                let result = self
+                    .benchmark_graph_neural_network(data_size, devices.clone())
+                    .await?;
                 results.push(result);
             }
         }
@@ -297,7 +317,9 @@ impl AmariMultiGpuBenchmarks {
         // CA Evolution with Geometric Algebra
         for &data_size in &self.config.data_sizes {
             for devices in &self.config.device_combinations {
-                let result = self.benchmark_ca_evolution(data_size, devices.clone()).await?;
+                let result = self
+                    .benchmark_ca_evolution(data_size, devices.clone())
+                    .await?;
                 results.push(result);
             }
         }
@@ -312,7 +334,9 @@ impl AmariMultiGpuBenchmarks {
         // Spacetime Operations
         for &data_size in &self.config.data_sizes {
             for devices in &self.config.device_combinations {
-                let result = self.benchmark_spacetime_operations(data_size, devices.clone()).await?;
+                let result = self
+                    .benchmark_spacetime_operations(data_size, devices.clone())
+                    .await?;
                 results.push(result);
             }
         }
@@ -327,7 +351,9 @@ impl AmariMultiGpuBenchmarks {
         // Intersection Theory Computations
         for &data_size in &self.config.data_sizes {
             for devices in &self.config.device_combinations {
-                let result = self.benchmark_intersection_theory(data_size, devices.clone()).await?;
+                let result = self
+                    .benchmark_intersection_theory(data_size, devices.clone())
+                    .await?;
                 results.push(result);
             }
         }
@@ -336,7 +362,11 @@ impl AmariMultiGpuBenchmarks {
     }
 
     /// Benchmark geometric product operations
-    async fn benchmark_geometric_product(&self, data_size: usize, devices: Vec<DeviceId>) -> UnifiedGpuResult<BenchmarkResult> {
+    async fn benchmark_geometric_product(
+        &self,
+        data_size: usize,
+        devices: Vec<DeviceId>,
+    ) -> UnifiedGpuResult<BenchmarkResult> {
         let operation_name = "geometric_product";
 
         // Create workload
@@ -349,11 +379,16 @@ impl AmariMultiGpuBenchmarks {
             synchronization_required: devices.len() > 1,
         };
 
-        self.execute_benchmark(operation_name, workload, devices).await
+        self.execute_benchmark(operation_name, workload, devices)
+            .await
     }
 
     /// Benchmark rotor application operations
-    async fn benchmark_rotor_application(&self, data_size: usize, devices: Vec<DeviceId>) -> UnifiedGpuResult<BenchmarkResult> {
+    async fn benchmark_rotor_application(
+        &self,
+        data_size: usize,
+        devices: Vec<DeviceId>,
+    ) -> UnifiedGpuResult<BenchmarkResult> {
         let operation_name = "rotor_application";
 
         let workload = Workload {
@@ -365,11 +400,16 @@ impl AmariMultiGpuBenchmarks {
             synchronization_required: false,
         };
 
-        self.execute_benchmark(operation_name, workload, devices).await
+        self.execute_benchmark(operation_name, workload, devices)
+            .await
     }
 
     /// Benchmark multivector normalization
-    async fn benchmark_multivector_normalization(&self, data_size: usize, devices: Vec<DeviceId>) -> UnifiedGpuResult<BenchmarkResult> {
+    async fn benchmark_multivector_normalization(
+        &self,
+        data_size: usize,
+        devices: Vec<DeviceId>,
+    ) -> UnifiedGpuResult<BenchmarkResult> {
         let operation_name = "multivector_normalization";
 
         let workload = Workload {
@@ -381,11 +421,16 @@ impl AmariMultiGpuBenchmarks {
             synchronization_required: false,
         };
 
-        self.execute_benchmark(operation_name, workload, devices).await
+        self.execute_benchmark(operation_name, workload, devices)
+            .await
     }
 
     /// Benchmark tropical matrix multiplication
-    async fn benchmark_tropical_matrix_multiply(&self, data_size: usize, devices: Vec<DeviceId>) -> UnifiedGpuResult<BenchmarkResult> {
+    async fn benchmark_tropical_matrix_multiply(
+        &self,
+        data_size: usize,
+        devices: Vec<DeviceId>,
+    ) -> UnifiedGpuResult<BenchmarkResult> {
         let operation_name = "tropical_matrix_multiply";
 
         let workload = Workload {
@@ -397,11 +442,16 @@ impl AmariMultiGpuBenchmarks {
             synchronization_required: devices.len() > 1,
         };
 
-        self.execute_benchmark(operation_name, workload, devices).await
+        self.execute_benchmark(operation_name, workload, devices)
+            .await
     }
 
     /// Benchmark tropical neural network
-    async fn benchmark_tropical_neural_network(&self, data_size: usize, devices: Vec<DeviceId>) -> UnifiedGpuResult<BenchmarkResult> {
+    async fn benchmark_tropical_neural_network(
+        &self,
+        data_size: usize,
+        devices: Vec<DeviceId>,
+    ) -> UnifiedGpuResult<BenchmarkResult> {
         let operation_name = "tropical_neural_network";
 
         let workload = Workload {
@@ -413,11 +463,16 @@ impl AmariMultiGpuBenchmarks {
             synchronization_required: devices.len() > 1,
         };
 
-        self.execute_benchmark(operation_name, workload, devices).await
+        self.execute_benchmark(operation_name, workload, devices)
+            .await
     }
 
     /// Benchmark forward mode automatic differentiation
-    async fn benchmark_forward_mode_ad(&self, data_size: usize, devices: Vec<DeviceId>) -> UnifiedGpuResult<BenchmarkResult> {
+    async fn benchmark_forward_mode_ad(
+        &self,
+        data_size: usize,
+        devices: Vec<DeviceId>,
+    ) -> UnifiedGpuResult<BenchmarkResult> {
         let operation_name = "forward_mode_ad";
 
         let workload = Workload {
@@ -429,11 +484,16 @@ impl AmariMultiGpuBenchmarks {
             synchronization_required: false,
         };
 
-        self.execute_benchmark(operation_name, workload, devices).await
+        self.execute_benchmark(operation_name, workload, devices)
+            .await
     }
 
     /// Benchmark batch gradient computation
-    async fn benchmark_batch_gradients(&self, data_size: usize, devices: Vec<DeviceId>) -> UnifiedGpuResult<BenchmarkResult> {
+    async fn benchmark_batch_gradients(
+        &self,
+        data_size: usize,
+        devices: Vec<DeviceId>,
+    ) -> UnifiedGpuResult<BenchmarkResult> {
         let operation_name = "batch_gradients";
 
         let workload = Workload {
@@ -445,11 +505,16 @@ impl AmariMultiGpuBenchmarks {
             synchronization_required: devices.len() > 1,
         };
 
-        self.execute_benchmark(operation_name, workload, devices).await
+        self.execute_benchmark(operation_name, workload, devices)
+            .await
     }
 
     /// Benchmark Fisher information matrix computation
-    async fn benchmark_fisher_information(&self, data_size: usize, devices: Vec<DeviceId>) -> UnifiedGpuResult<BenchmarkResult> {
+    async fn benchmark_fisher_information(
+        &self,
+        data_size: usize,
+        devices: Vec<DeviceId>,
+    ) -> UnifiedGpuResult<BenchmarkResult> {
         let operation_name = "fisher_information";
 
         let workload = Workload {
@@ -461,11 +526,16 @@ impl AmariMultiGpuBenchmarks {
             synchronization_required: devices.len() > 1,
         };
 
-        self.execute_benchmark(operation_name, workload, devices).await
+        self.execute_benchmark(operation_name, workload, devices)
+            .await
     }
 
     /// Benchmark Bregman divergence computation
-    async fn benchmark_bregman_divergence(&self, data_size: usize, devices: Vec<DeviceId>) -> UnifiedGpuResult<BenchmarkResult> {
+    async fn benchmark_bregman_divergence(
+        &self,
+        data_size: usize,
+        devices: Vec<DeviceId>,
+    ) -> UnifiedGpuResult<BenchmarkResult> {
         let operation_name = "bregman_divergence";
 
         let workload = Workload {
@@ -477,11 +547,16 @@ impl AmariMultiGpuBenchmarks {
             synchronization_required: false,
         };
 
-        self.execute_benchmark(operation_name, workload, devices).await
+        self.execute_benchmark(operation_name, workload, devices)
+            .await
     }
 
     /// Benchmark Tropical-Dual-Clifford fusion
-    async fn benchmark_tdc_fusion(&self, data_size: usize, devices: Vec<DeviceId>) -> UnifiedGpuResult<BenchmarkResult> {
+    async fn benchmark_tdc_fusion(
+        &self,
+        data_size: usize,
+        devices: Vec<DeviceId>,
+    ) -> UnifiedGpuResult<BenchmarkResult> {
         let operation_name = "tdc_fusion";
 
         let workload = Workload {
@@ -493,11 +568,16 @@ impl AmariMultiGpuBenchmarks {
             synchronization_required: devices.len() > 1,
         };
 
-        self.execute_benchmark(operation_name, workload, devices).await
+        self.execute_benchmark(operation_name, workload, devices)
+            .await
     }
 
     /// Benchmark graph neural network operations
-    async fn benchmark_graph_neural_network(&self, data_size: usize, devices: Vec<DeviceId>) -> UnifiedGpuResult<BenchmarkResult> {
+    async fn benchmark_graph_neural_network(
+        &self,
+        data_size: usize,
+        devices: Vec<DeviceId>,
+    ) -> UnifiedGpuResult<BenchmarkResult> {
         let operation_name = "graph_neural_network";
 
         let workload = Workload {
@@ -509,11 +589,16 @@ impl AmariMultiGpuBenchmarks {
             synchronization_required: devices.len() > 1,
         };
 
-        self.execute_benchmark(operation_name, workload, devices).await
+        self.execute_benchmark(operation_name, workload, devices)
+            .await
     }
 
     /// Benchmark cellular automata evolution
-    async fn benchmark_ca_evolution(&self, data_size: usize, devices: Vec<DeviceId>) -> UnifiedGpuResult<BenchmarkResult> {
+    async fn benchmark_ca_evolution(
+        &self,
+        data_size: usize,
+        devices: Vec<DeviceId>,
+    ) -> UnifiedGpuResult<BenchmarkResult> {
         let operation_name = "ca_evolution";
 
         let workload = Workload {
@@ -525,11 +610,16 @@ impl AmariMultiGpuBenchmarks {
             synchronization_required: devices.len() > 1,
         };
 
-        self.execute_benchmark(operation_name, workload, devices).await
+        self.execute_benchmark(operation_name, workload, devices)
+            .await
     }
 
     /// Benchmark spacetime operations
-    async fn benchmark_spacetime_operations(&self, data_size: usize, devices: Vec<DeviceId>) -> UnifiedGpuResult<BenchmarkResult> {
+    async fn benchmark_spacetime_operations(
+        &self,
+        data_size: usize,
+        devices: Vec<DeviceId>,
+    ) -> UnifiedGpuResult<BenchmarkResult> {
         let operation_name = "spacetime_operations";
 
         let workload = Workload {
@@ -541,11 +631,16 @@ impl AmariMultiGpuBenchmarks {
             synchronization_required: false,
         };
 
-        self.execute_benchmark(operation_name, workload, devices).await
+        self.execute_benchmark(operation_name, workload, devices)
+            .await
     }
 
     /// Benchmark intersection theory computations
-    async fn benchmark_intersection_theory(&self, data_size: usize, devices: Vec<DeviceId>) -> UnifiedGpuResult<BenchmarkResult> {
+    async fn benchmark_intersection_theory(
+        &self,
+        data_size: usize,
+        devices: Vec<DeviceId>,
+    ) -> UnifiedGpuResult<BenchmarkResult> {
         let operation_name = "intersection_theory";
 
         let workload = Workload {
@@ -557,11 +652,17 @@ impl AmariMultiGpuBenchmarks {
             synchronization_required: devices.len() > 1,
         };
 
-        self.execute_benchmark(operation_name, workload, devices).await
+        self.execute_benchmark(operation_name, workload, devices)
+            .await
     }
 
     /// Execute a benchmark with timing and profiling
-    async fn execute_benchmark(&self, operation_name: &str, workload: Workload, devices: Vec<DeviceId>) -> UnifiedGpuResult<BenchmarkResult> {
+    async fn execute_benchmark(
+        &self,
+        operation_name: &str,
+        workload: Workload,
+        devices: Vec<DeviceId>,
+    ) -> UnifiedGpuResult<BenchmarkResult> {
         // Warmup iterations
         for _ in 0..self.config.warmup_iterations {
             self.simulate_operation(&workload, &devices).await?;
@@ -601,11 +702,17 @@ impl AmariMultiGpuBenchmarks {
         }
 
         // Calculate statistics
-        let avg_duration_ms = durations.iter().map(|d| d.as_secs_f64() * 1000.0).sum::<f64>() / durations.len() as f64;
+        let avg_duration_ms = durations
+            .iter()
+            .map(|d| d.as_secs_f64() * 1000.0)
+            .sum::<f64>()
+            / durations.len() as f64;
         let throughput_ops_per_sec = (workload.data_size as f64) / (avg_duration_ms / 1000.0);
-        let memory_bandwidth_gb_s = (workload.memory_requirement_mb as f64 * 2.0) / (avg_duration_ms / 1000.0) / 1024.0; // Read + Write
+        let memory_bandwidth_gb_s =
+            (workload.memory_requirement_mb as f64 * 2.0) / (avg_duration_ms / 1000.0) / 1024.0; // Read + Write
         let avg_gpu_utilization = utilizations.iter().sum::<f64>() / utilizations.len() as f64;
-        let avg_memory_usage = memory_usages.iter().map(|&x| x as f64).sum::<f64>() / memory_usages.len() as f64;
+        let avg_memory_usage =
+            memory_usages.iter().map(|&x| x as f64).sum::<f64>() / memory_usages.len() as f64;
 
         // Calculate scaling efficiency (compared to single GPU baseline)
         let scaling_efficiency = if devices.len() > 1 {
@@ -613,9 +720,9 @@ impl AmariMultiGpuBenchmarks {
             // In practice, this would compare to actual single-GPU baseline
             let theoretical_speedup = devices.len() as f64;
             let actual_speedup = match devices.len() {
-                2 => 1.8,  // 90% efficiency
-                4 => 3.2,  // 80% efficiency
-                8 => 5.6,  // 70% efficiency
+                2 => 1.8,                        // 90% efficiency
+                4 => 3.2,                        // 80% efficiency
+                8 => 5.6,                        // 70% efficiency
                 _ => devices.len() as f64 * 0.7, // 70% efficiency for other counts
             };
             actual_speedup / theoretical_speedup
@@ -640,7 +747,11 @@ impl AmariMultiGpuBenchmarks {
     }
 
     /// Simulate an operation (placeholder for actual GPU work)
-    async fn simulate_operation(&self, workload: &Workload, devices: &[DeviceId]) -> UnifiedGpuResult<OperationResult> {
+    async fn simulate_operation(
+        &self,
+        workload: &Workload,
+        devices: &[DeviceId],
+    ) -> UnifiedGpuResult<OperationResult> {
         // In a real implementation, this would dispatch work to the actual GPU operations
         // For benchmarking purposes, we simulate the work with appropriate delays
 
@@ -662,7 +773,8 @@ impl AmariMultiGpuBenchmarks {
             _ => devices.len() as f32 * 0.7,
         };
 
-        let final_time = Duration::from_nanos((scaled_time.as_nanos() as f32 / device_efficiency) as u64);
+        let final_time =
+            Duration::from_nanos((scaled_time.as_nanos() as f32 / device_efficiency) as u64);
 
         // Simulate work
         tokio::time::sleep(final_time).await;
@@ -693,8 +805,16 @@ impl AmariMultiGpuBenchmarks {
         // Group results by operation type
         let mut operation_groups: HashMap<String, Vec<&BenchmarkResult>> = HashMap::new();
         for result in results {
-            let base_operation = result.test_name.split('_').take_while(|&part| part != "1" && part != "2" && part != "4").collect::<Vec<_>>().join("_");
-            operation_groups.entry(base_operation).or_default().push(result);
+            let base_operation = result
+                .test_name
+                .split('_')
+                .take_while(|&part| part != "1" && part != "2" && part != "4")
+                .collect::<Vec<_>>()
+                .join("_");
+            operation_groups
+                .entry(base_operation)
+                .or_default()
+                .push(result);
         }
 
         for (operation, operation_results) in operation_groups {
@@ -710,7 +830,8 @@ impl AmariMultiGpuBenchmarks {
 
                 for result in operation_results.iter() {
                     if result.device_count > 1 {
-                        let speedup = result.throughput_ops_per_sec / baseline.throughput_ops_per_sec;
+                        let speedup =
+                            result.throughput_ops_per_sec / baseline.throughput_ops_per_sec;
                         let efficiency = speedup / result.device_count as f64;
 
                         scaling_data.push(speedup);
@@ -738,12 +859,18 @@ impl AmariMultiGpuBenchmarks {
     }
 
     /// Generate performance summary
-    fn generate_performance_summary(&self, results: &[BenchmarkResult], scaling_analysis: &ScalingAnalysis) -> BenchmarkSummary {
+    fn generate_performance_summary(
+        &self,
+        results: &[BenchmarkResult],
+        scaling_analysis: &ScalingAnalysis,
+    ) -> BenchmarkSummary {
         let total_tests = results.len();
         let successful_tests = results.iter().filter(|r| r.error_rate < 0.01).count();
 
         let average_scaling_efficiency = if !scaling_analysis.scaling_efficiency.is_empty() {
-            let all_efficiencies: Vec<f64> = scaling_analysis.scaling_efficiency.values()
+            let all_efficiencies: Vec<f64> = scaling_analysis
+                .scaling_efficiency
+                .values()
                 .flat_map(|efficiencies| efficiencies.iter())
                 .copied()
                 .collect();
@@ -752,22 +879,22 @@ impl AmariMultiGpuBenchmarks {
                 all_efficiencies.iter().sum::<f64>() / all_efficiencies.len() as f64
             } else {
                 // If we only have single-GPU results, use efficiency from individual benchmark results
-                let single_gpu_efficiencies: Vec<f64> = results.iter()
+                let single_gpu_efficiencies: Vec<f64> = results
+                    .iter()
                     .filter(|r| r.device_count == 1)
                     .map(|r| r.scaling_efficiency)
                     .collect();
 
                 if !single_gpu_efficiencies.is_empty() {
-                    single_gpu_efficiencies.iter().sum::<f64>() / single_gpu_efficiencies.len() as f64
+                    single_gpu_efficiencies.iter().sum::<f64>()
+                        / single_gpu_efficiencies.len() as f64
                 } else {
                     0.0
                 }
             }
         } else {
             // Fallback: calculate from all benchmark results
-            let all_efficiencies: Vec<f64> = results.iter()
-                .map(|r| r.scaling_efficiency)
-                .collect();
+            let all_efficiencies: Vec<f64> = results.iter().map(|r| r.scaling_efficiency).collect();
 
             if !all_efficiencies.is_empty() {
                 all_efficiencies.iter().sum::<f64>() / all_efficiencies.len() as f64
@@ -777,8 +904,13 @@ impl AmariMultiGpuBenchmarks {
         };
 
         // Find best performing configuration
-        let best_config = results.iter()
-            .max_by(|a, b| a.throughput_ops_per_sec.partial_cmp(&b.throughput_ops_per_sec).unwrap())
+        let best_config = results
+            .iter()
+            .max_by(|a, b| {
+                a.throughput_ops_per_sec
+                    .partial_cmp(&b.throughput_ops_per_sec)
+                    .unwrap()
+            })
             .map(|r| r.test_name.clone())
             .unwrap_or_else(|| "None".to_string());
 
@@ -786,7 +918,9 @@ impl AmariMultiGpuBenchmarks {
         let mut performance_improvements = HashMap::new();
         for operation in scaling_analysis.single_gpu_baseline.keys() {
             if let Some(scaling_data) = scaling_analysis.multi_gpu_scaling.get(operation) {
-                if let Some(&best_scaling) = scaling_data.iter().max_by(|a, b| a.partial_cmp(b).unwrap()) {
+                if let Some(&best_scaling) =
+                    scaling_data.iter().max_by(|a, b| a.partial_cmp(b).unwrap())
+                {
                     let improvement = (best_scaling - 1.0) * 100.0;
                     performance_improvements.insert(operation.clone(), improvement);
                 }

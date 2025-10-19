@@ -129,9 +129,7 @@ impl GpuTimelineAnalyzer {
         if let Ok(events) = self.events.lock() {
             events
                 .iter()
-                .filter(|event| {
-                    event.start_time >= start && event.start_time <= end
-                })
+                .filter(|event| event.start_time >= start && event.start_time <= end)
                 .cloned()
                 .collect()
         } else {
@@ -140,7 +138,11 @@ impl GpuTimelineAnalyzer {
     }
 
     /// Get events for a specific device
-    pub fn get_device_events(&self, device_id: DeviceId, limit: Option<usize>) -> Vec<TimelineEvent> {
+    pub fn get_device_events(
+        &self,
+        device_id: DeviceId,
+        limit: Option<usize>,
+    ) -> Vec<TimelineEvent> {
         if let Ok(events) = self.events.lock() {
             let mut device_events: Vec<_> = events
                 .iter()
@@ -168,33 +170,41 @@ impl GpuTimelineAnalyzer {
 
         // Group events by device
         for event in events {
-            let device_events = device_utilization.entry(event.device_id).or_insert_with(Vec::new);
+            let device_events = device_utilization
+                .entry(event.device_id)
+                .or_insert_with(Vec::new);
             device_events.push(event);
         }
 
         let mut device_stats = HashMap::new();
 
         for (device_id, events) in device_utilization {
-            let total_duration: Duration = events
-                .iter()
-                .filter_map(|event| event.cpu_duration())
-                .sum();
+            let total_duration: Duration =
+                events.iter().filter_map(|event| event.cpu_duration()).sum();
 
-            let utilization_percent = (total_duration.as_secs_f32() / window_duration.as_secs_f32()) * 100.0;
+            let utilization_percent =
+                (total_duration.as_secs_f32() / window_duration.as_secs_f32()) * 100.0;
             let utilization_percent = utilization_percent.min(100.0); // Cap at 100%
 
             let avg_memory_bandwidth = if !events.is_empty() {
-                events.iter().map(|e| e.memory_bandwidth_gb_s()).sum::<f32>() / events.len() as f32
+                events
+                    .iter()
+                    .map(|e| e.memory_bandwidth_gb_s())
+                    .sum::<f32>()
+                    / events.len() as f32
             } else {
                 0.0
             };
 
-            device_stats.insert(device_id, DeviceUtilizationStats {
-                utilization_percent,
-                operation_count: events.len(),
-                avg_memory_bandwidth_gb_s: avg_memory_bandwidth,
-                total_duration,
-            });
+            device_stats.insert(
+                device_id,
+                DeviceUtilizationStats {
+                    utilization_percent,
+                    operation_count: events.len(),
+                    avg_memory_bandwidth_gb_s: avg_memory_bandwidth,
+                    total_duration,
+                },
+            );
         }
 
         UtilizationAnalysis {
@@ -217,15 +227,18 @@ impl GpuTimelineAnalyzer {
                 bottlenecks.push(PerformanceBottleneck::LowGpuUtilization {
                     device_id: *device_id,
                     utilization_percent: stats.utilization_percent,
-                    recommendation: "Consider increasing batch size or workload complexity".to_string(),
+                    recommendation: "Consider increasing batch size or workload complexity"
+                        .to_string(),
                 });
             }
 
-            if stats.avg_memory_bandwidth_gb_s < 100.0 { // Assuming 100 GB/s baseline
+            if stats.avg_memory_bandwidth_gb_s < 100.0 {
+                // Assuming 100 GB/s baseline
                 bottlenecks.push(PerformanceBottleneck::MemoryBandwidthUnderutilized {
                     device_id: *device_id,
                     bandwidth_gb_s: stats.avg_memory_bandwidth_gb_s,
-                    recommendation: "Optimize memory access patterns or increase data parallelism".to_string(),
+                    recommendation: "Optimize memory access patterns or increase data parallelism"
+                        .to_string(),
                 });
             }
         }
@@ -235,7 +248,8 @@ impl GpuTimelineAnalyzer {
         if sync_analysis.avg_sync_overhead_percent > 20.0 {
             bottlenecks.push(PerformanceBottleneck::SynchronizationOverhead {
                 overhead_percent: sync_analysis.avg_sync_overhead_percent,
-                recommendation: "Reduce synchronization frequency or use asynchronous operations".to_string(),
+                recommendation: "Reduce synchronization frequency or use asynchronous operations"
+                    .to_string(),
             });
         }
 
@@ -262,14 +276,19 @@ impl GpuTimelineAnalyzer {
     }
 
     /// Analyze synchronization overhead
-    fn analyze_synchronization_overhead(&self, events: &[TimelineEvent]) -> SynchronizationAnalysis {
+    fn analyze_synchronization_overhead(
+        &self,
+        events: &[TimelineEvent],
+    ) -> SynchronizationAnalysis {
         let mut total_operation_time = Duration::ZERO;
         let mut total_sync_time = Duration::ZERO;
 
         // Group events by operation type to identify synchronization patterns
         let mut operation_groups = HashMap::new();
         for event in events {
-            let group = operation_groups.entry(&event.operation_type).or_insert_with(Vec::new);
+            let group = operation_groups
+                .entry(&event.operation_type)
+                .or_insert_with(Vec::new);
             group.push(event);
         }
 
@@ -333,7 +352,10 @@ impl GpuTimelineAnalyzer {
     }
 
     /// Generate optimization recommendations
-    fn generate_optimization_recommendations(&self, bottlenecks: &[PerformanceBottleneck]) -> Vec<OptimizationRecommendation> {
+    fn generate_optimization_recommendations(
+        &self,
+        bottlenecks: &[PerformanceBottleneck],
+    ) -> Vec<OptimizationRecommendation> {
         let mut recommendations = Vec::new();
 
         // Count bottleneck types
@@ -357,7 +379,8 @@ impl GpuTimelineAnalyzer {
                 priority: RecommendationPriority::High,
                 category: "GPU Utilization".to_string(),
                 description: "Multiple devices showing low utilization".to_string(),
-                action: "Consider increasing batch sizes or enabling more parallel operations".to_string(),
+                action: "Consider increasing batch sizes or enabling more parallel operations"
+                    .to_string(),
                 estimated_improvement: format!("{}% performance gain", low_utilization_count * 15),
             });
         }
@@ -377,7 +400,8 @@ impl GpuTimelineAnalyzer {
                 priority: RecommendationPriority::High,
                 category: "Synchronization".to_string(),
                 description: "High synchronization overhead detected".to_string(),
-                action: "Implement asynchronous operations and reduce cross-device dependencies".to_string(),
+                action: "Implement asynchronous operations and reduce cross-device dependencies"
+                    .to_string(),
                 estimated_improvement: "20-40% performance gain".to_string(),
             });
         }
@@ -532,8 +556,13 @@ impl MultiGpuPerformanceMonitor {
     }
 
     /// Get performance analysis
-    pub fn get_performance_analysis(&self, window_duration: Duration) -> UnifiedGpuResult<PerformanceAnalysisReport> {
-        let utilization = self.timeline_analyzer.analyze_gpu_utilization(window_duration);
+    pub fn get_performance_analysis(
+        &self,
+        window_duration: Duration,
+    ) -> UnifiedGpuResult<PerformanceAnalysisReport> {
+        let utilization = self
+            .timeline_analyzer
+            .analyze_gpu_utilization(window_duration);
         let bottlenecks = self.timeline_analyzer.detect_bottlenecks(window_duration);
 
         Ok(PerformanceAnalysisReport {
@@ -576,14 +605,17 @@ impl<'a> OperationHandle<'a> {
 impl<'a> Drop for OperationHandle<'a> {
     fn drop(&mut self) {
         // Automatically complete the operation when the handle is dropped
-        let event = std::mem::replace(&mut self.event, TimelineEvent::new(
-            "dropped".to_string(),
-            crate::DeviceId(0),
-            "dropped".to_string(),
-            0.0,
-            (1, 1, 1),
-            vec![],
-        ));
+        let event = std::mem::replace(
+            &mut self.event,
+            TimelineEvent::new(
+                "dropped".to_string(),
+                crate::DeviceId(0),
+                "dropped".to_string(),
+                0.0,
+                (1, 1, 1),
+                vec![],
+            ),
+        );
         self.monitor.complete_operation(event);
     }
 }
@@ -600,10 +632,12 @@ impl PerformanceAnalysisReport {
     /// Get overall performance score (0-100)
     pub fn overall_performance_score(&self) -> f32 {
         let avg_utilization = if !self.utilization_analysis.device_stats.is_empty() {
-            self.utilization_analysis.device_stats
+            self.utilization_analysis
+                .device_stats
                 .values()
                 .map(|stats| stats.utilization_percent)
-                .sum::<f32>() / self.utilization_analysis.device_stats.len() as f32
+                .sum::<f32>()
+                / self.utilization_analysis.device_stats.len() as f32
         } else {
             0.0
         };
@@ -617,9 +651,16 @@ impl PerformanceAnalysisReport {
     /// Get summary statistics
     pub fn get_summary(&self) -> PerformanceSummary {
         let total_devices = self.utilization_analysis.device_stats.len();
-        let high_priority_issues = self.bottleneck_analysis.recommendations
+        let high_priority_issues = self
+            .bottleneck_analysis
+            .recommendations
             .iter()
-            .filter(|rec| matches!(rec.priority, RecommendationPriority::High | RecommendationPriority::Critical))
+            .filter(|rec| {
+                matches!(
+                    rec.priority,
+                    RecommendationPriority::High | RecommendationPriority::Critical
+                )
+            })
             .count();
 
         PerformanceSummary {
