@@ -1,0 +1,35 @@
+[package]
+name = "amari-optimization"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Advanced optimization algorithms and techniques for mathematical computing"
+repository = "https://github.com/justinelliottcobb/Amari"
+homepage = "https://github.com/justinelliottcobb/Amari"
+keywords = ["optimization", "algorithms", "mathematics", "numerical-methods", "linear-programming"]
+categories = ["mathematics", "science", "algorithms"]
+
+[dependencies]
+amari-core = { workspace = true, features = ["std", "phantom-types"] }
+amari-dual = { workspace = true }
+amari-tropical = { workspace = true }
+amari-gpu = { workspace = true, optional = true }
+thiserror = { workspace = true }
+num-traits = { workspace = true }
+nalgebra = { workspace = true }
+rayon = { workspace = true }
+serde = { workspace = true, optional = true }
+
+[dev-dependencies]
+approx = { workspace = true }
+criterion = "0.5"
+tokio = { version = "1.0", features = ["full"] }
+
+[features]
+default = ["std"]
+gpu = ["dep:amari-gpu"]
+serde = ["dep:serde", "amari-core/serde"]
+std = ["amari-core/std"]
+
