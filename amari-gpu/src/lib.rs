@@ -1,10 +1,13 @@
 //! GPU acceleration for geometric algebra operations using WebGPU/wgpu
 
 pub mod adaptive;
+pub mod benchmarks;
+pub mod multi_gpu;
 pub mod network;
 pub mod performance;
 pub mod relativistic;
 pub mod shaders;
+pub mod timeline;
 pub mod unified;
 pub mod verification;
 
@@ -12,6 +15,10 @@ pub use adaptive::{
     AdaptiveVerificationError, AdaptiveVerificationLevel, AdaptiveVerifier, CpuFeatures,
     GpuBackend, PlatformCapabilities, PlatformPerformanceProfile, VerificationPlatform,
     WasmEnvironment,
+};
+pub use benchmarks::{
+    AmariMultiGpuBenchmarks, BenchmarkConfig, BenchmarkResult, BenchmarkRunner,
+    BenchmarkSuiteResults, BenchmarkSummary, ScalingAnalysis,
 };
 use amari_core::Multivector;
 use amari_info_geom::amari_chentsov_tensor;
@@ -25,10 +32,21 @@ pub use relativistic::{
     GpuRelativisticParticle, GpuRelativisticPhysics, GpuSpacetimeVector, GpuTrajectoryParams,
 };
 pub use shaders::{ShaderLibrary, DUAL_SHADERS, FUSION_SHADERS, TROPICAL_SHADERS};
+pub use timeline::{
+    BottleneckAnalysis, DeviceUtilizationStats, GpuTimelineAnalyzer, MultiGpuPerformanceMonitor,
+    OptimizationRecommendation, PerformanceAnalysisReport, PerformanceBottleneck,
+    PerformanceSummary, RecommendationPriority, SynchronizationAnalysis, TimelineEvent,
+    UtilizationAnalysis,
+};
+pub use multi_gpu::{
+    ComputeIntensity, DeviceCapabilities, DeviceId, DeviceWorkload, GpuArchitecture, GpuDevice,
+    IntelligentLoadBalancer, LoadBalancingStrategy, MultiGpuBarrier, PerformanceRecord,
+    PerformanceStats, SynchronizationManager, Workload, WorkloadCoordinator,
+};
 use thiserror::Error;
 pub use unified::{
     BufferPoolStats, EnhancedGpuBufferPool, GpuAccelerated, GpuContext, GpuDispatcher,
-    GpuOperationParams, GpuParam, PoolEntryStats, SharedGpuContext, UnifiedGpuError,
+    GpuOperationParams, GpuParam, MultiGpuStats, PoolEntryStats, SharedGpuContext, UnifiedGpuError,
     UnifiedGpuResult,
 };
 pub use verification::{
