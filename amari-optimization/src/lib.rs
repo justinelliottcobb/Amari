@@ -128,7 +128,7 @@ pub mod gpu {}
 pub mod geometric {}
 
 /// Tropical optimization
-pub mod tropical {}
+pub mod tropical;
 
 /// Utility functions and helpers
 pub mod utils {}
@@ -148,6 +148,12 @@ pub mod prelude {
     // Natural gradient optimization
     pub use crate::natural_gradient::{
         NaturalGradientConfig, NaturalGradientOptimizer, NaturalGradientResult, ObjectiveWithFisher,
+    };
+
+    // Tropical optimization
+    pub use crate::tropical::{
+        scheduling::TropicalScheduler, TropicalConfig, TropicalConstraint, TropicalObjective,
+        TropicalOptimizer, TropicalResult,
     };
 }
 

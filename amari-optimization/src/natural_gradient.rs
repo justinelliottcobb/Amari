@@ -497,8 +497,8 @@ mod tests {
         fn fisher_information(&self, _parameters: &[f64]) -> Vec<Vec<f64>> {
             // Identity matrix for simplicity
             let mut fisher = vec![vec![0.0; self.dim]; self.dim];
-            for i in 0..self.dim {
-                fisher[i][i] = 1.0;
+            for (i, row) in fisher.iter_mut().enumerate().take(self.dim) {
+                row[i] = 1.0;
             }
             fisher
         }
