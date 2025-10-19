@@ -118,7 +118,7 @@ pub mod metaheuristics {}
 pub mod convex {}
 
 /// Multi-objective optimization
-pub mod multiobjective {}
+pub mod multiobjective;
 
 /// GPU-accelerated optimization
 #[cfg(feature = "gpu")]
@@ -154,6 +154,12 @@ pub mod prelude {
     pub use crate::tropical::{
         scheduling::TropicalScheduler, TropicalConfig, TropicalConstraint, TropicalObjective,
         TropicalOptimizer, TropicalResult,
+    };
+
+    // Multi-objective optimization
+    pub use crate::multiobjective::{
+        Individual, MultiObjectiveConfig, MultiObjectiveFunction, MultiObjectiveResult, NsgaII,
+        ParetoFront,
     };
 }
 
