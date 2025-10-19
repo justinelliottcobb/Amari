@@ -109,7 +109,7 @@ pub mod linear {}
 pub mod nonlinear {}
 
 /// Constrained optimization methods
-pub mod constrained {}
+pub mod constrained;
 
 /// Metaheuristic optimization algorithms
 pub mod metaheuristics {}
@@ -160,6 +160,12 @@ pub mod prelude {
     pub use crate::multiobjective::{
         Individual, MultiObjectiveConfig, MultiObjectiveFunction, MultiObjectiveResult, NsgaII,
         ParetoFront,
+    };
+
+    // Constrained optimization
+    pub use crate::constrained::{
+        ConstrainedConfig, ConstrainedObjective, ConstrainedOptimizer, ConstrainedResult,
+        PenaltyMethod,
     };
 }
 
