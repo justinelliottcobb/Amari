@@ -304,7 +304,8 @@ async fn test_scaling_efficiency_calculation() {
         Ok(analysis) => {
             println!("Scaling analysis completed");
             let summary = analysis.get_summary();
-            assert!(summary.total_devices >= 0);
+            // total_devices is usize and cannot be negative, so just verify it exists
+            println!("Analysis completed with {} devices", summary.total_devices);
         }
         Err(e) => {
             println!("Scaling analysis failed: {:?}", e);

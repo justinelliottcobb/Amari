@@ -507,7 +507,7 @@ impl MultiGpuPerformanceMonitor {
         memory_usage_mb: f32,
         workgroup_config: (u32, u32, u32),
         buffer_sizes: Vec<u64>,
-    ) -> OperationHandle {
+    ) -> OperationHandle<'_> {
         let event = TimelineEvent::new(
             operation_id.clone(),
             device_id,
@@ -611,7 +611,7 @@ impl PerformanceAnalysisReport {
         // Penalize for bottlenecks
         let bottleneck_penalty = self.bottleneck_analysis.bottlenecks.len() as f32 * 5.0;
         let score = avg_utilization - bottleneck_penalty;
-        score.max(0.0).min(100.0)
+        score.clamp(0.0, 100.0)
     }
 
     /// Get summary statistics

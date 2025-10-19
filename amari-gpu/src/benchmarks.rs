@@ -95,6 +95,7 @@ pub struct BenchmarkSummary {
 pub struct AmariMultiGpuBenchmarks {
     config: BenchmarkConfig,
     performance_monitor: MultiGpuPerformanceMonitor,
+    #[allow(dead_code)]
     gpu_context: SharedGpuContext,
 }
 
@@ -783,7 +784,7 @@ impl AmariMultiGpuBenchmarks {
 
         // Calculate performance improvements by domain
         let mut performance_improvements = HashMap::new();
-        for (operation, _baseline) in &scaling_analysis.single_gpu_baseline {
+        for operation in scaling_analysis.single_gpu_baseline.keys() {
             if let Some(scaling_data) = scaling_analysis.multi_gpu_scaling.get(operation) {
                 if let Some(&best_scaling) = scaling_data.iter().max_by(|a, b| a.partial_cmp(b).unwrap()) {
                     let improvement = (best_scaling - 1.0) * 100.0;

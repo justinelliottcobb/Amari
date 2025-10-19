@@ -526,6 +526,7 @@ pub struct PerformanceStats {
 /// Multi-GPU workload coordinator for synchronization and result aggregation
 pub struct WorkloadCoordinator {
     active_workloads: Arc<Mutex<HashMap<String, ActiveWorkload>>>,
+    #[allow(dead_code)]
     synchronization_manager: SynchronizationManager,
 }
 
