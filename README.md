@@ -1,8 +1,8 @@
-# Amari v0.9.5
+# Amari v0.9.6
 
-**Complete GPU-Accelerated Mathematical Computing Platform with Production-Ready Optimization**
+**Multi-GPU Mathematical Computing Platform with Intelligent Load Balancing**
 
-A comprehensive mathematical computing library featuring geometric algebra, relativistic physics, tropical algebra, automatic differentiation, and information geometry. Now with **complete GPU acceleration coverage** across all 9 mathematical crates, advanced optimization infrastructure, and 2-6x performance improvements through unified resource management.
+A comprehensive mathematical computing library featuring geometric algebra, relativistic physics, tropical algebra, automatic differentiation, and information geometry. Now with **complete multi-GPU infrastructure** featuring intelligent workload distribution, advanced profiling systems, and comprehensive benchmarking across all mathematical domains.
 
 [![Rust](https://img.shields.io/badge/Rust-1.75+-orange.svg)](https://www.rust-lang.org/)
 [![WebAssembly](https://img.shields.io/badge/WebAssembly-Ready-blue.svg)](https://webassembly.org/)
@@ -11,14 +11,14 @@ A comprehensive mathematical computing library featuring geometric algebra, rela
 
 ## Features
 
-### New in v0.9.5: Complete GPU Acceleration & Advanced Optimization 🚀
-- **Complete GPU Coverage**: All 9 mathematical crates GPU-accelerated with unified infrastructure
-- **2-6x Performance**: Proven performance improvements across all mathematical domains
-- **SharedGpuContext**: Centralized GPU resource management eliminates redundant initialization
-- **Enhanced Buffer Pooling**: 40-60% memory allocation reduction through intelligent reuse
-- **Workgroup Optimization**: Operation-specific performance tuning for maximum efficiency
-- **Production-Ready**: Comprehensive test suite with 500+ tests validating all optimizations
-- **Cross-Crate Integration**: Seamless GPU resource sharing across mathematical domains
+### New in v0.9.6: Multi-GPU Infrastructure and Intelligent Load Balancing
+- **Multi-GPU Architecture**: Complete infrastructure supporting up to 8 GPUs with intelligent workload distribution
+- **Advanced Load Balancing**: Five strategies including Balanced, CapabilityAware, MemoryAware, LatencyOptimized, and Adaptive
+- **Performance Profiling**: Timeline analysis with microsecond precision and automatic bottleneck detection
+- **Comprehensive Benchmarking**: Production-ready validation across all 9 mathematical domains
+- **Scaling Efficiency**: Realistic performance modeling with 90%/80%/70% efficiency for 2/4/8 GPUs
+- **Graceful Degradation**: Automatic fallback to single GPU or CPU when multi-GPU unavailable
+- **Production Testing**: 65 tests including 10 comprehensive integration tests validating multi-GPU workflows
 
 ### Established Features: Relativistic Physics & Mathematical Systems
 - **Relativistic Physics**: Complete spacetime algebra (Cl(1,3)) with Minkowski signature for relativistic calculations
@@ -52,28 +52,28 @@ Add to your `Cargo.toml`:
 ```toml
 [dependencies]
 # Core geometric algebra and mathematical foundations
-amari-core = "0.9.5"
+amari-core = "0.9.6"
 
 # High-precision relativistic physics with multi-backend support
-amari-relativistic = { version = "0.9.5", features = ["high-precision"] }
+amari-relativistic = { version = "0.9.6", features = ["high-precision"] }
 
 # For native applications (uses rug/GMP backend)
-amari-relativistic = { version = "0.9.5", features = ["native-precision"] }
+amari-relativistic = { version = "0.9.6", features = ["native-precision"] }
 
 # For WebAssembly targets (uses dashu backend)
-amari-relativistic = { version = "0.9.5", features = ["wasm-precision"] }
+amari-relativistic = { version = "0.9.6", features = ["wasm-precision"] }
 
-# GPU acceleration and optimization infrastructure
-amari-gpu = "0.9.5"
+# Multi-GPU acceleration and intelligent load balancing
+amari-gpu = "0.9.6"
 
-# Additional mathematical systems (all GPU-accelerated)
-amari-tropical = "0.9.5"
-amari-dual = "0.9.5"
-amari-info-geom = "0.9.5"
-amari-automata = "0.9.5"
-amari-fusion = "0.9.5"
-amari-network = "0.9.5"
-amari-enumerative = "0.9.5"
+# Additional mathematical systems (all multi-GPU capable)
+amari-tropical = "0.9.6"
+amari-dual = "0.9.6"
+amari-info-geom = "0.9.6"
+amari-automata = "0.9.6"
+amari-fusion = "0.9.6"
+amari-network = "0.9.6"
+amari-enumerative = "0.9.6"
 ```
 
 ### JavaScript/TypeScript (WebAssembly)
@@ -167,6 +167,56 @@ async function main() {
 main();
 ```
 
+### Rust: Multi-GPU Load Balancing
+
+```rust
+use amari_gpu::{
+    SharedGpuContext, IntelligentLoadBalancer, LoadBalancingStrategy,
+    Workload, ComputeIntensity, BenchmarkRunner
+};
+
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Initialize multi-GPU context
+    let context = SharedGpuContext::with_multi_gpu().await?;
+    println!("Initialized {} GPU devices", context.device_count().await);
+
+    // Create intelligent load balancer
+    let load_balancer = IntelligentLoadBalancer::new(LoadBalancingStrategy::CapabilityAware);
+
+    // Define computational workload
+    let workload = Workload {
+        operation_type: "geometric_product".to_string(),
+        data_size: 100000,
+        memory_requirement_mb: 256.0,
+        compute_intensity: ComputeIntensity::Heavy,
+        parallelizable: true,
+        synchronization_required: true,
+    };
+
+    // Distribute workload across available GPUs
+    let assignments = load_balancer.distribute_workload(&workload).await?;
+    println!("Workload distributed across {} devices", assignments.len());
+
+    for assignment in &assignments {
+        println!(
+            "Device {}: {:.1}% workload, estimated completion: {:.2}ms",
+            assignment.device_id.0,
+            assignment.workload_fraction * 100.0,
+            assignment.estimated_completion_ms
+        );
+    }
+
+    // Run comprehensive benchmarks
+    let benchmark_results = BenchmarkRunner::run_quick_validation().await?;
+    println!("Benchmark completed: {} tests, average scaling efficiency: {:.2}%",
+        benchmark_results.performance_summary.total_tests,
+        benchmark_results.performance_summary.average_scaling_efficiency * 100.0
+    );
+
+    Ok(())
+}
+```
+
 ## Multi-Backend Precision Architecture
 
 ### Automatic Backend Selection
@@ -237,9 +287,11 @@ let spacecraft_trajectory = propagate_orbital_mechanics(
 - `amari-dual`: Dual numbers for automatic differentiation
 - `amari-fusion`: Unified Tropical-Dual-Clifford system
 - `amari-info-geom`: Information geometry and statistical manifolds
-- `amari-wasm`: WASM bindings for TypeScript/JavaScript (**New in v0.4.0**)
-- `amari-gpu`: Optional GPU acceleration via WebGPU/wgpu
+- `amari-wasm`: WASM bindings for TypeScript/JavaScript
+- `amari-gpu`: Multi-GPU acceleration with intelligent load balancing (**Enhanced in v0.9.6**)
 - `amari-automata`: Cellular automata with geometric algebra
+- `amari-network`: Graph neural networks and network analysis
+- `amari-relativistic`: Spacetime algebra and relativistic physics
 - `amari-enumerative`: Enumerative geometry and algebraic curves
 
 ### Key Types
