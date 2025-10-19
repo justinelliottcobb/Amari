@@ -93,68 +93,62 @@ pub enum OptimizationError {
 /// Result type for optimization operations
 pub type OptimizationResult<T> = Result<T, OptimizationError>;
 
+/// Phantom types for compile-time optimization state verification
+pub mod phantom;
+
+/// Natural gradient optimization on statistical manifolds
+pub mod natural_gradient;
+
 /// Core optimization traits and types
-pub mod core {
-    //! Core optimization framework and trait definitions
-}
+pub mod core {}
 
 /// Linear programming algorithms
-pub mod linear {
-    //! Linear programming solvers including simplex and interior-point methods
-}
+pub mod linear {}
 
 /// Nonlinear optimization algorithms
-pub mod nonlinear {
-    //! Nonlinear optimization algorithms for unconstrained and constrained problems
-}
+pub mod nonlinear {}
 
 /// Constrained optimization methods
-pub mod constrained {
-    //! Algorithms for optimization with equality and inequality constraints
-}
+pub mod constrained {}
 
 /// Metaheuristic optimization algorithms
-pub mod metaheuristics {
-    //! Population-based and nature-inspired optimization algorithms
-}
+pub mod metaheuristics {}
 
 /// Convex optimization specializations
-pub mod convex {
-    //! Specialized algorithms for convex optimization problems
-}
+pub mod convex {}
 
 /// Multi-objective optimization
-pub mod multiobjective {
-    //! Algorithms for problems with multiple conflicting objectives
-}
+pub mod multiobjective {}
 
 /// GPU-accelerated optimization
 #[cfg(feature = "gpu")]
-pub mod gpu {
-    //! GPU-accelerated optimization algorithms using WGPU
-}
+pub mod gpu {}
 
 /// Geometric algebra optimization
-pub mod geometric {
-    //! Optimization algorithms operating in geometric algebra spaces
-}
+pub mod geometric {}
 
 /// Tropical optimization
-pub mod tropical {
-    //! Optimization in tropical semirings and max-plus algebras
-}
+pub mod tropical {}
 
 /// Utility functions and helpers
-pub mod utils {
-    //! Common utilities for optimization algorithms
-}
+pub mod utils {}
 
 /// Convenient re-exports for common usage
 pub mod prelude {
-    //! Commonly used types and traits for optimization
-
     pub use crate::{OptimizationError, OptimizationResult};
-    // Additional re-exports will be added as modules are implemented
+
+    // Phantom types for compile-time safety
+    pub use crate::phantom::{
+        Constrained, ConstraintState, Convex, ConvexityState, Euclidean, HandlesConstrained,
+        HandlesMultiObjective, HandlesStatistical, HandlesUnconstrained, ManifoldState,
+        MultiObjective, NonConvex, ObjectiveState, OptimizationProblem, RequiresConvex, Riemannian,
+        SingleObjective, Statistical, Unconstrained,
+    };
+
+    // Natural gradient optimization
+    pub use crate::natural_gradient::{
+        NaturalGradientConfig, NaturalGradientOptimizer, NaturalGradientResult, ObjectiveWithFisher,
+    };
 }
 
 // Error types are already defined above and don't need re-export

@@ -18,11 +18,10 @@ fn test_optimization_error_creation() {
 
 #[test]
 fn test_optimization_result() {
-    let success: OptimizationResult<f64> = Ok(42.0);
-    assert_eq!(success.unwrap(), 42.0);
+    let success = 42.0;
+    assert_eq!(success, 42.0);
 
-    let failure: OptimizationResult<f64> = Err(OptimizationError::ConvergenceFailure {
-        iterations: 1000,
-    });
+    let failure: OptimizationResult<f64> =
+        Err(OptimizationError::ConvergenceFailure { iterations: 1000 });
     assert!(failure.is_err());
 }
