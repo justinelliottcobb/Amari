@@ -189,7 +189,9 @@ impl<T: Float> ConstrainedOptimizer<T> {
         match self.method {
             PenaltyMethod::Exterior => self.exterior_penalty_method(objective, initial_point),
             PenaltyMethod::Interior => self.interior_penalty_method(objective, initial_point),
-            PenaltyMethod::AugmentedLagrangian => self.augmented_lagrangian_method(objective, initial_point),
+            PenaltyMethod::AugmentedLagrangian => {
+                self.augmented_lagrangian_method(objective, initial_point)
+            }
         }
     }
 
@@ -336,7 +338,7 @@ impl<T: Float> ConstrainedOptimizer<T> {
         let n_eq = objective.num_equality_constraints();
 
         let mut lambda = vec![T::zero(); n_ineq]; // Inequality multipliers
-        let mut mu = vec![T::zero(); n_eq];       // Equality multipliers
+        let mut mu = vec![T::zero(); n_eq]; // Equality multipliers
         let mut penalty_param = self.config.initial_penalty;
 
         for iteration in 0..self.config.max_iterations {
@@ -351,12 +353,15 @@ impl<T: Float> ConstrainedOptimizer<T> {
                 // Inequality constraints: λᵢ gᵢ(x) + (ρ/2) max(0, gᵢ(x))²
                 for (i, &g) in ineq_constraints.iter().enumerate() {
                     let max_g = if g > T::zero() { g } else { T::zero() };
-                    augmented = augmented + lambda[i] * g + penalty_param / T::from(2.0).unwrap() * max_g * max_g;
+                    augmented = augmented
+                        + lambda[i] * g
+                        + penalty_param / T::from(2.0).unwrap() * max_g * max_g;
                 }
 
                 // Equality constraints: μⱼ hⱼ(x) + (ρ/2) hⱼ(x)²
                 for (j, &h) in eq_constraints.iter().enumerate() {
-                    augmented = augmented + mu[j] * h + penalty_param / T::from(2.0).unwrap() * h * h;
+                    augmented =
+                        augmented + mu[j] * h + penalty_param / T::from(2.0).unwrap() * h * h;
                 }
 
                 augmented
@@ -383,8 +388,9 @@ impl<T: Float> ConstrainedOptimizer<T> {
             let constraint_violation = self.compute_constraint_violation(objective, &x);
             let kkt_error = self.compute_kkt_error(objective, &x, &lambda, &mu);
 
-            if constraint_violation < self.config.constraint_tolerance &&
-               kkt_error < self.config.optimality_tolerance {
+            if constraint_violation < self.config.constraint_tolerance
+                && kkt_error < self.config.optimality_tolerance
+            {
                 return Ok(ConstrainedResult {
                     solution: x.clone(),
                     objective_value: objective.evaluate(&x),
@@ -454,13 +460,7 @@ impl<T: Float> ConstrainedOptimizer<T> {
     }
 
     /// Simple line search
-    fn line_search(
-        &self,
-        f: &impl Fn(&[T]) -> T,
-        x: &[T],
-        direction: &[T],
-        initial_step: T,
-    ) -> T {
+    fn line_search(&self, f: &impl Fn(&[T]) -> T, x: &[T], direction: &[T], initial_step: T) -> T {
         let mut step = initial_step;
         let current_value = f(x);
 
@@ -486,7 +486,9 @@ impl<T: Float> ConstrainedOptimizer<T> {
         let eq_constraints = objective.equality_constraints(x);
 
         let ineq_feasible = ineq_constraints.iter().all(|&g| g <= T::zero());
-        let eq_feasible = eq_constraints.iter().all(|&h| h.abs() < self.config.constraint_tolerance);
+        let eq_feasible = eq_constraints
+            .iter()
+            .all(|&h| h.abs() < self.config.constraint_tolerance);
 
         ineq_feasible && eq_feasible
     }
@@ -529,7 +531,11 @@ impl<T: Float> ConstrainedOptimizer<T> {
     }
 
     /// Get constraint violations as vector
-    fn get_constraint_violations(&self, objective: &impl ConstrainedObjective<T>, x: &[T]) -> Vec<T> {
+    fn get_constraint_violations(
+        &self,
+        objective: &impl ConstrainedObjective<T>,
+        x: &[T],
+    ) -> Vec<T> {
         let mut violations = objective.inequality_constraints(x);
         violations.extend(objective.equality_constraints(x));
         violations
@@ -546,13 +552,18 @@ impl<T: Float> ConstrainedOptimizer<T> {
         let eq_constraints = objective.equality_constraints(x);
 
         // Simple estimation based on penalty parameter
-        let lambda: Vec<T> = ineq_constraints.iter()
-            .map(|&g| if g > T::zero() { penalty * g } else { T::zero() })
+        let lambda: Vec<T> = ineq_constraints
+            .iter()
+            .map(|&g| {
+                if g > T::zero() {
+                    penalty * g
+                } else {
+                    T::zero()
+                }
+            })
             .collect();
 
-        let mu: Vec<T> = eq_constraints.iter()
-            .map(|&h| penalty * h)
-            .collect();
+        let mu: Vec<T> = eq_constraints.iter().map(|&h| penalty * h).collect();
 
         (lambda, mu)
     }
@@ -589,7 +600,10 @@ impl<T: Float> ConstrainedOptimizer<T> {
 
     /// Compute vector norm
     fn vector_norm(&self, v: &[T]) -> T {
-        v.iter().map(|&x| x * x).fold(T::zero(), |acc, x| acc + x).sqrt()
+        v.iter()
+            .map(|&x| x * x)
+            .fold(T::zero(), |acc, x| acc + x)
+            .sqrt()
     }
 }
 
@@ -647,7 +661,8 @@ mod tests {
         let config = ConstrainedConfig::<f64>::default();
         let _optimizer = ConstrainedOptimizer::new(config, PenaltyMethod::Exterior);
 
-        let _default_optimizer = ConstrainedOptimizer::<f64>::with_default_config(PenaltyMethod::AugmentedLagrangian);
+        let _default_optimizer =
+            ConstrainedOptimizer::<f64>::with_default_config(PenaltyMethod::AugmentedLagrangian);
     }
 
     #[test]
@@ -656,8 +671,13 @@ mod tests {
         let optimizer = ConstrainedOptimizer::<f64>::with_default_config(PenaltyMethod::Exterior);
 
         use crate::phantom::{Euclidean, NonConvex, SingleObjective};
-        let opt_problem: OptimizationProblem<2, Constrained, SingleObjective, NonConvex, Euclidean> =
-            OptimizationProblem::new();
+        let opt_problem: OptimizationProblem<
+            2,
+            Constrained,
+            SingleObjective,
+            NonConvex,
+            Euclidean,
+        > = OptimizationProblem::new();
 
         let initial_point = vec![0.0, 0.0];
         let result = optimizer.optimize(&opt_problem, &problem, initial_point);
@@ -673,11 +693,17 @@ mod tests {
     #[test]
     fn test_augmented_lagrangian_method() {
         let problem = SimpleConstrained;
-        let optimizer = ConstrainedOptimizer::<f64>::with_default_config(PenaltyMethod::AugmentedLagrangian);
+        let optimizer =
+            ConstrainedOptimizer::<f64>::with_default_config(PenaltyMethod::AugmentedLagrangian);
 
         use crate::phantom::{Euclidean, NonConvex, SingleObjective};
-        let opt_problem: OptimizationProblem<2, Constrained, SingleObjective, NonConvex, Euclidean> =
-            OptimizationProblem::new();
+        let opt_problem: OptimizationProblem<
+            2,
+            Constrained,
+            SingleObjective,
+            NonConvex,
+            Euclidean,
+        > = OptimizationProblem::new();
 
         let initial_point = vec![0.0, 0.0];
         let result = optimizer.optimize(&opt_problem, &problem, initial_point);
@@ -699,7 +725,8 @@ mod tests {
         let infeasible_point = vec![1.0, 1.0]; // Violates x + y ≤ 1
 
         let violation_feasible = optimizer.compute_constraint_violation(&problem, &feasible_point);
-        let violation_infeasible = optimizer.compute_constraint_violation(&problem, &infeasible_point);
+        let violation_infeasible =
+            optimizer.compute_constraint_violation(&problem, &infeasible_point);
 
         assert!(violation_feasible < 0.1); // Should be small or zero
         assert!(violation_infeasible > 0.5); // Should be significant
@@ -714,7 +741,7 @@ mod tests {
         let (lambda, mu) = optimizer.estimate_lagrange_multipliers(&problem, &point, 1.0);
 
         assert_eq!(lambda.len(), 1); // One inequality constraint
-        assert_eq!(mu.len(), 0);     // No equality constraints
+        assert_eq!(mu.len(), 0); // No equality constraints
     }
 
     #[test]
