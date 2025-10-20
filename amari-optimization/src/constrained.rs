@@ -67,13 +67,13 @@ impl<T: Float> Default for ConstrainedConfig<T> {
     fn default() -> Self {
         Self {
             max_iterations: 100,
-            max_inner_iterations: 1000,
-            constraint_tolerance: T::from(1e-6).unwrap(),
-            optimality_tolerance: T::from(1e-6).unwrap(),
+            max_inner_iterations: 500, // Reduced inner iterations
+            constraint_tolerance: T::from(1e-4).unwrap(), // Relaxed constraint tolerance
+            optimality_tolerance: T::from(1e-4).unwrap(), // Relaxed optimality tolerance
             initial_penalty: T::from(1.0).unwrap(),
             penalty_growth: T::from(10.0).unwrap(),
-            initial_barrier: T::from(1.0).unwrap(),
-            barrier_reduction: T::from(0.1).unwrap(),
+            initial_barrier: T::from(0.1).unwrap(), // Smaller initial barrier
+            barrier_reduction: T::from(0.5).unwrap(), // Slower barrier reduction
             line_search_tolerance: T::from(1e-4).unwrap(),
             enable_feasibility_restoration: true,
         }
@@ -174,15 +174,14 @@ impl<T: Float> ConstrainedOptimizer<T> {
     }
 
     /// Solve constrained optimization problem
-    pub fn optimize<const DIM: usize>(
+    pub fn optimize<
+        const DIM: usize,
+        O: crate::phantom::ObjectiveState,
+        V: crate::phantom::ConvexityState,
+        M: crate::phantom::ManifoldState,
+    >(
         &self,
-        _problem: &OptimizationProblem<
-            DIM,
-            Constrained,
-            impl crate::phantom::ObjectiveState,
-            impl crate::phantom::ConvexityState,
-            impl crate::phantom::ManifoldState,
-        >,
+        _problem: &OptimizationProblem<DIM, Constrained, O, V, M>,
         objective: &impl ConstrainedObjective<T>,
         initial_point: Vec<T>,
     ) -> OptimizationResult<ConstrainedResult<T>> {
@@ -286,9 +285,12 @@ impl<T: Float> ConstrainedOptimizer<T> {
                 let ineq_constraints = objective.inequality_constraints(vars);
                 for &g in &ineq_constraints {
                     if g >= T::zero() {
-                        return T::infinity(); // Infeasible
+                        // Add a small penalty to avoid infinity and guide towards feasibility
+                        let penalty = T::from(1000.0).unwrap() * (T::one() + g);
+                        return obj + penalty;
                     }
-                    barrier = barrier - g.ln();
+                    // Use -log(-g) for feasible points
+                    barrier = barrier - (-g).ln();
                 }
 
                 obj + barrier_param * barrier
@@ -493,21 +495,71 @@ impl<T: Float> ConstrainedOptimizer<T> {
         ineq_feasible && eq_feasible
     }
 
-    /// Find a feasible starting point (simplified)
+    /// Find a feasible starting point using Phase I optimization
     fn find_feasible_point(
         &self,
         objective: &impl ConstrainedObjective<T>,
-        x: Vec<T>,
+        mut x: Vec<T>,
     ) -> OptimizationResult<Vec<T>> {
-        // Simplified feasibility restoration - project to bounds
+        // First project to bounds
         let bounds = objective.variable_bounds();
-        let mut feasible_x = x;
-
         for (i, &(lower, upper)) in bounds.iter().enumerate() {
-            feasible_x[i] = feasible_x[i].max(lower).min(upper);
+            x[i] = x[i].max(lower).min(upper);
         }
 
-        Ok(feasible_x)
+        // Simple feasibility restoration: move towards constraint center
+        for _iteration in 0..50 {
+            let ineq_constraints = objective.inequality_constraints(&x);
+
+            // If already feasible, return
+            if ineq_constraints.iter().all(|&g| g <= T::zero()) {
+                return Ok(x);
+            }
+
+            // Move towards satisfying constraints
+            let mut adjustment = vec![T::zero(); x.len()];
+            let mut adjustment_made = false;
+
+            for (i, &g) in ineq_constraints.iter().enumerate() {
+                if g > T::zero() {
+                    // This constraint is violated, try to reduce violation
+                    let jacobian = objective.inequality_jacobian(&x);
+                    if i < jacobian.len() {
+                        let step_size = T::from(0.1).unwrap() * g;
+                        for (j, &grad_g_ij) in jacobian[i].iter().enumerate() {
+                            if j < adjustment.len() {
+                                adjustment[j] = adjustment[j] - step_size * grad_g_ij;
+                                adjustment_made = true;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if !adjustment_made {
+                // Try a simple heuristic: move towards origin or bounds center
+                let center: Vec<T> = bounds
+                    .iter()
+                    .map(|(lower, upper)| (*lower + *upper) / T::from(2.0).unwrap())
+                    .collect();
+
+                for (i, (&center_i, &x_i)) in center.iter().zip(x.iter()).enumerate() {
+                    adjustment[i] = (center_i - x_i) * T::from(0.1).unwrap();
+                }
+            }
+
+            // Apply adjustment
+            for (i, adj) in adjustment.iter().enumerate() {
+                x[i] = x[i] + *adj;
+                // Keep within bounds
+                let (lower, upper) = bounds[i];
+                x[i] = x[i].max(lower).min(upper);
+            }
+        }
+
+        // If we can't find a strictly feasible point, return a point that's close to feasible
+        // This allows the barrier method to at least start
+        Ok(x)
     }
 
     /// Compute constraint violation

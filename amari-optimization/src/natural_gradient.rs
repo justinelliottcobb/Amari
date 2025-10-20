@@ -58,12 +58,12 @@ pub struct NaturalGradientConfig<T: Float> {
 impl<T: Float> Default for NaturalGradientConfig<T> {
     fn default() -> Self {
         Self {
-            learning_rate: T::from(0.01).unwrap(),
+            learning_rate: T::from(0.1).unwrap(), // Increased from 0.01
             max_iterations: 1000,
-            gradient_tolerance: T::from(1e-6).unwrap(),
-            parameter_tolerance: T::from(1e-8).unwrap(),
+            gradient_tolerance: T::from(1e-4).unwrap(), // Relaxed from 1e-6
+            parameter_tolerance: T::from(1e-6).unwrap(), // Relaxed from 1e-8
             fisher_regularization: T::from(1e-6).unwrap(),
-            use_line_search: false,
+            use_line_search: true, // Enable line search by default
             line_search_beta: T::from(0.5).unwrap(),
             line_search_alpha: T::from(1.0).unwrap(),
         }
@@ -126,15 +126,14 @@ impl<T: Float> NaturalGradientOptimizer<T> {
     }
 
     /// Optimize on a statistical manifold
-    pub fn optimize_statistical<const DIM: usize>(
+    pub fn optimize_statistical<
+        const DIM: usize,
+        C: crate::phantom::ConstraintState,
+        O: crate::phantom::ObjectiveState,
+        V: crate::phantom::ConvexityState,
+    >(
         &self,
-        _problem: &OptimizationProblem<
-            DIM,
-            impl crate::phantom::ConstraintState,
-            impl crate::phantom::ObjectiveState,
-            impl crate::phantom::ConvexityState,
-            Statistical,
-        >,
+        _problem: &OptimizationProblem<DIM, C, O, V, Statistical>,
         objective: &impl ObjectiveWithFisher<T>,
         initial_parameters: Vec<T>,
     ) -> OptimizationResult<NaturalGradientResult<T>> {
@@ -142,15 +141,14 @@ impl<T: Float> NaturalGradientOptimizer<T> {
     }
 
     /// Optimize on a Riemannian manifold
-    pub fn optimize_riemannian<const DIM: usize>(
+    pub fn optimize_riemannian<
+        const DIM: usize,
+        C: crate::phantom::ConstraintState,
+        O: crate::phantom::ObjectiveState,
+        V: crate::phantom::ConvexityState,
+    >(
         &self,
-        _problem: &OptimizationProblem<
-            DIM,
-            impl crate::phantom::ConstraintState,
-            impl crate::phantom::ObjectiveState,
-            impl crate::phantom::ConvexityState,
-            Riemannian,
-        >,
+        _problem: &OptimizationProblem<DIM, C, O, V, Riemannian>,
         objective: &impl ObjectiveWithFisher<T>,
         initial_parameters: Vec<T>,
     ) -> OptimizationResult<NaturalGradientResult<T>> {
