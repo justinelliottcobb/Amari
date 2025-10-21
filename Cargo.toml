@@ -22,6 +22,7 @@ amari-automata = { workspace = true }
 amari-enumerative = { workspace = true }
 amari-relativistic = { workspace = true }
 amari-gpu = { workspace = true, optional = true }
+amari-optimization = { workspace = true, optional = true }
 thiserror = { workspace = true }
 
 [dev-dependencies]
@@ -32,17 +33,18 @@ tokio = { version = "1.0", features = ["full"] }
 [features]
 default = []
 gpu = ["dep:amari-gpu"]
+optimization = ["dep:amari-optimization"]
 
 [[test]]
 name = "integration"
 path = "tests/integration.rs"
 
 [workspace]
-members = ["amari-core", "amari-wasm", "amari-gpu", "amari-info-geom", "amari-tropical", "amari-dual", "amari-fusion", "amari-automata", "amari-enumerative", "amari-relativistic", "amari-network"]
+members = ["amari-core", "amari-wasm", "amari-gpu", "amari-info-geom", "amari-tropical", "amari-dual", "amari-fusion", "amari-automata", "amari-enumerative", "amari-relativistic", "amari-network", "amari-optimization"]
 resolver = "2"
 
 [workspace.package]
-version = "0.9.6"
+version = "0.9.7"
 authors = ["Amari Contributors"]
 edition = "2021"
 license = "MIT OR Apache-2.0"
@@ -50,17 +52,18 @@ rust-version = "1.75"
 
 [workspace.dependencies]
 # Amari crates (internal dependencies)
-amari = { path = ".", version = "0.9.6" }
-amari-core = { path = "amari-core", version = "0.9.6" }
-amari-tropical = { path = "amari-tropical", version = "0.9.6" }
-amari-dual = { path = "amari-dual", version = "0.9.6" }
-amari-fusion = { path = "amari-fusion", version = "0.9.6" }
-amari-info-geom = { path = "amari-info-geom", version = "0.9.6" }
-amari-automata = { path = "amari-automata", version = "0.9.6" }
-amari-enumerative = { path = "amari-enumerative", version = "0.9.6" }
-amari-relativistic = { path = "amari-relativistic", version = "0.9.6" }
-amari-gpu = { path = "amari-gpu", version = "0.9.6" }
-amari-network = { path = "amari-network", version = "0.9.6" }
+amari = { path = ".", version = "0.9.7" }
+amari-core = { path = "amari-core", version = "0.9.7" }
+amari-tropical = { path = "amari-tropical", version = "0.9.7" }
+amari-dual = { path = "amari-dual", version = "0.9.7" }
+amari-fusion = { path = "amari-fusion", version = "0.9.7" }
+amari-info-geom = { path = "amari-info-geom", version = "0.9.7" }
+amari-automata = { path = "amari-automata", version = "0.9.7" }
+amari-enumerative = { path = "amari-enumerative", version = "0.9.7" }
+amari-relativistic = { path = "amari-relativistic", version = "0.9.7" }
+amari-gpu = { path = "amari-gpu", version = "0.9.7" }
+amari-network = { path = "amari-network", version = "0.9.7" }
+amari-optimization = { path = "amari-optimization", version = "0.9.7" }
 
 # External dependencies
 bytemuck = "1.14"

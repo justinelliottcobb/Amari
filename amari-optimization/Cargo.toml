@@ -1,0 +1,44 @@
+[package]
+name = "amari-optimization"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Geometric optimization algorithms leveraging Amari's Tropical-Dual-Clifford fusion"
+repository = "https://github.com/justinelliottcobb/Amari"
+homepage = "https://github.com/justinelliottcobb/Amari"
+keywords = ["geometric-algebra", "optimization", "manifold", "tropical", "pareto"]
+categories = ["mathematics", "science", "algorithms"]
+
+[dependencies]
+amari-core = { workspace = true, features = ["std", "phantom-types"] }
+amari-dual = { workspace = true }
+amari-tropical = { workspace = true }
+amari-info-geom = { workspace = true }
+amari-gpu = { workspace = true, optional = true }
+thiserror = { workspace = true }
+num-traits = { workspace = true }
+nalgebra = { workspace = true, optional = true }
+rayon = { workspace = true, optional = true }
+rand = "0.8"
+serde = { workspace = true, optional = true }
+
+[dev-dependencies]
+approx = { workspace = true }
+criterion = "0.5"
+proptest = "1.4"
+tokio = { version = "1.0", features = ["full"] }
+
+[features]
+default = ["std"]
+gpu = ["dep:amari-gpu"]
+serde = ["dep:serde", "amari-core/serde"]
+std = ["amari-core/std"]
+parallel = ["dep:rayon"]
+linalg = ["dep:nalgebra"]
+
+[[bench]]
+name = "optimization_benchmarks"
+harness = false
+
