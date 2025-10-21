@@ -35,6 +35,7 @@ amari-automata = { path = "../amari-automata" }
 amari-info-geom = { path = "../amari-info-geom" }
 amari-enumerative = { path = "../amari-enumerative" }
 amari-relativistic = { path = "../amari-relativistic", features = ["phantom-types"] }
+amari-optimization = { path = "../amari-optimization", features = ["wasm", "linalg"] }
 
 # Additional dependencies for v0.9.4 complete WASM coverage
 num-rational = "0.4"

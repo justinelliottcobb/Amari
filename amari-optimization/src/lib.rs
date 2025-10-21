@@ -88,6 +88,29 @@ pub enum OptimizationError {
     #[cfg(feature = "gpu")]
     #[error("GPU optimization error: {0}")]
     GpuError(#[from] amari_gpu::UnifiedGpuError),
+
+    /// Invalid input parameters
+    #[error("Invalid input: {0}")]
+    InvalidInput(String),
+
+    /// Computation failed
+    #[error("Computation failed: {0}")]
+    ComputationFailed(String),
+}
+
+/// Optimization solution containing result data and metadata
+#[derive(Debug, Clone)]
+pub struct OptimizationSolution {
+    /// The optimal solution found
+    pub solution: Vec<f64>,
+    /// Final objective function value
+    pub objective_value: f64,
+    /// Number of iterations performed
+    pub iterations: usize,
+    /// Whether the algorithm converged
+    pub converged: bool,
+    /// Final gradient norm (if available)
+    pub gradient_norm: Option<f64>,
 }
 
 /// Result type for optimization operations
@@ -122,7 +145,7 @@ pub mod multiobjective;
 
 /// GPU-accelerated optimization
 #[cfg(feature = "gpu")]
-pub mod gpu {}
+pub mod gpu;
 
 /// Geometric algebra optimization
 pub mod geometric {}
@@ -135,7 +158,7 @@ pub mod utils {}
 
 /// Convenient re-exports for common usage
 pub mod prelude {
-    pub use crate::{OptimizationError, OptimizationResult};
+    pub use crate::{OptimizationError, OptimizationResult, OptimizationSolution};
 
     // Phantom types for compile-time safety
     pub use crate::phantom::{
@@ -167,6 +190,10 @@ pub mod prelude {
         ConstrainedConfig, ConstrainedObjective, ConstrainedOptimizer, ConstrainedResult,
         PenaltyMethod,
     };
+
+    // GPU-accelerated optimization
+    #[cfg(feature = "gpu")]
+    pub use crate::gpu::{GpuOptimizer, GpuMultiObjectiveOptimizer};
 }
 
 // Error types are already defined above and don't need re-export
