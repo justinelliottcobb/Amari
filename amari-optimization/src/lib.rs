@@ -193,7 +193,7 @@ pub mod prelude {
 
     // GPU-accelerated optimization
     #[cfg(feature = "gpu")]
-    pub use crate::gpu::{GpuOptimizer, GpuMultiObjectiveOptimizer};
+    pub use crate::gpu::{GpuMultiObjectiveOptimizer, GpuOptimizer};
 }
 
 // Error types are already defined above and don't need re-export
