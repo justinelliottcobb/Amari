@@ -4,12 +4,13 @@
 //! It implements progressive enhancement: automatically detects GPU capabilities and falls back to CPU
 //! computation when necessary.
 
-#[cfg(feature = "gpu")]
-use amari_gpu::{
-    GpuContext, GpuDispatcher, GpuOperationParams, SharedGpuContext, UnifiedGpuError, UnifiedGpuResult,
-};
+use crate::{OptimizationError, OptimizationSolution};
 use amari_core::Multivector;
-use crate::{OptimizationSolution, OptimizationError};
+#[cfg(feature = "gpu")]
+use amari_gpu::SharedGpuContext;
+
+/// Type alias for objective functions used in multi-objective optimization
+type ObjectiveFunction = Box<dyn Fn(&[f64]) -> f64 + Send + Sync>;
 
 /// GPU-accelerated optimization dispatcher
 pub struct GpuOptimizer {
@@ -23,10 +24,9 @@ impl GpuOptimizer {
     pub async fn new() -> Self {
         #[cfg(feature = "gpu")]
         {
-            let context = match SharedGpuContext::new().await {
-                Ok(ctx) => Some(ctx),
-                Err(_) => None,
-            };
+            // For now, disable GPU initialization to avoid private API issues
+            // In a full implementation, this would use a public factory method
+            let context = None;
 
             Self {
                 context,
@@ -71,7 +71,10 @@ impl GpuOptimizer {
 
         // For large problems, try GPU acceleration
         if self.should_use_gpu(coefficients.len()) && self.is_gpu_available() {
-            match self.optimize_quadratic_gpu(coefficients, initial_point, max_iterations, tolerance).await {
+            match self
+                .optimize_quadratic_gpu(coefficients, initial_point, max_iterations, tolerance)
+                .await
+            {
                 Ok(result) => return Ok(result),
                 Err(_) if self.fallback_enabled => {
                     // Fall back to CPU implementation
@@ -97,7 +100,10 @@ impl GpuOptimizer {
 
         // For large batches, prefer GPU acceleration
         if self.should_use_gpu_batch(problems.len()) && self.is_gpu_available() {
-            match self.optimize_quadratic_batch_gpu(problems, max_iterations, tolerance).await {
+            match self
+                .optimize_quadratic_batch_gpu(problems, max_iterations, tolerance)
+                .await
+            {
                 Ok(results) => return Ok(results),
                 Err(_) if self.fallback_enabled => {
                     // Fall back to CPU implementation
@@ -109,7 +115,12 @@ impl GpuOptimizer {
         // CPU batch implementation
         let mut results = Vec::with_capacity(problems.len());
         for (coefficients, initial_point) in problems {
-            let result = self.optimize_quadratic_cpu(coefficients, initial_point, max_iterations, tolerance)?;
+            let result = self.optimize_quadratic_cpu(
+                coefficients,
+                initial_point,
+                max_iterations,
+                tolerance,
+            )?;
             results.push(result);
         }
 
@@ -125,21 +136,15 @@ impl GpuOptimizer {
         max_iterations: usize,
         tolerance: f64,
     ) -> Result<OptimizationSolution, OptimizationError> {
-        // For geometric algebra operations, prefer GPU for large basis spaces
-        let basis_count = 1 << (P + Q + R);
-
-        if self.should_use_gpu(basis_count) && self.is_gpu_available() {
-            match self.natural_gradient_descent_gpu(objective, initial_point, learning_rate, max_iterations, tolerance).await {
-                Ok(result) => return Ok(result),
-                Err(_) if self.fallback_enabled => {
-                    // Fall back to CPU implementation
-                }
-                Err(e) => return Err(e),
-            }
-        }
-
-        // CPU implementation
-        self.natural_gradient_descent_cpu(objective, initial_point, learning_rate, max_iterations, tolerance)
+        // For now, always use CPU implementation to avoid ownership issues
+        // In a full implementation, this would use GPU acceleration for large basis spaces
+        self.natural_gradient_descent_cpu(
+            objective,
+            initial_point,
+            learning_rate,
+            max_iterations,
+            tolerance,
+        )
     }
 
     // Private implementation methods
@@ -162,22 +167,8 @@ impl GpuOptimizer {
         max_iterations: usize,
         tolerance: f64,
     ) -> Result<OptimizationSolution, OptimizationError> {
-        let context = self.context.as_ref().ok_or_else(|| {
-            OptimizationError::ComputationFailed("GPU context not available".to_string())
-        })?;
-
-        // Convert to GPU-compatible format
-        let params = GpuOperationParams {
-            batch_size: 1,
-            element_count: coefficients.len(),
-            operation_type: "quadratic_optimization".to_string(),
-        };
-
-        // Use GPU dispatcher for the optimization computation
-        let dispatcher = GpuDispatcher::new(context.clone());
-
-        // For now, fall back to CPU implementation within GPU feature
-        // In a full implementation, this would use GPU kernels for gradient computation
+        // Since GPU context is disabled for now, always fall back to CPU
+        // In a full implementation, this would use GPU acceleration when context is available
         self.optimize_quadratic_cpu(coefficients, initial_point, max_iterations, tolerance)
     }
 
@@ -200,24 +191,16 @@ impl GpuOptimizer {
         max_iterations: usize,
         tolerance: f64,
     ) -> Result<Vec<OptimizationSolution>, OptimizationError> {
-        let context = self.context.as_ref().ok_or_else(|| {
-            OptimizationError::ComputationFailed("GPU context not available".to_string())
-        })?;
-
-        // For batch operations, GPU can provide significant speedup
-        let params = GpuOperationParams {
-            batch_size: problems.len(),
-            element_count: problems.first().map(|(c, _)| c.len()).unwrap_or(0),
-            operation_type: "batch_quadratic_optimization".to_string(),
-        };
-
-        let dispatcher = GpuDispatcher::new(context.clone());
-
-        // For now, fall back to sequential CPU implementation
-        // In a full implementation, this would use GPU kernels for parallel optimization
+        // Since GPU context is disabled for now, fall back to CPU batch processing
+        // In a full implementation, this would use GPU for parallel optimization
         let mut results = Vec::with_capacity(problems.len());
         for (coefficients, initial_point) in problems {
-            let result = self.optimize_quadratic_cpu(coefficients, initial_point, max_iterations, tolerance)?;
+            let result = self.optimize_quadratic_cpu(
+                coefficients,
+                initial_point,
+                max_iterations,
+                tolerance,
+            )?;
             results.push(result);
         }
 
@@ -234,12 +217,19 @@ impl GpuOptimizer {
         // GPU not available, fall back to CPU batch
         let mut results = Vec::with_capacity(problems.len());
         for (coefficients, initial_point) in problems {
-            let result = self.optimize_quadratic_cpu(coefficients, initial_point, max_iterations, tolerance)?;
+            let result = self.optimize_quadratic_cpu(
+                coefficients,
+                initial_point,
+                max_iterations,
+                tolerance,
+            )?;
             results.push(result);
         }
         Ok(results)
     }
 
+    // GPU methods are kept for future implementation but marked as dead code for now
+    #[allow(dead_code)]
     #[cfg(feature = "gpu")]
     async fn natural_gradient_descent_gpu<const P: usize, const Q: usize, const R: usize>(
         &self,
@@ -249,25 +239,18 @@ impl GpuOptimizer {
         max_iterations: usize,
         tolerance: f64,
     ) -> Result<OptimizationSolution, OptimizationError> {
-        let context = self.context.as_ref().ok_or_else(|| {
-            OptimizationError::ComputationFailed("GPU context not available".to_string())
-        })?;
-
-        // For geometric algebra operations, GPU can accelerate the computations
-        let basis_count = 1 << (P + Q + R);
-        let params = GpuOperationParams {
-            batch_size: 1,
-            element_count: basis_count,
-            operation_type: "natural_gradient_descent".to_string(),
-        };
-
-        let dispatcher = GpuDispatcher::new(context.clone());
-
-        // For now, fall back to CPU implementation
+        // Since GPU context is disabled for now, fall back to CPU
         // In a full implementation, this would use GPU for geometric product computations
-        self.natural_gradient_descent_cpu(objective, initial_point, learning_rate, max_iterations, tolerance)
+        self.natural_gradient_descent_cpu(
+            objective,
+            initial_point,
+            learning_rate,
+            max_iterations,
+            tolerance,
+        )
     }
 
+    #[allow(dead_code)]
     #[cfg(not(feature = "gpu"))]
     async fn natural_gradient_descent_gpu<const P: usize, const Q: usize, const R: usize>(
         &self,
@@ -278,7 +261,13 @@ impl GpuOptimizer {
         tolerance: f64,
     ) -> Result<OptimizationSolution, OptimizationError> {
         // GPU not available, fall back to CPU
-        self.natural_gradient_descent_cpu(_objective, initial_point, learning_rate, max_iterations, tolerance)
+        self.natural_gradient_descent_cpu(
+            _objective,
+            initial_point,
+            learning_rate,
+            max_iterations,
+            tolerance,
+        )
     }
 
     fn optimize_quadratic_cpu(
@@ -338,18 +327,18 @@ impl GpuOptimizer {
         max_iterations: usize,
         tolerance: f64,
     ) -> Result<OptimizationSolution, OptimizationError> {
-        let mut current = *initial_point;
+        let mut current = initial_point.clone();
         let mut iterations = 0;
         let epsilon = 1e-8;
 
         for iter in 0..max_iterations {
             // Compute numerical gradient
             let mut gradient = Multivector::zero();
-            let current_value = objective(&current);
+            let _current_value = objective(&current);
 
             for i in 0..(1 << (P + Q + R)) {
-                let mut point_plus = current;
-                let mut point_minus = current;
+                let mut point_plus = current.clone();
+                let mut point_minus = current.clone();
 
                 // Perturb coefficient i
                 let current_coeff = current.get(i);
@@ -373,9 +362,7 @@ impl GpuOptimizer {
         }
 
         let final_objective = objective(&current);
-        let solution_vec: Vec<f64> = (0..(1 << (P + Q + R)))
-            .map(|i| current.get(i))
-            .collect();
+        let solution_vec: Vec<f64> = (0..(1 << (P + Q + R))).map(|i| current.get(i)).collect();
 
         Ok(OptimizationSolution {
             solution: solution_vec,
@@ -419,10 +406,9 @@ impl GpuMultiObjectiveOptimizer {
     pub async fn new() -> Self {
         #[cfg(feature = "gpu")]
         {
-            let context = match SharedGpuContext::new().await {
-                Ok(ctx) => Some(ctx),
-                Err(_) => None,
-            };
+            // For now, disable GPU initialization to avoid private API issues
+            // In a full implementation, this would use a public factory method
+            let context = None;
 
             Self {
                 context,
@@ -441,15 +427,24 @@ impl GpuMultiObjectiveOptimizer {
     /// Run NSGA-II algorithm with GPU acceleration for fitness evaluation
     pub async fn nsga_ii(
         &self,
-        objectives: Vec<Box<dyn Fn(&[f64]) -> f64 + Send + Sync>>,
-        constraints: Vec<Box<dyn Fn(&[f64]) -> f64 + Send + Sync>>,
+        objectives: Vec<ObjectiveFunction>,
+        constraints: Vec<ObjectiveFunction>,
         bounds: &[(f64, f64)],
         population_size: usize,
         generations: usize,
     ) -> Result<Vec<OptimizationSolution>, OptimizationError> {
         // For large populations, GPU acceleration can help with fitness evaluation
         if self.should_use_gpu_for_population(population_size) && self.is_gpu_available() {
-            match self.nsga_ii_gpu(&objectives, &constraints, bounds, population_size, generations).await {
+            match self
+                .nsga_ii_gpu(
+                    &objectives,
+                    &constraints,
+                    bounds,
+                    population_size,
+                    generations,
+                )
+                .await
+            {
                 Ok(results) => return Ok(results),
                 Err(_) if self.fallback_enabled => {
                     // Fall back to CPU implementation
@@ -459,7 +454,13 @@ impl GpuMultiObjectiveOptimizer {
         }
 
         // CPU implementation (simplified NSGA-II)
-        self.nsga_ii_cpu(&objectives, &constraints, bounds, population_size, generations)
+        self.nsga_ii_cpu(
+            &objectives,
+            &constraints,
+            bounds,
+            population_size,
+            generations,
+        )
     }
 
     fn is_gpu_available(&self) -> bool {
@@ -481,33 +482,45 @@ impl GpuMultiObjectiveOptimizer {
     #[cfg(feature = "gpu")]
     async fn nsga_ii_gpu(
         &self,
-        objectives: &[Box<dyn Fn(&[f64]) -> f64 + Send + Sync>],
-        constraints: &[Box<dyn Fn(&[f64]) -> f64 + Send + Sync>],
+        objectives: &[ObjectiveFunction],
+        constraints: &[ObjectiveFunction],
         bounds: &[(f64, f64)],
         population_size: usize,
         generations: usize,
     ) -> Result<Vec<OptimizationSolution>, OptimizationError> {
         // For now, fall back to CPU implementation
         // In a full implementation, this would use GPU for parallel fitness evaluation
-        self.nsga_ii_cpu(objectives, constraints, bounds, population_size, generations)
+        self.nsga_ii_cpu(
+            objectives,
+            constraints,
+            bounds,
+            population_size,
+            generations,
+        )
     }
 
     #[cfg(not(feature = "gpu"))]
     async fn nsga_ii_gpu(
         &self,
-        objectives: &[Box<dyn Fn(&[f64]) -> f64 + Send + Sync>],
-        constraints: &[Box<dyn Fn(&[f64]) -> f64 + Send + Sync>],
+        objectives: &[ObjectiveFunction],
+        constraints: &[ObjectiveFunction],
         bounds: &[(f64, f64)],
         population_size: usize,
         generations: usize,
     ) -> Result<Vec<OptimizationSolution>, OptimizationError> {
-        self.nsga_ii_cpu(objectives, constraints, bounds, population_size, generations)
+        self.nsga_ii_cpu(
+            objectives,
+            constraints,
+            bounds,
+            population_size,
+            generations,
+        )
     }
 
     fn nsga_ii_cpu(
         &self,
-        objectives: &[Box<dyn Fn(&[f64]) -> f64 + Send + Sync>],
-        _constraints: &[Box<dyn Fn(&[f64]) -> f64 + Send + Sync>],
+        objectives: &[ObjectiveFunction],
+        _constraints: &[ObjectiveFunction],
         bounds: &[(f64, f64)],
         population_size: usize,
         generations: usize,
@@ -530,10 +543,7 @@ impl GpuMultiObjectiveOptimizer {
             // Evaluate objectives for each individual
             let mut fitness_values: Vec<Vec<f64>> = Vec::with_capacity(population_size);
             for individual in &population {
-                let fitness: Vec<f64> = objectives
-                    .iter()
-                    .map(|obj| obj(individual))
-                    .collect();
+                let fitness: Vec<f64> = objectives.iter().map(|obj| obj(individual)).collect();
                 fitness_values.push(fitness);
             }
 
@@ -548,7 +558,8 @@ impl GpuMultiObjectiveOptimizer {
 
                 // Simple mutation
                 for (i, (min, max)) in bounds.iter().enumerate() {
-                    if rng.gen_bool(0.1) { // 10% mutation rate
+                    if rng.gen_bool(0.1) {
+                        // 10% mutation rate
                         offspring[i] = rng.gen_range(*min..=*max);
                     }
                 }
@@ -560,10 +571,8 @@ impl GpuMultiObjectiveOptimizer {
         // Convert population to optimization results
         let mut results = Vec::with_capacity(population.len());
         for individual in population {
-            let objective_values: Vec<f64> = objectives
-                .iter()
-                .map(|obj| obj(&individual))
-                .collect();
+            let objective_values: Vec<f64> =
+                objectives.iter().map(|obj| obj(&individual)).collect();
 
             // Use first objective as primary objective value
             let primary_objective = objective_values.first().copied().unwrap_or(0.0);
@@ -657,12 +666,12 @@ mod tests {
     async fn test_multi_objective_optimizer() {
         let optimizer = GpuMultiObjectiveOptimizer::new().await;
 
-        let objectives: Vec<Box<dyn Fn(&[f64]) -> f64 + Send + Sync>> = vec![
+        let objectives: Vec<ObjectiveFunction> = vec![
             Box::new(|x: &[f64]| x[0] * x[0] + x[1] * x[1]), // f1 = x^2 + y^2
             Box::new(|x: &[f64]| (x[0] - 1.0).powi(2) + (x[1] - 1.0).powi(2)), // f2 = (x-1)^2 + (y-1)^2
         ];
 
-        let constraints: Vec<Box<dyn Fn(&[f64]) -> f64 + Send + Sync>> = vec![];
+        let constraints: Vec<ObjectiveFunction> = vec![];
         let bounds = vec![(-2.0, 2.0), (-2.0, 2.0)];
 
         let results = optimizer
