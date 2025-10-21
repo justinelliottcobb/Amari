@@ -18,7 +18,7 @@ pub mod enumerative; // Enabled for v0.9.4 - Enumerative geometry and intersecti
 pub mod fusion; // Enabled for v0.9.4 - TropicalDualClifford system for LLM evaluation in web
 pub mod info_geom; // Enabled for v0.9.4 - Information geometry and statistical manifolds for web
 pub mod network; // Enabled for v0.9.4 - Geometric network analysis for web
-pub mod optimization; // Enabled for v0.9.7.1 - Advanced optimization algorithms for web
+pub mod optimization; // Enabled for v0.9.7-1 - Advanced optimization algorithms for web
 pub mod relativistic;
 pub mod tropical; // Enabled for v0.9.3 - critical for optimization algorithms in web
 

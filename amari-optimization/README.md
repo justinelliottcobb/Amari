@@ -44,7 +44,7 @@ Add to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-amari-optimization = "0.9.7.1"
+amari-optimization = "0.9.7-1"
 ```
 
 ### Basic Usage
@@ -378,7 +378,7 @@ Enable optional features in `Cargo.toml`:
 
 ```toml
 [dependencies]
-amari-optimization = { version = "0.9.7.1", features = ["gpu", "serde", "parallel"] }
+amari-optimization = { version = "0.9.7-1", features = ["gpu", "serde", "parallel"] }
 ```
 
 Available features:
