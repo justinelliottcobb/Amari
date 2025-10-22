@@ -162,7 +162,7 @@ pub struct WasmCommunityDetector {
 With 100% WASM coverage complete, v0.9.5 establishes the foundation for the comprehensive GPU acceleration program outlined in our 8-week strategic plan:
 
 1. **Phase 1** (v0.9.6): amari-fusion GPU integration
-2. **Phase 2** (v0.9.7): amari-automata + amari-dual GPU integration
+2. **Phase 2** (v0.9.7-1): amari-automata + amari-dual GPU integration
 3. **Phase 3** (v0.9.8): amari-enumerative + enhanced tropical GPU
 4. **Phase 4** (v0.9.9): Complete GPU ecosystem
 
