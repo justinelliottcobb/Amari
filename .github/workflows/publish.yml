@@ -104,6 +104,7 @@ jobs:
             "amari-automata"
             "amari-enumerative"
             "amari-gpu"
+            "amari-optimization"
             "amari"
           )
 
