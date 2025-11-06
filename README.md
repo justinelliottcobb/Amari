@@ -1,4 +1,4 @@
-# Amari v0.9.6
+# Amari v0.9.8
 
 **Multi-GPU Mathematical Computing Platform with Intelligent Load Balancing**
 
