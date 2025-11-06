@@ -12,27 +12,40 @@ This directory contains comprehensive documentation for the Amari mathematical c
 
 ### 📦 Releases
 
-Release documentation, processes, and summaries:
+Current release process documentation:
 
-- **[Release Process](releases/RELEASE_PROCESS.md)** - Standard release procedures
-- **[v0.9.8 Release Process](releases/RELEASE_PROCESS_v0.9.8.md)** - Lessons learned and improvements
-- **[v0.9.6 Release Summary](releases/v0.9.6_RELEASE_SUMMARY.md)** - Multi-GPU infrastructure release
-- **[v0.9.5 Release Summary](releases/v0.9.5_RELEASE_SUMMARY.md)** - Complete GPU coverage achievement
-- **[v0.9.5 GPU Optimization Achievement](releases/GPU_OPTIMIZATION_ACHIEVEMENT_v0.9.5.md)**
+- **[v0.9.8 Release Process](releases/RELEASE_PROCESS_v0.9.8.md)** - Current release procedures and lessons learned
 
 ### 🏗️ Architecture
 
 Technical architecture and design documentation:
 
-- **[Technical Overview](architecture/technical-overview.md)** - Comprehensive technical documentation
-- **[Integration Status](architecture/INTEGRATION_STATUS.md)** - WASM and GPU integration matrix
 - **[Multi-GPU Design](architecture/v0.9.6-multi-gpu-design.md)** - Multi-GPU architecture details
 
 ### 🔧 Development
 
 Development guides and procedures:
 
-- Coming soon...
+- **[CI Setup](development/CI_SETUP.md)** - Continuous integration configuration
+- **[Publishing Guide](development/PUBLISHING.md)** - Publishing to npm and crates.io
+
+### 🧠 Claude Code
+
+AI-assisted development context:
+
+- **[Consolidated Context](claude-code/CONSOLIDATED_CONTEXT.md)** - Current project context for AI sessions
+
+### 📚 Technical
+
+Core methodology and design documentation:
+
+- **[API Naming Convention](technical/API_NAMING_CONVENTION.md)** - API standardization guidelines
+- **[Error Handling Design](technical/ERROR_HANDLING_DESIGN.md)** - Unified error handling approach
+- **[Formal Verification](technical/FORMAL_VERIFICATION.md)** - Verification strategy and roadmap
+- **[Mathematical Rigor](technical/MATHEMATICAL_RIGOR.md)** - Mathematical verification methodology
+- **[Phantom Types Methodology](technical/PHANTOM_TYPES_METHODOLOGY.md)** - Step-by-step phantom types implementation
+- **[Phantom Types Quick Reference](technical/PHANTOM_TYPES_QUICK_REFERENCE.md)** - Quick reference guide
+- **[Test Enforcement](technical/TEST_ENFORCEMENT.md)** - Test coverage and enforcement standards
 
 ### 📚 Examples
 
@@ -46,18 +59,29 @@ Example code and learning resources:
 
 Historical and outdated documentation (kept for reference):
 
+- **[Deployment Strategy](archive/DEPLOYMENT_STRATEGY.md)** - Historical deployment planning (v0.3.x)
 - **[DUAL GPU Integration Plan](archive/DUAL_GPU_INTEGRATION_PLAN.md)** - Historical planning document
 - **[GPU Integration Plan v0.9.4](archive/GPU_INTEGRATION_PLAN_v0.9.4.md)** - Historical planning document
-- **[Tropical GPU Integration Plan](archive/TROPICAL_GPU_INTEGRATION_PLAN.md)** - Historical planning document
-- **[WASM/GPU Implementation Status](archive/WASM_GPU_IMPLEMENTATION_STATUS.md)** - Historical status document
+- **[GPU Optimization Achievement v0.9.5](archive/GPU_OPTIMIZATION_ACHIEVEMENT_v0.9.5.md)** - v0.9.5 milestone
+- **[Integration Status](archive/INTEGRATION_STATUS.md)** - Historical integration matrix (v0.9.2)
+- **[Phase 4 Planning](archive/PHASE4_PLANNING.md)** - Historical Phase 4 planning
+- **[Phase 4A Analysis](archive/PHASE4A_ANALYSIS.md)** - Historical Phase 4A verification analysis
+- **[Phase 4C v0.8.0 Planning](archive/phase4c_v0.8.0_planning.md)** - Historical v0.8.0 WASM planning
+- **[Release Process](archive/RELEASE_PROCESS.md)** - Historical release process (pre-v0.9.8)
 - **[Roadmap v0.9.5](archive/ROADMAP_v0.9.5.md)** - Historical roadmap
+- **[Tropical GPU Integration Plan](archive/TROPICAL_GPU_INTEGRATION_PLAN.md)** - Historical planning document
+- **[v0.9.5 Release Summary](archive/v0.9.5_RELEASE_SUMMARY.md)** - Historical release summary
+- **[v0.9.6 Release Summary](archive/v0.9.6_RELEASE_SUMMARY.md)** - Historical release summary
+- **[V0.9.0 WASM Precision Strategy](archive/V0_9_0_WASM_PRECISION_STRATEGY.md)** - Historical WASM strategy
+- **[WASM/GPU Implementation Status](archive/WASM_GPU_IMPLEMENTATION_STATUS.md)** - Historical status document
 
 ## Getting Started
 
 1. **New Users**: Start with the [Main README](../README.md)
-2. **Contributors**: Check [Technical Overview](architecture/technical-overview.md) and [Integration Status](architecture/INTEGRATION_STATUS.md)
-3. **Developers**: Review the [Release Process](releases/RELEASE_PROCESS.md) before making releases
+2. **Contributors**: Check [Multi-GPU Design](architecture/v0.9.6-multi-gpu-design.md) and [Technical](technical/) documentation
+3. **Developers**: Review the [v0.9.8 Release Process](releases/RELEASE_PROCESS_v0.9.8.md) before making releases
 4. **Learners**: Follow the [Learning Paths](../examples/LEARNING_PATHS.md) for structured tutorials
+5. **AI Sessions**: Reference [Consolidated Context](claude-code/CONSOLIDATED_CONTEXT.md) for current project state
 
 ## Crate-Specific Documentation
 
