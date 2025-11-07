@@ -1,4 +1,4 @@
-# @justinelliottcobb/amari-wasm v0.9.0
+# @justinelliottcobb/amari-wasm v0.9.8
 
 **Unified Mathematical Computing Library with High-Precision WebAssembly Support**
 
@@ -6,42 +6,45 @@
 [![CI](https://github.com/justinelliottcobb/Amari/actions/workflows/ci.yml/badge.svg)](https://github.com/justinelliottcobb/Amari/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Amari is a comprehensive mathematical computing library that brings advanced algebraic systems to JavaScript/TypeScript through WebAssembly, now with full high-precision arithmetic support for spacecraft orbital mechanics and relativistic physics calculations. Features pure Rust implementation with no native dependencies for universal deployment.
+Amari is a comprehensive mathematical computing library that brings advanced algebraic systems to JavaScript/TypeScript through WebAssembly. Features high-precision arithmetic for spacecraft orbital mechanics and relativistic physics calculations with pure Rust implementation and no native dependencies for universal deployment.
 
 ## Features
 
-### New in v0.9.0: High-Precision WebAssembly
-- **Spacecraft Orbital Mechanics**: Full-precision trajectory calculations now available in browsers
-- **Relativistic Physics**: Spacetime algebra (Cl(1,3)) with WebAssembly-compatible precision
-- **Pure Rust Backend**: dashu-powered arithmetic with no native dependencies
-- **Universal Deployment**: Same precision guarantees across desktop, web, and edge environments
-- **WebAssembly 3.0 Ready**: Leverages latest WASM features for enhanced mathematical computing
-
 ### Core Mathematical Systems
+
 - **Geometric Algebra (Clifford Algebra)**: Multivectors, rotors, and geometric products for 3D rotations and spatial transformations
 - **Tropical Algebra**: Max-plus semiring operations for optimization and neural network applications
 - **Automatic Differentiation**: Forward-mode AD with dual numbers for exact derivatives
+- **Relativistic Physics**: Spacetime algebra (Cl(1,3)) with WebAssembly-compatible precision
+- **Spacecraft Orbital Mechanics**: Full-precision trajectory calculations in browsers
 - **Cellular Automata**: Geometric cellular automata with multivector states
 - **WebGPU Acceleration**: Optional GPU acceleration for large-scale operations
 - **Pure Rust Implementation**: Memory-safe, high-performance core with WASM bindings
 - **TypeScript Support**: Full TypeScript definitions included
 
+### High-Precision Arithmetic
+
+- **Pure Rust Backend**: dashu-powered arithmetic with no native dependencies
+- **Universal Deployment**: Same precision guarantees across desktop, web, and edge environments
+- **Orbital-Grade Tolerance**: Configurable precision for critical trajectory calculations
+- **WebAssembly 3.0 Ready**: Leverages latest WASM features for enhanced mathematical computing
+
 ## Installation
 
 ```bash
-npm install @amari/core
+npm install @justinelliottcobb/amari-wasm
 ```
 
 Or with yarn:
 
 ```bash
-yarn add @amari/core
+yarn add @justinelliottcobb/amari-wasm
 ```
 
 ## Quick Start
 
 ```typescript
-import init, { WasmMultivector, WasmRotor } from '@amari/core';
+import init, { WasmMultivector, WasmRotor } from '@justinelliottcobb/amari-wasm';
 
 async function main() {
   // Initialize the WASM module
@@ -79,7 +82,7 @@ async function main() {
 main();
 ```
 
-## High-Precision Orbital Mechanics (New in v0.9.0)
+## High-Precision Orbital Mechanics
 
 ```typescript
 import init, {
@@ -87,7 +90,7 @@ import init, {
   WasmFourVelocity,
   WasmRelativisticParticle,
   WasmSchwarzschildMetric
-} from '@amari/core';
+} from '@justinelliottcobb/amari-wasm';
 
 async function spacecraftSimulation() {
   await init();
@@ -124,7 +127,7 @@ async function spacecraftSimulation() {
   console.log(`Orbital trajectory computed with ${trajectory.length} points`);
   console.log(`Final position deviation: ${spacecraft.position_error()} meters`);
 
-  // WebAssembly precision matches native accuracy!
+  // WebAssembly precision matches native accuracy
 
   // Clean up WASM memory
   earth.free();
@@ -157,7 +160,7 @@ const inner = v1.inner_product(v2);
 Tropical algebra replaces addition with max and multiplication with addition, useful for optimization:
 
 ```typescript
-import { tropical_add, tropical_multiply } from '@amari/core';
+import { tropical_add, tropical_multiply } from '@justinelliottcobb/amari-wasm';
 
 // Tropical operations: add = max, multiply = add
 const a = 5.0, b = 3.0;
@@ -185,12 +188,13 @@ console.log(`Generation: ${ca.generation()}`);
 
 ## Use Cases
 
-- **Computer Graphics**: 3D rotations and transformations using rotors
-- **Physics Simulations**: Geometric algebra for electromagnetic fields
-- **Machine Learning**: Tropical neural networks and automatic differentiation
-- **Optimization**: Tropical algebra for shortest path and scheduling problems
-- **Scientific Computing**: High-performance mathematical operations
-- **Game Development**: Efficient spatial transformations and physics
+- Computer Graphics: 3D rotations and transformations using rotors
+- Physics Simulations: Geometric algebra for electromagnetic fields and relativistic calculations
+- Machine Learning: Tropical neural networks and automatic differentiation
+- Optimization: Tropical algebra for shortest path and scheduling problems
+- Scientific Computing: High-performance mathematical operations with orbital-grade precision
+- Game Development: Efficient spatial transformations and physics
+- Spacecraft Trajectory Planning: High-precision orbital mechanics in web applications
 
 ## API Reference
 
@@ -216,7 +220,7 @@ console.log(`Generation: ${ca.generation()}`);
 - `tropical_multiply(a, b)`: Tropical multiplication (addition)
 - `tropical_power(base, exp)`: Tropical exponentiation
 
-## 🔍 Examples
+## Examples
 
 Check out the [examples directory](https://github.com/justinelliottcobb/Amari/tree/master/examples) for more detailed usage:
 
@@ -225,7 +229,7 @@ Check out the [examples directory](https://github.com/justinelliottcobb/Amari/tr
 - [Tropical Neural Networks](https://github.com/justinelliottcobb/Amari/blob/master/examples/typescript/tropical.ts)
 - [Cellular Automata](https://github.com/justinelliottcobb/Amari/blob/master/examples/typescript/cellular.ts)
 
-## 🏗️ Building from Source
+## Building from Source
 
 ```bash
 # Clone the repository
@@ -242,25 +246,25 @@ npm run build
 npm test
 ```
 
-## 🤝 Contributing
+## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request. See [CONTRIBUTING.md](https://github.com/justinelliottcobb/Amari/blob/master/CONTRIBUTING.md) for details.
+Contributions are welcome. Please see [CONTRIBUTING.md](https://github.com/justinelliottcobb/Amari/blob/master/CONTRIBUTING.md) for details.
 
-## 📄 License
+## License
 
 MIT License - see [LICENSE](https://github.com/justinelliottcobb/Amari/blob/master/LICENSE) for details.
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - Built with Rust and wasm-bindgen
 - Inspired by geometric algebra libraries like GAViewer and Ganja.js
 - Tropical algebra concepts from discrete mathematics
 
-## 📬 Contact
+## Contact
 
 - GitHub: [@justinelliottcobb](https://github.com/justinelliottcobb)
-- NPM: [@amari/core](https://www.npmjs.com/package/@amari/core)
+- NPM: [@justinelliottcobb/amari-wasm](https://www.npmjs.com/package/@justinelliottcobb/amari-wasm)
 
 ---
 
-**Made with Rust by the Amari team**
+Made with Rust by the Amari team
