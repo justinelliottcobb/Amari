@@ -213,20 +213,31 @@ pub fn prob_ensures(attr: TokenStream, item: TokenStream) -> TokenStream {
     let verify_fn_name =
         syn::Ident::new(&format!("verify_{}_postcondition", fn_name), fn_name.span());
 
-    // Extract parameter names for binding
-    let param_bindings = if input.sig.inputs.len() == 1 {
+    // Extract parameter type and name for binding in verification helper
+    // Handle both zero-parameter and single-parameter functions
+    let (param_type, param_bindings, fn_call) = if input.sig.inputs.is_empty() {
+        // Zero-parameter function
+        (quote! { () }, quote! {}, quote! { #fn_name() })
+    } else if input.sig.inputs.len() == 1 {
+        // Single-parameter function
         if let Some(syn::FnArg::Typed(pat_type)) = input.sig.inputs.first() {
+            let param_type = &pat_type.ty;
             if let syn::Pat::Ident(pat_ident) = &*pat_type.pat {
                 let param_name = &pat_ident.ident;
-                quote! { let #param_name = inputs; }
+                (
+                    quote! { #param_type },
+                    quote! { let #param_name = inputs; },
+                    quote! { #fn_name(inputs) },
+                )
             } else {
-                quote! {}
+                (quote! { _ }, quote! {}, quote! { #fn_name(inputs) })
             }
         } else {
-            quote! {}
+            (quote! { _ }, quote! {}, quote! { #fn_name(inputs) })
         }
     } else {
-        quote! {}
+        // Multiple parameters - skip for now
+        (quote! { _ }, quote! {}, quote! { #fn_name(inputs) })
     };
 
     let verification_helper = if !attr.is_empty() {
@@ -244,14 +255,14 @@ pub fn prob_ensures(attr: TokenStream, item: TokenStream) -> TokenStream {
                         samples: usize,
                     ) -> amari_flynn::contracts::VerificationResult
                     where
-                        F: Fn() -> _,
+                        F: Fn() -> #param_type,
                     {
                         let verifier = amari_flynn::backend::monte_carlo::MonteCarloVerifier::new(samples);
                         verifier.verify_probability_bound(
                             || {
                                 let inputs = input_generator();
                                 #param_bindings
-                                let result = #fn_name(inputs);
+                                let result = #fn_call;
                                 #condition
                             },
                             #bound,
@@ -330,20 +341,31 @@ pub fn ensures_expected(attr: TokenStream, item: TokenStream) -> TokenStream {
         fn_name.span(),
     );
 
-    // Extract parameter names for binding
-    let param_bindings = if input.sig.inputs.len() == 1 {
+    // Extract parameter type and name for binding in verification helper
+    // Handle both zero-parameter and single-parameter functions
+    let (param_type, param_bindings, fn_call) = if input.sig.inputs.is_empty() {
+        // Zero-parameter function
+        (quote! { () }, quote! {}, quote! { #fn_name() })
+    } else if input.sig.inputs.len() == 1 {
+        // Single-parameter function
         if let Some(syn::FnArg::Typed(pat_type)) = input.sig.inputs.first() {
+            let param_type = &pat_type.ty;
             if let syn::Pat::Ident(pat_ident) = &*pat_type.pat {
                 let param_name = &pat_ident.ident;
-                quote! { let #param_name = inputs; }
+                (
+                    quote! { #param_type },
+                    quote! { let #param_name = inputs; },
+                    quote! { #fn_name(inputs) },
+                )
             } else {
-                quote! {}
+                (quote! { _ }, quote! {}, quote! { #fn_name(inputs) })
             }
         } else {
-            quote! {}
+            (quote! { _ }, quote! {}, quote! { #fn_name(inputs) })
         }
     } else {
-        quote! {}
+        // Multiple parameters - skip for now
+        (quote! { _ }, quote! {}, quote! { #fn_name(inputs) })
     };
 
     let verification_helper = if !attr.is_empty() {
@@ -362,13 +384,13 @@ pub fn ensures_expected(attr: TokenStream, item: TokenStream) -> TokenStream {
                         samples: usize,
                     ) -> bool
                     where
-                        F: Fn() -> _,
+                        F: Fn() -> #param_type,
                     {
                         let mut sum = 0.0;
                         for _ in 0..samples {
                             let inputs = input_generator();
                             #param_bindings
-                            let value = #fn_name(inputs);
+                            let value = #fn_call;
                             let #expression = value;
                             sum += #expression;
                         }
