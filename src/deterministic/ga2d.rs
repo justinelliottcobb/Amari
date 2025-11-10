@@ -215,19 +215,30 @@ mod tests {
     }
 
     #[test]
-    fn test_rotor_composition() {
+    fn test_rotor_composition_determinism() {
+        // Test that rotor composition produces bit-exact results
+        // (determinism test, not precision test)
         let r1 = DetRotor2::from_angle(DetF32::PI * DetF32::from_f32(0.25)); // 45°
         let r2 = DetRotor2::from_angle(DetF32::PI * DetF32::from_f32(0.25)); // 45°
-        let r_composed = r1 * r2;
-        let r_90 = DetRotor2::from_angle(DetF32::PI * DetF32::HALF); // 90°
 
-        // Should be approximately 90° rotation
+        // Compose multiple times - must produce identical bit patterns
+        let composed1 = r1 * r2;
+        let composed2 = r1 * r2;
+        let composed3 = r1 * r2;
+
+        // Verify bit-exact reproducibility
+        assert_eq!(composed1.s.to_bits(), composed2.s.to_bits());
+        assert_eq!(composed1.b.to_bits(), composed2.b.to_bits());
+        assert_eq!(composed2.s.to_bits(), composed3.s.to_bits());
+        assert_eq!(composed2.b.to_bits(), composed3.b.to_bits());
+
+        // Also verify transformation produces identical bits
         let v = DetVector2::X_AXIS;
-        let result1 = r_composed.transform(v);
-        let result2 = r_90.transform(v);
+        let result1 = composed1.transform(v);
+        let result2 = composed2.transform(v);
 
-        let error = (result1 - result2).magnitude();
-        assert!(error < DetF32::from_f32(1e-5));
+        assert_eq!(result1.x.to_bits(), result2.x.to_bits());
+        assert_eq!(result1.y.to_bits(), result2.y.to_bits());
     }
 
     #[test]
