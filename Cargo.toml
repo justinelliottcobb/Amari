@@ -47,11 +47,11 @@ path = "examples/networked_physics.rs"
 required-features = ["deterministic"]
 
 [workspace]
-members = ["amari-core", "amari-wasm", "amari-gpu", "amari-info-geom", "amari-tropical", "amari-dual", "amari-fusion", "amari-automata", "amari-enumerative", "amari-relativistic", "amari-network", "amari-optimization"]
+members = ["amari-core", "amari-wasm", "amari-gpu", "amari-info-geom", "amari-tropical", "amari-dual", "amari-fusion", "amari-automata", "amari-enumerative", "amari-relativistic", "amari-network", "amari-optimization", "amari-flynn", "amari-flynn-macros"]
 resolver = "2"
 
 [workspace.package]
-version = "0.9.9"
+version = "0.9.10"
 authors = ["Amari Contributors"]
 edition = "2021"
 license = "MIT OR Apache-2.0"
@@ -59,18 +59,20 @@ rust-version = "1.75"
 
 [workspace.dependencies]
 # Amari crates (internal dependencies)
-amari = { path = ".", version = "0.9.8" }
-amari-core = { path = "amari-core", version = "0.9.8" }
-amari-tropical = { path = "amari-tropical", version = "0.9.8" }
-amari-dual = { path = "amari-dual", version = "0.9.8" }
-amari-fusion = { path = "amari-fusion", version = "0.9.8" }
-amari-info-geom = { path = "amari-info-geom", version = "0.9.8" }
-amari-automata = { path = "amari-automata", version = "0.9.8" }
-amari-enumerative = { path = "amari-enumerative", version = "0.9.8" }
-amari-relativistic = { path = "amari-relativistic", version = "0.9.8" }
-amari-gpu = { path = "amari-gpu", version = "0.9.8" }
-amari-network = { path = "amari-network", version = "0.9.8" }
-amari-optimization = { path = "amari-optimization", version = "0.9.8" }
+amari = { path = ".", version = "0.9.10" }
+amari-core = { path = "amari-core", version = "0.9.10" }
+amari-tropical = { path = "amari-tropical", version = "0.9.10" }
+amari-dual = { path = "amari-dual", version = "0.9.10" }
+amari-fusion = { path = "amari-fusion", version = "0.9.10" }
+amari-info-geom = { path = "amari-info-geom", version = "0.9.10" }
+amari-automata = { path = "amari-automata", version = "0.9.10" }
+amari-enumerative = { path = "amari-enumerative", version = "0.9.10" }
+amari-relativistic = { path = "amari-relativistic", version = "0.9.10" }
+amari-gpu = { path = "amari-gpu", version = "0.9.10" }
+amari-network = { path = "amari-network", version = "0.9.10" }
+amari-optimization = { path = "amari-optimization", version = "0.9.10" }
+amari-flynn = { path = "amari-flynn", version = "0.1.0" }
+amari-flynn-macros = { path = "amari-flynn-macros", version = "0.1.0" }
 
 # External dependencies
 bytemuck = "1.14"
@@ -80,6 +82,12 @@ num-traits = "0.2"
 approx = "0.5"
 serde = { version = "1.0", features = ["derive"] }
 nalgebra = "0.32"
+rand = "0.8"
+rand_distr = "0.4"
+statrs = "0.17"
+syn = "2.0"
+quote = "1.0"
+proc-macro2 = "1.0"
 
 [profile.release]
 opt-level = 3
