@@ -28,7 +28,7 @@ pub fn chernoff_bound(_n: usize, mu: f64, delta: f64) -> f64 {
 /// true probability is within epsilon of observed probability
 pub fn compute_confidence(samples: usize, epsilon: f64) -> f64 {
     let bound = hoeffding_bound(samples, epsilon);
-    (1.0 - bound).max(0.0).min(1.0)
+    (1.0 - bound).clamp(0.0, 1.0)
 }
 
 #[cfg(test)]
