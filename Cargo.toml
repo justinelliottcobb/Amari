@@ -59,18 +59,18 @@ rust-version = "1.75"
 
 [workspace.dependencies]
 # Amari crates (internal dependencies)
-amari = { path = ".", version = "0.9.8" }
-amari-core = { path = "amari-core", version = "0.9.8" }
-amari-tropical = { path = "amari-tropical", version = "0.9.8" }
-amari-dual = { path = "amari-dual", version = "0.9.8" }
-amari-fusion = { path = "amari-fusion", version = "0.9.8" }
-amari-info-geom = { path = "amari-info-geom", version = "0.9.8" }
-amari-automata = { path = "amari-automata", version = "0.9.8" }
-amari-enumerative = { path = "amari-enumerative", version = "0.9.8" }
-amari-relativistic = { path = "amari-relativistic", version = "0.9.8" }
-amari-gpu = { path = "amari-gpu", version = "0.9.8" }
-amari-network = { path = "amari-network", version = "0.9.8" }
-amari-optimization = { path = "amari-optimization", version = "0.9.8" }
+amari = { path = ".", version = "0.9.9" }
+amari-core = { path = "amari-core", version = "0.9.9" }
+amari-tropical = { path = "amari-tropical", version = "0.9.9" }
+amari-dual = { path = "amari-dual", version = "0.9.9" }
+amari-fusion = { path = "amari-fusion", version = "0.9.9" }
+amari-info-geom = { path = "amari-info-geom", version = "0.9.9" }
+amari-automata = { path = "amari-automata", version = "0.9.9" }
+amari-enumerative = { path = "amari-enumerative", version = "0.9.9" }
+amari-relativistic = { path = "amari-relativistic", version = "0.9.9" }
+amari-gpu = { path = "amari-gpu", version = "0.9.9" }
+amari-network = { path = "amari-network", version = "0.9.9" }
+amari-optimization = { path = "amari-optimization", version = "0.9.9" }
 
 # External dependencies
 bytemuck = "1.14"
