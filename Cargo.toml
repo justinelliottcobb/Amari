@@ -47,7 +47,7 @@ path = "examples/networked_physics.rs"
 required-features = ["deterministic"]
 
 [workspace]
-members = ["amari-core", "amari-wasm", "amari-gpu", "amari-info-geom", "amari-tropical", "amari-dual", "amari-fusion", "amari-automata", "amari-enumerative", "amari-relativistic", "amari-network", "amari-optimization", "amari-flynn", "amari-flynn-macros"]
+members = ["amari-core", "amari-wasm", "amari-gpu", "amari-info-geom", "amari-tropical", "amari-dual", "amari-fusion", "amari-automata", "amari-enumerative", "amari-relativistic", "amari-network", "amari-optimization", "amari-flynn", "amari-flynn-macros", "amari-measure"]
 resolver = "2"
 
 [workspace.package]
@@ -73,6 +73,7 @@ amari-network = { path = "amari-network", version = "0.9.10" }
 amari-optimization = { path = "amari-optimization", version = "0.9.10" }
 amari-flynn = { path = "amari-flynn", version = "0.1.0" }
 amari-flynn-macros = { path = "amari-flynn-macros", version = "0.1.0" }
+amari-measure = { path = "amari-measure", version = "0.10.0" }
 
 # External dependencies
 bytemuck = "1.14"
