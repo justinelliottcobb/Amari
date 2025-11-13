@@ -42,110 +42,99 @@ pub use error::{MeasureError, Result};
 // Phantom type system for compile-time measure properties
 mod phantom;
 pub use phantom::{
-    // Finiteness markers
-    Finite,
-    SigmaFinite,
-    Infinite,
-    // Sign markers
-    Unsigned,
-    Signed,
-    Complex,
     // Completeness markers
     Complete,
+    Complex,
+    // Finiteness markers
+    Finite,
     Incomplete,
+    Infinite,
     // Property marker trait
     MeasureProperty,
+    SigmaFinite,
+    Signed,
+    // Sign markers
+    Unsigned,
 };
 
 // σ-algebra trait and implementations
 mod sigma_algebra;
-pub use sigma_algebra::{
-    SigmaAlgebra,
-    BorelSigma,
-    LebesgueSigma,
-    PowerSet,
-    TrivialSigma,
-};
+pub use sigma_algebra::{BorelSigma, LebesgueSigma, PowerSet, SigmaAlgebra, TrivialSigma};
 
 // Measure trait and basic measures
 mod measure;
-pub use measure::{
-    Measure,
-    CountingMeasure,
-    DiracMeasure,
-    LebesgueMeasure,
-    ProbabilityMeasure,
-};
+pub use measure::{CountingMeasure, DiracMeasure, LebesgueMeasure, Measure, ProbabilityMeasure};
 
-// Geometric measures (multivector-valued)
-mod geometric_measure;
-pub use geometric_measure::{
-    GeometricMeasure,
-    MultivectorMeasure,
-    DifferentialForm,
-};
+// TODO: Implement remaining modules
+// These modules are planned but not yet implemented
 
-// Lebesgue integration
-mod integration;
-pub use integration::{
-    Integrable,
-    SimpleFunction,
-    MeasurableFunction,
-    integrate,
-    integrate_multivector,
-};
+// // Geometric measures (multivector-valued)
+// mod geometric_measure;
+// pub use geometric_measure::{
+//     GeometricMeasure,
+//     MultivectorMeasure,
+//     DifferentialForm,
+// };
 
-// Radon-Nikodym derivatives and densities
-mod density;
-pub use density::{
-    Density,
-    RadonNikodym,
-    absolutely_continuous,
-    singular,
-};
+// // Lebesgue integration
+// mod integration;
+// pub use integration::{
+//     Integrable,
+//     SimpleFunction,
+//     MeasurableFunction,
+//     integrate,
+//     integrate_multivector,
+// };
 
-// Pushforward and pullback of measures
-mod pushforward;
-pub use pushforward::{
-    Pushforward,
-    Pullback,
-    pushforward,
-    pullback,
-};
+// // Radon-Nikodym derivatives and densities
+// mod density;
+// pub use density::{
+//     Density,
+//     RadonNikodym,
+//     absolutely_continuous,
+//     singular,
+// };
 
-// Product measures and Fubini's theorem
-mod product;
-pub use product::{
-    ProductMeasure,
-    ProductSigma,
-    fubini,
-};
+// // Pushforward and pullback of measures
+// mod pushforward;
+// pub use pushforward::{
+//     Pushforward,
+//     Pullback,
+//     pushforward,
+//     pullback,
+// };
 
-// Convergence theorems
-mod convergence;
-pub use convergence::{
-    monotone_convergence,
-    dominated_convergence,
-    fatou_lemma,
-};
+// // Product measures and Fubini's theorem
+// mod product;
+// pub use product::{
+//     ProductMeasure,
+//     ProductSigma,
+//     fubini,
+// };
 
-// Signed and complex measures
-mod signed_measure;
-pub use signed_measure::{
-    SignedMeasure,
-    ComplexMeasure,
-    TotalVariation,
-    jordan_decomposition,
-    hahn_decomposition,
-};
+// // Convergence theorems
+// mod convergence;
+// pub use convergence::{
+//     monotone_convergence,
+//     dominated_convergence,
+//     fatou_lemma,
+// };
+
+// // Signed and complex measures
+// mod signed_measure;
+// pub use signed_measure::{
+//     SignedMeasure,
+//     ComplexMeasure,
+//     TotalVariation,
+//     jordan_decomposition,
+//     hahn_decomposition,
+// };
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
     #[test]
     fn test_crate_compiles() {
         // Basic smoke test to ensure the crate structure is valid
-        assert!(true);
+        // Compile successfully means this test passes
     }
 }

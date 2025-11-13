@@ -43,8 +43,6 @@
 //! // let nu: Measure<SigmaFinite, Unsigned, Complete> = CountingMeasure::natural_numbers();
 //! ```
 
-use core::marker::PhantomData;
-
 /// Marker trait for all measure property types
 ///
 /// This trait is sealed and cannot be implemented outside this module,
@@ -257,26 +255,31 @@ impl private::Sealed for Incomplete {}
 /// Type alias for probability measures
 ///
 /// Probability measures are finite, unsigned, and typically complete.
+#[allow(dead_code)]
 pub type ProbabilityProperty = (Finite, Unsigned, Complete);
 
 /// Type alias for Lebesgue measure properties
 ///
 /// Lebesgue measure on ℝⁿ is σ-finite (infinite if n≥1), unsigned, complete.
+#[allow(dead_code)]
 pub type LebesgueProperty = (SigmaFinite, Unsigned, Complete);
 
 /// Type alias for Borel measure properties
 ///
 /// Borel measures are typically σ-finite, unsigned, but incomplete.
+#[allow(dead_code)]
 pub type BorelProperty = (SigmaFinite, Unsigned, Incomplete);
 
 /// Type alias for counting measure properties
 ///
 /// Counting measures are σ-finite, unsigned, and complete.
+#[allow(dead_code)]
 pub type CountingProperty = (SigmaFinite, Unsigned, Complete);
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use core::marker::PhantomData;
 
     #[test]
     fn test_phantom_types_are_zero_sized() {

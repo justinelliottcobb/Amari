@@ -19,7 +19,7 @@
 //! // let borel = BorelSigma::new(3); // 3-dimensional Borel sets
 //! ```
 
-use crate::error::{MeasureError, Result};
+use crate::error::Result;
 use core::marker::PhantomData;
 
 /// Trait for σ-algebras

@@ -260,10 +260,7 @@ mod tests {
     #[test]
     fn test_not_measurable_error() {
         let err = MeasureError::not_measurable("Vitali set");
-        assert_eq!(
-            err.to_string(),
-            "Set is not measurable: Vitali set"
-        );
+        assert_eq!(err.to_string(), "Set is not measurable: Vitali set");
     }
 
     #[test]
@@ -278,18 +275,13 @@ mod tests {
     #[test]
     fn test_dimension_mismatch_error() {
         let err = MeasureError::dimension_mismatch(3, 2);
-        assert_eq!(
-            err.to_string(),
-            "Dimension mismatch: expected 3, got 2"
-        );
+        assert_eq!(err.to_string(), "Dimension mismatch: expected 3, got 2");
     }
 
     #[test]
     fn test_convergence_conditions_error() {
-        let err = MeasureError::convergence_conditions(
-            "Dominated Convergence",
-            "dominating function"
-        );
+        let err =
+            MeasureError::convergence_conditions("Dominated Convergence", "dominating function");
         assert_eq!(
             err.to_string(),
             "Convergence theorem conditions not satisfied: Dominated Convergence requires dominating function"
@@ -308,10 +300,7 @@ mod tests {
     #[test]
     fn test_numerical_error() {
         let err = MeasureError::numerical("integration", "overflow");
-        assert_eq!(
-            err.to_string(),
-            "Numerical error in integration: overflow"
-        );
+        assert_eq!(err.to_string(), "Numerical error in integration: overflow");
     }
 
     #[test]
