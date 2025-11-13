@@ -1,4 +1,4 @@
-# @justinelliottcobb/amari-wasm v0.9.8
+# @justinelliottcobb/amari-wasm v0.9.10
 
 **Unified Mathematical Computing Library with High-Precision WebAssembly Support**
 
