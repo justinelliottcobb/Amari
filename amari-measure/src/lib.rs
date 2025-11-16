@@ -65,60 +65,41 @@ pub use sigma_algebra::{BorelSigma, LebesgueSigma, PowerSet, SigmaAlgebra, Trivi
 mod measure;
 pub use measure::{CountingMeasure, DiracMeasure, LebesgueMeasure, Measure, ProbabilityMeasure};
 
+// Geometric measures (multivector-valued)
+mod geometric_measure;
+pub use geometric_measure::{
+    geometric_lebesgue_measure, GeometricDensity, GeometricLebesgueMeasure, GeometricMeasure,
+};
+
+// Lebesgue integration
+mod integration;
+pub use integration::{
+    integrate, integrate_simple, Integrable, Integrator, MeasurableFunction, SimpleFunction,
+};
+
+// Radon-Nikodym derivatives and densities
+mod density;
+pub use density::{absolutely_continuous, singular, Density, LebesgueDecomposition, RadonNikodym};
+
 // TODO: Implement remaining modules
 // These modules are planned but not yet implemented
 
-// // Geometric measures (multivector-valued)
-// mod geometric_measure;
-// pub use geometric_measure::{
-//     GeometricMeasure,
-//     MultivectorMeasure,
-//     DifferentialForm,
-// };
+// Pushforward and pullback of measures
+mod pushforward;
+pub use pushforward::{change_of_variables, pullback, pushforward, Pullback, Pushforward};
+// Note: pushforward::MeasurableFunction is available via module path
+// (different trait from integration::MeasurableFunction)
 
-// // Lebesgue integration
-// mod integration;
-// pub use integration::{
-//     Integrable,
-//     SimpleFunction,
-//     MeasurableFunction,
-//     integrate,
-//     integrate_multivector,
-// };
+// Product measures and Fubini's theorem
+mod product;
+pub use product::{fubini, FubiniIntegrator, ProductMeasure, ProductSigma};
 
-// // Radon-Nikodym derivatives and densities
-// mod density;
-// pub use density::{
-//     Density,
-//     RadonNikodym,
-//     absolutely_continuous,
-//     singular,
-// };
-
-// // Pushforward and pullback of measures
-// mod pushforward;
-// pub use pushforward::{
-//     Pushforward,
-//     Pullback,
-//     pushforward,
-//     pullback,
-// };
-
-// // Product measures and Fubini's theorem
-// mod product;
-// pub use product::{
-//     ProductMeasure,
-//     ProductSigma,
-//     fubini,
-// };
-
-// // Convergence theorems
-// mod convergence;
-// pub use convergence::{
-//     monotone_convergence,
-//     dominated_convergence,
-//     fatou_lemma,
-// };
+// Convergence theorems
+mod convergence;
+pub use convergence::{
+    dominated_convergence, fatou_lemma, monotone_convergence, DominatedConvergenceResult,
+    FatouResult, MonotoneConvergenceResult,
+};
 
 // // Signed and complex measures
 // mod signed_measure;

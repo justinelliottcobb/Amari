@@ -339,6 +339,70 @@ impl<X> Default for TrivialSigma<X> {
     }
 }
 
+// ============================================================================
+// Placeholder Implementations for Foundational Types
+// ============================================================================
+//
+// These are minimal stub implementations to allow geometric measures to compile.
+// Full implementations with proper set types and operations will be added when
+// integrating with amari-core's geometric types.
+
+/// Placeholder implementation for BorelSigma
+///
+/// This is a minimal stub to enable geometric measures. Full implementation
+/// will be added when integrated with concrete geometric types from amari-core.
+impl SigmaAlgebra for BorelSigma {
+    type Set = ();
+
+    fn is_measurable(&self, _set: &Self::Set) -> Result<bool> {
+        Ok(true)
+    }
+
+    fn complement(&self, _set: &Self::Set) -> Result<Self::Set> {
+        Ok(())
+    }
+
+    fn union(&self, _a: &Self::Set, _b: &Self::Set) -> Result<Self::Set> {
+        Ok(())
+    }
+
+    fn intersection(&self, _a: &Self::Set, _b: &Self::Set) -> Result<Self::Set> {
+        Ok(())
+    }
+
+    fn difference(&self, _a: &Self::Set, _b: &Self::Set) -> Result<Self::Set> {
+        Ok(())
+    }
+}
+
+/// Placeholder implementation for LebesgueSigma
+///
+/// This is a minimal stub to enable geometric measures. Full implementation
+/// will be added when integrated with concrete geometric types from amari-core.
+impl SigmaAlgebra for LebesgueSigma {
+    type Set = ();
+
+    fn is_measurable(&self, _set: &Self::Set) -> Result<bool> {
+        Ok(true)
+    }
+
+    fn complement(&self, _set: &Self::Set) -> Result<Self::Set> {
+        Ok(())
+    }
+
+    fn union(&self, _a: &Self::Set, _b: &Self::Set) -> Result<Self::Set> {
+        Ok(())
+    }
+
+    fn intersection(&self, _a: &Self::Set, _b: &Self::Set) -> Result<Self::Set> {
+        Ok(())
+    }
+
+    fn difference(&self, _a: &Self::Set, _b: &Self::Set) -> Result<Self::Set> {
+        Ok(())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
