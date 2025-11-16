@@ -429,4 +429,114 @@ mod tests {
         assert_eq!(product1.first().dimension(), product2.first().dimension());
         assert_eq!(product1.second().dimension(), product2.second().dimension());
     }
+
+    #[test]
+    fn test_product_sigma_mixed_algebras() {
+        // Test product of Borel and Lebesgue σ-algebras
+        let borel = BorelSigma::new(2);
+        let lebesgue = LebesgueSigma::new(3);
+        let product = ProductSigma::new(borel, lebesgue);
+
+        assert_eq!(product.first().dimension(), 2);
+        assert_eq!(product.second().dimension(), 3);
+    }
+
+    #[test]
+    fn test_product_sigma_zero_dimension() {
+        // Test edge case with 0-dimensional spaces (points)
+        let sigma1 = BorelSigma::new(0);
+        let sigma2 = BorelSigma::new(1);
+        let product = ProductSigma::new(sigma1, sigma2);
+
+        assert_eq!(product.first().dimension(), 0);
+        assert_eq!(product.second().dimension(), 1);
+    }
+
+    #[test]
+    fn test_product_sigma_high_dimension() {
+        // Test product resulting in high-dimensional space
+        let sigma1 = BorelSigma::new(5);
+        let sigma2 = BorelSigma::new(7);
+        let product = ProductSigma::new(sigma1, sigma2);
+
+        // ℝ⁵ × ℝ⁷ = ℝ¹²
+        assert_eq!(product.first().dimension(), 5);
+        assert_eq!(product.second().dimension(), 7);
+    }
+
+    #[test]
+    fn test_product_sigma_symmetric() {
+        // Test that ℝⁿ × ℝⁿ works correctly
+        let sigma1 = LebesgueSigma::new(3);
+        let sigma2 = LebesgueSigma::new(3);
+        let product = ProductSigma::new(sigma1, sigma2);
+
+        // ℝ³ × ℝ³ = ℝ⁶
+        assert_eq!(product.first().dimension(), 3);
+        assert_eq!(product.second().dimension(), 3);
+    }
+
+    #[test]
+    fn test_product_sigma_accessor_consistency() {
+        // Verify accessor methods return consistent results
+        let borel1 = BorelSigma::new(2);
+        let borel2 = BorelSigma::new(4);
+        let product = ProductSigma::new(borel1.clone(), borel2.clone());
+
+        assert_eq!(product.first().dimension(), borel1.dimension());
+        assert_eq!(product.second().dimension(), borel2.dimension());
+    }
+
+    #[test]
+    fn test_product_sigma_multiple_products() {
+        // Test creating multiple distinct product σ-algebras
+        let sigma1a = BorelSigma::new(1);
+        let sigma1b = BorelSigma::new(2);
+        let product1 = ProductSigma::new(sigma1a, sigma1b);
+
+        let sigma2a = LebesgueSigma::new(3);
+        let sigma2b = LebesgueSigma::new(4);
+        let product2 = ProductSigma::new(sigma2a, sigma2b);
+
+        // ℝ × ℝ² = ℝ³
+        assert_eq!(product1.first().dimension(), 1);
+        assert_eq!(product1.second().dimension(), 2);
+
+        // ℝ³ × ℝ⁴ = ℝ⁷
+        assert_eq!(product2.first().dimension(), 3);
+        assert_eq!(product2.second().dimension(), 4);
+    }
+
+    #[test]
+    fn test_product_sigma_equality() {
+        // Test that two product σ-algebras with same dimensions are equal
+        let borel1a = BorelSigma::new(2);
+        let borel1b = BorelSigma::new(3);
+        let product1 = ProductSigma::new(borel1a.clone(), borel1b.clone());
+
+        let borel2a = BorelSigma::new(2);
+        let borel2b = BorelSigma::new(3);
+        let product2 = ProductSigma::new(borel2a, borel2b);
+
+        // Same dimensions should give equal products
+        assert_eq!(product1.first().dimension(), product2.first().dimension());
+        assert_eq!(product1.second().dimension(), product2.second().dimension());
+    }
+
+    #[test]
+    fn test_product_sigma_heterogeneous_types() {
+        // Test that we can mix Borel and Lebesgue in both orders
+        let borel = BorelSigma::new(2);
+        let lebesgue = LebesgueSigma::new(3);
+
+        // Borel × Lebesgue
+        let product1 = ProductSigma::new(borel.clone(), lebesgue.clone());
+        assert_eq!(product1.first().dimension(), 2);
+        assert_eq!(product1.second().dimension(), 3);
+
+        // Lebesgue × Borel
+        let product2 = ProductSigma::new(lebesgue, borel);
+        assert_eq!(product2.first().dimension(), 3);
+        assert_eq!(product2.second().dimension(), 2);
+    }
 }
