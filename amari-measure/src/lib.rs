@@ -101,15 +101,12 @@ pub use convergence::{
     FatouResult, MonotoneConvergenceResult,
 };
 
-// // Signed and complex measures
-// mod signed_measure;
-// pub use signed_measure::{
-//     SignedMeasure,
-//     ComplexMeasure,
-//     TotalVariation,
-//     jordan_decomposition,
-//     hahn_decomposition,
-// };
+// Signed and complex measures
+mod signed_measure;
+pub use signed_measure::{
+    hahn_decomposition, jordan_decomposition, ComplexMeasure, HahnDecomposition,
+    JordanDecomposition, SignedMeasure, TotalVariation,
+};
 
 #[cfg(test)]
 mod tests {
