@@ -1,6 +1,6 @@
 [package]
 name = "amari-measure"
-version.workspace = true
+version = "0.9.10"
 authors.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -30,3 +30,7 @@ default = ["std"]
 std = ["amari-core/std"]
 serde = ["dep:serde", "amari-core/serde"]
 formal-verification = ["creusot-contracts"]
+
+[[bench]]
+name = "integration_benchmarks"
+harness = false
