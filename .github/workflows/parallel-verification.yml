@@ -50,7 +50,7 @@ jobs:
     timeout-minutes: 10
     strategy:
       matrix:
-        crate: [amari-fusion, amari-enumerative, amari-automata]
+        crate: [amari-fusion, amari-enumerative, amari-automata, amari-flynn-macros, amari-flynn]
     steps:
     - uses: actions/checkout@v4
     - uses: dtolnay/rust-toolchain@stable

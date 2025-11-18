@@ -105,6 +105,8 @@ jobs:
             "amari-enumerative"
             "amari-gpu"
             "amari-optimization"
+            "amari-flynn-macros"
+            "amari-flynn"
             "amari"
           )
 
