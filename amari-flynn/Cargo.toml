@@ -1,0 +1,33 @@
+[package]
+name = "amari-flynn"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors = ["Justin Elliott Cobb <justin@industrialalgebra.com>"]
+repository = "https://github.com/justinelliottcobb/Amari"
+description = "Probabilistic contracts and verification - named after Kevin Flynn's acceptance of spontaneous perfection"
+keywords = ["probability", "verification", "contracts", "statistics", "formal-methods"]
+categories = ["mathematics", "science", "development-tools"]
+
+[dependencies]
+amari = { workspace = true, optional = true }
+amari-flynn-macros = { workspace = true }
+rand = { workspace = true }
+rand_distr = { workspace = true }
+statrs = "0.17"
+
+[dev-dependencies]
+approx = { workspace = true }
+criterion = "0.5"
+proptest = "1.0"
+
+[features]
+default = ["std"]
+std = []
+geometric = ["amari"]
+
+# Benchmark will be added later
+# [[bench]]
+# name = "verification_perf"
+# harness = false
