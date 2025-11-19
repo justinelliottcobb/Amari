@@ -49,9 +49,9 @@
 //! let miracle_shot = RareEvent::<()>::new(0.001, "critical_hit");
 //! ```
 //!
-//! ## Integration with Amari
+//! ## Future Integration with Amari
 //!
-//! With the `geometric` feature, Flynn integrates with Amari's geometric algebra
+//! A future `geometric` feature will integrate Flynn with Amari's geometric algebra
 //! types, enabling probabilistic contracts over geometric computations.
 //!
 //! ## Roadmap
