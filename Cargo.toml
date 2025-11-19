@@ -23,6 +23,7 @@ amari-enumerative = { workspace = true }
 amari-relativistic = { workspace = true }
 amari-gpu = { workspace = true, optional = true }
 amari-optimization = { workspace = true, optional = true }
+amari-flynn = { version = "0.1.0", path = "amari-flynn", optional = true }
 amari-measure = { workspace = true, optional = true }
 thiserror = { workspace = true }
 
@@ -35,6 +36,7 @@ tokio = { version = "1.0", features = ["full"] }
 default = []
 gpu = ["dep:amari-gpu"]
 optimization = ["dep:amari-optimization"]
+flynn = ["dep:amari-flynn"]
 measure = ["dep:amari-measure"]
 # Deterministic mode for networked physics (~10-20% slower but bit-exact)
 deterministic = []

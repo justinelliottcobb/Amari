@@ -59,6 +59,10 @@ jobs:
         run: cargo fmt --all -- --check
         if: matrix.rust == 'stable'
 
+      - name: Verify workflow crate configuration
+        run: ./scripts/verify-workflow-crates.sh
+        if: matrix.rust == 'stable'
+
   test-wasm-compat:
     name: Test Suite (WASM-Compatible Precision)
     runs-on: ubuntu-latest

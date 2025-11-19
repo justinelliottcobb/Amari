@@ -7,7 +7,9 @@
 //! - Geometric network analysis
 //! - Information geometry
 //! - Fusion systems for neural network optimization
-//! - Deterministic physics for networked applications (opt-in)
+//! - Measure theory and Lebesgue integration (opt-in via `measure` feature)
+//! - Probabilistic contracts and verification (opt-in via `flynn` feature)
+//! - Deterministic physics for networked applications (opt-in via `deterministic` feature)
 
 pub use amari_automata as automata;
 pub use amari_core as core;
@@ -18,6 +20,12 @@ pub use amari_info_geom as info_geom;
 pub use amari_network as network;
 pub use amari_relativistic as relativistic;
 pub use amari_tropical as tropical;
+
+#[cfg(feature = "measure")]
+pub use amari_measure as measure;
+
+#[cfg(feature = "flynn")]
+pub use amari_flynn as flynn;
 
 // Deterministic computation module (opt-in via feature flag)
 #[cfg(feature = "deterministic")]
