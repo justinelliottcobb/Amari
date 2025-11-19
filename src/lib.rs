@@ -7,6 +7,7 @@
 //! - Geometric network analysis
 //! - Information geometry
 //! - Fusion systems for neural network optimization
+//! - Probabilistic contracts and verification (opt-in via `flynn` feature)
 //! - Deterministic physics for networked applications (opt-in)
 
 pub use amari_automata as automata;
@@ -18,6 +19,9 @@ pub use amari_info_geom as info_geom;
 pub use amari_network as network;
 pub use amari_relativistic as relativistic;
 pub use amari_tropical as tropical;
+
+#[cfg(feature = "flynn")]
+pub use amari_flynn as flynn;
 
 // Deterministic computation module (opt-in via feature flag)
 #[cfg(feature = "deterministic")]

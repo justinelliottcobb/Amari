@@ -23,6 +23,7 @@ amari-enumerative = { workspace = true }
 amari-relativistic = { workspace = true }
 amari-gpu = { workspace = true, optional = true }
 amari-optimization = { workspace = true, optional = true }
+amari-flynn = { version = "0.1.0", path = "amari-flynn", optional = true }
 thiserror = { workspace = true }
 
 [dev-dependencies]
@@ -34,6 +35,7 @@ tokio = { version = "1.0", features = ["full"] }
 default = []
 gpu = ["dep:amari-gpu"]
 optimization = ["dep:amari-optimization"]
+flynn = ["dep:amari-flynn"]
 # Deterministic mode for networked physics (~10-20% slower but bit-exact)
 deterministic = []
 
@@ -51,7 +53,7 @@ members = ["amari-core", "amari-wasm", "amari-gpu", "amari-info-geom", "amari-tr
 resolver = "2"
 
 [workspace.package]
-version = "0.9.10"
+version = "0.9.11"
 authors = ["Amari Contributors"]
 edition = "2021"
 license = "MIT OR Apache-2.0"

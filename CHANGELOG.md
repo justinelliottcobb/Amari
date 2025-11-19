@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.11] - 2025-11-19
+
+### Added
+- **amari-flynn**: Probabilistic contracts and verification library (v0.1.0)
+  - Optional feature `flynn` to include probabilistic verification
+  - Distinguishes impossible (P=0), rare (0<P<<1), and emergent (P>0) events
+  - Monte Carlo verification backend
+  - Statistical analysis tools
+- **amari-flynn-macros**: Procedural macros for probabilistic contracts (v0.1.0)
+
+### Fixed
+- CI/CD workflow now includes all workspace crates in publish process
+- Added automated verification script to prevent missing crates in future
+- Comprehensive documentation for adding new crates to workspace
+
+### Changed
+- Version bumped from 0.9.10 to 0.9.11 to properly include Flynn crates in umbrella release
+
 ## [0.9.5] - 2025-10-14
 
 ### 🎉 **Major Achievement: Complete GPU Coverage & Optimization**
