@@ -303,7 +303,7 @@ fn integrate_simpson(
     intervals: usize,
 ) -> Result<f64, JsValue> {
     // Simpson's rule requires even number of intervals
-    let n = if intervals % 2 == 0 {
+    let n = if intervals.is_multiple_of(2) {
         intervals
     } else {
         intervals + 1

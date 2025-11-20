@@ -78,6 +78,7 @@ amari-optimization = { path = "amari-optimization", version = "0.9.10" }
 amari-flynn = { path = "amari-flynn", version = "0.1.0" }
 amari-flynn-macros = { path = "amari-flynn-macros", version = "0.1.0" }
 amari-measure = { path = "amari-measure", version = "0.9.10" }
+amari-wasm = { path = "amari-wasm", version = "0.9.10" }
 
 # External dependencies
 bytemuck = "1.14"

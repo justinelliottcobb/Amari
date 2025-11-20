@@ -139,7 +139,7 @@ impl GpuIntegrator {
             compute_pass.set_pipeline(&self.integration_pipeline);
             compute_pass.set_bind_group(0, &bind_group, &[]);
             // Dispatch enough workgroups for n threads (256 threads per workgroup)
-            let workgroup_count = (n + 255) / 256;
+            let workgroup_count = n.div_ceil(256);
             compute_pass.dispatch_workgroups(workgroup_count, 1, 1);
         }
 
@@ -336,7 +336,7 @@ impl GpuMonteCarloIntegrator {
             });
             compute_pass.set_pipeline(&self.monte_carlo_pipeline);
             compute_pass.set_bind_group(0, &bind_group, &[]);
-            let workgroup_count = (n + 255) / 256;
+            let workgroup_count = n.div_ceil(256);
             compute_pass.dispatch_workgroups(workgroup_count, 1, 1);
         }
 
@@ -653,7 +653,7 @@ impl GpuParametricDensity {
             });
             compute_pass.set_pipeline(&self.density_pipeline);
             compute_pass.set_bind_group(0, &bind_group, &[]);
-            let workgroup_count = ((n as u32) + 255) / 256;
+            let workgroup_count = (n as u32).div_ceil(256);
             compute_pass.dispatch_workgroups(workgroup_count, 1, 1);
         }
 
