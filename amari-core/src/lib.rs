@@ -226,6 +226,36 @@ impl<const P: usize, const Q: usize, const R: usize> Multivector<P, Q, R> {
         &self.coefficients
     }
 
+    /// Convert coefficients to owned vector
+    ///
+    /// Useful for interoperability with other libraries and serialization.
+    pub fn to_vec(&self) -> Vec<f64> {
+        self.coefficients.to_vec()
+    }
+
+    /// Grade projection with alternative name for clarity
+    ///
+    /// Alias for `grade_projection` that emphasizes the projection operation.
+    pub fn grade_project(&self, grade: usize) -> Self {
+        self.grade_projection(grade)
+    }
+
+    /// Wedge product (alias for outer product)
+    ///
+    /// The wedge product ∧ is the antisymmetric outer product,
+    /// fundamental to exterior algebra and differential forms.
+    pub fn wedge(&self, other: &Self) -> Self {
+        self.outer_product(other)
+    }
+
+    /// Dot product (alias for inner product)
+    ///
+    /// The dot product · is the grade-lowering inner product,
+    /// generalizing the vector dot product to all grades.
+    pub fn dot(&self, other: &Self) -> Self {
+        self.inner_product(other)
+    }
+
     /// Add method for convenience
     pub fn add(&self, other: &Self) -> Self {
         self + other

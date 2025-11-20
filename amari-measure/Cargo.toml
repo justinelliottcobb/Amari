@@ -13,8 +13,13 @@ categories = ["mathematics", "science", "algorithms"]
 
 [dependencies]
 amari-core = { workspace = true, features = ["std", "phantom-types"] }
+amari-dual = { workspace = true }
+amari-info-geom = { workspace = true }
+amari-tropical = { workspace = true }
 thiserror = { workspace = true }
 num-traits = { workspace = true }
+nalgebra = { workspace = true }
+rand = { workspace = true }
 serde = { workspace = true, optional = true }
 
 # Optional: Formal verification with Creusot

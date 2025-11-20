@@ -230,9 +230,10 @@ impl BorelSigma {
 /// // Lebesgue σ-algebra on ℝ
 /// let lebesgue = LebesgueSigma::new(1);
 /// ```
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct LebesgueSigma {
     /// Dimension of the space
+    #[allow(dead_code)]
     dimension: usize,
 }
 

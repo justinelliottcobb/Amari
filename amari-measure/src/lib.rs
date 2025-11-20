@@ -1,7 +1,15 @@
 //! Measure-theoretic foundations for geometric algebra
 //!
 //! This crate provides measure theory, integration, and probability theory
-//! for multivector spaces in Clifford algebras.
+//! for multivector spaces in Clifford algebras, with advanced features including:
+//!
+//! - **Parametric densities** with automatic differentiation
+//! - **Numerical integration** algorithms (Monte Carlo, adaptive quadrature, etc.)
+//! - **Geometric measures** on multivector spaces
+//! - **Fisher-Riemannian geometry** for statistical manifolds
+//! - **Radon-Nikodym derivatives** with dual number differentiation
+//! - **Tropical measures** for extreme value statistics
+//! - **Type-safe convergence theorems** with compile-time verification
 //!
 //! # Core Concepts
 //!
@@ -12,17 +20,149 @@
 //! - **Radon-Nikodym Derivatives**: Densities dν/dμ for absolutely continuous measures
 //! - **Phantom Types**: Compile-time verification of measure properties
 //!
-//! # Examples
+//! # Quick Start Examples
+//!
+//! ## 1. Parametric Densities with Automatic Differentiation
 //!
 //! ```
-//! use amari_measure::{Measure, LebesgueMeasure};
+//! use amari_measure::parametric::families;
 //!
-//! // Create Lebesgue measure on ℝ³
-//! let mu = LebesgueMeasure::new(3);
+//! // Create a Gaussian density family
+//! let gaussian = families::gaussian();
 //!
-//! // Measure the volume of a cube [0,1]³
-//! // let volume = mu.measure(&Cube::unit(3));
-//! // assert_eq!(volume, 1.0);
+//! // Evaluate density and gradient at x=1.5, params=[μ=1.0, σ=2.0]
+//! let (value, gradient) = gaussian.evaluate_with_gradient(1.5, &[1.0, 2.0]).unwrap();
+//!
+//! // Compute Fisher information matrix from data
+//! let data = vec![1.2, 1.5, 1.8];
+//! let fisher = gaussian.fisher_information(&data, &[1.0, 2.0]).unwrap();
+//! ```
+//!
+//! ## 2. Numerical Integration
+//!
+//! ```
+//! use amari_measure::{monte_carlo_integrate, simpson_integrate};
+//!
+//! // Monte Carlo integration of f(x) = x² over [0, 1]
+//! let mc_result = monte_carlo_integrate(&|x| x * x, 0.0, 1.0, 10000).unwrap();
+//! // Result ≈ 1/3
+//!
+//! // Simpson's rule (higher accuracy)
+//! let simpson_result = simpson_integrate(&|x| x * x, 0.0, 1.0, 100).unwrap();
+//! ```
+//!
+//! ## 3. Geometric Measures on Multivector Spaces
+//!
+//! ```
+//! use amari_measure::multivector_measure::GradeDecomposedMeasure;
+//! use amari_core::Multivector;
+//!
+//! // Create a 3D geometric measure (signature (3,0,0))
+//! let measure = GradeDecomposedMeasure::<3, 0, 0>::new();
+//!
+//! // Set from a multivector
+//! let mv = Multivector::<3, 0, 0>::from_slice(&[1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0]);
+//! let measure = GradeDecomposedMeasure::<3, 0, 0>::from_multivector(&mv);
+//! ```
+//!
+//! ## 4. Fisher-Riemannian Geometry
+//!
+//! ```
+//! use amari_measure::fisher_measure::FisherMeasure;
+//! use amari_measure::parametric::families;
+//!
+//! // Create Fisher measure from Gaussian density
+//! let gaussian = families::gaussian();
+//! let fisher_measure = FisherMeasure::from_density(gaussian);
+//!
+//! // Compute volume element at parameter point
+//! let params = vec![0.0, 1.0]; // μ=0, σ=1
+//! let data = vec![-1.0, 0.0, 1.0];
+//! let volume = fisher_measure.volume_element(&params, &data).unwrap();
+//! ```
+//!
+//! ## 5. Radon-Nikodym Derivatives with Dual Numbers
+//!
+//! ```
+//! use amari_measure::radon_nikodym_dual::DualRadonNikodym;
+//!
+//! // Define a Gaussian density as Radon-Nikodym derivative
+//! let rn = DualRadonNikodym::new(|x: f64, theta: f64| {
+//!     let diff = x - theta;
+//!     (-0.5 * diff * diff).exp()
+//! });
+//!
+//! // Compute score function: ∂/∂θ log p(x|θ)
+//! let score = rn.score(1.0, 0.0).unwrap();
+//!
+//! // Compute Fisher information from data
+//! let data = vec![-1.0, 0.0, 1.0];
+//! let fisher = rn.fisher_information(&data, 0.0).unwrap();
+//! ```
+//!
+//! ## 6. Tropical Measures for Extreme Values
+//!
+//! ```
+//! use amari_measure::tropical_measure::{MaxPlusMeasure, tropical_supremum_integrate};
+//!
+//! // Create max-plus measure for finding suprema (need type annotation)
+//! let max_measure: MaxPlusMeasure = MaxPlusMeasure::new();
+//!
+//! // Find supremum via tropical integration
+//! let f = |x: f64| x * x;
+//! let sample_points = vec![1.0, 2.0, 3.0, 4.0, 5.0];
+//! let supremum = tropical_supremum_integrate(&f, &(), &sample_points).unwrap();
+//! // supremum.value() == 25.0 (at x=5)
+//! ```
+//!
+//! ## 7. Type-Safe Convergence Theorems
+//!
+//! ```
+//! use amari_measure::type_safe_convergence::{
+//!     FunctionSequence, MonotoneIncreasing, NonNegative,
+//!     apply_monotone_convergence_theorem
+//! };
+//!
+//! // Create a monotone increasing, non-negative sequence
+//! let seq: FunctionSequence<f64, (MonotoneIncreasing, NonNegative)> =
+//!     FunctionSequence::from_monotone_nonnegative_closures(vec![
+//!         |x: f64| x,
+//!         |x: f64| x + 1.0,
+//!         |x: f64| x + 2.0,
+//!     ]);
+//!
+//! // Apply MCT - compiles because types are correct
+//! let result = apply_monotone_convergence_theorem(&seq).unwrap();
+//!
+//! // Would NOT compile with wrong property type:
+//! // let wrong_seq: FunctionSequence<f64, NonNegative> = ...
+//! // apply_monotone_convergence_theorem(&wrong_seq); // ❌ compile error
+//! ```
+//!
+//! # Integration Example: Statistical Inference
+//!
+//! Here's how to combine multiple features for statistical inference:
+//!
+//! ```
+//! use amari_measure::parametric::families;
+//! use amari_measure::fisher_measure::FisherMeasure;
+//! use amari_measure::monte_carlo_integrate;
+//!
+//! // 1. Define parametric density family
+//! let gaussian = families::gaussian();
+//!
+//! // 2. Collect data
+//! let data = vec![0.9, 1.1, 1.2, 0.8, 1.0];
+//!
+//! // 3. Compute Fisher information (for Cramér-Rao bound)
+//! let params = vec![1.0, 0.5]; // μ=1.0, σ=0.5
+//! let fisher_info = gaussian.fisher_information(&data, &params).unwrap();
+//!
+//! // 4. Create Fisher measure for geometric inference
+//! let fisher_measure = FisherMeasure::from_density(gaussian);
+//!
+//! // 5. Compute volume element (for Jeffreys prior)
+//! let volume = fisher_measure.volume_element(&params, &data).unwrap();
 //! ```
 
 #![cfg_attr(not(feature = "std"), no_std)]
@@ -71,6 +211,13 @@ pub use geometric_measure::{
     geometric_lebesgue_measure, GeometricDensity, GeometricLebesgueMeasure, GeometricMeasure,
 };
 
+// Grade-decomposed measures with actual Multivector operations
+pub mod multivector_measure;
+pub use multivector_measure::{
+    geometric_product_measures, inner_product_measures, wedge_product_measures,
+    GradeDecomposedMeasure,
+};
+
 // Lebesgue integration
 mod integration;
 pub use integration::{
@@ -80,6 +227,14 @@ pub use integration::{
 // Radon-Nikodym derivatives and densities
 mod density;
 pub use density::{absolutely_continuous, singular, Density, LebesgueDecomposition, RadonNikodym};
+
+// Radon-Nikodym with automatic differentiation using dual numbers
+pub mod radon_nikodym_dual;
+pub use radon_nikodym_dual::{kl_divergence, DualRadonNikodym};
+
+// Parametric density families with automatic differentiation
+pub mod parametric;
+pub use parametric::ParametricDensity;
 
 // TODO: Implement remaining modules
 // These modules are planned but not yet implemented
@@ -99,6 +254,33 @@ mod convergence;
 pub use convergence::{
     dominated_convergence, fatou_lemma, monotone_convergence, DominatedConvergenceResult,
     FatouResult, MonotoneConvergenceResult,
+};
+
+// Type-safe convergence theorems with compile-time verification
+pub mod type_safe_convergence;
+pub use type_safe_convergence::{
+    apply_dominated_convergence_theorem, apply_fatou_lemma, apply_monotone_convergence_theorem,
+    Dominated, FunctionSequence, MonotoneDecreasing, MonotoneIncreasing, NonNegative,
+    PointwiseConvergent, TypeSafeDominatedConvergenceResult, TypeSafeFatouResult,
+    TypeSafeMonotoneConvergenceResult,
+};
+
+// Tropical measures for extreme value statistics
+pub mod tropical_measure;
+pub use tropical_measure::{
+    tropical_infimum_integrate, tropical_supremum_integrate, ExtremeValueMeasure, MaxPlusMeasure,
+    MinPlusMeasure,
+};
+
+// Fisher-Riemannian measures on statistical manifolds
+pub mod fisher_measure;
+pub use fisher_measure::{FisherMeasure, FisherStatisticalManifold};
+
+// Numerical integration algorithms
+pub mod numerical_integration;
+pub use numerical_integration::{
+    adaptive_quadrature, monte_carlo_integrate, multidim_monte_carlo, simpson_integrate,
+    trapezoidal_integrate, IntegrationResult,
 };
 
 // Signed and complex measures

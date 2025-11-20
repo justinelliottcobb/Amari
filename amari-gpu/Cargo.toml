@@ -16,6 +16,7 @@ amari-core = { workspace = true, default-features = false, features = ["std", "p
 amari-info-geom = { workspace = true, default-features = false, features = ["std"] }
 amari-network = { workspace = true, default-features = false, features = ["std"] }
 amari-relativistic = { workspace = true, default-features = false, features = ["std", "phantom-types"] }
+amari-measure = { workspace = true, optional = true }
 wgpu = "0.19"
 futures = "0.3"
 pollster = "0.3"
@@ -33,3 +34,4 @@ default = []
 std = ["amari-core/std", "amari-relativistic/std", "amari-info-geom/std"]
 webgpu = ["wgpu/webgpu"]
 high-precision = ["amari-core/high-precision", "amari-relativistic/high-precision"]
+measure = ["dep:amari-measure"]

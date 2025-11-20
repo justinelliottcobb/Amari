@@ -4,6 +4,7 @@
 //! - Geometric algebra (amari-core)
 //! - Tropical algebra (amari-tropical)
 //! - Automatic differentiation (amari-dual)
+//! - Measure theory and integration (amari-measure)
 //! - Fusion systems (amari-fusion) - v0.9.4 TropicalDualClifford for LLM evaluation
 //! - Information geometry (amari-info-geom)
 
@@ -17,6 +18,7 @@ pub mod dual; // Enabled for v0.9.3 - automatic differentiation for machine lear
 pub mod enumerative; // Enabled for v0.9.4 - Enumerative geometry and intersection theory for web
 pub mod fusion; // Enabled for v0.9.4 - TropicalDualClifford system for LLM evaluation in web
 pub mod info_geom; // Enabled for v0.9.4 - Information geometry and statistical manifolds for web
+pub mod measure; // Enabled for v0.10.0 - Measure theory and Lebesgue integration for web
 pub mod network; // Enabled for v0.9.4 - Geometric network analysis for web
 pub mod optimization; // Enabled for v0.9.7 - Advanced optimization algorithms for web
 pub mod relativistic;
