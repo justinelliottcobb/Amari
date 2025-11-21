@@ -105,11 +105,11 @@ jobs:
             "amari-fusion"
             "amari-automata"
             "amari-enumerative"
-            "amari-optimization"
             "amari-flynn-macros"
             "amari-flynn"
             "amari-measure"
             "amari-gpu"
+            "amari-optimization"
             "amari"
           )
 
