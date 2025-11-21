@@ -1,4 +1,4 @@
-# @justinelliottcobb/amari-wasm v0.9.8
+# @justinelliottcobb/amari-wasm v0.9.10
 
 **Unified Mathematical Computing Library with High-Precision WebAssembly Support**
 
@@ -15,6 +15,7 @@ Amari is a comprehensive mathematical computing library that brings advanced alg
 - **Geometric Algebra (Clifford Algebra)**: Multivectors, rotors, and geometric products for 3D rotations and spatial transformations
 - **Tropical Algebra**: Max-plus semiring operations for optimization and neural network applications
 - **Automatic Differentiation**: Forward-mode AD with dual numbers for exact derivatives
+- **Measure Theory** *(new in v0.10.0)*: Lebesgue integration, probability measures, and measure-theoretic foundations
 - **Relativistic Physics**: Spacetime algebra (Cl(1,3)) with WebAssembly-compatible precision
 - **Spacecraft Orbital Mechanics**: Full-precision trajectory calculations in browsers
 - **Cellular Automata**: Geometric cellular automata with multivector states
@@ -186,6 +187,27 @@ for (let i = 0; i < 100; i++) {
 console.log(`Generation: ${ca.generation()}`);
 ```
 
+### Measure Theory and Integration *(new in v0.10.0)*
+
+Perform numerical integration and work with probability measures:
+
+```typescript
+import { WasmLebesgueMeasure, WasmProbabilityMeasure, integrate } from '@justinelliottcobb/amari-wasm';
+
+// Lebesgue measure - compute volumes
+const measure = new WasmLebesgueMeasure(3); // 3D space
+const volume = measure.measureBox([2.0, 3.0, 4.0]); // 2×3×4 box = 24
+
+// Numerical integration
+const f = (x) => x * x; // Function to integrate
+const result = integrate(f, 0, 2, 1000, WasmIntegrationMethod.Riemann);
+console.log(`∫₀² x² dx ≈ ${result}`); // ≈ 2.667
+
+// Probability measures
+const prob = WasmProbabilityMeasure.uniform(0, 1);
+const p = prob.probabilityInterval(0.25, 0.75, 0, 1); // P(0.25 ≤ X ≤ 0.75) = 0.5
+```
+
 ## Use Cases
 
 - Computer Graphics: 3D rotations and transformations using rotors
@@ -193,6 +215,7 @@ console.log(`Generation: ${ca.generation()}`);
 - Machine Learning: Tropical neural networks and automatic differentiation
 - Optimization: Tropical algebra for shortest path and scheduling problems
 - Scientific Computing: High-performance mathematical operations with orbital-grade precision
+- Probability & Statistics: Measure theory and numerical integration for statistical computations
 - Game Development: Efficient spatial transformations and physics
 - Spacecraft Trajectory Planning: High-precision orbital mechanics in web applications
 

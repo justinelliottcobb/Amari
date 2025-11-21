@@ -2,6 +2,8 @@
 
 pub mod adaptive;
 pub mod benchmarks;
+#[cfg(feature = "measure")]
+pub mod measure;
 pub mod multi_gpu;
 pub mod network;
 pub mod performance;
@@ -23,6 +25,11 @@ pub use benchmarks::{
     BenchmarkSuiteResults, BenchmarkSummary, ScalingAnalysis,
 };
 use bytemuck::{Pod, Zeroable};
+#[cfg(feature = "measure")]
+pub use measure::{
+    GpuIntegrator, GpuMonteCarloIntegrator, GpuMultidimIntegrator, GpuParametricDensity,
+    GpuTropicalMeasure,
+};
 pub use multi_gpu::{
     ComputeIntensity, DeviceCapabilities, DeviceId, DeviceWorkload, GpuArchitecture, GpuDevice,
     IntelligentLoadBalancer, LoadBalancingStrategy, MultiGpuBarrier, PerformanceRecord,

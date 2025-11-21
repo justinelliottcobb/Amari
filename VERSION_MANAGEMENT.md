@@ -166,6 +166,88 @@ Add version sync verification to CI:
 - Pre-release suffixes supported: `1.0.0-alpha`, `1.0.0-beta.1`
 - Build metadata supported: `1.0.0+build.1`
 
+## Publishing Order for Crates.io
+
+The order in which crates are published to crates.io is **critical** to avoid dependency resolution failures. Crates must be published in dependency order, with dependents published after their dependencies.
+
+### Current Publishing Order
+
+The canonical publishing order is defined in `.github/workflows/publish.yml`:
+
+```bash
+CRATES=(
+  "amari-core"            # Foundation - geometric algebra core
+  "amari-tropical"        # Tropical algebra
+  "amari-dual"            # Automatic differentiation
+  "amari-network"         # Network analysis
+  "amari-info-geom"       # Information geometry
+  "amari-relativistic"    # Relativistic physics
+  "amari-fusion"          # Fusion systems
+  "amari-automata"        # Cellular automata
+  "amari-enumerative"     # Enumerative geometry
+  "amari-optimization"    # Optimization algorithms
+  "amari-flynn-macros"    # Flynn macros (compile-time)
+  "amari-flynn"           # Flynn probabilistic contracts
+  "amari-measure"         # Measure theory (NEW in v0.10.0)
+  "amari-wasm"            # WASM bindings (depends on all above)
+  "amari-gpu"             # GPU acceleration (depends on all above)
+  "amari"                 # Main crate (ALWAYS LAST)
+)
+```
+
+### Adding New Crates
+
+**CRITICAL RULE**: When adding a new crate to the Amari ecosystem, it must be added to the publishing order **before** these three crates:
+
+1. `amari-measure` - Last domain-specific crate
+2. `amari-wasm` - WASM bindings (depends on all domain crates)
+3. `amari-gpu` - GPU acceleration (depends on all domain crates)
+4. `amari` - Main umbrella crate (ALWAYS LAST)
+
+### Why This Order Matters
+
+**Historical Issue**: The `amari-flynn` crate was initially published **after** `amari-gpu`, which caused dependency resolution failures because:
+- `amari-gpu` was already published with version X
+- Adding `amari-flynn` at version X created circular dependency issues
+- Required manual intervention and version bumps to resolve
+
+**Solution**: By placing new crates **before** the integration crates (`amari-measure`, `amari-wasm`, `amari-gpu`), we ensure:
+1. All domain-specific crates are published first
+2. Integration crates can depend on all domain crates
+3. The main `amari` crate depends on everything
+4. No circular dependencies or version conflicts
+
+### Example: Adding a New Crate
+
+If you create a new crate `amari-quantum`, add it to the publishing order like this:
+
+```bash
+CRATES=(
+  "amari-core"
+  "amari-tropical"
+  "amari-dual"
+  "amari-network"
+  "amari-info-geom"
+  "amari-relativistic"
+  "amari-fusion"
+  "amari-automata"
+  "amari-enumerative"
+  "amari-optimization"
+  "amari-flynn-macros"
+  "amari-flynn"
+  "amari-quantum"         # NEW: Add here, before integration crates
+  "amari-measure"         # Integration boundary starts here
+  "amari-wasm"
+  "amari-gpu"
+  "amari"                 # ALWAYS LAST
+)
+```
+
+**Files to Update**:
+1. `.github/workflows/publish.yml` - Add to CRATES array
+2. `Cargo.toml` - Add to workspace.members and workspace.dependencies
+3. Update this file (VERSION_MANAGEMENT.md) with the new crate
+
 ## Best Practices
 
 1. **Always use the script** for version updates
@@ -174,6 +256,7 @@ Add version sync verification to CI:
 4. **Follow semantic versioning** guidelines
 5. **Document breaking changes** in release notes
 6. **Test after version updates** to ensure everything still works
+7. **Add new crates before integration crates** in publishing order (amari-measure, amari-wasm, amari-gpu, amari)
 
 ## Integration with Release Automation
 

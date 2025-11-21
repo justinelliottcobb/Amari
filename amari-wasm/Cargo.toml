@@ -4,7 +4,7 @@ version.workspace = true
 authors.workspace = true
 edition.workspace = true
 license.workspace = true
-description = "WebAssembly bindings for Amari mathematical computing library - geometric algebra, tropical algebra, automatic differentiation, fusion systems, and information geometry"
+description = "WebAssembly bindings for Amari mathematical computing library - geometric algebra, tropical algebra, automatic differentiation, measure theory, fusion systems, and information geometry"
 repository = "https://github.com/justinelliottcobb/Amari"
 homepage = "https://github.com/justinelliottcobb/Amari"
 keywords = ["wasm", "webassembly", "geometric-algebra", "tropical-algebra", "autodiff"]
@@ -36,6 +36,7 @@ amari-info-geom = { path = "../amari-info-geom" }
 amari-enumerative = { path = "../amari-enumerative" }
 amari-relativistic = { path = "../amari-relativistic", features = ["phantom-types"] }
 amari-optimization = { path = "../amari-optimization", features = ["wasm", "linalg"] }
+amari-measure = { path = "../amari-measure" }
 
 # Additional dependencies for v0.9.4 complete WASM coverage
 num-rational = "0.4"

@@ -93,6 +93,8 @@ jobs:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
         run: |
           # Publish in dependency order with delays for crates.io rate limiting
+          # IMPORTANT: New crates should be added before amari-measure, amari-wasm, amari-gpu, and amari
+          # See VERSION_MANAGEMENT.md for best practices
           CRATES=(
             "amari-core"
             "amari-tropical"
@@ -103,10 +105,11 @@ jobs:
             "amari-fusion"
             "amari-automata"
             "amari-enumerative"
-            "amari-gpu"
             "amari-optimization"
             "amari-flynn-macros"
             "amari-flynn"
+            "amari-measure"
+            "amari-gpu"
             "amari"
           )
 

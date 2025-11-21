@@ -1,4 +1,4 @@
-# Amari v0.9.8
+# Amari v0.9.10
 
 **Multi-GPU Mathematical Computing Platform with Intelligent Load Balancing**
 
@@ -59,31 +59,31 @@ Add to your `Cargo.toml`:
 ```toml
 [dependencies]
 # Core geometric algebra and mathematical foundations
-amari-core = "0.9.8"
+amari-core = "0.9.10"
 
 # High-precision relativistic physics with multi-backend support
-amari-relativistic = { version = "0.9.8", features = ["high-precision"] }
+amari-relativistic = { version = "0.9.10", features = ["high-precision"] }
 
 # For native applications (uses rug/GMP backend)
-amari-relativistic = { version = "0.9.8", features = ["native-precision"] }
+amari-relativistic = { version = "0.9.10", features = ["native-precision"] }
 
 # For WebAssembly targets (uses dashu backend)
-amari-relativistic = { version = "0.9.8", features = ["wasm-precision"] }
+amari-relativistic = { version = "0.9.10", features = ["wasm-precision"] }
 
 # Multi-GPU acceleration and intelligent load balancing
-amari-gpu = "0.9.8"
+amari-gpu = "0.9.10"
 
 # Optimization algorithms
-amari-optimization = "0.9.8"
+amari-optimization = "0.9.10"
 
 # Additional mathematical systems
-amari-tropical = "0.9.8"
-amari-dual = "0.9.8"
-amari-info-geom = "0.9.8"
-amari-automata = "0.9.8"
-amari-fusion = "0.9.8"
-amari-network = "0.9.8"
-amari-enumerative = "0.9.8"
+amari-tropical = "0.9.10"
+amari-dual = "0.9.10"
+amari-info-geom = "0.9.10"
+amari-automata = "0.9.10"
+amari-fusion = "0.9.10"
+amari-network = "0.9.10"
+amari-enumerative = "0.9.10"
 ```
 
 ### JavaScript/TypeScript (WebAssembly)
