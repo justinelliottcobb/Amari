@@ -113,7 +113,7 @@ pub use lie::*;
 
 // Integration on manifolds
 mod integration;
-pub use integration::*;
+pub use integration::ManifoldIntegrator;
 
 /// Utility function to create a vector multivector from a slice of components
 ///
