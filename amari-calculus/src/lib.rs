@@ -106,6 +106,7 @@ pub use operators::{curl, divergence, gradient, laplacian};
 
 // Covariant derivatives on manifolds
 pub mod manifold;
+pub use manifold::RiemannianManifold;
 
 // Lie derivatives
 mod lie;
