@@ -36,6 +36,11 @@ impl<const DIM: usize> Connection<DIM> {
         }
     }
 
+    /// Get reference to the underlying metric tensor
+    pub fn metric(&self) -> &MetricTensor<DIM> {
+        &self.metric
+    }
+
     /// Compute Christoffel symbol Γ^k_ij at a point
     ///
     /// Uses the formula:

@@ -49,10 +49,12 @@ use crate::{CalculusResult, ScalarField};
 
 pub mod connection;
 pub mod covariant;
+pub mod curvature;
 pub mod metric;
 
 pub use connection::Connection;
 pub use covariant::CovariantDerivative;
+pub use curvature::{RicciTensor, RiemannTensor, ScalarCurvature};
 pub use metric::MetricTensor;
 
 /// A Riemannian manifold with metric tensor and connection
@@ -121,6 +123,64 @@ impl<const DIM: usize> RiemannianManifold<DIM> {
         coords: &[f64],
     ) -> CalculusResult<Vec<f64>> {
         CovariantDerivative::vector(&self.connection, vector_field, direction, coords)
+    }
+
+    /// Compute Riemann curvature tensor component R^i_jkl at a point
+    ///
+    /// The Riemann tensor measures how the manifold deviates from flat space.
+    ///
+    /// # Arguments
+    ///
+    /// * `i` - Upper index
+    /// * `j` - First lower index
+    /// * `k` - Second lower index
+    /// * `l` - Third lower index
+    /// * `coords` - Point at which to evaluate
+    ///
+    /// # Returns
+    ///
+    /// The value of R^i_jkl at the given point
+    pub fn riemann_tensor(&self, i: usize, j: usize, k: usize, l: usize, coords: &[f64]) -> f64 {
+        let riemann = RiemannTensor::new(&self.connection);
+        riemann.component(i, j, k, l, coords)
+    }
+
+    /// Compute Ricci curvature tensor component R_ij at a point
+    ///
+    /// The Ricci tensor is a contraction of the Riemann tensor.
+    ///
+    /// # Arguments
+    ///
+    /// * `i` - First index
+    /// * `j` - Second index
+    /// * `coords` - Point at which to evaluate
+    ///
+    /// # Returns
+    ///
+    /// The value of R_ij at the given point
+    pub fn ricci_tensor(&self, i: usize, j: usize, coords: &[f64]) -> f64 {
+        let ricci = RicciTensor::new(&self.connection);
+        ricci.component(i, j, coords)
+    }
+
+    /// Compute scalar curvature R at a point
+    ///
+    /// The scalar curvature is a single number characterizing the overall
+    /// curvature of the manifold:
+    /// - R > 0: Positive curvature (sphere-like)
+    /// - R = 0: Flat space
+    /// - R < 0: Negative curvature (hyperbolic)
+    ///
+    /// # Arguments
+    ///
+    /// * `coords` - Point at which to evaluate
+    ///
+    /// # Returns
+    ///
+    /// The scalar curvature R at the given point
+    pub fn scalar_curvature(&self, coords: &[f64]) -> f64 {
+        let scalar_curv = ScalarCurvature::new(&self.connection);
+        scalar_curv.compute(coords)
     }
 }
 
