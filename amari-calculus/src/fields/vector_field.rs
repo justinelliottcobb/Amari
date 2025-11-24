@@ -10,12 +10,11 @@ use amari_core::Multivector;
 /// # Examples
 ///
 /// ```
-/// use amari_calculus::VectorField;
-/// use amari_core::Multivector;
+/// use amari_calculus::{VectorField, vector_from_slice};
 ///
 /// // Define F(x, y, z) = (x, y, z) - radial vector field
 /// let f = VectorField::<3, 0, 0>::new(|coords| {
-///     Multivector::from_vector(&[coords[0], coords[1], coords[2]])
+///     vector_from_slice(&[coords[0], coords[1], coords[2]])
 /// });
 ///
 /// // Evaluate at (1, 2, 3)
@@ -39,12 +38,11 @@ impl<const P: usize, const Q: usize, const R: usize> VectorField<P, Q, R> {
     /// # Examples
     ///
     /// ```
-    /// use amari_calculus::VectorField;
-    /// use amari_core::Multivector;
+    /// use amari_calculus::{VectorField, vector_from_slice};
     ///
     /// // Rotation field F(x, y) = (-y, x, 0)
     /// let f = VectorField::<3, 0, 0>::new(|coords| {
-    ///     Multivector::from_vector(&[-coords[1], coords[0], 0.0])
+    ///     vector_from_slice(&[-coords[1], coords[0], 0.0])
     /// });
     /// ```
     pub fn new(function: fn(&[f64]) -> Multivector<P, Q, R>) -> Self {
@@ -107,36 +105,14 @@ impl<const P: usize, const Q: usize, const R: usize> VectorField<P, Q, R> {
         let f_minus = self.evaluate(&coords_minus);
 
         // Compute (f_plus - f_minus) / (2h)
-        let mut result = f_plus;
-        result = result.add(&f_minus.scale(-1.0));
-        result = result.scale(1.0 / (2.0 * h));
+        let result = (f_plus - f_minus) * (1.0 / (2.0 * h));
 
         Ok(result)
     }
 
-    /// Add two vector fields pointwise
-    pub fn add(&self, other: &Self) -> Self {
-        let f1 = self.function;
-        let f2 = other.function;
-        Self::new(move |coords| f1(coords).add(&f2(coords)))
-    }
-
-    /// Scale vector field by constant
-    pub fn scale(&self, c: f64) -> Self {
-        let f = self.function;
-        Self::new(move |coords| f(coords).scale(c))
-    }
-
-    /// Dot product of two vector fields (returns scalar field)
-    pub fn dot(&self, other: &Self) -> crate::ScalarField<P, Q, R> {
-        let f1 = self.function;
-        let f2 = other.function;
-        crate::ScalarField::new(move |coords| {
-            let v1 = f1(coords);
-            let v2 = f2(coords);
-            v1.dot(&v2)
-        })
-    }
+    // Note: Methods like add(), scale(), and dot() that combine fields
+    // are not implemented because function pointers cannot capture variables.
+    // Users should create new VectorField instances manually when combining fields.
 }
 
 impl<const P: usize, const Q: usize, const R: usize> std::fmt::Debug for VectorField<P, Q, R> {
@@ -156,16 +132,16 @@ mod tests {
     fn test_vector_field_evaluation() {
         // F(x, y, z) = (x, y, z) - radial field
         let f = VectorField::<3, 0, 0>::new(|coords| {
-            Multivector::from_vector(&[coords[0], coords[1], coords[2]])
+            crate::vector_from_slice(&[coords[0], coords[1], coords[2]])
         });
 
         let v = f.evaluate(&[1.0, 2.0, 3.0]);
-        let expected = Multivector::<3, 0, 0>::from_vector(&[1.0, 2.0, 3.0]);
+        let expected = crate::vector_from_slice::<3, 0, 0>(&[1.0, 2.0, 3.0]);
 
         // Check components
         for i in 0..3 {
             assert!(
-                (v.get_component(1 << i) - expected.get_component(1 << i)).abs() < 1e-10,
+                (v.vector_component(i) - expected.vector_component(i)).abs() < 1e-10,
                 "Component {} mismatch",
                 i
             );
@@ -173,28 +149,27 @@ mod tests {
     }
 
     #[test]
-    fn test_vector_field_arithmetic() {
-        let f = VectorField::<3, 0, 0>::new(|coords| {
-            Multivector::from_vector(&[coords[0], coords[1], 0.0])
+    fn test_vector_field_combination() {
+        // Test that we can manually combine vector fields
+        // F(x, y) = (x, y, 0)
+        let _f = VectorField::<3, 0, 0>::new(|coords| {
+            crate::vector_from_slice(&[coords[0], coords[1], 0.0])
         });
 
-        let g = VectorField::<3, 0, 0>::new(|coords| {
-            Multivector::from_vector(&[coords[1], coords[0], 0.0])
+        // G(x, y) = (y, x, 0)
+        let _g = VectorField::<3, 0, 0>::new(|coords| {
+            crate::vector_from_slice(&[coords[1], coords[0], 0.0])
         });
 
-        // Test addition
-        let h = f.add(&g);
-        let v = h.evaluate(&[2.0, 3.0, 0.0]);
-        // Should be (2+3, 3+2, 0) = (5, 5, 0)
-        assert!((v.get_component(1 << 0) - 5.0).abs() < 1e-10);
-        assert!((v.get_component(1 << 1) - 5.0).abs() < 1e-10);
+        // H(x, y) = F + G = (x+y, y+x, 0)
+        let h = VectorField::<3, 0, 0>::new(|coords| {
+            crate::vector_from_slice(&[coords[0] + coords[1], coords[1] + coords[0], 0.0])
+        });
 
-        // Test scaling
-        let h = f.scale(2.0);
         let v = h.evaluate(&[2.0, 3.0, 0.0]);
-        // Should be (4, 6, 0)
-        assert!((v.get_component(1 << 0) - 4.0).abs() < 1e-10);
-        assert!((v.get_component(1 << 1) - 6.0).abs() < 1e-10);
+        // Should be (5, 5, 0)
+        assert!((v.vector_component(0) - 5.0).abs() < 1e-10);
+        assert!((v.vector_component(1) - 5.0).abs() < 1e-10);
     }
 
     #[test]
@@ -202,7 +177,7 @@ mod tests {
         // F(x, y) = (x², y², 0)
         // ∂F/∂x = (2x, 0, 0), ∂F/∂y = (0, 2y, 0)
         let f = VectorField::<3, 0, 0>::new(|coords| {
-            Multivector::from_vector(&[coords[0].powi(2), coords[1].powi(2), 0.0])
+            crate::vector_from_slice(&[coords[0].powi(2), coords[1].powi(2), 0.0])
         });
 
         let df_dx = f.partial_derivative(&[3.0, 4.0, 0.0], 0, 1e-5).unwrap();
@@ -210,21 +185,21 @@ mod tests {
 
         // ∂F/∂x at (3,4) should be approximately (6, 0, 0)
         assert!(
-            (df_dx.get_component(1 << 0) - 6.0).abs() < 1e-4,
+            (df_dx.vector_component(0) - 6.0).abs() < 1e-4,
             "∂F_x/∂x should be 6.0"
         );
         assert!(
-            df_dx.get_component(1 << 1).abs() < 1e-4,
+            df_dx.vector_component(1).abs() < 1e-4,
             "∂F_y/∂x should be 0.0"
         );
 
         // ∂F/∂y at (3,4) should be approximately (0, 8, 0)
         assert!(
-            df_dy.get_component(1 << 0).abs() < 1e-4,
+            df_dy.vector_component(0).abs() < 1e-4,
             "∂F_x/∂y should be 0.0"
         );
         assert!(
-            (df_dy.get_component(1 << 1) - 8.0).abs() < 1e-4,
+            (df_dy.vector_component(1) - 8.0).abs() < 1e-4,
             "∂F_y/∂y should be 8.0"
         );
     }

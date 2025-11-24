@@ -36,16 +36,33 @@ pub fn curl<const P: usize, const Q: usize, const R: usize>(
     nabla.curl(f, coords)
 }
 
-/// Compute Laplacian of scalar field: ∇²f = ∇·(∇f)
+/// Compute Laplacian of scalar field: ∇²f = ∇·(∇f) = ∂²f/∂x² + ∂²f/∂y² + ...
+///
+/// Computes the sum of second partial derivatives.
 pub fn laplacian<const P: usize, const Q: usize, const R: usize>(
     f: &ScalarField<P, Q, R>,
     coords: &[f64],
 ) -> f64 {
-    let nabla = VectorDerivative::<P, Q, R>::new(CoordinateSystem::Cartesian);
+    let dim = P + Q + R;
+    let h = 1e-5;
+    let mut laplacian = 0.0;
 
-    // First compute gradient as a vector field
-    let grad_f = VectorField::<P, Q, R>::new(move |c| nabla.gradient(f, c));
+    // Sum of second partial derivatives: ∂²f/∂x_i²
+    for i in 0..dim {
+        let mut coords_plus = coords.to_vec();
+        let mut coords_minus = coords.to_vec();
+        let coords_center = coords;
 
-    // Then compute divergence of gradient
-    nabla.divergence(&grad_f, coords)
+        coords_plus[i] += h;
+        coords_minus[i] -= h;
+
+        let f_plus = f.evaluate(&coords_plus);
+        let f_minus = f.evaluate(&coords_minus);
+        let f_center = f.evaluate(coords_center);
+
+        // Second derivative: (f(x+h) - 2f(x) + f(x-h)) / h²
+        laplacian += (f_plus - 2.0 * f_center + f_minus) / (h * h);
+    }
+
+    laplacian
 }

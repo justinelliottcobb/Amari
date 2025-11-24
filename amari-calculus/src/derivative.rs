@@ -1,6 +1,6 @@
 //! Vector derivative operator ∇ = e^i ∂_i
 
-use crate::{fields::*, CalculusResult, CoordinateSystem};
+use crate::{fields::*, CoordinateSystem};
 use amari_core::Multivector;
 
 /// Vector derivative operator ∇
@@ -20,8 +20,8 @@ use amari_core::Multivector;
 /// - Vector field: ∇·F = divergence, ∇∧F = curl
 /// - General: ∇F = ∇·F + ∇∧F (full geometric derivative)
 pub struct VectorDerivative<const P: usize, const Q: usize, const R: usize> {
-    /// Coordinate system
-    coordinates: CoordinateSystem,
+    /// Coordinate system (reserved for future use with non-Cartesian coordinates)
+    _coordinates: CoordinateSystem,
     /// Step size for numerical differentiation
     h: f64,
 }
@@ -42,7 +42,7 @@ impl<const P: usize, const Q: usize, const R: usize> VectorDerivative<P, Q, R> {
     /// ```
     pub fn new(coordinates: CoordinateSystem) -> Self {
         Self {
-            coordinates,
+            _coordinates: coordinates,
             h: 1e-5, // Default step size
         }
     }
@@ -61,11 +61,11 @@ impl<const P: usize, const Q: usize, const R: usize> VectorDerivative<P, Q, R> {
         let mut components = vec![0.0; dim];
 
         // Compute partial derivatives along each axis
-        for i in 0..dim {
-            components[i] = f.partial_derivative(coords, i, self.h).unwrap_or(0.0);
+        for (i, component) in components.iter_mut().enumerate().take(dim) {
+            *component = f.partial_derivative(coords, i, self.h).unwrap_or(0.0);
         }
 
-        Multivector::from_vector(&components)
+        crate::vector_from_slice(&components)
     }
 
     /// Compute divergence of vector field: ∇·F
@@ -79,7 +79,7 @@ impl<const P: usize, const Q: usize, const R: usize> VectorDerivative<P, Q, R> {
         for i in 0..dim {
             if let Ok(df_dxi) = f.partial_derivative(coords, i, self.h) {
                 // Extract i-th component of the derivative
-                div += df_dxi.get_component(1 << i);
+                div += df_dxi.vector_component(i);
             }
         }
 
@@ -110,28 +110,28 @@ impl<const P: usize, const Q: usize, const R: usize> VectorDerivative<P, Q, R> {
             .partial_derivative(coords, 2, self.h)
             .unwrap_or(Multivector::zero());
 
-        // Extract components (basis: e_1, e_2, e_3 → indices 1, 2, 4)
-        let fx_x = df_dx.get_component(1); // ∂F_x/∂x
-        let fy_x = df_dx.get_component(2); // ∂F_y/∂x
-        let fz_x = df_dx.get_component(4); // ∂F_z/∂x
+        // Extract components (basis: e_1, e_2, e_3 → indices 0, 1, 2)
+        let _fx_x = df_dx.vector_component(0); // ∂F_x/∂x (not used in curl)
+        let fy_x = df_dx.vector_component(1); // ∂F_y/∂x
+        let fz_x = df_dx.vector_component(2); // ∂F_z/∂x
 
-        let fx_y = df_dy.get_component(1); // ∂F_x/∂y
-        let fy_y = df_dy.get_component(2); // ∂F_y/∂y
-        let fz_y = df_dy.get_component(4); // ∂F_z/∂y
+        let fx_y = df_dy.vector_component(0); // ∂F_x/∂y
+        let _fy_y = df_dy.vector_component(1); // ∂F_y/∂y (not used in curl)
+        let fz_y = df_dy.vector_component(2); // ∂F_z/∂y
 
-        let fx_z = df_dz.get_component(1); // ∂F_x/∂z
-        let fy_z = df_dz.get_component(2); // ∂F_y/∂z
-        let fz_z = df_dz.get_component(4); // ∂F_z/∂z
+        let fx_z = df_dz.vector_component(0); // ∂F_x/∂z
+        let fy_z = df_dz.vector_component(1); // ∂F_y/∂z
+        let _fz_z = df_dz.vector_component(2); // ∂F_z/∂z (not used in curl)
 
         // Curl components (bivector representation)
-        // e_2∧e_3: ∂F_z/∂y - ∂F_y/∂z
-        // e_3∧e_1: ∂F_x/∂z - ∂F_z/∂x
-        // e_1∧e_2: ∂F_y/∂x - ∂F_x/∂y
+        // In 3D: e_1∧e_2, e_1∧e_3, e_2∧e_3
+        // Traditional curl: (∂F_z/∂y - ∂F_y/∂z, ∂F_x/∂z - ∂F_z/∂x, ∂F_y/∂x - ∂F_x/∂y)
+        // Maps to bivectors: e_2∧e_3, e_3∧e_1, e_1∧e_2
 
         let mut curl = Multivector::zero();
-        curl.set_component(2 | 4, fz_y - fy_z); // e_2∧e_3
-        curl.set_component(4 | 1, fx_z - fz_x); // e_3∧e_1
-        curl.set_component(1 | 2, fy_x - fx_y); // e_1∧e_2
+        curl.set_bivector_component(2, fz_y - fy_z); // e_2∧e_3 (index 2)
+        curl.set_bivector_component(1, fx_z - fz_x); // e_1∧e_3 (index 1)
+        curl.set_bivector_component(0, fy_x - fx_y); // e_1∧e_2 (index 0)
 
         curl
     }
@@ -152,11 +152,11 @@ mod tests {
 
         // Check components
         assert!(
-            (grad.get_component(1) - 6.0).abs() < 1e-4,
+            (grad.vector_component(0) - 6.0).abs() < 1e-4,
             "∂f/∂x should be 6.0"
         );
         assert!(
-            (grad.get_component(2) - 8.0).abs() < 1e-4,
+            (grad.vector_component(1) - 8.0).abs() < 1e-4,
             "∂f/∂y should be 8.0"
         );
     }
@@ -166,7 +166,7 @@ mod tests {
         // F(x, y, z) = (x, y, z)
         // ∇·F = 1 + 1 + 1 = 3
         let f = VectorField::<3, 0, 0>::new(|coords| {
-            Multivector::from_vector(&[coords[0], coords[1], coords[2]])
+            crate::vector_from_slice(&[coords[0], coords[1], coords[2]])
         });
 
         let nabla = VectorDerivative::<3, 0, 0>::new(CoordinateSystem::Cartesian);
@@ -185,14 +185,14 @@ mod tests {
         // ∇×F = (0, 0, 2) in traditional notation
         // In GA: bivector e_1∧e_2 with magnitude 2
         let f = VectorField::<3, 0, 0>::new(|coords| {
-            Multivector::from_vector(&[-coords[1], coords[0], 0.0])
+            crate::vector_from_slice(&[-coords[1], coords[0], 0.0])
         });
 
         let nabla = VectorDerivative::<3, 0, 0>::new(CoordinateSystem::Cartesian);
         let curl = nabla.curl(&f, &[0.0, 0.0, 0.0]);
 
         // Check e_1∧e_2 component (index 1|2 = 3)
-        let curl_z = curl.get_component(1 | 2);
+        let curl_z = curl.get(1 | 2);
         assert!(
             (curl_z - 2.0).abs() < 1e-4,
             "Curl z-component should be 2.0, got {}",

@@ -14,7 +14,6 @@ pub use vector_field::VectorField;
 #[cfg(test)]
 mod tests {
     use super::*;
-    use amari_core::Multivector;
 
     #[test]
     fn test_scalar_field_evaluation() {
@@ -29,15 +28,15 @@ mod tests {
     fn test_vector_field_evaluation() {
         // F(x, y, z) = (x, y, z)
         let f = VectorField::<3, 0, 0>::new(|coords| {
-            Multivector::from_vector(&[coords[0], coords[1], coords[2]])
+            crate::vector_from_slice(&[coords[0], coords[1], coords[2]])
         });
 
         let val = f.evaluate(&[1.0, 2.0, 3.0]);
-        let expected = Multivector::<3, 0, 0>::from_vector(&[1.0, 2.0, 3.0]);
+        let expected = crate::vector_from_slice::<3, 0, 0>(&[1.0, 2.0, 3.0]);
 
         // Check that components match
         for i in 0..3 {
-            assert!((val.get_component(1 << i) - expected.get_component(1 << i)).abs() < 1e-10);
+            assert!((val.vector_component(i) - expected.vector_component(i)).abs() < 1e-10);
         }
     }
 }
