@@ -286,4 +286,136 @@ mod tests {
             gamma_theta_phi_phi
         );
     }
+
+    #[test]
+    fn test_hyperbolic_manifold() {
+        // Hyperbolic space has negative curvature
+        let metric = MetricTensor::<2>::hyperbolic();
+        let manifold = RiemannianManifold::new(metric);
+
+        // Test point inside Poincaré disk
+        let coords = &[0.3, 0.2];
+
+        // Christoffel symbols should be non-zero for hyperbolic geometry
+        let gamma_000 = manifold.christoffel_symbol(0, 0, 0, coords);
+        assert!(
+            gamma_000.abs() > 1e-6,
+            "Hyperbolic geometry should have non-zero Christoffel symbols"
+        );
+
+        // Scalar curvature should be negative for hyperbolic space
+        let r = manifold.scalar_curvature(coords);
+        assert!(
+            r < 0.0,
+            "Hyperbolic space should have negative curvature, got {}",
+            r
+        );
+    }
+
+    #[test]
+    fn test_euclidean_3d() {
+        // Test 3D Euclidean metric
+        let metric = MetricTensor::<3>::euclidean();
+        let manifold = RiemannianManifold::new(metric);
+
+        // All Christoffel symbols should be zero
+        for k in 0..3 {
+            for i in 0..3 {
+                for j in 0..3 {
+                    let gamma = manifold.christoffel_symbol(k, i, j, &[1.0, 2.0, 3.0]);
+                    assert!(
+                        gamma.abs() < 1e-10,
+                        "3D Euclidean Γ^{}_{}{} should be 0",
+                        k,
+                        i,
+                        j
+                    );
+                }
+            }
+        }
+
+        // Scalar curvature should be zero
+        let r = manifold.scalar_curvature(&[1.0, 2.0, 3.0]);
+        assert!(r.abs() < 1e-8, "3D Euclidean scalar curvature should be 0");
+    }
+
+    #[test]
+    fn test_manifold_curvature_methods() {
+        // Test high-level curvature methods on manifold
+        let metric = MetricTensor::<2>::sphere(1.0);
+        let manifold = RiemannianManifold::new(metric);
+
+        let coords = &[std::f64::consts::PI / 4.0, 0.0];
+
+        // Test Riemann tensor method
+        let riemann = manifold.riemann_tensor(0, 1, 0, 1, coords);
+        assert!(
+            riemann.abs() > 0.1,
+            "Sphere should have non-zero Riemann tensor"
+        );
+
+        // Test Ricci tensor method
+        let ricci_00 = manifold.ricci_tensor(0, 0, coords);
+        let ricci_11 = manifold.ricci_tensor(1, 1, coords);
+        assert!(
+            ricci_00.abs() > 0.1 || ricci_11.abs() > 0.1,
+            "Sphere should have non-zero Ricci tensor"
+        );
+
+        // Test scalar curvature method
+        let scalar = manifold.scalar_curvature(coords);
+        assert!(
+            (scalar - 2.0).abs() < 0.5,
+            "Unit sphere scalar curvature should be ~2, got {}",
+            scalar
+        );
+    }
+
+    #[test]
+    fn test_manifold_geodesic_method() {
+        // Test high-level geodesic method on manifold
+        let metric = MetricTensor::<2>::euclidean();
+        let manifold = RiemannianManifold::new(metric);
+
+        let initial_pos = vec![0.0, 0.0];
+        let initial_vel = vec![1.0, 0.5];
+
+        let trajectory = manifold.geodesic(&initial_pos, &initial_vel, 1.0, 0.1);
+
+        assert!(
+            trajectory.len() > 1,
+            "Geodesic should produce multiple points"
+        );
+
+        // In Euclidean space, geodesic should be straight line
+        let (final_pos, _) = &trajectory[trajectory.len() - 1];
+        assert!(
+            (final_pos[0] - 1.0).abs() < 0.05,
+            "Euclidean geodesic x should be ~1.0"
+        );
+        assert!(
+            (final_pos[1] - 0.5).abs() < 0.05,
+            "Euclidean geodesic y should be ~0.5"
+        );
+    }
+
+    #[test]
+    fn test_manifold_parallel_transport_method() {
+        // Test high-level parallel transport method
+        let metric = MetricTensor::<2>::euclidean();
+        let manifold = RiemannianManifold::new(metric);
+
+        let vector = vec![1.0, 0.0];
+        let pos = vec![0.0, 0.0];
+        let tangent = vec![1.0, 0.0];
+
+        let transported = manifold.parallel_transport(&vector, &pos, &tangent, 0.1);
+
+        // In Euclidean space, vector should not change
+        assert!(
+            (transported[0] - 1.0).abs() < 1e-6,
+            "Euclidean parallel transport should preserve vector"
+        );
+        assert!(transported[1].abs() < 1e-6);
+    }
 }
