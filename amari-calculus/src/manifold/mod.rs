@@ -50,11 +50,13 @@ use crate::{CalculusResult, ScalarField};
 pub mod connection;
 pub mod covariant;
 pub mod curvature;
+pub mod geodesic;
 pub mod metric;
 
 pub use connection::Connection;
 pub use covariant::CovariantDerivative;
 pub use curvature::{RicciTensor, RiemannTensor, ScalarCurvature};
+pub use geodesic::{GeodesicSolver, ParallelTransport};
 pub use metric::MetricTensor;
 
 /// A Riemannian manifold with metric tensor and connection
@@ -181,6 +183,58 @@ impl<const DIM: usize> RiemannianManifold<DIM> {
     pub fn scalar_curvature(&self, coords: &[f64]) -> f64 {
         let scalar_curv = ScalarCurvature::new(&self.connection);
         scalar_curv.compute(coords)
+    }
+
+    /// Compute geodesic trajectory from initial conditions
+    ///
+    /// Geodesics are curves that locally minimize distance, generalizing
+    /// straight lines to curved spaces.
+    ///
+    /// # Arguments
+    ///
+    /// * `initial_pos` - Starting position
+    /// * `initial_vel` - Starting velocity (tangent vector)
+    /// * `t_max` - Total integration time
+    /// * `dt` - Time step for numerical integration
+    ///
+    /// # Returns
+    ///
+    /// Vector of (position, velocity) pairs along the geodesic
+    pub fn geodesic(
+        &self,
+        initial_pos: &[f64],
+        initial_vel: &[f64],
+        t_max: f64,
+        dt: f64,
+    ) -> Vec<(Vec<f64>, Vec<f64>)> {
+        let solver = GeodesicSolver::new(&self.connection);
+        solver.trajectory(initial_pos, initial_vel, t_max, dt)
+    }
+
+    /// Parallel transport a vector along a curve
+    ///
+    /// Moves a vector along a curve while keeping it "as constant as possible"
+    /// relative to the manifold's connection.
+    ///
+    /// # Arguments
+    ///
+    /// * `vector` - Vector to transport
+    /// * `curve_pos` - Position on curve
+    /// * `curve_tangent` - Tangent to curve
+    /// * `dt` - Time step
+    ///
+    /// # Returns
+    ///
+    /// Transported vector
+    pub fn parallel_transport(
+        &self,
+        vector: &[f64],
+        curve_pos: &[f64],
+        curve_tangent: &[f64],
+        dt: f64,
+    ) -> Vec<f64> {
+        let transport = ParallelTransport::new(&self.connection);
+        transport.step(curve_pos, curve_tangent, vector, dt)
     }
 }
 
