@@ -108,6 +108,7 @@ jobs:
             "amari-flynn-macros"
             "amari-flynn"
             "amari-measure"
+            "amari-calculus"
             "amari-gpu"
             "amari-optimization"
             "amari"
