@@ -152,6 +152,18 @@ impl<T: Float> DualNumber<T> {
         }
     }
 
+    /// Integer power function: (a + b·ε)^n = a^n + n·b·a^(n-1)·ε
+    ///
+    /// Uses the power rule: d/dx(f^n) = n·f'·f^(n-1)
+    pub fn powi(self, n: i32) -> Self {
+        let n_float = T::from(n).unwrap();
+        let pow_real = self.real.powi(n);
+        Self {
+            real: pow_real,
+            dual: n_float * self.dual * self.real.powi(n - 1),
+        }
+    }
+
     /// Absolute value: |a + b·ε| = |a| + b·sign(a)·ε
     ///
     /// Derivative is sign(a), undefined at a=0
