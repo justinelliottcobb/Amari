@@ -45,6 +45,10 @@ pub use amari_core::{Bivector, Multivector, Vector};
 pub use amari_dual::DualMultivector;
 pub use amari_tropical::TropicalMultivector;
 
+// Domain types
+pub mod error;
+pub mod traits;
+
 // Core modules
 pub mod cayley_navigation;
 pub mod geometric_ca;
@@ -71,5 +75,9 @@ pub use tropical_solver::{
     ConstraintType, SolverConfig, TropicalExpression, TropicalSolver, TropicalSystem,
 };
 pub use ui_assembly::{Layout, LayoutConstraint, UIAssembler, UIAssemblyConfig, UIComponent};
+
+// Re-export domain types
+pub use error::{AutomataError, AutomataResult};
+pub use traits::{Evolvable, InverseDesignable, SelfAssembling};
 
 // GPU acceleration exports

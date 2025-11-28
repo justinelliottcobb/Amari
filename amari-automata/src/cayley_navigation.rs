@@ -194,7 +194,7 @@ impl<const P: usize, const Q: usize, const R: usize> CayleyGraph<P, Q, R> {
         }
 
         if generator_idx >= self.generators.len() {
-            return Err(AutomataError::CayleyTableMiss);
+            return Err(AutomataError::InvalidCoordinates(generator_idx, self.generators.len()));
         }
 
         let edge = CayleyEdge {
@@ -258,7 +258,7 @@ impl<const P: usize, const Q: usize, const R: usize> CayleyGraph<P, Q, R> {
         }
 
         if generator_idx >= self.generators.len() {
-            return Err(AutomataError::CayleyTableMiss);
+            return Err(AutomataError::InvalidCoordinates(generator_idx, self.generators.len()));
         }
 
         let state = &self.nodes[state_id].state;
@@ -341,7 +341,7 @@ impl<const P: usize, const Q: usize, const R: usize> CayleyNavigator<P, Q, R> {
             }
         }
 
-        Err(AutomataError::CayleyTableMiss)
+        Err(AutomataError::ConfigurationNotFound)
     }
 
     /// Get current position
