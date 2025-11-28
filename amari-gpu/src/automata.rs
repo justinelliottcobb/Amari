@@ -919,8 +919,7 @@ mod gpu_impl {
 pub mod gpu_fallback {
     //! Fallback implementation when GPU features are not available
 
-    use crate::AutomataResult;
-    use alloc::{vec, vec::Vec};
+    use amari_automata::{AutomataError, AutomataResult};
 
     /// Placeholder for GPU cellular automata operations
     pub struct AutomataGpuOps;
@@ -928,7 +927,7 @@ pub mod gpu_fallback {
     impl AutomataGpuOps {
         /// Create new instance (always fails without GPU feature)
         pub async fn new() -> AutomataResult<Self> {
-            Err(crate::AutomataError::SolverConvergenceFailure)
+            Err(AutomataError::ConfigurationNotFound)
         }
     }
 

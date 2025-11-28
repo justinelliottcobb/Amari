@@ -63,7 +63,7 @@ pub enum AmariError {
 
     /// Fusion system error
     #[error(transparent)]
-    Fusion(#[from] amari_fusion::FusionError),
+    Fusion(#[from] amari_fusion::EvaluationError),
 
     /// Tropical algebra error
     #[error(transparent)]

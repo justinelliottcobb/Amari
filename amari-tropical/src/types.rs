@@ -83,6 +83,12 @@ impl<T: Float> TropicalNumber<T> {
         Self::zero()
     }
 
+    /// Alias for `zero()` - tropical additive identity
+    #[inline]
+    pub fn tropical_zero() -> Self {
+        Self::zero()
+    }
+
     /// Create tropical one (0)
     ///
     /// The multiplicative identity in tropical algebra
