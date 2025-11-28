@@ -5,9 +5,9 @@
 //! batch gradient computation, neural network training, and large-scale optimization.
 
 #[cfg(feature = "gpu")]
-use crate::{DualNumber, MultiDual};
-#[cfg(feature = "gpu")]
 use alloc::vec::Vec;
+#[cfg(feature = "dual")]
+use amari_dual::{DualNumber, MultiDualNumber};
 #[cfg(feature = "gpu")]
 use bytemuck::{Pod, Zeroable};
 #[cfg(feature = "gpu")]

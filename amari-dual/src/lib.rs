@@ -7,24 +7,31 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 extern crate alloc;
-use alloc::vec::Vec;
-use core::ops::{Add, Div, Mul, Neg, Sub};
-use num_traits::{Float, One, Zero};
 
 // Import precision types from amari-core
 #[cfg(feature = "high-precision")]
 pub use amari_core::HighPrecisionFloat;
 pub use amari_core::{ExtendedFloat, PrecisionFloat, StandardFloat};
 
-pub mod comprehensive_tests;
+// Core dual number types
+pub mod types;
+
+// Domain modules
 pub mod error;
 pub mod functions;
 pub mod multivector;
+
+#[cfg(feature = "phantom-types")]
 pub mod verified;
+
+#[cfg(feature = "contracts")]
 pub mod verified_contracts;
 
-// Re-export commonly used types
+// Re-export error types
 pub use error::{DualError, DualResult};
+
+// Re-export core types
 pub use multivector::{DualMultivector, MultiDualMultivector};
+pub use types::{DualNumber, MultiDualNumber};
 
 // GPU acceleration exports
