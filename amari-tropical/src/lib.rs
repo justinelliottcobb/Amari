@@ -31,6 +31,9 @@ pub mod verified_contracts;
 pub use error::{TropicalError, TropicalResult};
 
 // Re-export core types
-pub use types::{TropicalMatrix, TropicalMultivector, TropicalNumber};
+pub use types::{StandardTropical, TropicalMatrix, TropicalMultivector, TropicalNumber};
+
+#[cfg(feature = "high-precision")]
+pub use types::ExtendedTropical;
 
 // Re-export GPU functionality when available

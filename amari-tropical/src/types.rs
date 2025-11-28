@@ -496,6 +496,14 @@ impl<T: Float + fmt::Display, const P: usize, const Q: usize, const R: usize> fm
     }
 }
 
+// Precision type aliases for tropical numbers
+/// Standard-precision tropical number (f64)
+pub type StandardTropical = TropicalNumber<f64>;
+
+/// Extended-precision tropical number (uses extended precision float from amari-core)
+#[cfg(feature = "high-precision")]
+pub type ExtendedTropical = TropicalNumber<crate::ExtendedFloat>;
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -32,6 +32,9 @@ pub use error::{DualError, DualResult};
 
 // Re-export core types
 pub use multivector::{DualMultivector, MultiDualMultivector};
-pub use types::{DualNumber, MultiDualNumber};
+pub use types::{DualNumber, MultiDualNumber, StandardDual, StandardMultiDual};
+
+#[cfg(feature = "high-precision")]
+pub use types::{ExtendedDual, ExtendedMultiDual};
 
 // GPU acceleration exports

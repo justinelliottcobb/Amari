@@ -328,6 +328,21 @@ impl<T: Float + fmt::Display> fmt::Display for DualNumber<T> {
     }
 }
 
+// Precision type aliases for dual numbers
+/// Standard-precision dual number (f64)
+pub type StandardDual = DualNumber<f64>;
+
+/// Extended-precision dual number (uses extended precision float from amari-core)
+#[cfg(feature = "high-precision")]
+pub type ExtendedDual = DualNumber<crate::ExtendedFloat>;
+
+/// Standard-precision multi-dual number (f64)
+pub type StandardMultiDual = MultiDualNumber<f64>;
+
+/// Extended-precision multi-dual number (uses extended precision float from amari-core)
+#[cfg(feature = "high-precision")]
+pub type ExtendedMultiDual = MultiDualNumber<crate::ExtendedFloat>;
+
 /// Multi-variable dual number for computing gradients
 ///
 /// A MultiDualNumber represents a scalar function of multiple variables,
