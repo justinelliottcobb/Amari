@@ -18,6 +18,11 @@ amari-network = { workspace = true, default-features = false, features = ["std"]
 amari-relativistic = { workspace = true, default-features = false, features = ["std", "phantom-types"] }
 amari-measure = { workspace = true, optional = true }
 amari-calculus = { workspace = true, optional = true }
+amari-tropical = { workspace = true, optional = true }
+amari-dual = { workspace = true, optional = true }
+amari-fusion = { workspace = true, optional = true }
+amari-automata = { workspace = true, optional = true }
+amari-enumerative = { workspace = true, optional = true }
 wgpu = "0.19"
 futures = "0.3"
 pollster = "0.3"
@@ -37,3 +42,8 @@ webgpu = ["wgpu/webgpu"]
 high-precision = ["amari-core/high-precision", "amari-relativistic/high-precision"]
 measure = ["dep:amari-measure"]
 calculus = ["dep:amari-calculus"]
+tropical = ["dep:amari-tropical"]
+dual = ["dep:amari-dual"]
+fusion = ["dep:amari-fusion"]
+automata = ["dep:amari-automata"]
+enumerative = ["dep:amari-enumerative"]

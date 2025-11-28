@@ -26,12 +26,13 @@ criterion = "0.5"
 tokio = { version = "1.0", features = ["rt", "rt-multi-thread", "macros"] }
 
 [features]
-default = ["std", "high-precision"]
+default = ["std", "high-precision", "phantom-types"]
 std = []
 serialize = ["serde"]
 gpu = ["bytemuck", "wgpu", "pollster", "futures"]
 high-precision = ["amari-core/high-precision"]
 native-precision = ["amari-core/native-precision"]
 wasm-precision = ["amari-core/wasm-precision"]
+phantom-types = ["amari-core/phantom-types"]
 formal-verification = ["amari-core/formal-verification"]
 contracts = ["formal-verification"]

@@ -4,8 +4,8 @@
 //! operations including matrix multiplication, neural network attention,
 //! and Viterbi algorithm computation using WebGPU compute shaders.
 
-#[cfg(feature = "gpu")]
-use crate::{TropicalError, TropicalMatrix, TropicalMultivector, TropicalNumber};
+#[cfg(feature = "tropical")]
+use amari_tropical::{TropicalError, TropicalMatrix, TropicalMultivector, TropicalNumber};
 
 #[cfg(feature = "gpu")]
 use bytemuck::{Pod, Zeroable};

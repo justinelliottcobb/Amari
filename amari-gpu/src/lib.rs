@@ -1,9 +1,17 @@
 //! GPU acceleration for geometric algebra operations using WebGPU/wgpu
 
 pub mod adaptive;
+#[cfg(feature = "automata")]
+pub mod automata;
 pub mod benchmarks;
 #[cfg(feature = "calculus")]
 pub mod calculus;
+#[cfg(feature = "dual")]
+pub mod dual;
+#[cfg(feature = "enumerative")]
+pub mod enumerative;
+#[cfg(feature = "fusion")]
+pub mod fusion;
 #[cfg(feature = "measure")]
 pub mod measure;
 pub mod multi_gpu;
@@ -12,6 +20,8 @@ pub mod performance;
 pub mod relativistic;
 pub mod shaders;
 pub mod timeline;
+#[cfg(feature = "tropical")]
+pub mod tropical;
 pub mod unified;
 pub mod verification;
 

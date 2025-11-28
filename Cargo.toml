@@ -23,7 +23,7 @@ amari-enumerative = { workspace = true }
 amari-relativistic = { workspace = true }
 amari-gpu = { workspace = true, optional = true }
 amari-optimization = { workspace = true, optional = true }
-amari-flynn = { version = "0.11.1", path = "amari-flynn", optional = true }
+amari-flynn = { version = "0.12.0", path = "amari-flynn", optional = true }
 amari-measure = { workspace = true, optional = true }
 thiserror = { workspace = true }
 
@@ -55,7 +55,7 @@ members = ["amari-core", "amari-wasm", "amari-gpu", "amari-info-geom", "amari-tr
 resolver = "2"
 
 [workspace.package]
-version = "0.11.1"
+version = "0.12.0"
 authors = ["Amari Contributors"]
 edition = "2021"
 license = "MIT OR Apache-2.0"
@@ -63,23 +63,23 @@ rust-version = "1.75"
 
 [workspace.dependencies]
 # Amari crates (internal dependencies)
-amari = { path = ".", version = "0.11.1" }
-amari-core = { path = "amari-core", version = "0.11.1" }
-amari-tropical = { path = "amari-tropical", version = "0.11.1" }
-amari-dual = { path = "amari-dual", version = "0.11.1" }
-amari-fusion = { path = "amari-fusion", version = "0.11.1" }
-amari-info-geom = { path = "amari-info-geom", version = "0.11.1" }
-amari-automata = { path = "amari-automata", version = "0.11.1" }
-amari-enumerative = { path = "amari-enumerative", version = "0.11.1" }
-amari-relativistic = { path = "amari-relativistic", version = "0.11.1" }
-amari-gpu = { path = "amari-gpu", version = "0.11.1" }
-amari-network = { path = "amari-network", version = "0.11.1" }
-amari-optimization = { path = "amari-optimization", version = "0.11.1" }
-amari-flynn = { path = "amari-flynn", version = "0.11.1" }
-amari-flynn-macros = { path = "amari-flynn-macros", version = "0.11.1" }
-amari-measure = { path = "amari-measure", version = "0.11.1" }
-amari-calculus = { path = "amari-calculus", version = "0.11.1" }
-amari-wasm = { path = "amari-wasm", version = "0.11.1" }
+amari = { path = ".", version = "0.12.0" }
+amari-core = { path = "amari-core", version = "0.12.0" }
+amari-tropical = { path = "amari-tropical", version = "0.12.0" }
+amari-dual = { path = "amari-dual", version = "0.12.0" }
+amari-fusion = { path = "amari-fusion", version = "0.12.0" }
+amari-info-geom = { path = "amari-info-geom", version = "0.12.0" }
+amari-automata = { path = "amari-automata", version = "0.12.0" }
+amari-enumerative = { path = "amari-enumerative", version = "0.12.0" }
+amari-relativistic = { path = "amari-relativistic", version = "0.12.0" }
+amari-gpu = { path = "amari-gpu", version = "0.12.0" }
+amari-network = { path = "amari-network", version = "0.12.0" }
+amari-optimization = { path = "amari-optimization", version = "0.12.0" }
+amari-flynn = { path = "amari-flynn", version = "0.12.0" }
+amari-flynn-macros = { path = "amari-flynn-macros", version = "0.12.0" }
+amari-measure = { path = "amari-measure", version = "0.12.0" }
+amari-calculus = { path = "amari-calculus", version = "0.12.0" }
+amari-wasm = { path = "amari-wasm", version = "0.12.0" }
 
 # External dependencies
 bytemuck = "1.14"
