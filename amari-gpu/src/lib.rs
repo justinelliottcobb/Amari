@@ -2,6 +2,8 @@
 
 pub mod adaptive;
 pub mod benchmarks;
+#[cfg(feature = "calculus")]
+pub mod calculus;
 #[cfg(feature = "measure")]
 pub mod measure;
 pub mod multi_gpu;
@@ -25,6 +27,8 @@ pub use benchmarks::{
     BenchmarkSuiteResults, BenchmarkSummary, ScalingAnalysis,
 };
 use bytemuck::{Pod, Zeroable};
+#[cfg(feature = "calculus")]
+pub use calculus::GpuCalculus;
 #[cfg(feature = "measure")]
 pub use measure::{
     GpuIntegrator, GpuMonteCarloIntegrator, GpuMultidimIntegrator, GpuParametricDensity,
