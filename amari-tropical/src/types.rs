@@ -75,6 +75,14 @@ impl<T: Float> TropicalNumber<T> {
         }
     }
 
+    /// Alias for `zero()` - tropical additive identity
+    ///
+    /// Returns negative infinity, the additive identity in tropical algebra
+    #[inline]
+    pub fn neg_infinity() -> Self {
+        Self::zero()
+    }
+
     /// Create tropical one (0)
     ///
     /// The multiplicative identity in tropical algebra

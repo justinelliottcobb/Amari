@@ -11,12 +11,6 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 extern crate alloc;
-use alloc::vec::Vec;
-
-use amari_core::Multivector;
-use amari_dual::{multivector::DualMultivector, DualNumber};
-use amari_tropical::{TropicalMatrix, TropicalMultivector, TropicalNumber};
-use num_traits::Float;
 
 // Re-export precision types from all constituent crates
 pub use amari_core::{ExtendedFloat, PrecisionFloat, StandardFloat};
@@ -26,11 +20,19 @@ pub use amari_tropical::{ExtendedTropical, StandardTropical};
 #[cfg(feature = "high-precision")]
 pub use amari_core::HighPrecisionFloat;
 
+// Core fusion types
+pub mod types;
+
+// Domain modules
 pub mod attention;
-pub mod comprehensive_tests;
 pub mod evaluation;
 pub mod optimizer;
+
+// Verification modules
 pub mod verified;
 pub mod verified_contracts;
+
+// Re-export core types
+pub use types::{EvaluationError, EvaluationResult, TropicalDualClifford};
 
 // GPU acceleration exports

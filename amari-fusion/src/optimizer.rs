@@ -90,24 +90,22 @@ impl<T: Float> TropicalDualOptimizer<T> {
             let current_value = objective(&current);
 
             // Use tropical algebra to identify most important components
-            let support = current.tropical.support();
-            if support.is_empty() {
-                break;
+            // Find the maximum element manually
+            let mut max_idx = 0;
+            let mut max_val = T::neg_infinity();
+            for i in 0..DIM.min(8) {
+                if let Ok(val) = current.tropical().get(i) {
+                    let v = val.value();
+                    if v > max_val && !v.is_infinite() {
+                        max_val = v;
+                        max_idx = i;
+                    }
+                }
             }
 
-            // Focus on the component with maximum tropical value
-            let max_idx = support
-                .iter()
-                .max_by(|&&a, &&b| {
-                    current
-                        .tropical
-                        .get(a)
-                        .value()
-                        .partial_cmp(&current.tropical.get(b).value())
-                        .unwrap_or(core::cmp::Ordering::Equal)
-                })
-                .copied()
-                .unwrap_or(0);
+            if max_val.is_infinite() {
+                break;
+            }
 
             // Simple update based on tropical structure
             let improvement = T::from(0.1).unwrap();
@@ -180,9 +178,16 @@ impl<T: Float> TropicalDualOptimizer<T> {
         let mut result = point.clone();
 
         // Project Clifford component onto unit sphere (normalization)
-        let clifford_norm = result.clifford.norm();
+        let clifford_norm = result.clifford().norm();
         if clifford_norm > 1e-10 {
-            result.clifford = result.clifford * (1.0 / clifford_norm);
+            // Need to create new result with normalized clifford
+            let normalized_clifford = result.clifford().clone() * (1.0 / clifford_norm);
+            // Reconstruct with normalized clifford
+            result = TropicalDualClifford::from_components(
+                result.extract_tropical_features(),
+                result.extract_dual_features(),
+                normalized_clifford,
+            );
         }
 
         // Ensure consistency between representations
@@ -208,7 +213,7 @@ impl<T: Float> TropicalDualOptimizer<T> {
             let perturbed = point.clone();
 
             // Create a small perturbation using dual numbers
-            let current_coeff = perturbed.dual.get(i);
+            let current_coeff = perturbed.dual().get(i);
             let grad_component = current_coeff.dual;
             gradient.push(grad_component);
         }
@@ -225,14 +230,24 @@ impl<T: Float> TropicalDualOptimizer<T> {
         let mut result = point.clone();
 
         // Update dual components (which will propagate to others)
-        for (i, &v) in velocity.iter().enumerate() {
-            if i < 8 {
-                // Limit to dual multivector size
-                let current = result.dual.get(i);
-                let new_val = DualNumber::variable(T::from(current.real).unwrap_or(T::zero()) + v);
-                result.dual.set(i, new_val);
+        let mut new_dual_features = Vec::new();
+        for i in 0..DIM.min(8) {
+            let current = result.dual().get(i);
+            if i < velocity.len() {
+                let new_val =
+                    DualNumber::variable(T::from(current.real).unwrap_or(T::zero()) + velocity[i]);
+                new_dual_features.push(new_val);
+            } else {
+                new_dual_features.push(current);
             }
         }
+
+        // Reconstruct with updated dual components
+        result = TropicalDualClifford::from_components(
+            result.extract_tropical_features(),
+            new_dual_features,
+            result.clifford().clone(),
+        );
 
         // Synchronize other representations
         result = self.synchronize_representations(result)?;
@@ -250,10 +265,18 @@ impl<T: Float> TropicalDualOptimizer<T> {
         let mut result = point.clone();
 
         // Update tropical component
-        if component < (1 << DIM) {
-            let current = result.tropical.get(component);
-            let new_val = current + amari_tropical::TropicalNumber::new(delta);
-            result.tropical.set(component, new_val);
+        let mut new_tropical_features = result.extract_tropical_features();
+        if component < new_tropical_features.len() {
+            let current = new_tropical_features[component];
+            new_tropical_features[component] =
+                current.tropical_add(&amari_tropical::TropicalNumber::new(delta));
+
+            // Reconstruct with updated tropical component
+            result = TropicalDualClifford::from_components(
+                new_tropical_features,
+                result.extract_dual_features(),
+                result.clifford().clone(),
+            );
         }
 
         // Synchronize other representations
@@ -265,27 +288,40 @@ impl<T: Float> TropicalDualOptimizer<T> {
     /// Ensure consistency between the three representations
     fn synchronize_representations<const DIM: usize>(
         &self,
-        mut point: TropicalDualClifford<T, DIM>,
+        point: TropicalDualClifford<T, DIM>,
     ) -> Result<TropicalDualClifford<T, DIM>, OptimizationError> {
         // Extract values from dual representation (most precise)
         let dual_values: Vec<f64> = (0..8)
-            .map(|i| point.dual.get(i).real.to_f64().unwrap_or(0.0))
+            .map(|i| point.dual().get(i).real.to_f64().unwrap_or(0.0))
             .collect();
 
-        // Update Clifford representation
-        point.clifford = amari_core::Multivector::from_coefficients(dual_values.clone());
+        // Create new Clifford representation
+        let new_clifford = amari_core::Multivector::from_coefficients(dual_values.clone());
 
-        // Update tropical representation with log values
+        // Create new tropical representation with log values
         let tropical_coeffs: Vec<T> = dual_values
             .iter()
             .take(DIM.min(8))
-            .chain(core::iter::repeat(&0.0))
-            .take(1 << DIM)
             .map(|&x| T::from(x).unwrap_or(T::zero()))
             .collect();
-        point.tropical = amari_tropical::TropicalMultivector::from_coefficients(tropical_coeffs);
+        let new_tropical =
+            amari_tropical::TropicalMultivector::<T, DIM, 0, 0>::from_components(tropical_coeffs)
+                .unwrap_or_else(|_| amari_tropical::TropicalMultivector::<T, DIM, 0, 0>::new());
 
-        Ok(point)
+        // Reconstruct with synchronized components
+        let result = TropicalDualClifford::from_components(
+            (0..DIM.min(8))
+                .map(|i| {
+                    new_tropical
+                        .get(i)
+                        .unwrap_or(amari_tropical::TropicalNumber::zero())
+                })
+                .collect(),
+            point.extract_dual_features(),
+            new_clifford,
+        );
+
+        Ok(result)
     }
 }
 
@@ -427,12 +463,20 @@ pub mod llm_optimizers {
             let reg_weight = self.regularization_weight;
 
             let objective = |attention: &TropicalDualClifford<T, DIM>| {
-                // Effectiveness term
-                let effectiveness = attention.tropical.max_element().value();
-                let effectiveness_loss = (effectiveness - effectiveness_target).abs();
+                // Effectiveness term - find max manually
+                let mut max_effectiveness = T::neg_infinity();
+                for i in 0..DIM.min(8) {
+                    if let Ok(val) = attention.tropical().get(i) {
+                        let v = val.value();
+                        if v > max_effectiveness && !v.is_infinite() {
+                            max_effectiveness = v;
+                        }
+                    }
+                }
+                let effectiveness_loss = (max_effectiveness - effectiveness_target).abs();
 
                 // Sparsity regularization using tropical norm
-                let sparsity = attention.tropical.tropical_norm().value();
+                let sparsity = attention.tropical().tropical_norm().value();
                 let total_loss = effectiveness_loss + reg_weight * sparsity;
 
                 DualNumber::variable(-total_loss) // Minimize
@@ -520,7 +564,15 @@ mod tests {
         let optimized = result.unwrap();
 
         // The optimization should produce a finite result (not negative infinity)
-        let max_val = optimized.tropical.max_element().value();
+        let mut max_val = f64::NEG_INFINITY;
+        for i in 0..4 {
+            if let Ok(val) = optimized.tropical().get(i) {
+                let v = val.value();
+                if v > max_val && !v.is_infinite() {
+                    max_val = v;
+                }
+            }
+        }
         assert!(
             max_val.is_finite(),
             "Expected finite max element, got: {}",
@@ -547,8 +599,22 @@ mod tests {
         let sync_tdc = synchronized.unwrap();
 
         // All three representations should be consistent
-        assert!(sync_tdc.dual.norm().real > 0.0);
-        assert!(sync_tdc.clifford.norm() > 0.0);
-        assert!(!sync_tdc.tropical.max_element().is_zero());
+        assert!(sync_tdc.dual().norm().real > 0.0);
+        assert!(sync_tdc.clifford().norm() > 0.0);
+
+        // Check that tropical representation has some non-zero elements
+        let mut has_nonzero = false;
+        for i in 0..4 {
+            if let Ok(val) = sync_tdc.tropical().get(i) {
+                if !val.is_zero() {
+                    has_nonzero = true;
+                    break;
+                }
+            }
+        }
+        assert!(
+            has_nonzero,
+            "Tropical representation should have non-zero elements"
+        );
     }
 }
