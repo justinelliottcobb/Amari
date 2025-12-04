@@ -13,9 +13,7 @@
 //! - Neural network parameter optimization
 //! - Interactive machine learning demonstrations
 
-use amari_fusion::{
-    EvaluationResult, TropicalDualClifford,
-};
+use amari_fusion::{EvaluationResult, TropicalDualClifford};
 use js_sys::Object;
 use wasm_bindgen::prelude::*;
 
@@ -258,11 +256,14 @@ impl WasmTropicalDualClifford {
         sensitivities.sort_by(|a, b| b.2.abs().partial_cmp(&a.2.abs()).unwrap());
 
         WasmSensitivityMap {
-            sensitivities: sensitivities.into_iter().map(|(c, v, s)| SensitivityEntry {
-                component: c,
-                value: v,
-                sensitivity: s,
-            }).collect()
+            sensitivities: sensitivities
+                .into_iter()
+                .map(|(c, v, s)| SensitivityEntry {
+                    component: c,
+                    value: v,
+                    sensitivity: s,
+                })
+                .collect(),
         }
     }
 }
@@ -372,17 +373,9 @@ impl WasmSensitivityMap {
     /// Get all sensitivities as JavaScript arrays
     #[wasm_bindgen(js_name = getAllSensitivities)]
     pub fn get_all_sensitivities(&self) -> Result<JsValue, JsValue> {
-        let components: Vec<usize> = self
-            .sensitivities
-            .iter()
-            .map(|s| s.component)
-            .collect();
+        let components: Vec<usize> = self.sensitivities.iter().map(|s| s.component).collect();
         let values: Vec<f64> = self.sensitivities.iter().map(|s| s.value).collect();
-        let sensitivities: Vec<f64> = self
-            .sensitivities
-            .iter()
-            .map(|s| s.sensitivity)
-            .collect();
+        let sensitivities: Vec<f64> = self.sensitivities.iter().map(|s| s.sensitivity).collect();
 
         let obj = Object::new();
         js_sys::Reflect::set(
@@ -624,10 +617,7 @@ impl FusionBatchOperations {
 
             // Compute sensitivity as sum of absolute gradients
             let dual_features = tdc.extract_dual_features();
-            let sensitivity: f64 = dual_features
-                .iter()
-                .map(|d| d.derivative().abs())
-                .sum();
+            let sensitivity: f64 = dual_features.iter().map(|d| d.derivative().abs()).sum();
             total_sensitivities.push(sensitivity);
         }
 

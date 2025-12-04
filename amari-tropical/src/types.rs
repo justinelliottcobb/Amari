@@ -115,6 +115,14 @@ impl<T: Float> TropicalNumber<T> {
         self.value == T::zero()
     }
 
+    /// Check if this value represents infinity (tropical zero)
+    ///
+    /// Alias for `is_zero()` - checks if value is negative infinity
+    #[inline]
+    pub fn is_infinity(&self) -> bool {
+        self.is_zero()
+    }
+
     /// Tropical addition: max(self, other)
     #[inline]
     pub fn tropical_add(&self, other: &Self) -> Self {

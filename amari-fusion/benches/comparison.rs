@@ -31,19 +31,17 @@ fn benchmark_softmax_comparison(c: &mut Criterion) {
         group.bench_with_input(BenchmarkId::new("tropical_softmax", size), size, |b, _| {
             b.iter(|| {
                 let tropical_logits: Vec<TropicalNumber<f64>> =
-                    logits.iter().map(|&x| TropicalNumber(x)).collect();
+                    logits.iter().map(|&x| TropicalNumber::new(x)).collect();
 
                 // Find max (tropical sum)
                 let max_val = tropical_logits
                     .iter()
-                    .fold(TropicalNumber::neg_infinity(), |acc, &x| {
-                        acc.tropical_add(x)
-                    });
+                    .fold(TropicalNumber::neg_infinity(), |acc, x| acc.tropical_add(x));
 
                 // Normalize (tropical division)
                 let result: Vec<TropicalNumber<f64>> = tropical_logits
                     .iter()
-                    .map(|&x| TropicalNumber(x.0 - max_val.0))
+                    .map(|x| TropicalNumber::new(x.value() - max_val.value()))
                     .collect();
 
                 black_box(result)

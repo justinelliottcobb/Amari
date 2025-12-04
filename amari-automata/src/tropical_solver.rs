@@ -165,7 +165,10 @@ impl<T: Float + Clone + PartialOrd + Copy, const DIM: usize> TropicalConstraint<
     }
 
     /// Evaluate constraint satisfaction
-    pub fn is_satisfied(&self, variables: &[TropicalMultivector<T, DIM, 0, 0>]) -> AutomataResult<bool> {
+    pub fn is_satisfied(
+        &self,
+        variables: &[TropicalMultivector<T, DIM, 0, 0>],
+    ) -> AutomataResult<bool> {
         let lhs_val = self.lhs.evaluate(variables)?;
         let rhs_val = self.rhs.evaluate(variables)?;
 
@@ -258,7 +261,8 @@ impl<T: Float + Clone + PartialOrd + Copy, const DIM: usize> TropicalExpression<
                 let scalar_tropical = TropicalNumber::new(*scalar);
                 let mut result = expr_val.clone();
                 for i in 0..result.components().len() {
-                    result.set(i, result.components()[i].tropical_mul(&scalar_tropical))
+                    result
+                        .set(i, result.components()[i].tropical_mul(&scalar_tropical))
                         .map_err(|e| AutomataError::Other(format!("Tropical error: {:?}", e)))?;
                 }
                 Ok(result)
@@ -319,7 +323,10 @@ impl<T: Float + Clone + PartialOrd + Copy, const DIM: usize> TropicalSystem<T, D
     }
 
     /// Check if a solution satisfies all constraints
-    pub fn is_feasible(&self, solution: &[TropicalMultivector<T, DIM, 0, 0>]) -> AutomataResult<bool> {
+    pub fn is_feasible(
+        &self,
+        solution: &[TropicalMultivector<T, DIM, 0, 0>],
+    ) -> AutomataResult<bool> {
         if solution.len() != self.num_variables {
             return Err(AutomataError::InvalidCoordinates(
                 solution.len(),
@@ -337,7 +344,10 @@ impl<T: Float + Clone + PartialOrd + Copy, const DIM: usize> TropicalSystem<T, D
     }
 
     /// Compute total constraint violation
-    pub fn total_violation(&self, solution: &[TropicalMultivector<T, DIM, 0, 0>]) -> AutomataResult<T> {
+    pub fn total_violation(
+        &self,
+        solution: &[TropicalMultivector<T, DIM, 0, 0>],
+    ) -> AutomataResult<T> {
         if solution.len() != self.num_variables {
             return Err(AutomataError::InvalidCoordinates(
                 solution.len(),

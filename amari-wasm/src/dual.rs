@@ -312,7 +312,9 @@ impl WasmMultiDualNumber {
         let val = self.inner.get_value().sqrt();
         // Compute gradient: d/dx sqrt(f) = f'/(2*sqrt(f))
         let sqrt_val = val;
-        let grad: Vec<f64> = self.inner.get_gradient()
+        let grad: Vec<f64> = self
+            .inner
+            .get_gradient()
             .iter()
             .map(|&g| g / (2.0 * sqrt_val))
             .collect();

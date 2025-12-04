@@ -4,10 +4,8 @@
 //! It implements parallel processing of CA rules, geometric algebra operations, and
 //! batch evolution for massive scale simulations.
 
-#[cfg(feature = "gpu")]
 pub use self::gpu_impl::*;
 
-#[cfg(feature = "gpu")]
 mod gpu_impl {
     use crate::{AutomataError, RuleType};
     use alloc::{
@@ -914,35 +912,3 @@ mod gpu_impl {
         }
     }
 }
-
-#[cfg(not(feature = "gpu"))]
-pub mod gpu_fallback {
-    //! Fallback implementation when GPU features are not available
-
-    use amari_automata::{AutomataError, AutomataResult};
-
-    /// Placeholder for GPU cellular automata operations
-    pub struct AutomataGpuOps;
-
-    impl AutomataGpuOps {
-        /// Create new instance (always fails without GPU feature)
-        pub async fn new() -> AutomataResult<Self> {
-            Err(AutomataError::ConfigurationNotFound)
-        }
-    }
-
-    /// Placeholder GPU cell data
-    #[derive(Clone, Debug)]
-    pub struct GpuCellData;
-
-    /// Placeholder GPU rule config
-    #[derive(Clone, Debug)]
-    pub struct GpuRuleConfig;
-
-    /// Placeholder GPU evolution params
-    #[derive(Clone, Debug)]
-    pub struct GpuEvolutionParams;
-}
-
-#[cfg(not(feature = "gpu"))]
-pub use gpu_fallback::*;

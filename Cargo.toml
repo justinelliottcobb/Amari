@@ -23,7 +23,7 @@ amari-enumerative = { workspace = true }
 amari-relativistic = { workspace = true }
 amari-gpu = { workspace = true, optional = true }
 amari-optimization = { workspace = true, optional = true }
-amari-flynn = { version = "0.12.0", path = "amari-flynn", optional = true }
+amari-flynn = { workspace = true, optional = true }
 amari-measure = { workspace = true, optional = true }
 thiserror = { workspace = true }
 

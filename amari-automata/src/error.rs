@@ -68,8 +68,7 @@ impl fmt::Display for AutomataError {
     }
 }
 
-#[cfg(feature = "std")]
-impl std::error::Error for AutomataError {}
+impl core::error::Error for AutomataError {}
 
 /// Result type for automata operations
 pub type AutomataResult<T> = Result<T, AutomataError>;
