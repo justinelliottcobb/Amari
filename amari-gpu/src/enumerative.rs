@@ -474,7 +474,7 @@ impl EnumerativeGpuOps {
 
     /// Generate intersection computation shader
     fn get_intersection_shader(&self) -> String {
-        String::from(include_str!("shaders/intersection.wgsl"))
+        String::from(crate::shaders::INTERSECTION_THEORY)
     }
 
     /// Generate Schubert calculus shader

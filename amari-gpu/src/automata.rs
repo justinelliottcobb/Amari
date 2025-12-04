@@ -7,16 +7,11 @@
 pub use self::gpu_impl::*;
 
 mod gpu_impl {
-    use crate::{AutomataError, RuleType};
-    use alloc::{
-        collections::BTreeMap as HashMap,
-        format,
-        string::{String, ToString},
-        vec,
-        vec::Vec,
-    };
+    use amari_automata::{AutomataError, CellState, RuleType};
     use bytemuck::{Pod, Zeroable};
-    use core::{fmt, mem};
+    use std::collections::HashMap;
+    use std::fmt;
+    use std::mem;
     use wgpu::util::DeviceExt;
 
     /// GPU-optimized cellular automaton cell data
@@ -549,7 +544,7 @@ mod gpu_impl {
         fn create_ca_evolution_pipeline(
             device: &wgpu::Device,
         ) -> AutomataGpuResult<wgpu::ComputePipeline> {
-            let shader_source = include_str!("shaders/ca_evolution.wgsl");
+            let shader_source = crate::shaders::CA_EVOLUTION;
             let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
                 label: Some("CA Evolution Shader"),
                 source: wgpu::ShaderSource::Wgsl(shader_source.into()),
@@ -612,7 +607,7 @@ mod gpu_impl {
         fn create_rule_application_pipeline(
             device: &wgpu::Device,
         ) -> AutomataGpuResult<wgpu::ComputePipeline> {
-            let shader_source = include_str!("shaders/rule_application.wgsl");
+            let shader_source = crate::shaders::RULE_APPLICATION;
             let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
                 label: Some("Rule Application Shader"),
                 source: wgpu::ShaderSource::Wgsl(shader_source.into()),
@@ -675,7 +670,7 @@ mod gpu_impl {
         fn create_energy_calculation_pipeline(
             device: &wgpu::Device,
         ) -> AutomataGpuResult<wgpu::ComputePipeline> {
-            let shader_source = include_str!("shaders/energy_calculation.wgsl");
+            let shader_source = crate::shaders::ENERGY_CALCULATION;
             let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
                 label: Some("Energy Calculation Shader"),
                 source: wgpu::ShaderSource::Wgsl(shader_source.into()),
@@ -728,7 +723,7 @@ mod gpu_impl {
         fn create_neighbor_extraction_pipeline(
             device: &wgpu::Device,
         ) -> AutomataGpuResult<wgpu::ComputePipeline> {
-            let shader_source = include_str!("shaders/neighbor_extraction.wgsl");
+            let shader_source = crate::shaders::NEIGHBOR_EXTRACTION;
             let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
                 label: Some("Neighbor Extraction Shader"),
                 source: wgpu::ShaderSource::Wgsl(shader_source.into()),
@@ -849,8 +844,8 @@ mod gpu_impl {
     }
 
     // Conversion traits for seamless integration with existing code
-    impl From<&crate::CellState<3, 0, 0>> for GpuCellData {
-        fn from(cell: &crate::CellState<3, 0, 0>) -> Self {
+    impl From<&CellState<3, 0, 0>> for GpuCellData {
+        fn from(cell: &CellState<3, 0, 0>) -> Self {
             // Simple conversion using scalar part only for now
             Self {
                 scalar: cell.scalar_part() as f32,
