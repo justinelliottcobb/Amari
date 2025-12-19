@@ -334,10 +334,12 @@ impl<T: Float, const DIM: usize> TropicalDualClifford<T, DIM> {
     pub fn add(&self, other: &Self) -> Self {
         let mut result = Self::new();
 
-        // Add tropical components (max operation)
+        // Add tropical components using classical addition on underlying values
+        // This ensures interpolation works correctly with distance metrics
         for i in 0..DIM.min(8) {
             if let (Ok(a), Ok(b)) = (self.tropical_repr.get(i), other.tropical_repr.get(i)) {
-                result.tropical_repr.set(i, a.tropical_add(&b)).ok();
+                let sum = a.value() + b.value();
+                result.tropical_repr.set(i, TropicalNumber::new(sum)).ok();
             }
         }
 
@@ -357,16 +359,18 @@ impl<T: Float, const DIM: usize> TropicalDualClifford<T, DIM> {
     /// Scale TDC by a scalar factor
     ///
     /// Applies scaling uniformly across all three representations.
+    /// Uses classical (not tropical) scaling for consistent interpolation semantics.
     pub fn scale(&self, factor: T) -> Self {
         let mut result = Self::new();
 
-        // Scale tropical components (tropical multiplication by log scale)
-        let tropical_scale = TropicalNumber::new(factor);
+        // Scale tropical components using classical multiplication on underlying values
+        // This ensures interpolation works correctly with distance metrics
         for i in 0..DIM.min(8) {
             if let Ok(val) = self.tropical_repr.get(i) {
+                let scaled_value = val.value() * factor;
                 result
                     .tropical_repr
-                    .set(i, val.tropical_mul(&tropical_scale))
+                    .set(i, TropicalNumber::new(scaled_value))
                     .ok();
             }
         }

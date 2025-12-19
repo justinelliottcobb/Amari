@@ -304,9 +304,7 @@ fn test_numerical_stability() {
 }
 
 /// Test interpolation consistency
-/// TODO: Fix interpolation distance calculation - currently returns 0.33 instead of ~0
 #[test]
-#[ignore]
 fn test_interpolation_consistency() {
     let logits1 = vec![1.0, 0.0, 0.0, 0.0];
     let logits2 = vec![0.0, 1.0, 0.0, 0.0];

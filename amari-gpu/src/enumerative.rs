@@ -5,7 +5,7 @@
 //! using WebGPU compute shaders optimized for mathematical computations.
 
 #[cfg(feature = "enumerative")]
-use crate::{ChowClass, SchubertClass};
+use amari_enumerative::{ChowClass, SchubertClass};
 #[cfg(feature = "enumerative")]
 use bytemuck::{Pod, Zeroable};
 #[cfg(feature = "enumerative")]
