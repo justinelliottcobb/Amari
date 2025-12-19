@@ -502,7 +502,7 @@ mod tests {
         fn evaluate(&self, x: &[TropicalNumber<T>]) -> TropicalNumber<T> {
             // Simple sum in tropical algebra (max operation)
             let mut result = TropicalNumber::tropical_zero();
-            for &val in x {
+            for val in x {
                 result = result.tropical_add(val);
             }
             result

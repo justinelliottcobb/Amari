@@ -2,7 +2,9 @@
 use amari_core::Multivector;
 #[allow(unused_imports)]
 use amari_dual::DualMultivector;
+#[allow(unused_imports)]
 use amari_fusion::TropicalDualClifford;
+#[allow(unused_imports)]
 use amari_tropical::TropicalMultivector;
 
 /// NOTE: Disabled in v0.12.0 - max_element() and forward_mode_ad() removed from API

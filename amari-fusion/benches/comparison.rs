@@ -469,8 +469,10 @@ fn benchmark_comprehensive_comparison(c: &mut Criterion) {
                     let dual_features = tdc.extract_dual_features();
 
                     // Perform operations
-                    let sensitivity = tdc.sensitivity_analysis();
-                    let most_sensitive = sensitivity.most_sensitive(3);
+                    // NOTE: sensitivity_analysis() removed in v0.12.0 - private fields refactor
+                    // let sensitivity = tdc.sensitivity_analysis();
+                    // let most_sensitive = sensitivity.most_sensitive(3);
+                    let most_sensitive = vec![0, 1, 2]; // Placeholder for removed API
 
                     // Distance to self-modified version
                     let modified_logits: Vec<f64> = logits.iter().map(|&x| x * 1.1).collect();

@@ -902,8 +902,8 @@ mod gpu_impl {
     // impl std::error::Error for AutomataGpuError {}
 
     impl From<AutomataGpuError> for AutomataError {
-        fn from(_gpu_error: AutomataGpuError) -> Self {
-            AutomataError::SolverConvergenceFailure
+        fn from(gpu_error: AutomataGpuError) -> Self {
+            AutomataError::InvalidConfiguration(format!("GPU error: {}", gpu_error))
         }
     }
 }
