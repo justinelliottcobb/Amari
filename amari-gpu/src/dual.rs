@@ -5,8 +5,6 @@
 //! batch gradient computation, neural network training, and large-scale optimization.
 
 #[cfg(feature = "dual")]
-use alloc::vec::Vec;
-#[cfg(feature = "dual")]
 use amari_dual::{DualNumber, MultiDualNumber};
 #[cfg(feature = "dual")]
 use bytemuck::{Pod, Zeroable};
@@ -956,7 +954,7 @@ impl DualGpuAccelerated<DualNumber<f32>> for DualNumber<f32> {
 }
 
 #[cfg(feature = "dual")]
-impl<T: Float + Send + Sync> DualGpuAccelerated<MultiDual<T>> for MultiDual<T> {
+impl<T: Float + Send + Sync> DualGpuAccelerated<MultiDualNumber<T>> for MultiDualNumber<T> {
     fn to_gpu_buffer(&self, _context: &DualGpuContext) -> DualGpuResult<wgpu::Buffer> {
         // Convert to GPU-compatible format
         // For now, only support f32 for GPU operations
@@ -1052,7 +1050,7 @@ pub struct VectorFunction {
 #[cfg(feature = "dual")]
 mod tests {
     use super::*;
-    use crate::DualNumber;
+    use amari_dual::DualNumber;
 
     #[tokio::test]
     async fn test_dual_gpu_context_creation() {

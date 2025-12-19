@@ -1,19 +1,17 @@
 //! GPU acceleration for geometric algebra operations using WebGPU/wgpu
 
 pub mod adaptive;
-// TODO: Fix automata GPU module - has incorrect AutomataError variant references
-// #[cfg(feature = "automata")]
-// pub mod automata;
+#[cfg(feature = "automata")]
+pub mod automata;
 pub mod benchmarks;
 #[cfg(feature = "calculus")]
 pub mod calculus;
-// TODO: Fix dual GPU module - missing dependencies (alloc, num_traits) and incorrect imports
-// #[cfg(feature = "dual")]
-// pub mod dual;
-// TODO: Fix enumerative GPU module - incorrect crate imports
-// #[cfg(feature = "enumerative")]
-// pub mod enumerative;
-// TODO: Fix fusion GPU module - references non-existent gpu modules in domain crates
+#[cfg(feature = "dual")]
+pub mod dual;
+#[cfg(feature = "enumerative")]
+pub mod enumerative;
+// NOTE: fusion GPU module disabled - requires gpu submodules in amari_dual and amari_tropical crates
+// These would need to be created with DualGpuOps, GpuDualNumber, TropicalGpuOps, GpuTropicalNumber types
 // #[cfg(feature = "fusion")]
 // pub mod fusion;
 #[cfg(feature = "measure")]
@@ -24,7 +22,8 @@ pub mod performance;
 pub mod relativistic;
 pub mod shaders;
 pub mod timeline;
-// TODO: Fix tropical GPU module - missing dependencies and incorrect type signatures
+// NOTE: tropical GPU module disabled - has orphan impl issues (impl for TropicalMatrix/TropicalMultivector)
+// Would need to use extension traits instead of inherent impls
 // #[cfg(feature = "tropical")]
 // pub mod tropical;
 pub mod unified;

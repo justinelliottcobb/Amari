@@ -859,7 +859,7 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
 // =====================================================================
 
 /// Intersection theory computations
-const INTERSECTION_THEORY: &str = r#"
+pub const INTERSECTION_THEORY: &str = r#"
 struct RationalNumber {
     numerator: i32,
     denominator: i32,

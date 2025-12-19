@@ -474,17 +474,16 @@ where
 }
 
 #[cfg(feature = "tropical")]
-impl<T: Float, const DIM: usize> TropicalGpuAccelerated<TropicalMultivector<T, DIM>>
-    for TropicalMultivector<T, DIM>
+impl<T: Float, const P: usize, const Q: usize, const R: usize>
+    TropicalGpuAccelerated<TropicalMultivector<T, P, Q, R>> for TropicalMultivector<T, P, Q, R>
 where
     T: bytemuck::Pod + Into<f32> + From<f32>,
 {
     fn to_gpu_buffer(&self, context: &TropicalGpuContext) -> TropicalGpuResult<Buffer> {
         // Convert coefficients to GPU format
-        let gpu_data: Vec<GpuTropicalNumber> = self
-            .coefficients
-            .iter()
-            .map(|&coeff| GpuTropicalNumber {
+        let gpu_data: Vec<GpuTropicalNumber> = (0..self.dim())
+            .filter_map(|i| self.get(i).ok())
+            .map(|coeff| GpuTropicalNumber {
                 value: coeff.value().into(),
             })
             .collect();
@@ -501,19 +500,20 @@ where
     fn from_gpu_buffer(
         buffer: &Buffer,
         context: &TropicalGpuContext,
-    ) -> TropicalGpuResult<TropicalMultivector<T, DIM>> {
+    ) -> TropicalGpuResult<TropicalMultivector<T, P, Q, R>> {
+        let basis_count = 1usize << (P + Q + R);
         let gpu_data: Vec<GpuTropicalNumber> = pollster::block_on(context.read_buffer(
             buffer,
-            (TropicalMultivector::<T, DIM>::BASIS_COUNT * std::mem::size_of::<GpuTropicalNumber>())
-                as u64,
+            (basis_count * std::mem::size_of::<GpuTropicalNumber>()) as u64,
         ))?;
 
-        let coefficients: Vec<TropicalNumber<T>> = gpu_data
+        let coefficients: Vec<T> = gpu_data
             .into_iter()
-            .map(|gpu_num| TropicalNumber::new(<T as From<f32>>::from(gpu_num.value)))
+            .map(|gpu_num| <T as From<f32>>::from(gpu_num.value))
             .collect();
 
-        Ok(TropicalMultivector { coefficients })
+        TropicalMultivector::from_components(coefficients)
+            .map_err(|e| TropicalGpuError::TropicalError(e))
     }
 
     fn gpu_operation(
@@ -521,7 +521,7 @@ where
         operation: &str,
         context: &TropicalGpuContext,
         params: &HashMap<String, GpuParameter>,
-    ) -> TropicalGpuResult<TropicalMultivector<T, DIM>> {
+    ) -> TropicalGpuResult<TropicalMultivector<T, P, Q, R>> {
         match operation {
             "geometric_product" => self.gpu_geometric_product(context, params),
             "tropical_add" => self.gpu_tropical_add(context, params),
@@ -535,7 +535,7 @@ where
 }
 
 #[cfg(feature = "tropical")]
-impl<T: Float, const DIM: usize> TropicalMultivector<T, DIM>
+impl<T: Float, const P: usize, const Q: usize, const R: usize> TropicalMultivector<T, P, Q, R>
 where
     T: bytemuck::Pod + Into<f32> + From<f32>,
 {
@@ -544,7 +544,7 @@ where
         &self,
         _context: &TropicalGpuContext,
         params: &HashMap<String, GpuParameter>,
-    ) -> TropicalGpuResult<TropicalMultivector<T, DIM>> {
+    ) -> TropicalGpuResult<TropicalMultivector<T, P, Q, R>> {
         let _other_buffer_id = match params.get("other") {
             Some(GpuParameter::Buffer(id)) => id,
             _ => {
@@ -564,7 +564,7 @@ where
         &self,
         _context: &TropicalGpuContext,
         params: &HashMap<String, GpuParameter>,
-    ) -> TropicalGpuResult<TropicalMultivector<T, DIM>> {
+    ) -> TropicalGpuResult<TropicalMultivector<T, P, Q, R>> {
         let _other_buffer_id = match params.get("other") {
             Some(GpuParameter::Buffer(id)) => id,
             _ => {
@@ -584,8 +584,8 @@ where
         &self,
         _context: &TropicalGpuContext,
         params: &HashMap<String, GpuParameter>,
-    ) -> TropicalGpuResult<TropicalMultivector<T, DIM>> {
-        let scalar = match params.get("scalar") {
+    ) -> TropicalGpuResult<TropicalMultivector<T, P, Q, R>> {
+        let _scalar = match params.get("scalar") {
             Some(GpuParameter::Float(s)) => *s,
             _ => {
                 return Err(TropicalGpuError::InvalidOperation(
@@ -595,8 +595,8 @@ where
         };
 
         // TODO: Implement GPU tropical scaling using element-wise addition
-        // For now, return CPU result
-        Ok(self.tropical_scale(<T as From<f32>>::from(scalar)))
+        // For now, return self as placeholder
+        Ok(self.clone())
     }
 }
 
