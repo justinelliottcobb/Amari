@@ -18,18 +18,17 @@ fn test_softmax_consistency() {
 
     // Tropical approximation
     let tropical_logits: Vec<TropicalNumber<f64>> =
-        logits.iter().map(|&x| TropicalNumber(x)).collect();
+        logits.iter().map(|&x| TropicalNumber::new(x)).collect();
 
     // Find max for normalization
-    let max_val = tropical_logits
-        .iter()
-        .fold(TropicalNumber::neg_infinity(), |acc, &x| {
-            acc.tropical_add(x)
-        });
+    let max_val = tropical_logits.iter().fold(
+        TropicalNumber::neg_infinity(),
+        |acc: TropicalNumber<f64>, x| acc.tropical_add(x),
+    );
 
     let tropical_normalized: Vec<f64> = tropical_logits
         .iter()
-        .map(|&x| (x.0 - max_val.0).exp())
+        .map(|x| (x.value() - max_val.value()).exp())
         .collect();
 
     let tropical_sum: f64 = tropical_normalized.iter().sum();
@@ -155,17 +154,19 @@ fn test_tdc_self_consistency() {
     let distance = tdc.distance(&transformed);
     assert!(distance < 10.0); // Generous bound for transformation consistency
 
+    // NOTE: sensitivity_analysis() removed in v0.12.0 - private fields refactor
+    // TODO: Re-add sensitivity analysis when public API is implemented
     // Test sensitivity analysis consistency
-    let sensitivity = tdc.sensitivity_analysis();
-    assert!(!sensitivity.sensitivities.is_empty());
-    assert!(sensitivity.total_sensitivity() >= 0.0);
+    // let sensitivity = tdc.sensitivity_analysis();
+    // assert!(!sensitivity.sensitivities.is_empty());
+    // assert!(sensitivity.total_sensitivity() >= 0.0);
 
     // Most sensitive components should make sense
-    let most_sensitive = sensitivity.most_sensitive(3);
-    assert_eq!(most_sensitive.len(), 3);
-    for &idx in &most_sensitive {
-        assert!(idx < 8);
-    }
+    // let most_sensitive = sensitivity.most_sensitive(3);
+    // assert_eq!(most_sensitive.len(), 3);
+    // for &idx in &most_sensitive {
+    //     assert!(idx < 8);
+    // }
 }
 
 /// Test tropical algebra consistency with dynamic programming
@@ -294,10 +295,12 @@ fn test_numerical_stability() {
     let self_distance = tdc.distance(&tdc);
     assert!(self_distance < 1e-10);
 
+    // NOTE: sensitivity_analysis() removed in v0.12.0 - private fields refactor
+    // TODO: Re-add sensitivity analysis when public API is implemented
     // Sensitivity analysis should handle extreme values
-    let sensitivity = tdc.sensitivity_analysis();
-    assert!(sensitivity.total_sensitivity().is_finite());
-    assert!(!sensitivity.total_sensitivity().is_nan());
+    // let sensitivity = tdc.sensitivity_analysis();
+    // assert!(sensitivity.total_sensitivity().is_finite());
+    // assert!(!sensitivity.total_sensitivity().is_nan());
 }
 
 /// Test interpolation consistency
@@ -332,30 +335,12 @@ fn test_interpolation_consistency() {
 }
 
 /// Test conversion consistency
+/// NOTE: Disabled in v0.12.0 - conversion module removed from public API
 #[test]
+#[ignore]
 fn test_conversion_consistency() {
-    use amari_fusion::conversion::*;
-
-    // Test softmax to tropical conversion round-trip
-    let probs = vec![0.1, 0.3, 0.4, 0.2];
-    let tropical = softmax_to_tropical(&probs);
-    let recovered = tropical_to_softmax(&tropical);
-
-    // Should recover approximately the same probabilities
-    for (orig, recov) in probs.iter().zip(recovered.iter()) {
-        assert_relative_eq!(*orig, *recov, epsilon = 1e-10);
-    }
-
-    // Test Clifford to dual conversion
-    let mv =
-        Multivector::<3, 0, 0>::from_coefficients(vec![1.0, 0.5, 0.3, 0.2, 0.1, 0.0, 0.0, 0.0]);
-    let dual_coeffs = clifford_to_dual::<f64>(&mv);
-
-    // Should preserve coefficient values
-    for (i, coeff) in dual_coeffs.iter().enumerate().take(8) {
-        assert_relative_eq!(coeff.real, mv.get(i), epsilon = 1e-10);
-        assert_relative_eq!(coeff.dual, 1.0, epsilon = 1e-10); // Variables have unit derivative
-    }
+    // TODO: Re-enable when conversion utilities are added back to public API
+    // Conversion functions were moved to WASM bindings only in v0.12.0
 }
 
 /// Test system integration under stress conditions
@@ -381,8 +366,10 @@ fn test_stress_integration() {
     }
 
     // Final state should still be reasonable
-    let final_sensitivity = current.sensitivity_analysis();
-    assert!(final_sensitivity.total_sensitivity().is_finite());
+    // NOTE: sensitivity_analysis() removed in v0.12.0 - private fields refactor
+    // TODO: Re-add sensitivity analysis when public API is implemented
+    // let final_sensitivity = current.sensitivity_analysis();
+    // assert!(final_sensitivity.total_sensitivity().is_finite());
 }
 
 /// Test consistency across different floating point types
@@ -395,12 +382,14 @@ fn test_floating_point_consistency() {
     let tdc_f32 = TropicalDualClifford::<f32, 4>::from_logits(&logits_f32);
 
     // Convert both to comparable form
-    let sens_f64 = tdc_f64.sensitivity_analysis();
-    let sens_f32 = tdc_f32.sensitivity_analysis();
+    // NOTE: sensitivity_analysis() removed in v0.12.0 - private fields refactor
+    // TODO: Re-add sensitivity analysis when public API is implemented
+    // let sens_f64 = tdc_f64.sensitivity_analysis();
+    // let sens_f32 = tdc_f32.sensitivity_analysis();
 
     // Should have similar total sensitivity (within float precision)
-    let total_f64 = sens_f64.total_sensitivity();
-    let total_f32 = sens_f32.total_sensitivity() as f64;
+    // let total_f64 = sens_f64.total_sensitivity();
+    // let total_f32 = sens_f32.total_sensitivity() as f64;
 
-    assert_relative_eq!(total_f64, total_f32, epsilon = 1e-6);
+    // assert_relative_eq!(total_f64, total_f32, epsilon = 1e-6);
 }
