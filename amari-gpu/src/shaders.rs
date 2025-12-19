@@ -42,6 +42,9 @@ impl ShaderLibrary {
         // Cellular automata shaders
         shaders.insert("ca_evolution".to_string(), CA_EVOLUTION);
         shaders.insert("ca_self_assembly".to_string(), CA_SELF_ASSEMBLY);
+        shaders.insert("rule_application".to_string(), RULE_APPLICATION);
+        shaders.insert("energy_calculation".to_string(), ENERGY_CALCULATION);
+        shaders.insert("neighbor_extraction".to_string(), NEIGHBOR_EXTRACTION);
 
         // Enumerative geometry shaders
         shaders.insert("intersection_theory".to_string(), INTERSECTION_THEORY);
@@ -555,7 +558,7 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
 // =====================================================================
 
 /// Cellular automata evolution step
-const CA_EVOLUTION: &str = r#"
+pub const CA_EVOLUTION: &str = r#"
 @group(0) @binding(0) var<storage, read> current_state: array<u32>;
 @group(0) @binding(1) var<storage, read_write> next_state: array<u32>;
 @group(0) @binding(2) var<storage, read> rules: array<u32>;
@@ -607,6 +610,175 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
     }
 
     next_state[idx] = new_state;
+}
+"#;
+
+/// Rule application for geometric algebra cellular automata
+pub const RULE_APPLICATION: &str = r#"
+struct GpuCellData {
+    scalar: f32,
+    e1: f32,
+    e2: f32,
+    e3: f32,
+    e12: f32,
+    e13: f32,
+    e23: f32,
+    e123: f32,
+    generation: f32,
+    neighborhood_size: f32,
+    rule_type: f32,
+    boundary_condition: f32,
+    padding: array<f32, 4>,
+}
+
+struct GpuRuleConfig {
+    rule_type: f32,
+    threshold: f32,
+    damping_factor: f32,
+    energy_conservation: f32,
+    time_step: f32,
+    spatial_scale: f32,
+    geometric_weight: f32,
+    nonlinear_factor: f32,
+    boundary_type: f32,
+    neighborhood_radius: f32,
+    evolution_speed: f32,
+    stability_factor: f32,
+    padding: array<f32, 4>,
+}
+
+@group(0) @binding(0) var<storage, read> cells: array<GpuCellData>;
+@group(0) @binding(1) var<storage, read> rules: array<GpuRuleConfig>;
+@group(0) @binding(2) var<storage, read_write> output: array<GpuCellData>;
+
+@compute @workgroup_size(256)
+fn rule_application_main(@builtin(global_invocation_id) global_id: vec3<u32>) {
+    let idx = global_id.x;
+
+    if (idx >= arrayLength(&cells)) {
+        return;
+    }
+
+    let cell = cells[idx];
+    let rule = rules[0]; // Use first rule for now
+
+    var new_cell = cell;
+
+    // Apply damping factor
+    new_cell.scalar = cell.scalar * (1.0 - rule.damping_factor);
+    new_cell.e1 = cell.e1 * (1.0 - rule.damping_factor);
+    new_cell.e2 = cell.e2 * (1.0 - rule.damping_factor);
+    new_cell.e3 = cell.e3 * (1.0 - rule.damping_factor);
+    new_cell.e12 = cell.e12 * (1.0 - rule.damping_factor);
+    new_cell.e13 = cell.e13 * (1.0 - rule.damping_factor);
+    new_cell.e23 = cell.e23 * (1.0 - rule.damping_factor);
+    new_cell.e123 = cell.e123 * (1.0 - rule.damping_factor);
+
+    // Apply threshold
+    if (abs(new_cell.scalar) < rule.threshold) {
+        new_cell.scalar = 0.0;
+    }
+
+    output[idx] = new_cell;
+}
+"#;
+
+/// Energy calculation for cellular automata
+pub const ENERGY_CALCULATION: &str = r#"
+struct GpuCellData {
+    scalar: f32,
+    e1: f32,
+    e2: f32,
+    e3: f32,
+    e12: f32,
+    e13: f32,
+    e23: f32,
+    e123: f32,
+    generation: f32,
+    neighborhood_size: f32,
+    rule_type: f32,
+    boundary_condition: f32,
+    padding: array<f32, 4>,
+}
+
+@group(0) @binding(0) var<storage, read> cells: array<GpuCellData>;
+@group(0) @binding(1) var<storage, read_write> total_energy: array<f32>;
+
+@compute @workgroup_size(1)
+fn energy_calculation_main(@builtin(global_invocation_id) global_id: vec3<u32>) {
+    var energy = 0.0;
+
+    // Sum the squared magnitudes of all multivector components
+    for (var i = 0u; i < arrayLength(&cells); i = i + 1u) {
+        let cell = cells[i];
+        energy += cell.scalar * cell.scalar;
+        energy += cell.e1 * cell.e1;
+        energy += cell.e2 * cell.e2;
+        energy += cell.e3 * cell.e3;
+        energy += cell.e12 * cell.e12;
+        energy += cell.e13 * cell.e13;
+        energy += cell.e23 * cell.e23;
+        energy += cell.e123 * cell.e123;
+    }
+
+    total_energy[0] = energy;
+}
+"#;
+
+/// Neighbor extraction for cellular automata
+pub const NEIGHBOR_EXTRACTION: &str = r#"
+struct GpuCellData {
+    scalar: f32,
+    e1: f32,
+    e2: f32,
+    e3: f32,
+    e12: f32,
+    e13: f32,
+    e23: f32,
+    e123: f32,
+    generation: f32,
+    neighborhood_size: f32,
+    rule_type: f32,
+    boundary_condition: f32,
+    padding: array<f32, 4>,
+}
+
+@group(0) @binding(0) var<storage, read> cells: array<GpuCellData>;
+@group(0) @binding(1) var<uniform> params: array<f32, 4>; // [width, height, total_cells, padding]
+@group(0) @binding(2) var<storage, read_write> neighborhoods: array<GpuCellData>;
+
+@compute @workgroup_size(256)
+fn neighbor_extraction_main(@builtin(global_invocation_id) global_id: vec3<u32>) {
+    let idx = global_id.x;
+    let width = u32(params[0]);
+    let height = u32(params[1]);
+    let total_cells = u32(params[2]);
+
+    if (idx >= total_cells) {
+        return;
+    }
+
+    // Calculate 2D position from linear index
+    let x = idx % width;
+    let y = idx / width;
+
+    // Moore neighborhood: 8 neighbors
+    let offsets = array<vec2<i32>, 8>(
+        vec2<i32>(-1, -1), vec2<i32>(0, -1), vec2<i32>(1, -1),
+        vec2<i32>(-1,  0),                   vec2<i32>(1,  0),
+        vec2<i32>(-1,  1), vec2<i32>(0,  1), vec2<i32>(1,  1)
+    );
+
+    // Extract neighbors with wrapping boundaries
+    for (var i = 0u; i < 8u; i = i + 1u) {
+        let offset = offsets[i];
+        let nx = (i32(x) + offset.x + i32(width)) % i32(width);
+        let ny = (i32(y) + offset.y + i32(height)) % i32(height);
+        let neighbor_idx = u32(ny) * width + u32(nx);
+
+        // Store neighbor in output array
+        neighborhoods[idx * 8u + i] = cells[neighbor_idx];
+    }
 }
 "#;
 

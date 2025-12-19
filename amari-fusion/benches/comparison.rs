@@ -31,19 +31,17 @@ fn benchmark_softmax_comparison(c: &mut Criterion) {
         group.bench_with_input(BenchmarkId::new("tropical_softmax", size), size, |b, _| {
             b.iter(|| {
                 let tropical_logits: Vec<TropicalNumber<f64>> =
-                    logits.iter().map(|&x| TropicalNumber(x)).collect();
+                    logits.iter().map(|&x| TropicalNumber::new(x)).collect();
 
                 // Find max (tropical sum)
                 let max_val = tropical_logits
                     .iter()
-                    .fold(TropicalNumber::neg_infinity(), |acc, &x| {
-                        acc.tropical_add(x)
-                    });
+                    .fold(TropicalNumber::neg_infinity(), |acc, x| acc.tropical_add(x));
 
                 // Normalize (tropical division)
                 let result: Vec<TropicalNumber<f64>> = tropical_logits
                     .iter()
-                    .map(|&x| TropicalNumber(x.0 - max_val.0))
+                    .map(|x| TropicalNumber::new(x.value() - max_val.value()))
                     .collect();
 
                 black_box(result)
@@ -471,8 +469,10 @@ fn benchmark_comprehensive_comparison(c: &mut Criterion) {
                     let dual_features = tdc.extract_dual_features();
 
                     // Perform operations
-                    let sensitivity = tdc.sensitivity_analysis();
-                    let most_sensitive = sensitivity.most_sensitive(3);
+                    // NOTE: sensitivity_analysis() removed in v0.12.0 - private fields refactor
+                    // let sensitivity = tdc.sensitivity_analysis();
+                    // let most_sensitive = sensitivity.most_sensitive(3);
+                    let most_sensitive = vec![0, 1, 2]; // Placeholder for removed API
 
                     // Distance to self-modified version
                     let modified_logits: Vec<f64> = logits.iter().map(|&x| x * 1.1).collect();

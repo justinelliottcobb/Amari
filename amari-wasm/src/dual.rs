@@ -38,13 +38,13 @@ impl WasmDualNumber {
     /// Get the real part (function value)
     #[wasm_bindgen(js_name = getReal)]
     pub fn get_real(&self) -> f64 {
-        self.inner.real
+        self.inner.value()
     }
 
     /// Get the dual part (derivative)
     #[wasm_bindgen(js_name = getDual)]
     pub fn get_dual(&self) -> f64 {
-        self.inner.dual
+        self.inner.derivative()
     }
 
     /// Addition
@@ -160,9 +160,20 @@ impl WasmDualNumber {
     }
 
     /// ReLU activation function
+    ///
+    /// Note: Manual implementation as relu() is not in v0.12.0 DualNumber API
     pub fn relu(&self) -> WasmDualNumber {
-        Self {
-            inner: self.inner.relu(),
+        let x = self.inner.value();
+        if x > 0.0 {
+            // ReLU(x) = x, derivative = 1
+            Self {
+                inner: DualNumber::new(x, self.inner.derivative()),
+            }
+        } else {
+            // ReLU(x) = 0, derivative = 0
+            Self {
+                inner: DualNumber::new(0.0, 0.0),
+            }
         }
     }
 
@@ -174,9 +185,17 @@ impl WasmDualNumber {
     }
 
     /// Softplus activation function
+    ///
+    /// Note: Manual implementation as softplus() is not in v0.12.0 DualNumber API
+    /// softplus(x) = ln(1 + exp(x))
     pub fn softplus(&self) -> WasmDualNumber {
+        let x = self.inner.value();
+        let exp_x = x.exp();
+        let softplus_val = (1.0 + exp_x).ln();
+        // Derivative of softplus: d/dx ln(1 + exp(x)) = exp(x)/(1 + exp(x)) = sigmoid(x)
+        let softplus_deriv = exp_x / (1.0 + exp_x);
         Self {
-            inner: self.inner.softplus(),
+            inner: DualNumber::new(softplus_val, self.inner.derivative() * softplus_deriv),
         }
     }
 
@@ -238,20 +257,20 @@ impl WasmMultiDualNumber {
     /// Get the real part (function value)
     #[wasm_bindgen(js_name = getReal)]
     pub fn get_real(&self) -> f64 {
-        self.inner.real
+        self.inner.get_value()
     }
 
     /// Get the gradient (all partial derivatives)
     #[wasm_bindgen(js_name = getGradient)]
     pub fn get_gradient(&self) -> Vec<f64> {
-        self.inner.duals.clone()
+        self.inner.get_gradient().to_vec()
     }
 
     /// Get a specific partial derivative
     #[wasm_bindgen(js_name = getPartial)]
     pub fn get_partial(&self, index: usize) -> Result<f64, JsValue> {
         self.inner
-            .duals
+            .get_gradient()
             .get(index)
             .copied()
             .ok_or_else(|| JsValue::from_str("Index out of bounds"))
@@ -260,36 +279,47 @@ impl WasmMultiDualNumber {
     /// Get number of variables
     #[wasm_bindgen(js_name = getNumVars)]
     pub fn get_num_vars(&self) -> usize {
-        self.inner.num_vars()
+        self.inner.n_vars()
     }
 
     /// Addition
     pub fn add(&self, other: &WasmMultiDualNumber) -> Result<WasmMultiDualNumber, JsValue> {
-        if self.inner.duals.len() != other.inner.duals.len() {
+        if self.inner.n_vars() != other.inner.n_vars() {
             return Err(JsValue::from_str("Incompatible number of variables"));
         }
         Ok(Self {
-            inner: &self.inner + &other.inner,
+            inner: self.inner.clone() + other.inner.clone(),
         })
     }
 
     /// Multiplication
     pub fn mul(&self, other: &WasmMultiDualNumber) -> Result<WasmMultiDualNumber, JsValue> {
-        if self.inner.duals.len() != other.inner.duals.len() {
+        if self.inner.n_vars() != other.inner.n_vars() {
             return Err(JsValue::from_str("Incompatible number of variables"));
         }
         Ok(Self {
-            inner: &self.inner * &other.inner,
+            inner: self.inner.clone() * other.inner.clone(),
         })
     }
 
     /// Square root
     pub fn sqrt(&self) -> Result<WasmMultiDualNumber, JsValue> {
-        if self.inner.real < 0.0 {
+        if self.inner.get_value() < 0.0 {
             return Err(JsValue::from_str("Square root of negative number"));
         }
+        // Note: sqrt() not available on MultiDualNumber in v0.12.0
+        // Providing stub that preserves value but computes correct gradient
+        let val = self.inner.get_value().sqrt();
+        // Compute gradient: d/dx sqrt(f) = f'/(2*sqrt(f))
+        let sqrt_val = val;
+        let grad: Vec<f64> = self
+            .inner
+            .get_gradient()
+            .iter()
+            .map(|&g| g / (2.0 * sqrt_val))
+            .collect();
         Ok(Self {
-            inner: self.inner.sqrt(),
+            inner: MultiDualNumber::new(val, grad),
         })
     }
 }

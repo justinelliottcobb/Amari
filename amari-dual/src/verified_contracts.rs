@@ -228,7 +228,7 @@ impl<T: Float + core::ops::AddAssign> VerifiedContractMultiDualNumber<T> {
     /// - `ensures(forall |i: usize| i != var_index ==> result.partial(i) == T::zero())`
     pub fn variable(value: T, num_vars: usize, var_index: usize) -> Self {
         Self {
-            inner: MultiDualNumber::variable(value, num_vars, var_index),
+            inner: MultiDualNumber::variable(value, var_index, num_vars),
             _verification: PhantomData,
         }
     }
@@ -236,19 +236,19 @@ impl<T: Float + core::ops::AddAssign> VerifiedContractMultiDualNumber<T> {
     /// Get real part with verification
     ///
     /// # Contracts
-    /// - `ensures(result == self.inner.real)`
+    /// - `ensures(result == self.inner.value)`
     pub fn real(&self) -> T {
-        self.inner.real
+        self.inner.value
     }
 
     /// Get partial derivative with bounds checking
     ///
     /// # Contracts
-    /// - `requires(i < self.inner.duals.len())`
-    /// - `ensures(result == self.inner.duals[i])`
+    /// - `requires(i < self.inner.gradient.len())`
+    /// - `ensures(result == self.inner.gradient[i])`
     pub fn partial(&self, i: usize) -> T {
-        if i < self.inner.duals.len() {
-            self.inner.duals[i]
+        if i < self.inner.gradient.len() {
+            self.inner.gradient[i]
         } else {
             T::zero()
         }
@@ -257,22 +257,22 @@ impl<T: Float + core::ops::AddAssign> VerifiedContractMultiDualNumber<T> {
     /// Verified gradient computation with mathematical properties
     ///
     /// # Contracts
-    /// - `ensures(result.len() == self.inner.duals.len())`
+    /// - `ensures(result.len() == self.inner.gradient.len())`
     /// - `ensures(forall |i: usize| i < result.len() ==> result[i] == self.partial(i))`
     pub fn gradient(&self) -> &[T] {
-        &self.inner.duals
+        &self.inner.gradient
     }
 
     /// Verified addition with linearity contract
     ///
     /// # Contracts
-    /// - `requires(self.inner.duals.len() == other.inner.duals.len())`
+    /// - `requires(self.inner.gradient.len() == other.inner.gradient.len())`
     /// - `ensures(result.real() == self.real() + other.real())`
-    /// - `ensures(forall |i: usize| i < self.inner.duals.len() ==>
+    /// - `ensures(forall |i: usize| i < self.inner.gradient.len() ==>
     ///    result.partial(i) == self.partial(i) + other.partial(i))`
     pub fn add(&self, other: &Self) -> Self {
         Self {
-            inner: &self.inner + &other.inner,
+            inner: self.inner.clone() + other.inner.clone(),
             _verification: PhantomData,
         }
     }
@@ -280,13 +280,13 @@ impl<T: Float + core::ops::AddAssign> VerifiedContractMultiDualNumber<T> {
     /// Verified multiplication with product rule for all variables
     ///
     /// # Contracts
-    /// - `requires(self.inner.duals.len() == other.inner.duals.len())`
+    /// - `requires(self.inner.gradient.len() == other.inner.gradient.len())`
     /// - `ensures(result.real() == self.real() * other.real())`
-    /// - `ensures(forall |i: usize| i < self.inner.duals.len() ==>
+    /// - `ensures(forall |i: usize| i < self.inner.gradient.len() ==>
     ///    result.partial(i) == self.partial(i) * other.real() + self.real() * other.partial(i))`
     pub fn mul(&self, other: &Self) -> Self {
         Self {
-            inner: &self.inner * &other.inner,
+            inner: self.inner.clone() * other.inner.clone(),
             _verification: PhantomData,
         }
     }
@@ -295,11 +295,11 @@ impl<T: Float + core::ops::AddAssign> VerifiedContractMultiDualNumber<T> {
     ///
     /// # Contracts
     /// - `ensures(result.len() == outputs.len())`
-    /// - `ensures(forall |i: usize| i < result.len() ==> result[i].len() == self.inner.duals.len())`
+    /// - `ensures(forall |i: usize| i < result.len() ==> result[i].len() == self.inner.gradient.len())`
     /// - `ensures(forall |i, j: usize| i < result.len() && j < result[i].len() ==>
     ///    result[i][j] == ∂outputs[i]/∂inputs[j])`
     pub fn jacobian(&self, outputs: &[Self]) -> Vec<Vec<T>> {
-        let num_vars = self.inner.duals.len();
+        let num_vars = self.inner.gradient.len();
         let mut jacobian = Vec::with_capacity(outputs.len());
 
         for output in outputs {

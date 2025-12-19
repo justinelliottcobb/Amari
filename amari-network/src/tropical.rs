@@ -143,8 +143,8 @@ impl TropicalNetwork {
         for k in 0..self.size {
             for i in 0..self.size {
                 for j in 0..self.size {
-                    let path_through_k = distances[i][k].tropical_add(distances[k][j]);
-                    distances[i][j] = distances[i][j].tropical_add(path_through_k);
+                    let path_through_k = distances[i][k].tropical_add(&distances[k][j]);
+                    distances[i][j] = distances[i][j].tropical_add(&path_through_k);
                 }
             }
         }
@@ -181,7 +181,7 @@ impl TropicalNetwork {
                     let vt_distance = distances[v][t];
 
                     if !sv_distance.is_zero() && !vt_distance.is_zero() {
-                        let path_through_v = sv_distance.tropical_add(vt_distance);
+                        let path_through_v = sv_distance.tropical_add(&vt_distance);
 
                         // Check if path through v is a shortest path
                         if (path_through_v.value() - st_distance.value()).abs() < 1e-10 {
@@ -242,7 +242,7 @@ impl TropicalNetwork {
                     continue;
                 }
 
-                let total_distance = edge_weight.tropical_add(remaining_distance);
+                let total_distance = edge_weight.tropical_add(&remaining_distance);
 
                 // Check if this is on a shortest path
                 if (total_distance.value() - distances[current][target].value()).abs() < 1e-10 {

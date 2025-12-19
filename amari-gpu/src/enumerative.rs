@@ -4,23 +4,23 @@
 //! Schubert calculus, Gromov-Witten invariants, and tropical curve counting
 //! using WebGPU compute shaders optimized for mathematical computations.
 
-#[cfg(feature = "gpu")]
+#[cfg(feature = "enumerative")]
 use crate::{ChowClass, SchubertClass};
-#[cfg(feature = "gpu")]
+#[cfg(feature = "enumerative")]
 use bytemuck::{Pod, Zeroable};
-#[cfg(feature = "gpu")]
+#[cfg(feature = "enumerative")]
 use futures::channel::oneshot;
-#[cfg(feature = "gpu")]
+#[cfg(feature = "enumerative")]
 use std::collections::HashMap;
-#[cfg(feature = "gpu")]
+#[cfg(feature = "enumerative")]
 use std::vec::Vec;
-#[cfg(feature = "gpu")]
+#[cfg(feature = "enumerative")]
 use thiserror::Error;
-#[cfg(feature = "gpu")]
+#[cfg(feature = "enumerative")]
 use wgpu::util::DeviceExt;
 
 /// Error types for GPU enumerative geometry operations
-#[cfg(feature = "gpu")]
+#[cfg(feature = "enumerative")]
 #[derive(Error, Debug)]
 pub enum EnumerativeGpuError {
     #[error("GPU initialization failed: {0}")]
@@ -40,11 +40,11 @@ pub enum EnumerativeGpuError {
 }
 
 /// Result type for GPU enumerative operations
-#[cfg(feature = "gpu")]
+#[cfg(feature = "enumerative")]
 pub type EnumerativeGpuResult<T> = Result<T, EnumerativeGpuError>;
 
 /// GPU-optimized representation of intersection data
-#[cfg(feature = "gpu")]
+#[cfg(feature = "enumerative")]
 #[repr(C)]
 #[derive(Copy, Clone, Debug, Pod, Zeroable)]
 pub struct GpuIntersectionData {
@@ -59,7 +59,7 @@ pub struct GpuIntersectionData {
 }
 
 /// GPU-optimized Schubert class representation
-#[cfg(feature = "gpu")]
+#[cfg(feature = "enumerative")]
 #[repr(C)]
 #[derive(Copy, Clone, Debug, Pod, Zeroable)]
 pub struct GpuSchubertClass {
@@ -70,7 +70,7 @@ pub struct GpuSchubertClass {
 }
 
 /// GPU-optimized Gromov-Witten data
-#[cfg(feature = "gpu")]
+#[cfg(feature = "enumerative")]
 #[repr(C)]
 #[derive(Copy, Clone, Debug, Pod, Zeroable)]
 pub struct GpuGromovWittenData {
@@ -84,7 +84,7 @@ pub struct GpuGromovWittenData {
 }
 
 /// Self-contained GPU context for enumerative operations
-#[cfg(feature = "gpu")]
+#[cfg(feature = "enumerative")]
 pub struct EnumerativeGpuContext {
     pub device: wgpu::Device,
     pub queue: wgpu::Queue,
@@ -93,7 +93,7 @@ pub struct EnumerativeGpuContext {
 }
 
 /// GPU-accelerated operations for enumerative geometry
-#[cfg(feature = "gpu")]
+#[cfg(feature = "enumerative")]
 pub struct EnumerativeGpuOps {
     context: EnumerativeGpuContext,
     #[allow(dead_code)]
@@ -102,7 +102,7 @@ pub struct EnumerativeGpuOps {
     schubert_cache: HashMap<String, f32>,
 }
 
-#[cfg(feature = "gpu")]
+#[cfg(feature = "enumerative")]
 impl EnumerativeGpuContext {
     /// Create new GPU context for enumerative operations
     pub async fn new() -> EnumerativeGpuResult<Self> {
@@ -246,7 +246,7 @@ impl EnumerativeGpuContext {
     }
 }
 
-#[cfg(feature = "gpu")]
+#[cfg(feature = "enumerative")]
 impl EnumerativeGpuOps {
     /// Create new GPU operations context
     pub async fn new() -> EnumerativeGpuResult<Self> {
@@ -474,7 +474,7 @@ impl EnumerativeGpuOps {
 
     /// Generate intersection computation shader
     fn get_intersection_shader(&self) -> String {
-        String::from(include_str!("shaders/intersection.wgsl"))
+        String::from(crate::shaders::INTERSECTION_THEORY)
     }
 
     /// Generate Schubert calculus shader
@@ -736,7 +736,7 @@ fn factorial(n: i32) -> i32 {
 }
 
 /// Conversion traits for GPU data structures
-#[cfg(feature = "gpu")]
+#[cfg(feature = "enumerative")]
 impl From<&ChowClass> for GpuIntersectionData {
     fn from(chow: &ChowClass) -> Self {
         Self {
@@ -752,7 +752,7 @@ impl From<&ChowClass> for GpuIntersectionData {
     }
 }
 
-#[cfg(feature = "gpu")]
+#[cfg(feature = "enumerative")]
 impl From<&SchubertClass> for GpuSchubertClass {
     fn from(schubert: &SchubertClass) -> Self {
         let mut partition = [0.0f32; 8];
@@ -772,7 +772,7 @@ impl From<&SchubertClass> for GpuSchubertClass {
 }
 
 /// GPU acceleration configuration
-#[cfg(feature = "gpu")]
+#[cfg(feature = "enumerative")]
 #[derive(Debug, Clone)]
 pub struct EnumerativeGpuConfig {
     pub enable_caching: bool,
@@ -781,7 +781,7 @@ pub struct EnumerativeGpuConfig {
     pub workgroup_size: u32,
 }
 
-#[cfg(feature = "gpu")]
+#[cfg(feature = "enumerative")]
 impl Default for EnumerativeGpuConfig {
     fn default() -> Self {
         Self {
@@ -794,7 +794,7 @@ impl Default for EnumerativeGpuConfig {
 }
 
 /// Integration tests for GPU operations
-#[cfg(feature = "gpu")]
+#[cfg(feature = "enumerative")]
 #[cfg(test)]
 mod tests {
     use super::*;

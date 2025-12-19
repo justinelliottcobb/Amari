@@ -30,6 +30,14 @@ pub enum TropicalError {
     /// Numerical overflow in tropical computation
     #[error("Numerical overflow in tropical computation")]
     Overflow,
+
+    /// Index out of bounds
+    #[error("Index out of bounds: {0}")]
+    IndexOutOfBounds(String),
+
+    /// Generic dimension mismatch
+    #[error("Dimension mismatch: {0}")]
+    DimensionMismatch(String),
 }
 
 /// Result type for tropical operations

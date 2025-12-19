@@ -108,10 +108,6 @@ pub use operators::{curl, divergence, gradient, laplacian};
 pub mod manifold;
 pub use manifold::RiemannianManifold;
 
-// GPU acceleration
-#[cfg(feature = "gpu")]
-pub mod gpu;
-
 // Lie derivatives
 mod lie;
 pub use lie::*;

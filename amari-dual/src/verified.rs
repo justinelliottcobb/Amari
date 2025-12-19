@@ -308,7 +308,7 @@ mod tests {
         let (value, derivative) = ctx.differentiate(
             |x| {
                 let x_squared = x * x;
-                let two_x = x * 2.0;
+                let two_x = x * DualNumber::constant(2.0);
                 x_squared + two_x + DualNumber::constant(1.0)
             },
             3.0,

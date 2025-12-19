@@ -343,13 +343,13 @@ impl<T: Float> VerifiedTropicalNumber<T, MaxPlus> {
     /// Max-plus addition (maximum operation)
     #[allow(clippy::should_implement_trait)]
     pub fn add(&self, other: &Self) -> Self {
-        Self::new(self.value.tropical_add(other.value))
+        Self::new(self.value.tropical_add(&other.value))
     }
 
     /// Max-plus multiplication (regular addition)
     #[allow(clippy::should_implement_trait)]
     pub fn mul(&self, other: &Self) -> Self {
-        Self::new(self.value.tropical_mul(other.value))
+        Self::new(self.value.tropical_mul(&other.value))
     }
 }
 
@@ -370,7 +370,7 @@ impl<T: Float> VerifiedTropicalNumber<T, MinPlus> {
     /// Min-plus multiplication (regular addition)
     #[allow(clippy::should_implement_trait)]
     pub fn mul(&self, other: &Self) -> Self {
-        Self::new(self.value.tropical_mul(other.value))
+        Self::new(self.value.tropical_mul(&other.value))
     }
 }
 

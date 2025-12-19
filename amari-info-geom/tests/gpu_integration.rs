@@ -408,6 +408,5 @@ mod no_gpu_tests {
     fn test_gpu_feature_disabled() {
         println!("⚠️  GPU feature is disabled - skipping GPU tests");
         // This test ensures the crate compiles without GPU features
-        assert!(true);
     }
 }

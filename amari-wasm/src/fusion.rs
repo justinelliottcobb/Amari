@@ -13,9 +13,7 @@
 //! - Neural network parameter optimization
 //! - Interactive machine learning demonstrations
 
-use amari_fusion::{
-    EvaluationResult, SensitivityMap, TropicalDualClifford, TropicalDualDistribution,
-};
+use amari_fusion::{EvaluationResult, TropicalDualClifford};
 use js_sys::Object;
 use wasm_bindgen::prelude::*;
 
@@ -44,10 +42,17 @@ impl WasmTropicalDualClifford {
     }
 
     /// Create from probability distribution
+    ///
+    /// Note: Converts probabilities to log space for tropical representation
     #[wasm_bindgen(js_name = fromProbabilities)]
     pub fn from_probabilities(probs: &[f64]) -> Self {
+        // Convert probabilities to log space (logits)
+        let logits: Vec<f64> = probs
+            .iter()
+            .map(|&p| if p > 0.0 { p.ln() } else { f64::NEG_INFINITY })
+            .collect();
         Self {
-            inner: TropicalDualClifford::from_probabilities(probs),
+            inner: TropicalDualClifford::from_logits(&logits),
         }
     }
 
@@ -89,7 +94,7 @@ impl WasmTropicalDualClifford {
         self.inner
             .extract_dual_features()
             .into_iter()
-            .map(|d| d.real)
+            .map(|d| d.value())
             .collect()
     }
 
@@ -99,14 +104,14 @@ impl WasmTropicalDualClifford {
         self.inner
             .extract_dual_features()
             .into_iter()
-            .map(|d| d.dual)
+            .map(|d| d.derivative())
             .collect()
     }
 
     /// Get Clifford coefficients
     #[wasm_bindgen(js_name = getCliffordCoefficients)]
     pub fn get_clifford_coefficients(&self) -> Vec<f64> {
-        (0..8).map(|i| self.inner.clifford.get(i)).collect()
+        (0..8).map(|i| self.inner.clifford().get(i)).collect()
     }
 
     /// Add two TDC objects
@@ -140,7 +145,7 @@ impl WasmTropicalDualClifford {
             .sum::<f64>()
             .sqrt();
 
-        let clifford_norm = self.inner.clifford.magnitude();
+        let clifford_norm = self.inner.clifford().magnitude();
 
         // Weighted combination
         (tropical_norm.max(0.0) + dual_norm + clifford_norm) / 3.0
@@ -193,7 +198,7 @@ impl WasmTropicalDualClifford {
     /// Extract geometric features using Clifford operations
     #[wasm_bindgen(js_name = extractGeometricFeatures)]
     pub fn extract_geometric_features(&self) -> Vec<f64> {
-        let mv = &self.inner.clifford;
+        let mv = self.inner.clifford();
         vec![
             mv.get(0),                // scalar
             mv.get(1),                // e1
@@ -234,10 +239,32 @@ impl WasmTropicalDualClifford {
     }
 
     /// Perform sensitivity analysis for gradient-based optimization
+    ///
+    /// Note: This feature is not yet available in v0.12.0
+    /// TODO: Re-enable when sensitivity_analysis is added to TropicalDualClifford
     #[wasm_bindgen(js_name = sensitivityAnalysis)]
     pub fn sensitivity_analysis(&self) -> WasmSensitivityMap {
-        let sensitivity = self.inner.sensitivity_analysis();
-        WasmSensitivityMap { inner: sensitivity }
+        // Stub implementation - compute basic sensitivity from dual gradients
+        let dual_features = self.inner.extract_dual_features();
+        let mut sensitivities = Vec::new();
+
+        for (i, d) in dual_features.iter().enumerate() {
+            sensitivities.push((i, d.value(), d.derivative()));
+        }
+
+        // Sort by derivative magnitude
+        sensitivities.sort_by(|a, b| b.2.abs().partial_cmp(&a.2.abs()).unwrap());
+
+        WasmSensitivityMap {
+            sensitivities: sensitivities
+                .into_iter()
+                .map(|(c, v, s)| SensitivityEntry {
+                    component: c,
+                    value: v,
+                    sensitivity: s,
+                })
+                .collect(),
+        }
     }
 }
 
@@ -312,10 +339,17 @@ impl WasmEvaluationResult {
     }
 }
 
+/// Internal struct for sensitivity entry
+struct SensitivityEntry {
+    component: usize,
+    value: f64,
+    sensitivity: f64,
+}
+
 /// WASM wrapper for sensitivity analysis results
 #[wasm_bindgen]
 pub struct WasmSensitivityMap {
-    inner: SensitivityMap<f64>,
+    sensitivities: Vec<SensitivityEntry>,
 }
 
 #[wasm_bindgen]
@@ -323,31 +357,25 @@ impl WasmSensitivityMap {
     /// Get components with highest sensitivity (for optimization)
     #[wasm_bindgen(js_name = getMostSensitive)]
     pub fn get_most_sensitive(&self, n: usize) -> Vec<usize> {
-        self.inner.most_sensitive(n)
+        self.sensitivities
+            .iter()
+            .take(n)
+            .map(|s| s.component)
+            .collect()
     }
 
     /// Get total sensitivity across all components
     #[wasm_bindgen(js_name = getTotalSensitivity)]
     pub fn get_total_sensitivity(&self) -> f64 {
-        self.inner.total_sensitivity()
+        self.sensitivities.iter().map(|s| s.sensitivity.abs()).sum()
     }
 
     /// Get all sensitivities as JavaScript arrays
     #[wasm_bindgen(js_name = getAllSensitivities)]
     pub fn get_all_sensitivities(&self) -> Result<JsValue, JsValue> {
-        let components: Vec<usize> = self
-            .inner
-            .sensitivities
-            .iter()
-            .map(|s| s.component)
-            .collect();
-        let values: Vec<f64> = self.inner.sensitivities.iter().map(|s| s.value).collect();
-        let sensitivities: Vec<f64> = self
-            .inner
-            .sensitivities
-            .iter()
-            .map(|s| s.sensitivity)
-            .collect();
+        let components: Vec<usize> = self.sensitivities.iter().map(|s| s.component).collect();
+        let values: Vec<f64> = self.sensitivities.iter().map(|s| s.value).collect();
+        let sensitivities: Vec<f64> = self.sensitivities.iter().map(|s| s.sensitivity).collect();
 
         let obj = Object::new();
         js_sys::Reflect::set(
@@ -370,60 +398,25 @@ impl WasmSensitivityMap {
     }
 }
 
-/// WASM wrapper for LLM token distributions
-#[wasm_bindgen]
-pub struct WasmTropicalDualDistribution {
-    inner: TropicalDualDistribution<f64>,
-}
+// Note: WasmTropicalDualDistribution is commented out in v0.12.0
+// as TropicalDualDistribution is not yet available in the fusion API.
+// TODO: Re-enable when TropicalDualDistribution is added to amari-fusion
 
-#[wasm_bindgen]
-impl WasmTropicalDualDistribution {
-    /// Create from logit vector (typical LLM output)
-    #[wasm_bindgen(constructor)]
-    pub fn new(logits: &[f64]) -> Self {
-        Self {
-            inner: TropicalDualDistribution::from_logits(logits),
-        }
-    }
-
-    /// Compute KL divergence with automatic gradients
-    #[wasm_bindgen(js_name = klDivergence)]
-    pub fn kl_divergence(&self, other: &WasmTropicalDualDistribution) -> Result<JsValue, JsValue> {
-        let kl = self.inner.kl_divergence(&other.inner);
-
-        let obj = Object::new();
-        js_sys::Reflect::set(&obj, &"value".into(), &kl.real.into())?;
-        js_sys::Reflect::set(&obj, &"gradient".into(), &kl.dual.into())?;
-
-        Ok(obj.into())
-    }
-
-    /// Generate most likely sequence using tropical algebra (Viterbi-like)
-    #[wasm_bindgen(js_name = mostLikelySequence)]
-    pub fn most_likely_sequence(&self, length: usize) -> Vec<usize> {
-        self.inner.most_likely_sequence(length)
-    }
-
-    /// Compute geometric alignment with reference distribution
-    #[wasm_bindgen(js_name = geometricAlignment)]
-    pub fn geometric_alignment(&self, reference: &WasmTropicalDualDistribution) -> f64 {
-        self.inner.geometric_alignment(&reference.inner)
-    }
-
-    /// Get attention pattern as tropical polytope vertices
-    #[wasm_bindgen(js_name = attentionPolytope)]
-    pub fn attention_polytope(&self) -> Vec<f64> {
-        let polytope = self.inner.attention_polytope();
-        // Flatten the polytope vertices for JavaScript
-        polytope.into_iter().flatten().collect()
-    }
-
-    /// Get vocabulary size
-    #[wasm_bindgen(js_name = getVocabSize)]
-    pub fn get_vocab_size(&self) -> usize {
-        self.inner.vocab_size
-    }
-}
+// /// WASM wrapper for LLM token distributions
+// #[wasm_bindgen]
+// pub struct WasmTropicalDualDistribution {
+//     // Placeholder for when TropicalDualDistribution is available
+// }
+//
+// #[wasm_bindgen]
+// impl WasmTropicalDualDistribution {
+//     /// Create from logit vector (typical LLM output)
+//     #[wasm_bindgen(constructor)]
+//     pub fn new(logits: &[f64]) -> Self {
+//         // TODO: Implement when API is available
+//         Self { }
+//     }
+// }
 
 /// High-performance batch operations for LLM workloads
 #[wasm_bindgen]
@@ -602,6 +595,8 @@ impl FusionBatchOperations {
     }
 
     /// Batch sensitivity analysis for gradient-based optimization
+    ///
+    /// Note: Using simplified implementation based on gradient norms
     #[wasm_bindgen(js_name = batchSensitivity)]
     pub fn batch_sensitivity(
         tdc_batch: &[f64], // Flattened TDC coefficients
@@ -619,8 +614,11 @@ impl FusionBatchOperations {
 
             let tdc: TropicalDualClifford<f64, 8> =
                 TropicalDualClifford::from_logits(&tdc_batch[start..end]);
-            let sensitivity_map = tdc.sensitivity_analysis();
-            total_sensitivities.push(sensitivity_map.total_sensitivity());
+
+            // Compute sensitivity as sum of absolute gradients
+            let dual_features = tdc.extract_dual_features();
+            let sensitivity: f64 = dual_features.iter().map(|d| d.derivative().abs()).sum();
+            total_sensitivities.push(sensitivity);
         }
 
         Ok(total_sensitivities)
@@ -634,22 +632,36 @@ pub struct FusionUtils;
 #[wasm_bindgen]
 impl FusionUtils {
     /// Convert softmax probabilities to tropical representation
+    ///
+    /// Note: Direct conversion helpers are not in v0.12.0, using manual implementation
     #[wasm_bindgen(js_name = softmaxToTropical)]
     pub fn softmax_to_tropical(probs: &[f64]) -> Vec<f64> {
-        amari_fusion::conversion::softmax_to_tropical(probs)
-            .into_iter()
-            .map(|tn: amari_tropical::TropicalNumber<f64>| tn.value())
+        // Convert probabilities to log space (tropical representation)
+        probs
+            .iter()
+            .map(|&p| if p > 0.0 { p.ln() } else { f64::NEG_INFINITY })
             .collect()
     }
 
     /// Convert tropical numbers back to softmax probabilities
+    ///
+    /// Note: Direct conversion helpers are not in v0.12.0, using manual implementation
     #[wasm_bindgen(js_name = tropicalToSoftmax)]
     pub fn tropical_to_softmax(tropical_values: &[f64]) -> Vec<f64> {
-        let tropical_numbers: Vec<_> = tropical_values
+        // Find max for numerical stability
+        let max_val = tropical_values
             .iter()
-            .map(|&v| amari_tropical::TropicalNumber::new(v))
+            .fold(f64::NEG_INFINITY, |a, &b| a.max(b));
+
+        // Convert from log space to probabilities
+        let exp_vals: Vec<f64> = tropical_values
+            .iter()
+            .map(|&v| (v - max_val).exp())
             .collect();
-        amari_fusion::conversion::tropical_to_softmax(&tropical_numbers)
+
+        let sum: f64 = exp_vals.iter().sum();
+
+        exp_vals.iter().map(|&v| v / sum).collect()
     }
 
     /// Validate logits for numerical stability
@@ -770,25 +782,26 @@ mod tests {
         assert_eq!(results.unwrap().len(), 4); // 4 scores per evaluation
     }
 
-    #[allow(dead_code)]
-    #[wasm_bindgen_test]
-    fn test_tropical_dual_distribution() {
-        let logits = vec![1.0, 2.0, 3.0, 0.5, 1.5];
-        let dist1 = WasmTropicalDualDistribution::new(&logits);
-        let dist2 = WasmTropicalDualDistribution::new(&[2.0, 1.0, 2.5, 1.0, 1.8]);
-
-        // Test KL divergence
-        let kl = dist1.kl_divergence(&dist2).unwrap();
-        assert!(kl.is_object());
-
-        // Test sequence generation
-        let sequence = dist1.most_likely_sequence(3);
-        assert_eq!(sequence.len(), 3);
-
-        // Test geometric alignment
-        let alignment = dist1.geometric_alignment(&dist2);
-        assert!(alignment.is_finite());
-    }
+    // Commented out: WasmTropicalDualDistribution not available in v0.12.0
+    // #[allow(dead_code)]
+    // #[wasm_bindgen_test]
+    // fn test_tropical_dual_distribution() {
+    //     let logits = vec![1.0, 2.0, 3.0, 0.5, 1.5];
+    //     let dist1 = WasmTropicalDualDistribution::new(&logits);
+    //     let dist2 = WasmTropicalDualDistribution::new(&[2.0, 1.0, 2.5, 1.0, 1.8]);
+    //
+    //     // Test KL divergence
+    //     let kl = dist1.kl_divergence(&dist2).unwrap();
+    //     assert!(kl.is_object());
+    //
+    //     // Test sequence generation
+    //     let sequence = dist1.most_likely_sequence(3);
+    //     assert_eq!(sequence.len(), 3);
+    //
+    //     // Test geometric alignment
+    //     let alignment = dist1.geometric_alignment(&dist2);
+    //     assert!(alignment.is_finite());
+    // }
 
     #[allow(dead_code)]
     #[wasm_bindgen_test]

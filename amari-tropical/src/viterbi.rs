@@ -150,8 +150,8 @@ impl<T: Float> TropicalPolynomial<T> {
         let mut x_power = TropicalNumber::tropical_one();
 
         for &coeff in self.coefficients.iter().skip(1) {
-            x_power = x_power.tropical_mul(x);
-            result = result.tropical_add(coeff.tropical_mul(x_power));
+            x_power = x_power.tropical_mul(&x);
+            result = result.tropical_add(&coeff.tropical_mul(&x_power));
         }
 
         result
@@ -181,7 +181,7 @@ impl<T: Float> TropicalPolynomial<T> {
 }
 
 /// Tropical convex hull for attention patterns
-pub fn tropical_convex_hull<T: Float>(points: &[TropicalMultivector<T, 2>]) -> Vec<usize> {
+pub fn tropical_convex_hull<T: Float>(points: &[TropicalMultivector<T, 2, 0, 0>]) -> Vec<usize> {
     // Simplified tropical convex hull computation
     // In tropical geometry, the convex hull has a different structure
 

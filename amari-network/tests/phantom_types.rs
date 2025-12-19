@@ -162,7 +162,7 @@ mod regular_tests {
             .expect("Should be able to add edge");
 
         let distance = network.geometric_distance(node1, node2).unwrap();
-        assert_relative_eq!(distance, 1.414213562373095, epsilon = 1e-10); // sqrt(2)
+        assert_relative_eq!(distance, std::f64::consts::SQRT_2, epsilon = 1e-10);
     }
 }
 

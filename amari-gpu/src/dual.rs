@@ -4,24 +4,24 @@
 //! differentiation using dual numbers. It includes optimized compute shaders for
 //! batch gradient computation, neural network training, and large-scale optimization.
 
-#[cfg(feature = "gpu")]
-use crate::{DualNumber, MultiDual};
-#[cfg(feature = "gpu")]
+#[cfg(feature = "dual")]
 use alloc::vec::Vec;
-#[cfg(feature = "gpu")]
+#[cfg(feature = "dual")]
+use amari_dual::{DualNumber, MultiDualNumber};
+#[cfg(feature = "dual")]
 use bytemuck::{Pod, Zeroable};
-#[cfg(feature = "gpu")]
+#[cfg(feature = "dual")]
 use futures::channel::oneshot;
-#[cfg(feature = "gpu")]
+#[cfg(feature = "dual")]
 use num_traits::Float;
-#[cfg(feature = "gpu")]
+#[cfg(feature = "dual")]
 use std::collections::HashMap;
-#[cfg(feature = "gpu")]
+#[cfg(feature = "dual")]
 use thiserror::Error;
-#[cfg(feature = "gpu")]
+#[cfg(feature = "dual")]
 use wgpu::util::DeviceExt;
 
-#[cfg(feature = "gpu")]
+#[cfg(feature = "dual")]
 #[derive(Error, Debug)]
 pub enum DualGpuError {
     #[error("GPU initialization failed: {0}")]
@@ -43,11 +43,11 @@ pub enum DualGpuError {
     GradientComputation(String),
 }
 
-#[cfg(feature = "gpu")]
+#[cfg(feature = "dual")]
 pub type DualGpuResult<T> = Result<T, DualGpuError>;
 
 /// GPU representation of a dual number optimized for WGSL
-#[cfg(feature = "gpu")]
+#[cfg(feature = "dual")]
 #[repr(C)]
 #[derive(Copy, Clone, Debug, Pod, Zeroable)]
 pub struct GpuDualNumber {
@@ -57,7 +57,7 @@ pub struct GpuDualNumber {
     pub dual: f32,
 }
 
-#[cfg(feature = "gpu")]
+#[cfg(feature = "dual")]
 impl From<DualNumber<f32>> for GpuDualNumber {
     fn from(dual: DualNumber<f32>) -> Self {
         Self {
@@ -67,7 +67,7 @@ impl From<DualNumber<f32>> for GpuDualNumber {
     }
 }
 
-#[cfg(feature = "gpu")]
+#[cfg(feature = "dual")]
 impl From<GpuDualNumber> for DualNumber<f32> {
     fn from(gpu_dual: GpuDualNumber) -> Self {
         Self {
@@ -78,7 +78,7 @@ impl From<GpuDualNumber> for DualNumber<f32> {
 }
 
 /// GPU representation of multi-dual number for batch gradients
-#[cfg(feature = "gpu")]
+#[cfg(feature = "dual")]
 #[repr(C)]
 #[derive(Copy, Clone, Debug, Pod, Zeroable)]
 pub struct GpuMultiDual {
@@ -89,7 +89,7 @@ pub struct GpuMultiDual {
 }
 
 /// Unified trait for GPU-accelerated dual number operations
-#[cfg(feature = "gpu")]
+#[cfg(feature = "dual")]
 pub trait DualGpuAccelerated<T> {
     /// Convert to GPU buffer format
     fn to_gpu_buffer(&self, context: &DualGpuContext) -> DualGpuResult<wgpu::Buffer>;
@@ -107,7 +107,7 @@ pub trait DualGpuAccelerated<T> {
 }
 
 /// GPU operation parameters for dual number computations
-#[cfg(feature = "gpu")]
+#[cfg(feature = "dual")]
 #[derive(Debug, Clone)]
 pub struct GpuOperationParams {
     /// Operation-specific parameters
@@ -121,7 +121,7 @@ pub struct GpuOperationParams {
 }
 
 /// Parameter types for GPU dual operations
-#[cfg(feature = "gpu")]
+#[cfg(feature = "dual")]
 #[derive(Debug, Clone)]
 pub enum GpuParameter {
     Float(f32),
@@ -133,7 +133,7 @@ pub enum GpuParameter {
     DualNumber(GpuDualNumber),
 }
 
-#[cfg(feature = "gpu")]
+#[cfg(feature = "dual")]
 impl Default for GpuOperationParams {
     fn default() -> Self {
         Self {
@@ -146,14 +146,14 @@ impl Default for GpuOperationParams {
 }
 
 /// Self-contained GPU context for dual number operations
-#[cfg(feature = "gpu")]
+#[cfg(feature = "dual")]
 pub struct DualGpuContext {
     pub device: wgpu::Device,
     pub queue: wgpu::Queue,
     shader_cache: HashMap<String, wgpu::ComputePipeline>,
 }
 
-#[cfg(feature = "gpu")]
+#[cfg(feature = "dual")]
 impl DualGpuContext {
     /// Initialize GPU context
     pub async fn new() -> DualGpuResult<Self> {
@@ -321,12 +321,12 @@ impl DualGpuContext {
 }
 
 /// High-level GPU operations for dual numbers
-#[cfg(feature = "gpu")]
+#[cfg(feature = "dual")]
 pub struct DualGpuOps {
     context: DualGpuContext,
 }
 
-#[cfg(feature = "gpu")]
+#[cfg(feature = "dual")]
 impl DualGpuOps {
     /// Create new GPU operations context
     pub async fn new() -> DualGpuResult<Self> {
@@ -878,7 +878,7 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
 }
 
 /// Dual operation types for GPU shaders
-#[cfg(feature = "gpu")]
+#[cfg(feature = "dual")]
 #[derive(Debug, Clone)]
 pub enum DualOperation {
     Sin,
@@ -895,7 +895,7 @@ pub enum DualOperation {
 }
 
 /// Neural network configuration for GPU training
-#[cfg(feature = "gpu")]
+#[cfg(feature = "dual")]
 #[derive(Debug, Clone)]
 pub struct NeuralNetworkConfig {
     pub input_size: usize,
@@ -905,7 +905,7 @@ pub struct NeuralNetworkConfig {
 }
 
 /// Objective function specification for optimization
-#[cfg(feature = "gpu")]
+#[cfg(feature = "dual")]
 #[derive(Debug, Clone)]
 pub struct ObjectiveFunction {
     pub function_type: String,
@@ -913,7 +913,7 @@ pub struct ObjectiveFunction {
 }
 
 // Implement GPU acceleration traits for dual number types
-#[cfg(feature = "gpu")]
+#[cfg(feature = "dual")]
 impl DualGpuAccelerated<DualNumber<f32>> for DualNumber<f32> {
     fn to_gpu_buffer(&self, context: &DualGpuContext) -> DualGpuResult<wgpu::Buffer> {
         let gpu_dual: GpuDualNumber = (*self).into();
@@ -955,7 +955,7 @@ impl DualGpuAccelerated<DualNumber<f32>> for DualNumber<f32> {
     }
 }
 
-#[cfg(feature = "gpu")]
+#[cfg(feature = "dual")]
 impl<T: Float + Send + Sync> DualGpuAccelerated<MultiDual<T>> for MultiDual<T> {
     fn to_gpu_buffer(&self, _context: &DualGpuContext) -> DualGpuResult<wgpu::Buffer> {
         // Convert to GPU-compatible format
@@ -984,7 +984,7 @@ impl<T: Float + Send + Sync> DualGpuAccelerated<MultiDual<T>> for MultiDual<T> {
 }
 
 // Convenience functions for common GPU operations
-#[cfg(feature = "gpu")]
+#[cfg(feature = "dual")]
 impl DualGpuOps {
     /// Compute batch gradients for a vector function
     pub async fn batch_gradients(
@@ -1040,7 +1040,7 @@ impl DualGpuOps {
 }
 
 /// Vector function specification for batch gradient computation
-#[cfg(feature = "gpu")]
+#[cfg(feature = "dual")]
 #[derive(Debug, Clone)]
 pub struct VectorFunction {
     pub input_size: usize,
@@ -1049,7 +1049,7 @@ pub struct VectorFunction {
 }
 
 #[cfg(test)]
-#[cfg(feature = "gpu")]
+#[cfg(feature = "dual")]
 mod tests {
     use super::*;
     use crate::DualNumber;

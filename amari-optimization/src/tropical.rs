@@ -181,9 +181,9 @@ impl<T: Float> TropicalOptimizer<T> {
             // Simplified matrix-vector multiplication
             for (i, new_elem) in new_eigenvector.iter_mut().enumerate().take(n) {
                 for (j, &eigen_val) in eigenvector.iter().enumerate().take(n) {
-                    if let Some(matrix_ij) = matrix.get(i, j) {
-                        let product = matrix_ij.tropical_mul(eigen_val);
-                        *new_elem = new_elem.tropical_add(product);
+                    if let Ok(matrix_ij) = matrix.get(i, j) {
+                        let product = matrix_ij.tropical_mul(&eigen_val);
+                        *new_elem = new_elem.tropical_add(&product);
                     }
                 }
             }
@@ -250,7 +250,7 @@ impl<T: Float> TropicalOptimizer<T> {
 
                 // Try small perturbations
                 let perturbation = TropicalNumber::new(T::from(0.1).unwrap());
-                solution[i] = old_value.tropical_add(perturbation);
+                solution[i] = old_value.tropical_add(&perturbation);
 
                 let new_obj_value = objective.evaluate(&solution);
                 if new_obj_value.value() < best_value.value() {
@@ -502,7 +502,7 @@ mod tests {
         fn evaluate(&self, x: &[TropicalNumber<T>]) -> TropicalNumber<T> {
             // Simple sum in tropical algebra (max operation)
             let mut result = TropicalNumber::tropical_zero();
-            for &val in x {
+            for val in x {
                 result = result.tropical_add(val);
             }
             result
