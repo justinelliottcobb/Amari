@@ -7,7 +7,7 @@ license.workspace = true
 authors = ["Justin Elliott Cobb <justin@industrialalgebra.com>"]
 repository = "https://github.com/justinelliottcobb/Amari"
 description = "Geometric calculus - unified differential and integral calculus using geometric algebra"
-keywords = ["geometric-algebra", "calculus", "differential-geometry", "vector-calculus", "clifford-algebra"]
+keywords = ["geometric-algebra", "calculus", "diff-geometry", "vector-calculus", "clifford-algebra"]
 categories = ["mathematics", "science", "algorithms"]
 
 [dependencies]

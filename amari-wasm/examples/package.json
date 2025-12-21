@@ -1,6 +1,6 @@
 {
   "name": "amari-wasm-examples",
-  "version": "0.12.0",
+  "version": "0.12.1",
   "description": "Comprehensive examples for Amari v0.12.0 WebAssembly mathematical computing library",
   "type": "module",
   "scripts": {
