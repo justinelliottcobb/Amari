@@ -30,7 +30,7 @@ amari-core = { path = "../amari-core", features = ["phantom-types"] }
 amari-network = { path = "../amari-network", features = ["high-precision"] }
 amari-tropical = { path = "../amari-tropical" }
 amari-dual = { path = "../amari-dual" }
-amari-fusion = { path = "../amari-fusion" }
+amari-fusion = { path = "../amari-fusion", features = ["holographic"] }
 amari-automata = { path = "../amari-automata" }
 amari-info-geom = { path = "../amari-info-geom" }
 amari-enumerative = { path = "../amari-enumerative" }
