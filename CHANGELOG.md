@@ -5,6 +5,65 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.12.0] - 2025-12-21
+
+### 🎯 **Major Release: Domain API Refactoring & GPU Module Restoration**
+
+This release completes the v0.12.0 domain API implementation with significant architectural changes to type safety, encapsulation, and GPU module organization.
+
+#### **Breaking Changes**
+
+##### Domain API Changes
+- **TropicalNumber**: Private fields, use `TropicalNumber::new(x)` and `.value()` accessor
+- **DualNumber**: Private fields, use `DualNumber::new(real, dual)` and `.value()`, `.derivative()` accessors
+- **MultiDualNumber**: Use `.get_value()`, `.get_gradient()`, `.n_vars()` instead of direct field access
+- **TropicalMultivector**: Now uses 4-parameter signature `<T, P, Q, R>` for Clifford algebra compatibility
+
+##### GPU Module Changes (amari-gpu)
+- **Restored Modules**: `dual`, `enumerative`, `automata` are now enabled and functional
+- **Disabled Modules**: `tropical` and `fusion` GPU modules are temporarily disabled:
+  - `tropical.rs`: Requires extension traits (orphan impl rules prevent inherent impls on external types)
+  - `fusion.rs`: Requires `amari_dual::gpu` and `amari_tropical::gpu` submodules which don't exist
+
+**If you were importing from `amari_gpu::tropical` or `amari_gpu::fusion`**, these modules are no longer available in v0.12.0. Use CPU implementations from `amari_tropical` and `amari_fusion` directly.
+
+#### **Added**
+- Unified 4-parameter signature `<T, P, Q, R>` for all multivector types (TropicalMultivector, DualMultivector)
+- Private fields with accessor methods for better encapsulation
+- `MIGRATION_v0.12.0.md` comprehensive migration guide
+
+#### **Fixed**
+- Fixed `synchronize_representations` to use correct coefficient count (2^DIM instead of hardcoded 8)
+- Fixed `TropicalDualClifford::add()` and `scale()` to use classical arithmetic for correct interpolation
+- Fixed 6 previously ignored tests now passing:
+  - 4 in `amari-fusion/src/optimizer.rs`
+  - 1 in `amari-fusion/src/verified_contracts.rs`
+  - 1 in `tests/integration_tests.rs`
+
+#### **GPU Module Status (v0.12.0)**
+
+| Module | Status | Notes |
+|--------|--------|-------|
+| `dual` | ✅ Enabled | Fixed imports, functional |
+| `enumerative` | ✅ Enabled | Fixed imports, functional |
+| `automata` | ✅ Enabled | Functional |
+| `tropical` | ❌ Disabled | Orphan impl issue - needs extension traits |
+| `fusion` | ❌ Disabled | Missing GPU submodules in domain crates |
+| `core` | ✅ Enabled | Unchanged |
+| `info_geom` | ✅ Enabled | Unchanged |
+| `relativistic` | ✅ Enabled | Unchanged |
+| `network` | ✅ Enabled | Unchanged |
+| `measure` | ✅ Enabled | Unchanged |
+| `calculus` | ✅ Enabled | Unchanged |
+
+#### **Migration**
+See `MIGRATION_v0.12.0.md` for detailed migration instructions including:
+- Search/replace patterns for API updates
+- Common error messages and fixes
+- GPU module migration guidance
+
+---
+
 ## [0.9.5] - 2025-10-14
 
 ### 🎉 **Major Achievement: Complete GPU Coverage & Optimization**

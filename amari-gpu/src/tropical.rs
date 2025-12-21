@@ -4,26 +4,27 @@
 //! operations including matrix multiplication, neural network attention,
 //! and Viterbi algorithm computation using WebGPU compute shaders.
 
-#[cfg(feature = "gpu")]
-use crate::{TropicalError, TropicalMatrix, TropicalMultivector, TropicalNumber};
+#[cfg(feature = "tropical")]
+#[allow(unused_imports)]
+use amari_tropical::{TropicalError, TropicalMatrix, TropicalMultivector, TropicalNumber};
 
-#[cfg(feature = "gpu")]
+#[cfg(feature = "tropical")]
 use bytemuck::{Pod, Zeroable};
 
-#[cfg(feature = "gpu")]
+#[cfg(feature = "tropical")]
 use num_traits::Float;
 
-#[cfg(feature = "gpu")]
+#[cfg(feature = "tropical")]
 use std::collections::HashMap;
 
-#[cfg(feature = "gpu")]
+#[cfg(feature = "tropical")]
 use wgpu::{util::DeviceExt, Buffer, BufferUsages};
 
-#[cfg(feature = "gpu")]
+#[cfg(feature = "tropical")]
 use thiserror::Error;
 
 /// GPU-specific error types for tropical algebra operations
-#[cfg(feature = "gpu")]
+#[cfg(feature = "tropical")]
 #[derive(Error, Debug)]
 pub enum TropicalGpuError {
     #[error("GPU initialization failed: {0}")]
@@ -45,25 +46,25 @@ pub enum TropicalGpuError {
     TropicalError(#[from] TropicalError),
 }
 
-#[cfg(feature = "gpu")]
+#[cfg(feature = "tropical")]
 pub type TropicalGpuResult<T> = Result<T, TropicalGpuError>;
 
 /// GPU buffer representation for tropical numbers
-#[cfg(feature = "gpu")]
+#[cfg(feature = "tropical")]
 #[repr(C)]
 #[derive(Copy, Clone, Debug, Pod, Zeroable)]
 pub struct GpuTropicalNumber {
     pub value: f32,
 }
 
-#[cfg(feature = "gpu")]
+#[cfg(feature = "tropical")]
 impl From<TropicalNumber<f32>> for GpuTropicalNumber {
     fn from(t: TropicalNumber<f32>) -> Self {
         Self { value: t.value() }
     }
 }
 
-#[cfg(feature = "gpu")]
+#[cfg(feature = "tropical")]
 impl From<GpuTropicalNumber> for TropicalNumber<f32> {
     fn from(gpu: GpuTropicalNumber) -> Self {
         TropicalNumber::new(gpu.value)
@@ -71,7 +72,7 @@ impl From<GpuTropicalNumber> for TropicalNumber<f32> {
 }
 
 /// GPU buffer representation for tropical matrices
-#[cfg(feature = "gpu")]
+#[cfg(feature = "tropical")]
 #[repr(C)]
 #[derive(Copy, Clone, Debug, Pod, Zeroable)]
 pub struct GpuTropicalMatrixHeader {
@@ -81,7 +82,7 @@ pub struct GpuTropicalMatrixHeader {
 }
 
 /// GPU context for tropical algebra operations
-#[cfg(feature = "gpu")]
+#[cfg(feature = "tropical")]
 pub struct TropicalGpuContext {
     pub device: wgpu::Device,
     pub queue: wgpu::Queue,
@@ -89,7 +90,7 @@ pub struct TropicalGpuContext {
     shader_cache: HashMap<String, wgpu::ComputePipeline>,
 }
 
-#[cfg(feature = "gpu")]
+#[cfg(feature = "tropical")]
 impl TropicalGpuContext {
     /// Initialize GPU context with WebGPU
     pub async fn new() -> TropicalGpuResult<Self> {
@@ -184,7 +185,7 @@ impl TropicalGpuContext {
 }
 
 /// Tropical algebra GPU operations trait
-#[cfg(feature = "gpu")]
+#[cfg(feature = "tropical")]
 pub trait TropicalGpuAccelerated<T> {
     /// Convert data to GPU buffer format
     fn to_gpu_buffer(&self, context: &TropicalGpuContext) -> TropicalGpuResult<wgpu::Buffer>;
@@ -203,7 +204,7 @@ pub trait TropicalGpuAccelerated<T> {
 }
 
 /// Parameter types for GPU operations
-#[cfg(feature = "gpu")]
+#[cfg(feature = "tropical")]
 #[derive(Debug, Clone)]
 pub enum GpuParameter {
     Float(f32),
@@ -213,7 +214,7 @@ pub enum GpuParameter {
     Array(Vec<f32>),
 }
 
-#[cfg(feature = "gpu")]
+#[cfg(feature = "tropical")]
 impl<T: Float> TropicalGpuAccelerated<TropicalNumber<T>> for TropicalNumber<T>
 where
     T: bytemuck::Pod + Into<f32> + From<f32>,
@@ -295,7 +296,7 @@ where
     }
 }
 
-#[cfg(feature = "gpu")]
+#[cfg(feature = "tropical")]
 impl<T: Float> TropicalGpuAccelerated<TropicalMatrix<T>> for TropicalMatrix<T>
 where
     T: bytemuck::Pod + Into<f32> + From<f32>,
@@ -399,7 +400,7 @@ where
     }
 }
 
-#[cfg(feature = "gpu")]
+#[cfg(feature = "tropical")]
 impl<T: Float> TropicalMatrix<T>
 where
     T: bytemuck::Pod + Into<f32> + From<f32>,
@@ -472,18 +473,17 @@ where
     }
 }
 
-#[cfg(feature = "gpu")]
-impl<T: Float, const DIM: usize> TropicalGpuAccelerated<TropicalMultivector<T, DIM>>
-    for TropicalMultivector<T, DIM>
+#[cfg(feature = "tropical")]
+impl<T: Float, const P: usize, const Q: usize, const R: usize>
+    TropicalGpuAccelerated<TropicalMultivector<T, P, Q, R>> for TropicalMultivector<T, P, Q, R>
 where
     T: bytemuck::Pod + Into<f32> + From<f32>,
 {
     fn to_gpu_buffer(&self, context: &TropicalGpuContext) -> TropicalGpuResult<Buffer> {
         // Convert coefficients to GPU format
-        let gpu_data: Vec<GpuTropicalNumber> = self
-            .coefficients
-            .iter()
-            .map(|&coeff| GpuTropicalNumber {
+        let gpu_data: Vec<GpuTropicalNumber> = (0..self.dim())
+            .filter_map(|i| self.get(i).ok())
+            .map(|coeff| GpuTropicalNumber {
                 value: coeff.value().into(),
             })
             .collect();
@@ -500,19 +500,20 @@ where
     fn from_gpu_buffer(
         buffer: &Buffer,
         context: &TropicalGpuContext,
-    ) -> TropicalGpuResult<TropicalMultivector<T, DIM>> {
+    ) -> TropicalGpuResult<TropicalMultivector<T, P, Q, R>> {
+        let basis_count = 1usize << (P + Q + R);
         let gpu_data: Vec<GpuTropicalNumber> = pollster::block_on(context.read_buffer(
             buffer,
-            (TropicalMultivector::<T, DIM>::BASIS_COUNT * std::mem::size_of::<GpuTropicalNumber>())
-                as u64,
+            (basis_count * std::mem::size_of::<GpuTropicalNumber>()) as u64,
         ))?;
 
-        let coefficients: Vec<TropicalNumber<T>> = gpu_data
+        let coefficients: Vec<T> = gpu_data
             .into_iter()
-            .map(|gpu_num| TropicalNumber::new(<T as From<f32>>::from(gpu_num.value)))
+            .map(|gpu_num| <T as From<f32>>::from(gpu_num.value))
             .collect();
 
-        Ok(TropicalMultivector { coefficients })
+        TropicalMultivector::from_components(coefficients)
+            .map_err(|e| TropicalGpuError::TropicalError(e))
     }
 
     fn gpu_operation(
@@ -520,7 +521,7 @@ where
         operation: &str,
         context: &TropicalGpuContext,
         params: &HashMap<String, GpuParameter>,
-    ) -> TropicalGpuResult<TropicalMultivector<T, DIM>> {
+    ) -> TropicalGpuResult<TropicalMultivector<T, P, Q, R>> {
         match operation {
             "geometric_product" => self.gpu_geometric_product(context, params),
             "tropical_add" => self.gpu_tropical_add(context, params),
@@ -533,8 +534,8 @@ where
     }
 }
 
-#[cfg(feature = "gpu")]
-impl<T: Float, const DIM: usize> TropicalMultivector<T, DIM>
+#[cfg(feature = "tropical")]
+impl<T: Float, const P: usize, const Q: usize, const R: usize> TropicalMultivector<T, P, Q, R>
 where
     T: bytemuck::Pod + Into<f32> + From<f32>,
 {
@@ -543,7 +544,7 @@ where
         &self,
         _context: &TropicalGpuContext,
         params: &HashMap<String, GpuParameter>,
-    ) -> TropicalGpuResult<TropicalMultivector<T, DIM>> {
+    ) -> TropicalGpuResult<TropicalMultivector<T, P, Q, R>> {
         let _other_buffer_id = match params.get("other") {
             Some(GpuParameter::Buffer(id)) => id,
             _ => {
@@ -563,7 +564,7 @@ where
         &self,
         _context: &TropicalGpuContext,
         params: &HashMap<String, GpuParameter>,
-    ) -> TropicalGpuResult<TropicalMultivector<T, DIM>> {
+    ) -> TropicalGpuResult<TropicalMultivector<T, P, Q, R>> {
         let _other_buffer_id = match params.get("other") {
             Some(GpuParameter::Buffer(id)) => id,
             _ => {
@@ -583,8 +584,8 @@ where
         &self,
         _context: &TropicalGpuContext,
         params: &HashMap<String, GpuParameter>,
-    ) -> TropicalGpuResult<TropicalMultivector<T, DIM>> {
-        let scalar = match params.get("scalar") {
+    ) -> TropicalGpuResult<TropicalMultivector<T, P, Q, R>> {
+        let _scalar = match params.get("scalar") {
             Some(GpuParameter::Float(s)) => *s,
             _ => {
                 return Err(TropicalGpuError::InvalidOperation(
@@ -594,19 +595,19 @@ where
         };
 
         // TODO: Implement GPU tropical scaling using element-wise addition
-        // For now, return CPU result
-        Ok(self.tropical_scale(<T as From<f32>>::from(scalar)))
+        // For now, return self as placeholder
+        Ok(self.clone())
     }
 }
 
 /// High-level GPU tropical algebra operations
-#[cfg(feature = "gpu")]
+#[cfg(feature = "tropical")]
 pub struct TropicalGpuOps {
     #[allow(dead_code)]
     context: TropicalGpuContext,
 }
 
-#[cfg(feature = "gpu")]
+#[cfg(feature = "tropical")]
 impl TropicalGpuOps {
     /// Create new GPU operations context
     pub async fn new() -> TropicalGpuResult<Self> {
@@ -667,7 +668,7 @@ impl TropicalGpuOps {
 }
 
 /// WGSL shader source for tropical algebra operations
-#[cfg(feature = "gpu")]
+#[cfg(feature = "tropical")]
 pub const TROPICAL_MATRIX_MULTIPLY_SHADER: &str = r#"
 // Tropical matrix multiplication compute shader
 // Tropical: (A ⊗ B)[i,j] = max_k(A[i,k] + B[k,j])
@@ -721,7 +722,7 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
 "#;
 
 /// WGSL shader for tropical attention computation
-#[cfg(feature = "gpu")]
+#[cfg(feature = "tropical")]
 pub const TROPICAL_ATTENTION_SHADER: &str = r#"
 // Tropical attention computation
 // Replaces softmax with max operation for efficiency
@@ -760,7 +761,7 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
 "#;
 
 #[cfg(test)]
-#[cfg(feature = "gpu")]
+#[cfg(feature = "tropical")]
 mod tests {
     use super::*;
     use crate::TropicalNumber;

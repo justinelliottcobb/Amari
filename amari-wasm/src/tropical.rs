@@ -42,10 +42,13 @@ impl WasmTropicalNumber {
     }
 
     /// Create from log probability
+    ///
+    /// Note: Manual implementation as from_log_prob() not in v0.12.0 API
     #[wasm_bindgen(js_name = fromLogProb)]
     pub fn from_log_prob(log_p: f64) -> Self {
+        // In tropical algebra, log probabilities map directly to tropical values
         Self {
-            inner: TropicalNumber::from_log_prob(log_p),
+            inner: TropicalNumber::new(log_p),
         }
     }
 
@@ -56,9 +59,12 @@ impl WasmTropicalNumber {
     }
 
     /// Convert to probability (via exp)
+    ///
+    /// Note: Manual implementation as to_prob() not in v0.12.0 API
     #[wasm_bindgen(js_name = toProb)]
     pub fn to_prob(&self) -> f64 {
-        self.inner.to_prob()
+        // Convert from log space to probability
+        self.inner.value().exp()
     }
 
     /// Check if this is tropical zero (negative infinity)
@@ -74,16 +80,18 @@ impl WasmTropicalNumber {
     }
 
     /// Check if this is infinite
+    ///
+    /// Note: Manual implementation as is_infinity() not in v0.12.0 API
     #[wasm_bindgen(js_name = isInfinity)]
     pub fn is_infinity(&self) -> bool {
-        self.inner.is_infinity()
+        self.inner.is_zero() // Tropical zero is negative infinity
     }
 
     /// Tropical addition (max operation)
     #[wasm_bindgen(js_name = tropicalAdd)]
     pub fn tropical_add(&self, other: &WasmTropicalNumber) -> WasmTropicalNumber {
         Self {
-            inner: self.inner.tropical_add(other.inner),
+            inner: self.inner.tropical_add(&other.inner),
         }
     }
 
@@ -91,7 +99,7 @@ impl WasmTropicalNumber {
     #[wasm_bindgen(js_name = tropicalMul)]
     pub fn tropical_mul(&self, other: &WasmTropicalNumber) -> WasmTropicalNumber {
         Self {
-            inner: self.inner.tropical_mul(other.inner),
+            inner: self.inner.tropical_mul(&other.inner),
         }
     }
 
@@ -114,8 +122,13 @@ impl WasmTropicalNumber {
     }
 
     /// Negation
+    ///
+    /// Note: Manual implementation as Neg trait not implemented in v0.12.0 API
     pub fn neg(&self) -> WasmTropicalNumber {
-        Self { inner: -self.inner }
+        // Negate the underlying value
+        Self {
+            inner: TropicalNumber::new(-self.inner.value()),
+        }
     }
 }
 
@@ -231,13 +244,13 @@ impl WasmTropicalViterbi {
         let obs: Vec<usize> = observations.iter().map(|&x| x as usize).collect();
         let matrix = self.inner.forward_probabilities(&obs);
 
-        // Convert TropicalMatrix to JS Array using the public interface
-        let scores = matrix.to_attention_scores();
+        // Convert TropicalMatrix to JS Array using the data() method
+        // Note: to_attention_scores() not available in v0.12.0 API
         let result = Array::new();
-        for row in scores {
+        for row in matrix.data() {
             let js_row = Array::new();
             for val in row {
-                js_row.push(&JsValue::from(val));
+                js_row.push(&JsValue::from(val.value()));
             }
             result.push(&js_row);
         }

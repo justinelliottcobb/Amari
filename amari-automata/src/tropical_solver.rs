@@ -7,7 +7,7 @@
 use crate::{AutomataError, AutomataResult};
 use alloc::boxed::Box;
 use alloc::vec::Vec;
-use amari_tropical::TropicalMultivector;
+use amari_tropical::{TropicalMultivector, TropicalNumber};
 use num_traits::Float;
 
 // Missing type needed by lib.rs imports - using the more complete implementation below
@@ -44,7 +44,7 @@ pub enum TropicalExpression<T: Float + Clone, const DIM: usize> {
     /// Variable reference
     Variable(usize),
     /// Constant value
-    Constant(TropicalMultivector<T, DIM>),
+    Constant(TropicalMultivector<T, DIM, 0, 0>),
     /// Tropical addition (max)
     Add(
         Box<TropicalExpression<T, DIM>>,
@@ -74,7 +74,7 @@ pub struct TropicalSystem<T: Float + Clone, const DIM: usize> {
 #[derive(Debug, Clone)]
 pub struct TropicalSolution<T: Float + Clone, const DIM: usize> {
     /// Variable assignments
-    pub variables: Vec<TropicalMultivector<T, DIM>>,
+    pub variables: Vec<TropicalMultivector<T, DIM, 0, 0>>,
     /// Objective value
     pub objective_value: T,
     /// Constraint satisfaction status
@@ -122,12 +122,12 @@ pub struct SolverConfig<T: Float + Clone> {
 struct SolverCache<T: Float + Clone, const DIM: usize> {
     /// Cached expression evaluations
     #[allow(dead_code)]
-    expression_cache: Vec<Option<TropicalMultivector<T, DIM>>>,
+    expression_cache: Vec<Option<TropicalMultivector<T, DIM, 0, 0>>>,
     /// Constraint satisfaction cache
     #[allow(dead_code)]
     constraint_cache: Vec<Option<bool>>,
     /// Variable update history
-    update_history: Vec<Vec<TropicalMultivector<T, DIM>>>,
+    update_history: Vec<Vec<TropicalMultivector<T, DIM, 0, 0>>>,
 }
 
 impl<T: Float + Clone + PartialOrd + Copy, const DIM: usize> TropicalConstraint<T, DIM> {
@@ -165,7 +165,10 @@ impl<T: Float + Clone + PartialOrd + Copy, const DIM: usize> TropicalConstraint<
     }
 
     /// Evaluate constraint satisfaction
-    pub fn is_satisfied(&self, variables: &[TropicalMultivector<T, DIM>]) -> AutomataResult<bool> {
+    pub fn is_satisfied(
+        &self,
+        variables: &[TropicalMultivector<T, DIM, 0, 0>],
+    ) -> AutomataResult<bool> {
         let lhs_val = self.lhs.evaluate(variables)?;
         let rhs_val = self.rhs.evaluate(variables)?;
 
@@ -189,7 +192,7 @@ impl<T: Float + Clone + PartialOrd + Copy, const DIM: usize> TropicalConstraint<
     }
 
     /// Compute constraint violation
-    pub fn violation(&self, variables: &[TropicalMultivector<T, DIM>]) -> AutomataResult<T> {
+    pub fn violation(&self, variables: &[TropicalMultivector<T, DIM, 0, 0>]) -> AutomataResult<T> {
         let _lhs_val = self.lhs.evaluate(variables)?;
         let _rhs_val = self.rhs.evaluate(variables)?;
 
@@ -210,7 +213,7 @@ impl<T: Float + Clone + PartialOrd + Copy, const DIM: usize> TropicalExpression<
     }
 
     /// Create a constant expression
-    pub fn constant(value: TropicalMultivector<T, DIM>) -> Self {
+    pub fn constant(value: TropicalMultivector<T, DIM, 0, 0>) -> Self {
         Self::Constant(value)
     }
 
@@ -232,8 +235,8 @@ impl<T: Float + Clone + PartialOrd + Copy, const DIM: usize> TropicalExpression<
     /// Evaluate the expression given variable values
     pub fn evaluate(
         &self,
-        variables: &[TropicalMultivector<T, DIM>],
-    ) -> AutomataResult<TropicalMultivector<T, DIM>> {
+        variables: &[TropicalMultivector<T, DIM, 0, 0>],
+    ) -> AutomataResult<TropicalMultivector<T, DIM, 0, 0>> {
         match self {
             Self::Variable(index) => {
                 if *index >= variables.len() {
@@ -250,11 +253,19 @@ impl<T: Float + Clone + PartialOrd + Copy, const DIM: usize> TropicalExpression<
             Self::Mul(left, right) => {
                 let left_val = left.evaluate(variables)?;
                 let right_val = right.evaluate(variables)?;
-                Ok(left_val.tropical_mul(&right_val))
+                Ok(left_val.geometric_product(&right_val))
             }
             Self::Scale(scalar, expr) => {
                 let expr_val = expr.evaluate(variables)?;
-                Ok(expr_val.tropical_scale(*scalar))
+                // Scalar multiplication in tropical algebra: multiply each component by scalar
+                let scalar_tropical = TropicalNumber::new(*scalar);
+                let mut result = expr_val.clone();
+                for i in 0..result.components().len() {
+                    result
+                        .set(i, result.components()[i].tropical_mul(&scalar_tropical))
+                        .map_err(|e| AutomataError::Other(format!("Tropical error: {:?}", e)))?;
+                }
+                Ok(result)
             }
         }
     }
@@ -312,7 +323,10 @@ impl<T: Float + Clone + PartialOrd + Copy, const DIM: usize> TropicalSystem<T, D
     }
 
     /// Check if a solution satisfies all constraints
-    pub fn is_feasible(&self, solution: &[TropicalMultivector<T, DIM>]) -> AutomataResult<bool> {
+    pub fn is_feasible(
+        &self,
+        solution: &[TropicalMultivector<T, DIM, 0, 0>],
+    ) -> AutomataResult<bool> {
         if solution.len() != self.num_variables {
             return Err(AutomataError::InvalidCoordinates(
                 solution.len(),
@@ -330,7 +344,10 @@ impl<T: Float + Clone + PartialOrd + Copy, const DIM: usize> TropicalSystem<T, D
     }
 
     /// Compute total constraint violation
-    pub fn total_violation(&self, solution: &[TropicalMultivector<T, DIM>]) -> AutomataResult<T> {
+    pub fn total_violation(
+        &self,
+        solution: &[TropicalMultivector<T, DIM, 0, 0>],
+    ) -> AutomataResult<T> {
         if solution.len() != self.num_variables {
             return Err(AutomataError::InvalidCoordinates(
                 solution.len(),
@@ -359,7 +376,7 @@ impl<T: Float + Clone + PartialOrd + Copy, const DIM: usize> TropicalSolver<T, D
         system: &TropicalSystem<T, DIM>,
     ) -> AutomataResult<TropicalSolution<T, DIM>> {
         // Initialize variables with neutral elements
-        let mut variables = vec![TropicalMultivector::zero(); system.num_variables];
+        let mut variables = vec![TropicalMultivector::new(); system.num_variables];
 
         // Iterative constraint propagation
         for iteration in 0..self.config.max_iterations {
@@ -407,9 +424,9 @@ impl<T: Float + Clone + PartialOrd + Copy, const DIM: usize> TropicalSolver<T, D
     fn update_variable(
         &self,
         var_index: usize,
-        current_variables: &[TropicalMultivector<T, DIM>],
+        current_variables: &[TropicalMultivector<T, DIM, 0, 0>],
         _system: &TropicalSystem<T, DIM>,
-    ) -> AutomataResult<TropicalMultivector<T, DIM>> {
+    ) -> AutomataResult<TropicalMultivector<T, DIM, 0, 0>> {
         // Find the best value for this variable that satisfies constraints
         // This is a simplified implementation
         Ok(current_variables[var_index].clone())
@@ -418,7 +435,7 @@ impl<T: Float + Clone + PartialOrd + Copy, const DIM: usize> TropicalSolver<T, D
     /// Evaluate all constraints
     fn evaluate_constraints(
         &self,
-        variables: &[TropicalMultivector<T, DIM>],
+        variables: &[TropicalMultivector<T, DIM, 0, 0>],
         system: &TropicalSystem<T, DIM>,
     ) -> AutomataResult<Vec<bool>> {
         let mut satisfaction = Vec::new();
@@ -433,7 +450,7 @@ impl<T: Float + Clone + PartialOrd + Copy, const DIM: usize> TropicalSolver<T, D
     /// Compute solution metrics
     fn compute_metrics(
         &self,
-        variables: &[TropicalMultivector<T, DIM>],
+        variables: &[TropicalMultivector<T, DIM, 0, 0>],
         system: &TropicalSystem<T, DIM>,
         satisfaction: &[bool],
     ) -> AutomataResult<SolutionMetrics<T>> {
@@ -486,8 +503,8 @@ trait ApproxEqual<T> {
     fn approx_equal(&self, other: &Self) -> bool;
 }
 
-impl<T: Float + Clone, const DIM: usize> ApproxEqual<TropicalMultivector<T, DIM>>
-    for TropicalMultivector<T, DIM>
+impl<T: Float + Clone, const DIM: usize> ApproxEqual<TropicalMultivector<T, DIM, 0, 0>>
+    for TropicalMultivector<T, DIM, 0, 0>
 {
     fn approx_equal(&self, _other: &Self) -> bool {
         // Simplified implementation - would need proper tropical comparison

@@ -158,8 +158,8 @@ impl<T: Float, const DIM: usize> VerifiedContractTropicalDualClifford<T, DIM> {
                 let b = tropical_features[j];
 
                 // Commutativity: a ⊕ b = b ⊕ a (where ⊕ is tropical addition/max)
-                let sum_ab = a.tropical_add(b);
-                let sum_ba = b.tropical_add(a);
+                let sum_ab = a.tropical_add(&b);
+                let sum_ba = b.tropical_add(&a);
                 if (sum_ab.value() - sum_ba.value()).abs() > T::epsilon() {
                     return false;
                 }
@@ -235,7 +235,7 @@ impl<T: Float, const DIM: usize> VerifiedContractTropicalDualClifford<T, DIM> {
 /// Verified evaluation result with mathematical guarantees
 #[derive(Clone, Debug)]
 pub struct VerifiedEvaluationResult<T: Float> {
-    inner: crate::EvaluationResult<T>,
+    inner: crate::types::EvaluationResult<T>,
     _verification: PhantomData<CrossAlgebraVerified>,
 }
 
@@ -296,10 +296,19 @@ impl FusionAlgebraLaws {
         let right_assoc = a.add(&b.add(c));
 
         // In tropical algebra, we compare the max elements
-        let left_max = left_assoc.inner.tropical().max_element();
-        let right_max = right_assoc.inner.tropical().max_element();
+        // Find max manually
+        let mut left_max = T::neg_infinity();
+        let mut right_max = T::neg_infinity();
+        for i in 0..DIM.min(8) {
+            if let Ok(val) = left_assoc.inner.tropical().get(i) {
+                left_max = left_max.max(val.value());
+            }
+            if let Ok(val) = right_assoc.inner.tropical().get(i) {
+                right_max = right_max.max(val.value());
+            }
+        }
 
-        (left_max.value() - right_max.value()).abs() < T::epsilon()
+        (left_max - right_max).abs() < T::epsilon()
     }
 
     /// Verify dual number preservation in fusion operations

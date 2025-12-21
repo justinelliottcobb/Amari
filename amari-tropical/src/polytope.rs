@@ -45,15 +45,18 @@ impl<T: Float> TropicalPolytope<T> {
     }
 
     /// Create from multivector coefficients
-    pub fn from_multivector<const DIM: usize>(mv: &TropicalMultivector<T, DIM>) -> Self {
+    pub fn from_multivector<const P: usize, const Q: usize, const R: usize>(
+        mv: &TropicalMultivector<T, P, Q, R>,
+    ) -> Self {
+        let dim = P + Q + R;
         let mut coeffs = Vec::new();
-        for i in 0..(1 << DIM) {
-            coeffs.push(mv.get(i));
+        for i in 0..(1 << dim) {
+            coeffs.push(mv.get(i).unwrap_or(TropicalNumber::zero()));
         }
 
         Self {
             vertices: vec![coeffs],
-            dimension: 1 << DIM,
+            dimension: 1 << dim,
         }
     }
 

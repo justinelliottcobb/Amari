@@ -203,14 +203,14 @@ impl<T: Float> LLMEvaluator<T> {
                 let max_logit = tropical_logits
                     .iter()
                     .fold(TropicalNumber::neg_infinity(), |acc, &x| {
-                        acc.tropical_add(x)
+                        acc.tropical_add(&x)
                     });
 
                 // Target probability in tropical space
                 if target < tropical_logits.len() {
-                    let target_prob =
-                        tropical_logits[target].tropical_mul(TropicalNumber(-max_logit.0));
-                    total_log_prob = total_log_prob.tropical_add(target_prob);
+                    let target_prob = tropical_logits[target]
+                        .tropical_mul(&TropicalNumber::new(-max_logit.value()));
+                    total_log_prob = total_log_prob.tropical_add(&target_prob);
                     count += 1;
                 }
             }
@@ -219,8 +219,8 @@ impl<T: Float> LLMEvaluator<T> {
         if count > 0 {
             // Average and convert to perplexity
             let count_ln = T::from((count as f64).ln()).unwrap_or(T::zero());
-            let avg_log_prob = TropicalNumber(total_log_prob.0 - count_ln);
-            TropicalNumber(-avg_log_prob.0) // exp(-avg_log_prob)
+            let avg_log_prob = TropicalNumber::new(total_log_prob.value() - count_ln);
+            TropicalNumber::new(-avg_log_prob.value()) // exp(-avg_log_prob)
         } else {
             TropicalNumber::neg_infinity()
         }
@@ -276,8 +276,8 @@ impl<T: Float> LLMEvaluator<T> {
 
         // Analyze geometric relationships between consecutive predictions
         for i in 1..predictions.len() {
-            let prev_mv = &predictions[i - 1].clifford;
-            let curr_mv = &predictions[i].clifford;
+            let prev_mv = predictions[i - 1].clifford();
+            let curr_mv = predictions[i].clifford();
 
             // Compute geometric similarity using scalar product
             let similarity = prev_mv.scalar_product(curr_mv);

@@ -4,28 +4,28 @@
 //! dual numbers, and Clifford algebra. It includes optimized compute shaders for LLM evaluation,
 //! neural attention with geometric awareness, and large-scale optimization.
 
-#[cfg(feature = "gpu")]
+#[cfg(feature = "fusion")]
 use crate::TropicalDualClifford;
-#[cfg(feature = "gpu")]
+#[cfg(feature = "fusion")]
 use alloc::vec::Vec;
-#[cfg(feature = "gpu")]
+#[cfg(feature = "fusion")]
 use bytemuck::{Pod, Zeroable};
-#[cfg(feature = "gpu")]
+#[cfg(feature = "fusion")]
 use futures::channel::oneshot;
-#[cfg(feature = "gpu")]
+#[cfg(feature = "fusion")]
 use std::collections::HashMap;
-#[cfg(feature = "gpu")]
+#[cfg(feature = "fusion")]
 use thiserror::Error;
-#[cfg(feature = "gpu")]
+#[cfg(feature = "fusion")]
 use wgpu::util::DeviceExt;
 
 // Import GPU components from constituent crates
-#[cfg(feature = "gpu")]
+#[cfg(feature = "fusion")]
 use amari_dual::gpu::{DualGpuOps, GpuDualNumber};
-#[cfg(feature = "gpu")]
+#[cfg(feature = "fusion")]
 use amari_tropical::gpu::{GpuTropicalNumber, TropicalGpuOps};
 
-#[cfg(feature = "gpu")]
+#[cfg(feature = "fusion")]
 #[derive(Error, Debug)]
 pub enum FusionGpuError {
     #[error("GPU initialization failed: {0}")]
@@ -53,11 +53,11 @@ pub enum FusionGpuError {
     LlmEvaluation(String),
 }
 
-#[cfg(feature = "gpu")]
+#[cfg(feature = "fusion")]
 pub type FusionGpuResult<T> = Result<T, FusionGpuError>;
 
 /// GPU representation of a Tropical-Dual-Clifford number
-#[cfg(feature = "gpu")]
+#[cfg(feature = "fusion")]
 #[repr(C)]
 #[derive(Copy, Clone, Debug, Pod, Zeroable)]
 pub struct GpuTropicalDualClifford {
@@ -69,7 +69,7 @@ pub struct GpuTropicalDualClifford {
     pub clifford: [f32; 8], // Clifford algebra elements
 }
 
-#[cfg(feature = "gpu")]
+#[cfg(feature = "fusion")]
 impl From<TropicalDualClifford<f32, 8>> for GpuTropicalDualClifford {
     fn from(tdc: TropicalDualClifford<f32, 8>) -> Self {
         // Extract tropical component
@@ -99,7 +99,7 @@ impl From<TropicalDualClifford<f32, 8>> for GpuTropicalDualClifford {
 }
 
 /// GPU-accelerated operations for Tropical-Dual-Clifford fusion systems
-#[cfg(feature = "gpu")]
+#[cfg(feature = "fusion")]
 pub struct FusionGpuOps {
     context: FusionGpuContext,
     #[allow(dead_code)]
@@ -109,7 +109,7 @@ pub struct FusionGpuOps {
 }
 
 /// Self-contained GPU context for fusion operations
-#[cfg(feature = "gpu")]
+#[cfg(feature = "fusion")]
 pub struct FusionGpuContext {
     pub device: wgpu::Device,
     pub queue: wgpu::Queue,
@@ -117,7 +117,7 @@ pub struct FusionGpuContext {
     shader_cache: HashMap<String, wgpu::ComputePipeline>,
 }
 
-#[cfg(feature = "gpu")]
+#[cfg(feature = "fusion")]
 impl FusionGpuContext {
     /// Initialize GPU context
     pub async fn new() -> FusionGpuResult<Self> {
@@ -269,7 +269,7 @@ impl FusionGpuContext {
     }
 }
 
-#[cfg(feature = "gpu")]
+#[cfg(feature = "fusion")]
 impl FusionGpuOps {
     /// Create new GPU operations context
     pub async fn new() -> FusionGpuResult<Self> {
@@ -1033,7 +1033,7 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
 }
 
 /// Configuration for LLM evaluation
-#[cfg(feature = "gpu")]
+#[cfg(feature = "fusion")]
 #[derive(Debug, Clone)]
 pub struct LlmEvaluationConfig {
     pub tropical_weight: f32,
@@ -1041,7 +1041,7 @@ pub struct LlmEvaluationConfig {
     pub geometric_weight: f32,
 }
 
-#[cfg(feature = "gpu")]
+#[cfg(feature = "fusion")]
 impl Default for LlmEvaluationConfig {
     fn default() -> Self {
         Self {
@@ -1053,7 +1053,7 @@ impl Default for LlmEvaluationConfig {
 }
 
 /// Configuration for geometric attention
-#[cfg(feature = "gpu")]
+#[cfg(feature = "fusion")]
 #[derive(Debug, Clone)]
 pub struct GeometricAttentionConfig {
     pub tropical_weight: f32,
@@ -1062,7 +1062,7 @@ pub struct GeometricAttentionConfig {
     pub temperature: f32,
 }
 
-#[cfg(feature = "gpu")]
+#[cfg(feature = "fusion")]
 impl Default for GeometricAttentionConfig {
     fn default() -> Self {
         Self {
@@ -1075,7 +1075,7 @@ impl Default for GeometricAttentionConfig {
 }
 
 /// Configuration for fusion optimization
-#[cfg(feature = "gpu")]
+#[cfg(feature = "fusion")]
 #[derive(Debug, Clone)]
 pub struct FusionOptimizationConfig {
     pub learning_rate: f32,
@@ -1083,7 +1083,7 @@ pub struct FusionOptimizationConfig {
     pub convergence_threshold: f32,
 }
 
-#[cfg(feature = "gpu")]
+#[cfg(feature = "fusion")]
 impl Default for FusionOptimizationConfig {
     fn default() -> Self {
         Self {
@@ -1096,7 +1096,7 @@ impl Default for FusionOptimizationConfig {
 
 /// Result structures for GPU operations
 /// Single LLM evaluation entry
-#[cfg(feature = "gpu")]
+#[cfg(feature = "fusion")]
 #[repr(C)]
 #[derive(Copy, Clone, Debug, Pod, Zeroable)]
 pub struct LlmEvaluationEntry {
@@ -1107,7 +1107,7 @@ pub struct LlmEvaluationEntry {
 }
 
 /// Complete LLM evaluation result
-#[cfg(feature = "gpu")]
+#[cfg(feature = "fusion")]
 #[derive(Debug, Clone)]
 pub struct LlmEvaluationResult {
     pub average_tropical_score: f32,
@@ -1119,7 +1119,7 @@ pub struct LlmEvaluationResult {
 }
 
 /// Fusion optimization objective
-#[cfg(feature = "gpu")]
+#[cfg(feature = "fusion")]
 #[repr(C)]
 #[derive(Copy, Clone, Debug, Pod, Zeroable)]
 pub struct FusionObjective {
@@ -1131,7 +1131,7 @@ pub struct FusionObjective {
 }
 
 #[cfg(test)]
-#[cfg(feature = "gpu")]
+#[cfg(feature = "fusion")]
 mod tests {
     use super::*;
 

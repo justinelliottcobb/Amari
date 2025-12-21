@@ -2,9 +2,9 @@ name: Test Status
 
 on:
   push:
-    branches: [ main, master, 'feature/**' ]
+    branches: [ main, master, develop, 'feature/**' ]
   pull_request:
-    branches: [ main, master ]
+    branches: [ main, master, develop, 'release/**' ]
   workflow_dispatch:
 
 permissions:

@@ -1,7 +1,19 @@
 //! GPU acceleration for geometric algebra operations using WebGPU/wgpu
 
 pub mod adaptive;
+#[cfg(feature = "automata")]
+pub mod automata;
 pub mod benchmarks;
+#[cfg(feature = "calculus")]
+pub mod calculus;
+#[cfg(feature = "dual")]
+pub mod dual;
+#[cfg(feature = "enumerative")]
+pub mod enumerative;
+// NOTE: fusion GPU module disabled - requires gpu submodules in amari_dual and amari_tropical crates
+// These would need to be created with DualGpuOps, GpuDualNumber, TropicalGpuOps, GpuTropicalNumber types
+// #[cfg(feature = "fusion")]
+// pub mod fusion;
 #[cfg(feature = "measure")]
 pub mod measure;
 pub mod multi_gpu;
@@ -10,6 +22,10 @@ pub mod performance;
 pub mod relativistic;
 pub mod shaders;
 pub mod timeline;
+// NOTE: tropical GPU module disabled - has orphan impl issues (impl for TropicalMatrix/TropicalMultivector)
+// Would need to use extension traits instead of inherent impls
+// #[cfg(feature = "tropical")]
+// pub mod tropical;
 pub mod unified;
 pub mod verification;
 
@@ -25,6 +41,8 @@ pub use benchmarks::{
     BenchmarkSuiteResults, BenchmarkSummary, ScalingAnalysis,
 };
 use bytemuck::{Pod, Zeroable};
+#[cfg(feature = "calculus")]
+pub use calculus::GpuCalculus;
 #[cfg(feature = "measure")]
 pub use measure::{
     GpuIntegrator, GpuMonteCarloIntegrator, GpuMultidimIntegrator, GpuParametricDensity,

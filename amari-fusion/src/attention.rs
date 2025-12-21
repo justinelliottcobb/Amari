@@ -54,12 +54,12 @@ impl<T: Float> AttentionHead<T> {
             for j in 0..seq_len {
                 let score = if let Some(mask) = mask {
                     if mask[i * seq_len + j] {
-                        queries[i].tropical_mul(keys[j])
+                        queries[i].tropical_mul(&keys[j])
                     } else {
                         TropicalNumber::neg_infinity()
                     }
                 } else {
-                    queries[i].tropical_mul(keys[j])
+                    queries[i].tropical_mul(&keys[j])
                 };
                 scores.push(score);
             }
@@ -83,12 +83,12 @@ impl<T: Float> AttentionHead<T> {
 
             // Find max in tropical space (becomes standard max)
             let max_val = row.iter().fold(TropicalNumber::neg_infinity(), |acc, &x| {
-                acc.tropical_add(x)
+                acc.tropical_add(&x)
             });
 
             // Normalize by subtracting max (tropical division)
             for &score in row {
-                let normalized = TropicalNumber(score.0 - max_val.0);
+                let normalized = TropicalNumber::new(score.value() - max_val.value());
                 result.push(normalized);
             }
         }
@@ -157,12 +157,12 @@ impl<T: Float> AttentionHead<T> {
     }
 
     /// Geometric attention using Clifford algebra for rotational invariance
-    pub fn compute_attention_clifford(
+    pub fn compute_attention_clifford<const DIM: usize>(
         &self,
-        query_mv: &Multivector<3, 0, 0>,
-        key_mv: &Multivector<3, 0, 0>,
-        value_mv: &Multivector<3, 0, 0>,
-    ) -> Multivector<3, 0, 0> {
+        query_mv: &Multivector<DIM, 0, 0>,
+        key_mv: &Multivector<DIM, 0, 0>,
+        value_mv: &Multivector<DIM, 0, 0>,
+    ) -> Multivector<DIM, 0, 0> {
         // Simplified geometric attention using scalar product
         let alignment = query_mv.scalar_product(key_mv);
         let norm_product = query_mv.norm() * key_mv.norm();
@@ -197,9 +197,9 @@ impl<T: Float> AttentionHead<T> {
             self.compute_attention_dual(&dual_queries, &dual_keys, &dual_values, mask);
 
         // Phase 3: Geometric refinement using Clifford algebra
-        let query_mv = input.clifford.clone();
-        let key_mv = input.clifford.clone();
-        let value_mv = input.clifford.clone();
+        let query_mv = input.clifford().clone();
+        let key_mv = input.clifford().clone();
+        let value_mv = input.clifford().clone();
         let clifford_attention = self.compute_attention_clifford(&query_mv, &key_mv, &value_mv);
 
         // Combine results from all three systems
@@ -421,9 +421,9 @@ mod tests {
     fn test_tropical_attention() {
         let head = AttentionHead::<f64>::new(4, 2);
         let queries = vec![
-            TropicalNumber(1.0),
-            TropicalNumber(2.0),
-            TropicalNumber(3.0),
+            TropicalNumber::new(1.0),
+            TropicalNumber::new(2.0),
+            TropicalNumber::new(3.0),
         ];
         let keys = queries.clone();
 

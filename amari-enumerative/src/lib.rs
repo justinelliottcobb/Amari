@@ -34,8 +34,6 @@ pub mod comprehensive_tests;
 pub mod verified_contracts;
 
 pub mod geometric_algebra;
-#[cfg(feature = "gpu")]
-pub mod gpu;
 pub mod gromov_witten;
 pub mod higher_genus;
 pub mod intersection;
@@ -97,18 +95,3 @@ pub enum EnumerativeError {
 pub type EnumerativeResult<T> = Result<T, EnumerativeError>;
 
 // GPU acceleration exports
-#[cfg(feature = "gpu")]
-pub use gpu::{
-    EnumerativeGpuConfig, EnumerativeGpuContext, EnumerativeGpuError, EnumerativeGpuOps,
-    EnumerativeGpuResult, GpuGromovWittenData, GpuIntersectionData, GpuSchubertClass,
-};
-
-#[cfg(test)]
-mod tests {
-
-    #[test]
-    fn test_library_compiles() {
-        // Basic smoke test to ensure the library compiles
-        let _compiled = true;
-    }
-}
