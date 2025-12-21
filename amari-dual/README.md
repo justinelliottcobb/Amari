@@ -1,0 +1,228 @@
+# amari-dual
+
+Dual number automatic differentiation for efficient gradient computation.
+
+## Overview
+
+`amari-dual` implements dual numbers for forward-mode automatic differentiation. Dual numbers extend real numbers with an infinitesimal unit ε where ε² = 0, enabling exact derivative computation without numerical approximation or computational graphs.
+
+## Features
+
+- **DualNumber**: Single-variable automatic differentiation
+- **MultiDualNumber**: Multi-variable gradient computation
+- **DualMultivector**: Integration with geometric algebra
+- **Mathematical Functions**: Differentiable sin, cos, exp, log, and more
+- **High-Precision Support**: Optional extended precision arithmetic
+- **no_std Support**: Usable in embedded and WASM environments
+
+## Installation
+
+Add to your `Cargo.toml`:
+
+```toml
+[dependencies]
+amari-dual = "0.12"
+```
+
+### Feature Flags
+
+```toml
+[dependencies]
+# Default features
+amari-dual = "0.12"
+
+# With serialization
+amari-dual = { version = "0.12", features = ["serialize"] }
+
+# With GPU acceleration
+amari-dual = { version = "0.12", features = ["gpu"] }
+
+# High-precision arithmetic
+amari-dual = { version = "0.12", features = ["high-precision"] }
+```
+
+## Quick Start
+
+### Single-Variable Differentiation
+
+```rust
+use amari_dual::DualNumber;
+
+// Create a dual number: x = 3 with derivative seed 1
+let x = DualNumber::new(3.0, 1.0);
+
+// Compute f(x) = x²
+let f = x * x;
+
+// Extract value and derivative
+println!("f(3) = {}", f.value());       // 9.0
+println!("f'(3) = {}", f.derivative()); // 6.0 (2x at x=3)
+```
+
+### Multi-Variable Gradients
+
+```rust
+use amari_dual::MultiDualNumber;
+
+// Variables: x=2, y=3
+// Seed x with [1,0], y with [0,1] for gradient computation
+let x = MultiDualNumber::new(2.0, vec![1.0, 0.0]);
+let y = MultiDualNumber::new(3.0, vec![0.0, 1.0]);
+
+// Compute f(x,y) = x² + xy
+let f = x.clone() * x.clone() + x * y;
+
+// Get the gradient
+let gradient = f.get_gradient(); // [2x + y, x] = [7, 2]
+```
+
+### Constants
+
+```rust
+use amari_dual::DualNumber;
+
+// For constants (derivative = 0)
+let c = DualNumber::constant(5.0);
+
+// Multiply: f(x) = 5x
+let x = DualNumber::new(2.0, 1.0);
+let result = c * x;
+// value = 10, derivative = 5
+```
+
+## Mathematical Background
+
+### Dual Numbers
+
+A dual number has the form:
+
+```
+a + εb   where ε² = 0
+```
+
+Arithmetic operations:
+- Addition: (a + εb) + (c + εd) = (a + c) + ε(b + d)
+- Multiplication: (a + εb) × (c + εd) = ac + ε(ad + bc)
+
+### Automatic Differentiation
+
+When we evaluate f(a + ε), we get:
+
+```
+f(a + ε) = f(a) + εf'(a)
+```
+
+This gives us both the value f(a) and derivative f'(a) in a single pass through the computation.
+
+### Advantages
+
+| Approach | Accuracy | Memory | Complexity |
+|----------|----------|--------|------------|
+| Finite Differences | O(h) error | O(1) | O(n) evaluations |
+| Symbolic | Exact | O(expression) | Can explode |
+| **Dual Numbers** | **Exact** | **O(1)** | **O(1) overhead** |
+
+## Key Types
+
+### DualNumber<T>
+
+Single-variable dual number for computing f and f':
+
+```rust
+use amari_dual::DualNumber;
+
+let x = DualNumber::new(value, derivative_seed);
+let value = x.value();
+let deriv = x.derivative();
+```
+
+### MultiDualNumber<T>
+
+Multi-variable dual number for computing gradients:
+
+```rust
+use amari_dual::MultiDualNumber;
+
+let x = MultiDualNumber::new(value, gradient_seeds);
+let value = x.get_value();
+let gradient = x.get_gradient();
+let n_vars = x.n_vars();
+```
+
+### DualMultivector
+
+Dual numbers integrated with geometric algebra:
+
+```rust
+use amari_dual::DualMultivector;
+
+// Differentiable geometric algebra operations
+let mv = DualMultivector::new(/* ... */);
+```
+
+## Modules
+
+| Module | Description |
+|--------|-------------|
+| `types` | DualNumber and MultiDualNumber implementations |
+| `functions` | Differentiable mathematical functions (sin, cos, exp, log) |
+| `multivector` | Integration with geometric algebra multivectors |
+| `verified` | Phantom types for compile-time verification |
+| `error` | Error types for dual operations |
+
+## Differentiable Functions
+
+```rust
+use amari_dual::{DualNumber, functions};
+
+let x = DualNumber::new(1.0, 1.0);
+
+// Trigonometric
+let sin_x = functions::sin(x);  // sin(1), cos(1)
+let cos_x = functions::cos(x);  // cos(1), -sin(1)
+
+// Exponential and logarithm
+let exp_x = functions::exp(x);  // e¹, e¹
+let ln_x = functions::ln(x);    // ln(1)=0, 1/1=1
+
+// Power
+let x_squared = x * x;          // 1, 2
+```
+
+## v0.12.0 API Changes
+
+The API was updated in v0.12.0 for better encapsulation:
+
+```rust
+// Before (v0.11.x)
+let x = DualNumber { real: 3.0, dual: 1.0 };
+let value = x.real;
+let deriv = x.dual;
+
+// After (v0.12.0+)
+let x = DualNumber::new(3.0, 1.0);
+let value = x.value();
+let deriv = x.derivative();
+```
+
+## Performance
+
+- **Zero overhead**: Dual arithmetic has minimal cost over regular arithmetic
+- **Single pass**: Compute value and derivative together
+- **Cache friendly**: Data locality for dual number pairs
+- **SIMD potential**: Parallel computation of value and derivative
+
+## Use Cases
+
+- **Machine Learning**: Backpropagation and gradient descent
+- **Scientific Computing**: Sensitivity analysis
+- **Optimization**: Gradient-based methods
+- **Physics Simulation**: Computing forces from potentials
+
+## License
+
+Licensed under either of Apache License, Version 2.0 or MIT License at your option.
+
+## Part of Amari
+
+This crate is part of the [Amari](https://github.com/justinelliottcobb/Amari) mathematical computing library.
