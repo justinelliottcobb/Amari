@@ -1,8 +1,8 @@
-# Amari v0.12.1
+# Amari v0.12.2
 
-**Comprehensive Mathematical Computing Platform with Geometric Algebra, Differential Calculus, and Measure Theory**
+**Comprehensive Mathematical Computing Platform with Geometric Algebra, Differential Calculus, Measure Theory, and Holographic Memory**
 
-A unified mathematical computing library featuring geometric algebra, differential calculus, measure theory, relativistic physics, tropical algebra, automatic differentiation, and information geometry. The library provides multi-GPU infrastructure with intelligent workload distribution and complete WebAssembly support for browser deployment.
+A unified mathematical computing library featuring geometric algebra, differential calculus, measure theory, relativistic physics, tropical algebra, automatic differentiation, holographic associative memory, and information geometry. The library provides multi-GPU infrastructure with intelligent workload distribution and complete WebAssembly support for browser deployment.
 
 [![Rust](https://img.shields.io/badge/Rust-1.75+-orange.svg)](https://www.rust-lang.org/)
 [![WebAssembly](https://img.shields.io/badge/WebAssembly-Ready-blue.svg)](https://webassembly.org/)
@@ -19,7 +19,7 @@ A unified mathematical computing library featuring geometric algebra, differenti
 - **Relativistic Physics**: Complete spacetime algebra (Cl(1,3)) with Minkowski signature for relativistic calculations
 - **Tropical Algebra**: Max-plus semiring operations for optimization and neural network applications
 - **Automatic Differentiation**: Forward-mode AD with dual numbers for exact derivatives
-- **Fusion Systems**: Tropical-dual-Clifford fusion combining three algebraic systems
+- **Fusion Systems**: Tropical-dual-Clifford fusion combining three algebraic systems with holographic associative memory
 - **Information Geometry**: Statistical manifolds, KL/JS divergences, and Fisher information
 - **Optimization**: Gradient-based optimization with geometric constraints
 - **Network Analysis**: Geometric network analysis and graph neural networks
@@ -51,36 +51,36 @@ Add to your `Cargo.toml`:
 ```toml
 [dependencies]
 # Complete library with all features
-amari = "0.12.1"
+amari = "0.12.2"
 
 # Or individual crates:
 
 # Core geometric algebra and mathematical foundations
-amari-core = "0.12.1"
+amari-core = "0.12.2"
 
 # Differential calculus with geometric algebra
-amari-calculus = "0.12.1"
+amari-calculus = "0.12.2"
 
 # Measure theory and integration
-amari-measure = "0.12.1"
+amari-measure = "0.12.2"
 
 # High-precision relativistic physics
-amari-relativistic = { version = "0.12.1", features = ["high-precision"] }
+amari-relativistic = { version = "0.12.2", features = ["high-precision"] }
 
 # GPU acceleration
-amari-gpu = "0.12.1"
+amari-gpu = "0.12.2"
 
 # Optimization algorithms
-amari-optimization = "0.12.1"
+amari-optimization = "0.12.2"
 
 # Additional mathematical systems
-amari-tropical = "0.12.1"
-amari-dual = "0.12.1"
-amari-info-geom = "0.12.1"
-amari-automata = "0.12.1"
-amari-fusion = "0.12.1"
-amari-network = "0.12.1"
-amari-enumerative = "0.12.1"
+amari-tropical = "0.12.2"
+amari-dual = "0.12.2"
+amari-info-geom = "0.12.2"
+amari-automata = "0.12.2"
+amari-fusion = "0.12.2"
+amari-network = "0.12.2"
+amari-enumerative = "0.12.2"
 ```
 
 ### JavaScript/TypeScript (WebAssembly)
@@ -213,6 +213,39 @@ println!("Combined score: {}", evaluation.combined_score);
 println!("Most sensitive components: {:?}", most_sensitive);
 ```
 
+### Rust: Holographic Associative Memory
+
+```rust
+use amari_fusion::TropicalDualClifford;
+use amari_fusion::holographic::{HolographicMemory, BindingAlgebra, Bindable};
+
+// Create holographic memory
+let mut memory = HolographicMemory::<f64, 8>::new(BindingAlgebra::default());
+
+// Store key-value associations
+let key1 = TropicalDualClifford::random_vector();
+let value1 = TropicalDualClifford::random_vector();
+memory.store(&key1, &value1);
+
+let key2 = TropicalDualClifford::random_vector();
+let value2 = TropicalDualClifford::random_vector();
+memory.store(&key2, &value2);
+
+// Retrieve with a key
+let result = memory.retrieve(&key1);
+println!("Confidence: {:.2}", result.confidence);
+println!("Retrieved similarity: {:.2}", result.value.similarity(&value1));
+
+// Binding operations
+let bound = key1.bind(&value1);           // key ⊛ value
+let recovered = bound.unbind(&key1);       // Approximately recovers value1
+println!("Recovery similarity: {:.2}", recovered.similarity(&value1));
+
+// Check capacity
+let info = memory.capacity_info();
+println!("Items: {}, SNR: {:.2}", info.item_count, info.estimated_snr);
+```
+
 ### JavaScript/TypeScript: Mathematical Computing
 
 ```typescript
@@ -259,7 +292,7 @@ main();
 - `amari-calculus`: Differential calculus with geometric algebra
 - `amari-tropical`: Tropical (max-plus) algebra for optimization
 - `amari-dual`: Dual numbers for automatic differentiation
-- `amari-fusion`: Unified Tropical-Dual-Clifford system
+- `amari-fusion`: Unified Tropical-Dual-Clifford system with holographic associative memory
 - `amari-info-geom`: Information geometry and statistical manifolds
 - `amari-automata`: Cellular automata with geometric algebra
 - `amari-network`: Graph neural networks and network analysis
@@ -369,7 +402,7 @@ let deriv = x.derivative();
 
 See [MIGRATION_v0.12.0.md](MIGRATION_v0.12.0.md) for complete migration guide.
 
-## GPU Module Status (v0.12.1)
+## GPU Module Status (v0.12.2)
 
 | Module | Status | Feature Flag |
 |--------|--------|--------------|
@@ -382,10 +415,10 @@ See [MIGRATION_v0.12.0.md](MIGRATION_v0.12.0.md) for complete migration guide.
 | Dual | ✅ Enabled | `dual` |
 | Enumerative | ✅ Enabled | `enumerative` |
 | Automata | ✅ Enabled | `automata` |
+| Fusion (Holographic) | ✅ Enabled | `fusion` |
 | Tropical | ❌ Disabled | - |
-| Fusion | ❌ Disabled | - |
 
-Note: Tropical and Fusion GPU modules temporarily disabled due to Rust orphan impl rules. Use CPU implementations from domain crates.
+Note: Tropical GPU module temporarily disabled due to Rust orphan impl rules. Use CPU implementations from domain crates.
 
 ## Building
 

@@ -32,7 +32,19 @@ pub mod optimizer;
 pub mod verified;
 pub mod verified_contracts;
 
+// Holographic memory module (feature-gated)
+#[cfg(feature = "holographic")]
+pub mod holographic;
+
 // Re-export core types
 pub use types::{EvaluationError, EvaluationResult, TropicalDualClifford};
+
+// Re-export holographic types when feature is enabled
+#[cfg(feature = "holographic")]
+pub use holographic::{
+    Bindable, BindingAlgebra, CapacityInfo, CleanupResult, FactorizationResult, HolographicError,
+    HolographicMemory, HolographicResult, Resonator, ResonatorConfig, RetrievalResult,
+    VerifiedBindable, VerifiedHolographicMemory,
+};
 
 // GPU acceleration exports

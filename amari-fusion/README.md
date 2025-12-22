@@ -1,25 +1,38 @@
 # amari-fusion
 
-Tropical-Dual-Clifford fusion system for combining algebraic structures.
+Tropical-Dual-Clifford fusion algebra with holographic associative memory.
 
 ## Overview
 
 `amari-fusion` combines three algebraic systems into a unified framework:
 
-- **Tropical Algebra**: Converts softmax operations to efficient max operations
-- **Dual Numbers**: Provides automatic differentiation without computational graphs
-- **Clifford Algebra**: Handles geometric relationships and rotations
+- **Tropical Algebra**: Max-plus semiring operations for optimization and neural attention
+- **Dual Numbers**: Forward-mode automatic differentiation for gradient computation
+- **Clifford Algebra**: Geometric products and rotations for spatial reasoning
 
-This fusion creates a powerful framework for neural network evaluation, optimization, and geometric machine learning.
+This fusion creates a powerful framework for neural network evaluation, optimization, and geometric machine learning. The `TropicalDualClifford` (TDC) type also serves as the foundation for **holographic associative memory** - a brain-inspired memory system that stores key-value pairs in superposition using Vector Symbolic Architecture (VSA) principles.
 
 ## Features
 
-- **TropicalDualClifford**: Unified type combining all three algebras
+### Core Fusion Algebra
+
+- **TropicalDualClifford**: Unified type combining tropical, dual, and Clifford components
 - **Attention Mechanisms**: Tropical-optimized attention computation
 - **Automatic Gradients**: Dual number derivatives through the full system
 - **Geometric Features**: Clifford algebra for spatial relationships
 - **Sensitivity Analysis**: Analyze parameter importance
 - **Optimizer Integration**: Gradient-based optimization with geometric constraints
+
+### Holographic Memory (v0.12.0+)
+
+The `holographic` feature provides a complete implementation of holographic reduced representations:
+
+- **Binding Operation** (`⊛`): Associates keys with values using geometric product
+- **Bundling Operation** (`⊕`): Superimposes multiple associations into a single trace
+- **Content-Addressable Retrieval**: Query with key to retrieve associated value
+- **Graceful Degradation**: Partial or noisy queries still retrieve useful information
+- **Resonator Cleanup**: Iterative refinement for improved retrieval accuracy
+- **Capacity Tracking**: Automatic SNR estimation and capacity warnings
 
 ## Installation
 
@@ -37,17 +50,16 @@ amari-fusion = "0.12"
 # Default features
 amari-fusion = "0.12"
 
-# With serialization
-amari-fusion = { version = "0.12", features = ["serialize"] }
+# Enable holographic memory
+amari-fusion = { version = "0.12", features = ["holographic"] }
 
-# With GPU acceleration
-amari-fusion = { version = "0.12", features = ["gpu"] }
-
-# High-precision arithmetic
-amari-fusion = { version = "0.12", features = ["high-precision"] }
+# With parallel processing
+amari-fusion = { version = "0.12", features = ["rayon"] }
 ```
 
 ## Quick Start
+
+### Basic TropicalDualClifford Usage
 
 ```rust
 use amari_fusion::TropicalDualClifford;
@@ -70,6 +82,65 @@ let dual_features = tdc.extract_dual_features();
 let sensitivity = tdc.sensitivity_analysis();
 let most_sensitive = sensitivity.most_sensitive(2);
 println!("Most sensitive components: {:?}", most_sensitive);
+```
+
+### Holographic Memory
+
+```rust
+use amari_fusion::holographic::{HolographicMemory, BindingAlgebra, Bindable};
+use amari_fusion::TropicalDualClifford;
+
+// Create a holographic memory
+let mut memory = HolographicMemory::<f64, 8>::new(BindingAlgebra::default());
+
+// Store key-value associations
+let key1 = TropicalDualClifford::random();
+let value1 = TropicalDualClifford::random();
+memory.store(&key1, &value1);
+
+let key2 = TropicalDualClifford::random();
+let value2 = TropicalDualClifford::random();
+memory.store(&key2, &value2);
+
+// Retrieve with a key
+let result = memory.retrieve(&key1);
+println!("Confidence: {:.2}", result.confidence);
+println!("Retrieved value similarity: {:.2}", result.value.similarity(&value1));
+
+// Check capacity
+let info = memory.capacity_info();
+println!("Items stored: {}", info.item_count);
+println!("Estimated SNR: {:.2}", info.estimated_snr);
+```
+
+### Resonator Cleanup
+
+For noisy inputs, the resonator iteratively cleans up retrieved values:
+
+```rust
+use amari_fusion::holographic::{Resonator, ResonatorConfig};
+
+// Create a codebook of clean reference vectors
+let codebook: Vec<TropicalDualClifford<f64, 8>> = (0..10)
+    .map(|_| TropicalDualClifford::random_vector())
+    .collect();
+
+// Configure the resonator
+let config = ResonatorConfig {
+    max_iterations: 10,
+    convergence_threshold: 0.99,
+    ..Default::default()
+};
+
+let resonator = Resonator::new(&codebook, config);
+
+// Clean up a noisy input
+let noisy_input = codebook[3].clone(); // Add some noise in practice
+let result = resonator.cleanup(&noisy_input);
+
+println!("Converged: {}", result.converged);
+println!("Best match index: {}", result.best_match_index);
+println!("Iterations: {}", result.iterations);
 ```
 
 ## The Three Algebras
@@ -115,52 +186,52 @@ Benefits:
 - Coordinate-free computations
 - Unified treatment of scalars, vectors, bivectors
 
-## Key Types
+## Holographic Memory Theory
 
-### TropicalDualClifford<T, DIM>
+### Capacity
 
-The main fusion type:
+The holographic memory has a theoretical capacity of approximately:
 
-```rust
-use amari_fusion::TropicalDualClifford;
-
-// Create from logits
-let tdc = TropicalDualClifford::<f64, 4>::from_logits(&logits);
-
-// Get representations
-let tropical = tdc.tropical_repr();
-let dual = tdc.dual_repr();
-let clifford = tdc.clifford_repr();
-
-// Interpolation between two TDCs
-let interpolated = tdc.interpolate(&other, 0.5);
+```
+C ≈ D / ln(D)
 ```
 
-### EvaluationResult
+where `D` is the dimensionality (e.g., 8 for `TropicalDualClifford<_, 8>`). Beyond this capacity, retrieval quality degrades gracefully.
 
-Results from evaluating two TDCs:
+### Signal-to-Noise Ratio
 
-```rust
-let result = tdc.evaluate(&other);
+The estimated SNR is:
 
-// Scores from each algebra
-let tropical_score = result.tropical_score;
-let dual_score = result.dual_score;
-let clifford_score = result.clifford_score;
-
-// Combined score
-let combined = result.combined_score;
+```
+SNR ≈ √(D / N)
 ```
 
-## Modules
+where `N` is the number of stored items. Higher SNR means more reliable retrieval.
 
-| Module | Description |
-|--------|-------------|
-| `types` | TropicalDualClifford and related types |
-| `attention` | Tropical-optimized attention mechanisms |
-| `evaluation` | Evaluation and comparison functions |
-| `optimizer` | Gradient-based optimization with TDC |
-| `verified` | Compile-time verification |
+### Binding Algebra Laws
+
+The binding operation satisfies important algebraic properties:
+
+```rust
+use amari_fusion::holographic::Bindable;
+
+let a = TropicalDualClifford::<f64, 8>::random_vector();
+let b = TropicalDualClifford::<f64, 8>::random_vector();
+
+// Binding produces dissimilar results
+let bound = a.bind(&b);
+assert!(bound.similarity(&a).abs() < 0.3);
+assert!(bound.similarity(&b).abs() < 0.3);
+
+// Binding is approximately invertible for unit vectors
+let recovered_b = bound.unbind(&a);
+let b_similarity = recovered_b.similarity(&b);
+
+// Identity element
+let identity = TropicalDualClifford::<f64, 8>::binding_identity();
+let with_identity = a.bind(&identity);
+assert!(with_identity.similarity(&a) > 0.9);
+```
 
 ## Use Cases
 
@@ -179,23 +250,27 @@ let optimizer = TDCOptimizer::new()
 let optimized = optimizer.optimize(&initial, &loss_fn)?;
 ```
 
-### Attention Mechanisms
+### Holographic Associative Memory
 
-```rust
-use amari_fusion::attention;
+- **Symbolic AI**: Store and retrieve symbolic associations
+- **Memory Networks**: Implement differentiable key-value memory
+- **Cognitive Architectures**: Brain-inspired associative memory
+- **Embedding Retrieval**: Semantic similarity search
+- **Sequence Modeling**: Store temporal associations
 
-// Efficient attention using tropical algebra
-let attention_weights = attention::tropical_attention(&queries, &keys);
+## Module Structure
+
 ```
-
-### Sensitivity Analysis
-
-```rust
-let sensitivity = tdc.sensitivity_analysis();
-
-// Find which parameters matter most
-let important = sensitivity.most_sensitive(3);
-let least_important = sensitivity.least_sensitive(3);
+amari-fusion/
+├── src/
+│   ├── lib.rs              # Main entry, TropicalDualClifford type
+│   ├── types.rs            # Core fusion types
+│   └── holographic/        # Holographic memory module (feature-gated)
+│       ├── mod.rs          # Module exports
+│       ├── binding.rs      # Bind/bundle operations, Bindable trait
+│       ├── memory.rs       # HolographicMemory implementation
+│       ├── resonator.rs    # Resonator cleanup
+│       └── verified.rs     # Formal verification contracts
 ```
 
 ## Performance
@@ -207,20 +282,26 @@ The fusion system provides performance benefits from each component:
 | Tropical | O(n) vs O(n log n) for softmax-like operations |
 | Dual | No graph storage, O(1) memory overhead |
 | Clifford | Unified rotations, no gimbal lock |
+| Holographic | O(D) storage per item, graceful degradation |
 
-## Mathematical Background
+- **Batch Operations**: Use `store_batch()` for efficient bulk storage
+- **Parallel Support**: Enable `rayon` feature for parallel bundle operations
+- **GPU Acceleration**: See `amari-gpu` for GPU-accelerated holographic operations
 
-The TDC system operates in three phases:
+## References
 
-1. **Tropical Warmup**: Fast approximation using max-plus
-2. **Dual Refinement**: Compute exact gradients
-3. **Clifford Projection**: Enforce geometric constraints
-
-This multi-phase approach combines speed (tropical), accuracy (dual), and geometric awareness (Clifford).
+- Plate, T. A. (2003). *Holographic Reduced Representation*. CSLI Publications.
+- Gayler, R. W. (2003). Vector Symbolic Architectures answer Jackendoff's challenges for cognitive neuroscience.
+- Kanerva, P. (2009). Hyperdimensional computing: An introduction to computing in distributed representation.
 
 ## License
 
-Licensed under either of Apache License, Version 2.0 or MIT License at your option.
+Licensed under either of:
+
+- Apache License, Version 2.0 ([LICENSE-APACHE](../LICENSE-APACHE))
+- MIT License ([LICENSE-MIT](../LICENSE-MIT))
+
+at your option.
 
 ## Part of Amari
 
