@@ -326,8 +326,10 @@ where
             return f64::INFINITY;
         }
 
-        // SNR ≈ sqrt(DIM / item_count)
-        (DIM as f64 / self.item_count as f64).sqrt()
+        // SNR ≈ sqrt(algebra_dim / item_count)
+        // The algebra dimension is 2^DIM (number of basis elements), not DIM
+        let algebra_dim = 1usize << DIM;
+        (algebra_dim as f64 / self.item_count.max(1) as f64).sqrt()
     }
 
     /// Convert SNR to confidence in [0, 1].
@@ -340,11 +342,13 @@ where
         1.0 - (-snr / 2.0).exp()
     }
 
-    /// Theoretical capacity: DIM / ln(DIM).
+    /// Theoretical capacity: algebra_dim / ln(algebra_dim).
+    ///
+    /// The algebra dimension is 2^DIM (number of basis elements), not DIM.
     fn theoretical_capacity(&self) -> usize {
-        let dim_f = DIM as f64;
-        let ln_dim = dim_f.ln().max(1.0);
-        (dim_f / ln_dim) as usize
+        let algebra_dim = 1usize << DIM;
+        let ln_dim = (algebra_dim as f64).ln().max(1.0);
+        (algebra_dim as f64 / ln_dim) as usize
     }
 
     /// Compute attribution for a retrieval.
@@ -402,13 +406,25 @@ mod tests {
 
     #[test]
     fn test_capacity_formula() {
-        // For DIM=64, capacity should be approximately 64/ln(64) ≈ 15.4
-        let capacity_64 = (64.0 / 64.0_f64.ln()) as usize;
-        assert!(capacity_64 > 10 && capacity_64 < 20);
+        // Capacity is algebra_dim / ln(algebra_dim), where algebra_dim = 2^DIM
+        //
+        // For DIM=8: algebra_dim = 256, capacity ≈ 256/ln(256) ≈ 46
+        let algebra_dim_8 = 256.0;
+        let capacity_8 = (algebra_dim_8 / algebra_dim_8.ln()) as usize;
+        assert!(
+            capacity_8 > 40 && capacity_8 < 55,
+            "DIM=8 capacity: {}",
+            capacity_8
+        );
 
-        // For DIM=256, capacity should be approximately 256/ln(256) ≈ 46
-        let capacity_256 = (256.0 / 256.0_f64.ln()) as usize;
-        assert!(capacity_256 > 40 && capacity_256 < 55);
+        // For DIM=16: algebra_dim = 65536, capacity ≈ 65536/ln(65536) ≈ 5909
+        let algebra_dim_16 = 65536.0;
+        let capacity_16 = (algebra_dim_16 / algebra_dim_16.ln()) as usize;
+        assert!(
+            capacity_16 > 5000 && capacity_16 < 7000,
+            "DIM=16 capacity: {}",
+            capacity_16
+        );
     }
 
     #[test]

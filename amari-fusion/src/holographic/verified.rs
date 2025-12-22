@@ -284,7 +284,9 @@ impl HolographicAlgebraLaws {
     /// Verify memory capacity scaling.
     ///
     /// # Contracts
-    /// - `ensures(capacity_info.theoretical_capacity ≈ DIM / ln(DIM))`
+    /// - `ensures(capacity_info.theoretical_capacity ≈ algebra_dim / ln(algebra_dim))`
+    ///
+    /// where `algebra_dim = 2^DIM` (number of basis elements in the Clifford algebra).
     pub fn verify_capacity_scaling<
         T: Float + Send + Sync + num_traits::NumCast,
         const DIM: usize,
@@ -292,7 +294,9 @@ impl HolographicAlgebraLaws {
         memory: &HolographicMemory<T, DIM>,
     ) -> bool {
         let info = memory.capacity_info();
-        let expected_capacity = (DIM as f64 / (DIM as f64).ln().max(1.0)) as usize;
+        // The algebra dimension is 2^DIM, not DIM
+        let algebra_dim = 1usize << DIM;
+        let expected_capacity = (algebra_dim as f64 / (algebra_dim as f64).ln().max(1.0)) as usize;
 
         // Allow 20% deviation
         let lower_bound = expected_capacity * 80 / 100;
@@ -305,7 +309,9 @@ impl HolographicAlgebraLaws {
     /// Verify SNR estimation.
     ///
     /// # Contracts
-    /// - `ensures(snr ≈ sqrt(DIM / item_count))`
+    /// - `ensures(snr ≈ sqrt(algebra_dim / item_count))`
+    ///
+    /// where `algebra_dim = 2^DIM` (number of basis elements in the Clifford algebra).
     pub fn verify_snr_estimation<T: Float + Send + Sync + num_traits::NumCast, const DIM: usize>(
         memory: &HolographicMemory<T, DIM>,
     ) -> bool {
@@ -314,7 +320,9 @@ impl HolographicAlgebraLaws {
             return info.estimated_snr.is_infinite();
         }
 
-        let expected_snr = (DIM as f64 / info.item_count as f64).sqrt();
+        // The algebra dimension is 2^DIM, not DIM
+        let algebra_dim = 1usize << DIM;
+        let expected_snr = (algebra_dim as f64 / info.item_count as f64).sqrt();
         let ratio = info.estimated_snr / expected_snr;
 
         // Allow 10% deviation

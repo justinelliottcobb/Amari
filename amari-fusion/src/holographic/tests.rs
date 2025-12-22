@@ -363,10 +363,16 @@ fn test_capacity_degradation() {
     }
 
     // SNR should decrease as items are added
+    // SNR = sqrt(algebra_dim / item_count), so with 20 items and algebra_dim = 2^8 = 256:
+    // Expected SNR ≈ sqrt(256 / 20) ≈ 3.58
     let info = memory.capacity_info();
+    let algebra_dim = 1usize << CAPACITY_TEST_DIM;
+    let expected_snr = (algebra_dim as f64 / 20.0).sqrt();
     assert!(
-        info.estimated_snr <= (CAPACITY_TEST_DIM as f64).sqrt(),
-        "SNR should decrease with more items"
+        (info.estimated_snr - expected_snr).abs() < 0.1,
+        "SNR should be ~{:.2}, got {:.2}",
+        expected_snr,
+        info.estimated_snr
     );
 }
 
