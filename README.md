@@ -51,36 +51,36 @@ Add to your `Cargo.toml`:
 ```toml
 [dependencies]
 # Complete library with all features
-amari = "0.12.1"
+amari = "0.12.2"
 
 # Or individual crates:
 
 # Core geometric algebra and mathematical foundations
-amari-core = "0.12.1"
+amari-core = "0.12.2"
 
 # Differential calculus with geometric algebra
-amari-calculus = "0.12.1"
+amari-calculus = "0.12.2"
 
 # Measure theory and integration
-amari-measure = "0.12.1"
+amari-measure = "0.12.2"
 
 # High-precision relativistic physics
-amari-relativistic = { version = "0.12.1", features = ["high-precision"] }
+amari-relativistic = { version = "0.12.2", features = ["high-precision"] }
 
 # GPU acceleration
-amari-gpu = "0.12.1"
+amari-gpu = "0.12.2"
 
 # Optimization algorithms
-amari-optimization = "0.12.1"
+amari-optimization = "0.12.2"
 
 # Additional mathematical systems
-amari-tropical = "0.12.1"
-amari-dual = "0.12.1"
-amari-info-geom = "0.12.1"
-amari-automata = "0.12.1"
-amari-fusion = "0.12.1"
-amari-network = "0.12.1"
-amari-enumerative = "0.12.1"
+amari-tropical = "0.12.2"
+amari-dual = "0.12.2"
+amari-info-geom = "0.12.2"
+amari-automata = "0.12.2"
+amari-fusion = "0.12.2"
+amari-network = "0.12.2"
+amari-enumerative = "0.12.2"
 ```
 
 ### JavaScript/TypeScript (WebAssembly)
