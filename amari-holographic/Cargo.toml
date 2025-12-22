@@ -1,0 +1,29 @@
+[package]
+name = "amari-holographic"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Holographic reduced representations and vector symbolic architectures"
+repository = "https://github.com/justinelliottcobb/Amari"
+homepage = "https://github.com/justinelliottcobb/Amari"
+keywords = ["holographic", "vsa", "vector-symbolic", "clifford-algebra", "neural-binding"]
+categories = ["mathematics", "science", "algorithms"]
+
+[dependencies]
+amari-core = { workspace = true }
+num-traits = { workspace = true }
+thiserror = { workspace = true }
+serde = { workspace = true, optional = true }
+fastrand = "2.0"
+rayon = { version = "1.10", optional = true }
+
+[dev-dependencies]
+approx = { workspace = true }
+
+[features]
+default = ["std"]
+std = []
+serialize = ["serde"]
+parallel = ["rayon"]
+full = ["parallel", "serialize"]

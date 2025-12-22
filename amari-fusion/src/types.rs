@@ -768,6 +768,118 @@ impl<T: Float, const DIM: usize> TropicalDualClifford<T, DIM> {
 
         Self::from_clifford(versor)
     }
+
+    // ========================================================================
+    // Holographic Binding Operations (v0.12.3+)
+    //
+    // These methods provide Vector Symbolic Architecture (VSA) operations
+    // using the Clifford component for binding, bundling, and similarity.
+    // ========================================================================
+
+    /// Bind two TDC objects using geometric product (creates associations)
+    ///
+    /// The result is dissimilar to both inputs - useful for creating
+    /// key-value associations in holographic memory.
+    pub fn bind(&self, other: &Self) -> Self {
+        let bound = self.clifford_repr.geometric_product(&other.clifford_repr);
+        Self::from_clifford(bound)
+    }
+
+    /// Unbind: retrieve associated value
+    ///
+    /// If `bound = key.bind(value)`, then `key.unbind(bound) ≈ value`
+    pub fn unbind(&self, other: &Self) -> Self {
+        // Unbind using reverse: key.reverse() * bound
+        let inv = self.clifford_repr.reverse();
+        let unbound = inv.geometric_product(&other.clifford_repr);
+        Self::from_clifford(unbound)
+    }
+
+    /// Bundle two representations (superposition)
+    ///
+    /// Used to store multiple items in a single representation.
+    /// The `_beta` parameter is ignored (kept for API compatibility).
+    pub fn bundle(&self, other: &Self, _beta: f64) -> Self {
+        let sum_coeffs: Vec<f64> = self
+            .clifford_repr
+            .to_vec()
+            .iter()
+            .zip(other.clifford_repr.to_vec().iter())
+            .map(|(a, b)| *a + *b)
+            .collect();
+        let bundled = Multivector::from_coefficients(sum_coeffs);
+        Self::from_clifford(bundled)
+    }
+
+    /// Get the binding identity element
+    ///
+    /// `x.bind(identity) = x` for any x
+    pub fn binding_identity() -> Self {
+        // The identity for geometric product is the scalar 1
+        let mut coeffs = vec![0.0; Multivector::<DIM, 0, 0>::BASIS_COUNT];
+        coeffs[0] = 1.0;
+        Self::from_clifford(Multivector::from_coefficients(coeffs))
+    }
+
+    /// Compute cosine similarity between two representations
+    pub fn similarity(&self, other: &Self) -> f64 {
+        let a_coeffs = self.clifford_repr.to_vec();
+        let b_coeffs = other.clifford_repr.to_vec();
+
+        let dot: f64 = a_coeffs
+            .iter()
+            .zip(b_coeffs.iter())
+            .map(|(a, b)| a * b)
+            .sum();
+
+        let norm_a: f64 = a_coeffs.iter().map(|x| x * x).sum::<f64>().sqrt();
+        let norm_b: f64 = b_coeffs.iter().map(|x| x * x).sum::<f64>().sqrt();
+
+        if norm_a < 1e-10 || norm_b < 1e-10 {
+            0.0
+        } else {
+            (dot / (norm_a * norm_b)).clamp(-1.0, 1.0)
+        }
+    }
+
+    /// Compute cosine distance (1 - similarity)
+    pub fn cosine_distance(&self, other: &Self) -> f64 {
+        1.0 - self.similarity(other)
+    }
+
+    /// Compute the binding inverse
+    ///
+    /// If successful, `x.bind(x.binding_inverse()) ≈ identity`
+    pub fn binding_inverse(&self) -> Option<Self> {
+        let coeffs = self.clifford_repr.to_vec();
+        let norm_sq: f64 = coeffs.iter().map(|x| x * x).sum();
+
+        if norm_sq < 1e-10 {
+            return None;
+        }
+
+        // For a versor v, the inverse is reverse(v) / |v|²
+        let rev = self.clifford_repr.reverse();
+        let scale = 1.0 / norm_sq;
+        let inv_coeffs: Vec<f64> = rev.to_vec().iter().map(|x| x * scale).collect();
+        let inv = Multivector::from_coefficients(inv_coeffs);
+
+        Some(Self::from_clifford(inv))
+    }
+
+    /// Normalize to unit norm
+    pub fn normalize(&self) -> Self {
+        let coeffs = self.clifford_repr.to_vec();
+        let norm: f64 = coeffs.iter().map(|x| x * x).sum::<f64>().sqrt();
+
+        if norm < 1e-10 {
+            return self.clone();
+        }
+
+        let scale = 1.0 / norm;
+        let normed: Vec<f64> = coeffs.iter().map(|x| x * scale).collect();
+        Self::from_clifford(Multivector::from_coefficients(normed))
+    }
 }
 
 impl<T: Float, const DIM: usize> Default for TropicalDualClifford<T, DIM> {
