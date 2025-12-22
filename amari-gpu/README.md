@@ -34,16 +34,18 @@ Integration Crates (consume APIs):
 | **amari-network** | `network` | Graph operations, spectral methods | ✅ Implemented |
 | **amari-measure** | `measure` | Measure theory computations, sigma-algebras | ✅ Implemented (feature: `measure`) |
 | **amari-calculus** | `calculus` | Field evaluation, gradients, divergence, curl | ✅ Implemented (feature: `calculus`) |
+| **amari-dual** | `dual` | Automatic differentiation GPU operations | ✅ Implemented (feature: `dual`) |
+| **amari-enumerative** | `enumerative` | Intersection theory GPU operations | ✅ Implemented (feature: `enumerative`) |
+| **amari-automata** | `automata` | Cellular automata GPU evolution | ✅ Implemented (feature: `automata`) |
 | **amari-fusion** | `fusion` | Holographic memory operations, batch binding, similarity matrices | ✅ Implemented (feature: `fusion`) |
 
-### Placeholder Modules (Future Work)
+### Temporarily Disabled Modules
 
-| Domain Crate | Module | Status |
-|-------------|--------|--------|
-| amari-tropical | `tropical` | ⏸️ Placeholder shaders only |
-| amari-dual | `dual` | ⏸️ Placeholder shaders only |
-| amari-automata | `automata` | ⏸️ Placeholder shaders only |
-| amari-enumerative | `enumerative` | ⏸️ Placeholder shaders only |
+| Domain Crate | Module | Status | Reason |
+|-------------|--------|--------|--------|
+| amari-tropical | `tropical` | ❌ Disabled | Orphan impl rules - requires extension traits |
+
+**Note**: If you were using `amari_gpu::tropical` in previous versions, this module is not available in v0.12.2. Use CPU implementations from `amari_tropical` directly until this module is restored in a future release.
 
 ## Features
 
@@ -55,7 +57,11 @@ webgpu = ["wgpu/webgpu"]
 high-precision = ["amari-core/high-precision", "amari-relativistic/high-precision"]
 measure = ["dep:amari-measure"]
 calculus = ["dep:amari-calculus"]
+dual = ["dep:amari-dual"]
+enumerative = ["dep:amari-enumerative"]
+automata = ["dep:amari-automata"]
 fusion = ["dep:amari-fusion"]  # Holographic memory GPU acceleration
+# tropical = ["dep:amari-tropical"]  # Disabled - orphan impl rules
 ```
 
 ## Usage
@@ -213,7 +219,7 @@ let values = gpu_calculus.batch_eval_scalar_field(&field, &large_points).await?;
 - `HOLOGRAPHIC_BUNDLE_ALL`: Workgroup-shared memory reduction
 - `HOLOGRAPHIC_RESONATOR_STEP`: 256-thread parallel max-finding
 
-### Calculus Module (v0.11.1)
+### Calculus Module (v0.12.2)
 
 **CPU Implementations** (✅ Complete):
 - Central finite differences for numerical derivatives
@@ -275,12 +281,13 @@ cargo doc --all-features --no-deps --open
 2. Add GPU benchmarks comparing CPU vs GPU performance
 3. Optimize memory transfer patterns
 4. Add more comprehensive examples
+5. **Restore tropical GPU module** using extension traits (orphan impl fix)
 
 ### Medium-term (v0.14.x - v0.15.x)
 1. Implement tropical algebra GPU operations
-2. Add dual number GPU acceleration
-3. Add automata GPU acceleration
-4. Multi-GPU support for large holographic memories
+2. Multi-GPU support for large holographic memories
+3. Performance optimization across all GPU modules
+4. Unified GPU context sharing across all modules
 
 ### Long-term (v1.0.0+)
 1. WebGPU backend for browser deployment

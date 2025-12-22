@@ -22,8 +22,9 @@ Version 0.12.0 represents a significant architectural refactoring of the Amari l
 2. [DualNumber API Changes](#dualnumber-api-changes)
 3. [MultiDualNumber API Changes](#multidualnumber-api-changes)
 4. [Architectural Changes](#architectural-changes)
-5. [Testing and Examples](#testing-and-examples)
-6. [Migration Checklist](#migration-checklist)
+5. [GPU Module Breaking Changes](#gpu-module-breaking-changes)
+6. [Testing and Examples](#testing-and-examples)
+7. [Migration Checklist](#migration-checklist)
 
 ---
 
@@ -366,6 +367,161 @@ amari-gpu/tests/integration.rs                     ✅ Centralized
 
 ---
 
+## GPU Module Breaking Changes
+
+### Overview
+
+Version 0.12.0 includes significant changes to `amari-gpu` module availability due to architectural improvements enforcing separation of concerns between domain crates and integration crates.
+
+**Impact Summary:**
+- ✅ **Enabled:** `dual`, `enumerative`, `automata` GPU modules (newly available)
+- ❌ **Disabled:** `tropical`, `fusion` GPU modules (temporarily unavailable)
+
+---
+
+### Disabled Modules
+
+#### `amari_gpu::tropical` - Temporarily Disabled
+
+**Before (v0.11.x):**
+```rust
+use amari_gpu::tropical::TropicalMatrixGpu;
+
+let gpu_matrix = TropicalMatrixGpu::new(&matrix)?;
+let result = gpu_matrix.multiply(&other).await?;
+```
+
+**After (v0.12.0):**
+```rust
+// GPU module not available - use CPU implementation
+use amari_tropical::TropicalMatrix;
+
+let matrix = TropicalMatrix::new(data);
+let result = matrix.tropical_multiply(&other);
+```
+
+**Reason:** Rust orphan impl rules prevent implementing GPU acceleration traits on types from external crates. A future release will use extension traits to restore this functionality.
+
+---
+
+#### `amari_gpu::fusion` - Temporarily Disabled
+
+**Before (v0.11.x):**
+```rust
+use amari_gpu::fusion::FusionGpu;
+
+let gpu_fusion = FusionGpu::new(&config)?;
+let result = gpu_fusion.optimize(&data).await?;
+```
+
+**After (v0.12.0):**
+```rust
+// GPU module not available - use CPU implementation
+use amari_fusion::TropicalDualClifford;
+
+let fusion = TropicalDualClifford::new(...);
+let result = fusion.optimize(...);
+```
+
+**Reason:** The fusion GPU module requires GPU submodules in both `amari_dual` and `amari_tropical` domain crates. These will be added in a future release.
+
+---
+
+### Newly Enabled Modules
+
+The following GPU modules are now available in v0.12.0:
+
+#### `amari_gpu::dual` (feature: `dual`)
+
+```rust
+use amari_gpu::dual::DualNumberGpu;
+use amari_dual::DualNumber;
+
+// Batch GPU operations for dual numbers
+let gpu = DualNumberGpu::new().await?;
+let results = gpu.batch_evaluate(&inputs).await?;
+```
+
+#### `amari_gpu::enumerative` (feature: `enumerative`)
+
+```rust
+use amari_gpu::enumerative::IntersectionTheoryGpu;
+
+// GPU-accelerated intersection theory computations
+let gpu = IntersectionTheoryGpu::new().await?;
+let intersections = gpu.compute_intersections(&varieties).await?;
+```
+
+#### `amari_gpu::automata` (feature: `automata`)
+
+```rust
+use amari_gpu::automata::CellularAutomataGpu;
+
+// GPU evolution of cellular automata
+let gpu = CellularAutomataGpu::new(&rule).await?;
+let next_state = gpu.evolve(&state, steps).await?;
+```
+
+---
+
+### Feature Flag Changes
+
+**Before (v0.11.x):**
+```toml
+[dependencies]
+amari-gpu = { version = "0.11", features = ["tropical", "fusion"] }
+```
+
+**After (v0.12.0):**
+```toml
+[dependencies]
+# tropical and fusion features are disabled
+# Use domain crates directly for CPU implementations
+amari-gpu = { version = "0.12", features = ["dual", "enumerative", "automata"] }
+
+# For tropical/fusion, use domain crates
+amari-tropical = "0.12"
+amari-fusion = "0.12"
+```
+
+---
+
+### Migration Steps for GPU Users
+
+1. **Check for `amari_gpu::tropical` usage:**
+   - Remove imports of `amari_gpu::tropical::*`
+   - Replace with `amari_tropical::*` CPU implementations
+   - GPU acceleration will be restored in v0.13.x
+
+2. **Check for `amari_gpu::fusion` usage:**
+   - Remove imports of `amari_gpu::fusion::*`
+   - Replace with `amari_fusion::*` CPU implementations
+   - GPU acceleration will be restored in v0.13.x
+
+3. **Update feature flags:**
+   ```toml
+   # Remove disabled features
+   - features = ["tropical", "fusion"]
+   # Add newly available features if needed
+   + features = ["dual", "enumerative", "automata"]
+   ```
+
+4. **Performance considerations:**
+   - CPU implementations in domain crates are well-optimized
+   - For large batch operations, consider chunking until GPU is restored
+   - The `dual`, `enumerative`, and `automata` GPU modules can provide acceleration
+
+---
+
+### Restoration Timeline
+
+| Module | Target Release | Approach |
+|--------|---------------|----------|
+| `tropical` | v0.13.x | Extension traits for GPU acceleration |
+| `fusion` | v0.13.x | GPU submodules in domain crates |
+
+---
+
 ## Testing and Examples
 
 ### Search and Replace Patterns
@@ -580,9 +736,14 @@ The v0.12.0 API is designed for long-term stability:
 | **MultiDualNumber** | `x.real`, `x.duals` | `x.get_value()`, `x.get_gradient()` | Medium |
 | | `x.num_vars()` | `x.n_vars()` | Low |
 | **Architecture** | GPU examples in domain crates | GPU examples in `amari-gpu` | Low |
+| **GPU Modules** | `amari_gpu::tropical` | Disabled (use `amari_tropical`) | Medium |
+| | `amari_gpu::fusion` | Disabled (use `amari_fusion`) | Medium |
+| | N/A | `amari_gpu::dual` (new) | Low |
+| | N/A | `amari_gpu::enumerative` (new) | Low |
+| | N/A | `amari_gpu::automata` (new) | Low |
 
 ---
 
 **Version:** v0.12.0
-**Last Updated:** 2025-12-03
+**Last Updated:** 2025-12-21
 **Authors:** Claude Code (AI Assistant), Elliott Hall
