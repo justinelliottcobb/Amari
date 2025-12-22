@@ -22,7 +22,7 @@ Integration Crates (consume APIs):
 
 **Dependency Rule**: Integration crates depend on domain crates, never the reverse.
 
-## Current Integrations (v0.12.0)
+## Current Integrations (v0.12.2)
 
 ### Implemented GPU Acceleration
 
@@ -37,15 +37,15 @@ Integration Crates (consume APIs):
 | **amari-dual** | `dual` | Automatic differentiation GPU operations | ✅ Implemented (feature: `dual`) |
 | **amari-enumerative** | `enumerative` | Intersection theory GPU operations | ✅ Implemented (feature: `enumerative`) |
 | **amari-automata** | `automata` | Cellular automata GPU evolution | ✅ Implemented (feature: `automata`) |
+| **amari-fusion** | `fusion` | Holographic memory operations, batch binding, similarity matrices | ✅ Implemented (feature: `fusion`) |
 
 ### Temporarily Disabled Modules
 
 | Domain Crate | Module | Status | Reason |
 |-------------|--------|--------|--------|
 | amari-tropical | `tropical` | ❌ Disabled | Orphan impl rules - requires extension traits |
-| amari-fusion | `fusion` | ❌ Disabled | Requires GPU submodules in amari_dual and amari_tropical |
 
-**Note**: If you were using `amari_gpu::tropical` or `amari_gpu::fusion` in previous versions, these modules are not available in v0.12.0. Use CPU implementations from `amari_tropical` and `amari_fusion` directly until these modules are restored in a future release.
+**Note**: If you were using `amari_gpu::tropical` in previous versions, this module is not available in v0.12.2. Use CPU implementations from `amari_tropical` directly until this module is restored in a future release.
 
 ## Features
 
@@ -57,11 +57,11 @@ webgpu = ["wgpu/webgpu"]
 high-precision = ["amari-core/high-precision", "amari-relativistic/high-precision"]
 measure = ["dep:amari-measure"]
 calculus = ["dep:amari-calculus"]
-dual = ["dep:amari-dual"]           # v0.12.0: Now enabled
-enumerative = ["dep:amari-enumerative"]  # v0.12.0: Now enabled
-automata = ["dep:amari-automata"]   # v0.12.0: Now enabled
-# tropical = ["dep:amari-tropical"]  # Disabled in v0.12.0
-# fusion = ["dep:amari-fusion"]      # Disabled in v0.12.0
+dual = ["dep:amari-dual"]
+enumerative = ["dep:amari-enumerative"]
+automata = ["dep:amari-automata"]
+fusion = ["dep:amari-fusion"]  # Holographic memory GPU acceleration
+# tropical = ["dep:amari-tropical"]  # Disabled - orphan impl rules
 ```
 
 ## Usage
@@ -111,6 +111,65 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
+### Holographic Memory GPU Acceleration
+
+```rust
+use amari_gpu::fusion::{HolographicGpuOps, GpuHolographicTDC};
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Initialize GPU holographic operations
+    let gpu_ops = HolographicGpuOps::new().await?;
+
+    // Create GPU-compatible vectors
+    let keys: Vec<GpuHolographicTDC> = (0..1000)
+        .map(|i| GpuHolographicTDC {
+            tropical: i as f32,
+            dual_real: 1.0,
+            dual_dual: 0.0,
+            clifford: [1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            _padding: [0.0; 5],
+        })
+        .collect();
+
+    let values = keys.clone();
+
+    // Batch bind 1000 key-value pairs on GPU
+    let bound = gpu_ops.batch_bind(&keys, &values).await?;
+    println!("Bound {} pairs on GPU", bound.len());
+
+    // Compute similarity matrix (1000x1000 = 1M similarities)
+    let similarities = gpu_ops.batch_similarity(&keys, &keys, true).await?;
+    println!("Computed {} similarities", similarities.len());
+
+    // GPU resonator cleanup
+    let noisy_input = &keys[0];
+    let codebook = &keys[..100];
+    let result = gpu_ops.resonator_cleanup(noisy_input, codebook).await?;
+    println!("Best match: index {}, similarity {:.4}",
+             result.best_index, result.best_similarity);
+
+    Ok(())
+}
+```
+
+#### Holographic GPU Operations
+
+| Operation | Description | GPU Threshold |
+|-----------|-------------|---------------|
+| `batch_bind()` | Parallel geometric product binding | ≥ 100 pairs |
+| `batch_similarity()` | Pairwise or matrix similarity computation | ≥ 100 vectors |
+| `resonator_cleanup()` | Parallel codebook search for best match | ≥ 100 codebook entries |
+
+#### WGSL Shaders
+
+The holographic module includes optimized WGSL compute shaders:
+
+- **`holographic_batch_bind`**: Cayley table-based geometric product for binding
+- **`holographic_batch_similarity`**: Inner product with reverse `<A B̃>₀` for similarity
+- **`holographic_bundle_all`**: Parallel reduction for vector superposition
+- **`holographic_resonator_step`**: Parallel max-finding for cleanup
+
 ### Adaptive CPU/GPU Dispatch
 
 The library automatically selects the optimal execution path:
@@ -135,10 +194,32 @@ let values = gpu_calculus.batch_eval_scalar_field(&field, &large_points).await?;
 | Vector field evaluation | < 500 points | ≥ 500 points |
 | Gradient computation | < 500 points | ≥ 500 points |
 | Divergence/Curl | < 500 points | ≥ 500 points |
+| Holographic binding | < 100 pairs | ≥ 100 pairs |
+| Holographic similarity | < 100 vectors | ≥ 100 vectors |
+| Resonator cleanup | < 100 codebook | ≥ 100 codebook |
 
 ## Implementation Status
 
-### Calculus Module (v0.12.0)
+### Holographic Module (v0.12.2)
+
+**GPU Implementations** (✅ Complete):
+- Batch binding with Cayley table geometric product
+- Batch similarity using proper inner product `<A B̃>₀`
+- Parallel reduction for vector bundling
+- Resonator cleanup with parallel codebook search
+
+**Types**:
+- `GpuHolographicTDC`: GPU-compatible TropicalDualClifford representation
+- `GpuResonatorOutput`: Cleanup result with best match info
+- `HolographicGpuOps`: Main GPU operations struct
+
+**Shaders**:
+- `HOLOGRAPHIC_BATCH_BIND`: 64-thread workgroups for binding
+- `HOLOGRAPHIC_BATCH_SIMILARITY`: 256-thread workgroups for similarity
+- `HOLOGRAPHIC_BUNDLE_ALL`: Workgroup-shared memory reduction
+- `HOLOGRAPHIC_RESONATOR_STEP`: 256-thread parallel max-finding
+
+### Calculus Module (v0.12.2)
 
 **CPU Implementations** (✅ Complete):
 - Central finite differences for numerical derivatives
@@ -195,18 +276,18 @@ cargo doc --all-features --no-deps --open
 
 ## Future Work
 
-### Short-term (v0.12.x - v0.13.x)
+### Short-term (v0.13.x)
 1. Implement WGSL shaders for calculus operations
 2. Add GPU benchmarks comparing CPU vs GPU performance
 3. Optimize memory transfer patterns
 4. Add more comprehensive examples
 5. **Restore tropical GPU module** using extension traits (orphan impl fix)
-6. **Restore fusion GPU module** by adding GPU submodules to domain crates
 
 ### Medium-term (v0.14.x - v0.15.x)
-1. Complete GPU implementations for dual, enumerative, automata modules
-2. Performance optimization for restored modules
-3. Unified GPU context sharing across all modules
+1. Implement tropical algebra GPU operations
+2. Multi-GPU support for large holographic memories
+3. Performance optimization across all GPU modules
+4. Unified GPU context sharing across all modules
 
 ### Long-term (v1.0.0+)
 1. WebGPU backend for browser deployment

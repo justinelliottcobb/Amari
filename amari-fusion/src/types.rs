@@ -217,6 +217,14 @@ impl<T: Float, const DIM: usize> TropicalDualClifford<T, DIM> {
         &self.dual_repr
     }
 
+    /// Get mutable reference to the dual representation
+    ///
+    /// This allows modifying the dual representation for gradient tracking
+    /// and derivative propagation.
+    pub fn dual_mut(&mut self) -> &mut DualMultivector<T, DIM, 0, 0> {
+        &mut self.dual_repr
+    }
+
     /// Get reference to the Clifford algebra representation
     ///
     /// This provides geometric transformations and spatial reasoning capabilities.
@@ -514,6 +522,251 @@ impl<T: Float, const DIM: usize> TropicalDualClifford<T, DIM> {
     /// Create a random TDC (alias for random_with_scale with default scale)
     pub fn random() -> Self {
         Self::random_with_scale(<T as num_traits::NumCast>::from(0.1).unwrap())
+    }
+
+    // ========================================================================
+    // Hybrid Clifford-Tropical Methods
+    // ========================================================================
+
+    /// Derive tropical representation from Clifford grade magnitudes.
+    ///
+    /// The tropical component becomes log-magnitude of each Clifford grade:
+    /// - `tropical[k] = ln(|grade_k(clifford)|)`
+    ///
+    /// This makes tropical max equivalent to "which grade dominates?"
+    /// and preserves Clifford algebraic structure as the source of truth.
+    ///
+    /// # Interpretation
+    ///
+    /// After this operation:
+    /// - Tropical max selects the dominant grade
+    /// - Tropical addition (logsumexp) computes soft grade selection
+    /// - The Clifford representation remains the authoritative structure
+    ///
+    /// # Example
+    /// ```ignore
+    /// let mut tdc = TropicalDualClifford::<f64, 4>::from_logits(&[1.0, 2.0, 3.0, 4.0]);
+    /// tdc.derive_tropical_from_clifford();
+    /// let dominant = tdc.dominant_grade(); // Which grade has largest magnitude
+    /// ```
+    pub fn derive_tropical_from_clifford(&mut self) {
+        // Use grade spectrum from Clifford to populate tropical
+        let spectrum = self.clifford_repr.grade_spectrum();
+
+        for (grade, &magnitude) in spectrum.iter().enumerate() {
+            if grade >= DIM.min(8) {
+                break;
+            }
+
+            // Use log(magnitude) as tropical value
+            // For near-zero magnitudes, use negative infinity (tropical zero)
+            let tropical_val = if magnitude > 1e-10 {
+                magnitude.ln()
+            } else {
+                f64::NEG_INFINITY
+            };
+
+            self.tropical_repr
+                .set(
+                    grade,
+                    TropicalNumber::new(T::from(tropical_val).unwrap_or(T::neg_infinity())),
+                )
+                .ok();
+        }
+    }
+
+    /// Get the dominant grade (the grade with maximum tropical value / largest magnitude).
+    ///
+    /// This uses the tropical representation to efficiently determine which
+    /// Clifford grade dominates the multivector structure.
+    ///
+    /// # Returns
+    /// The grade (0, 1, 2, ...) with the largest magnitude in the Clifford representation.
+    pub fn dominant_grade(&self) -> usize {
+        let mut max_tropical = f64::NEG_INFINITY;
+        let mut dominant = 0;
+
+        for grade in 0..DIM.min(8) {
+            if let Ok(val) = self.tropical_repr.get(grade) {
+                let v = val.value().to_f64().unwrap_or(f64::NEG_INFINITY);
+                if v > max_tropical {
+                    max_tropical = v;
+                    dominant = grade;
+                }
+            }
+        }
+
+        dominant
+    }
+
+    /// Create a TDC from a Clifford multivector, deriving other representations.
+    ///
+    /// This is the primary constructor for the hybrid approach:
+    /// - Clifford is the source of truth
+    /// - Tropical is derived from grade magnitudes
+    /// - Dual tracks derivatives of Clifford coefficients
+    pub fn from_clifford(clifford: Multivector<DIM, 0, 0>) -> Self
+    where
+        T: num_traits::NumCast,
+    {
+        let mut result = Self::new();
+        result.clifford_repr = clifford;
+
+        // Derive tropical from Clifford grades
+        result.derive_tropical_from_clifford();
+
+        // Initialize dual from Clifford coefficients
+        for i in 0..DIM.min(8) {
+            let coeff = result.clifford_repr.get(i);
+            result
+                .dual_repr
+                .set(i, DualNumber::variable(T::from(coeff).unwrap_or(T::zero())));
+        }
+
+        result
+    }
+
+    /// Synchronize all representations from Clifford (source of truth).
+    ///
+    /// This ensures consistency after Clifford-based operations:
+    /// - Tropical ← derived from Clifford grade magnitudes
+    /// - Dual ← derived from Clifford coefficients
+    pub fn synchronize_from_clifford(&mut self)
+    where
+        T: num_traits::NumCast,
+    {
+        // Derive tropical from grade magnitudes
+        self.derive_tropical_from_clifford();
+
+        // Update dual from Clifford coefficients
+        for i in 0..DIM.min(8) {
+            let coeff = self.clifford_repr.get(i);
+            // Preserve existing dual part if any, update real part
+            let existing = self.dual_repr.get(i);
+            self.dual_repr.set(
+                i,
+                DualNumber::new(T::from(coeff).unwrap_or(T::zero()), existing.dual),
+            );
+        }
+    }
+
+    /// Get the grade spectrum (log-magnitudes of all grades).
+    ///
+    /// Returns the tropical values for each grade, representing
+    /// ln(|grade_k|) for grade k.
+    pub fn grade_spectrum(&self) -> Vec<f64> {
+        let mut spectrum = Vec::with_capacity(DIM.min(8));
+        for grade in 0..DIM.min(8) {
+            if let Ok(val) = self.tropical_repr.get(grade) {
+                spectrum.push(val.value().to_f64().unwrap_or(f64::NEG_INFINITY));
+            } else {
+                spectrum.push(f64::NEG_INFINITY);
+            }
+        }
+        spectrum
+    }
+
+    /// Compute the Clifford norm of this TDC.
+    ///
+    /// This is the authoritative norm, derived from the Clifford representation.
+    pub fn norm(&self) -> f64 {
+        self.clifford_repr.norm()
+    }
+
+    /// Compute similarity based on Clifford representation only.
+    ///
+    /// This is the authoritative similarity measure, using the normalized
+    /// scalar product of the Clifford representations.
+    ///
+    /// Uses the proper inner product: <A B̃>₀ / (|A| |B|)
+    /// where B̃ is the reverse of B. This ensures similarity=1 for equal elements.
+    pub fn clifford_similarity(&self, other: &Self) -> f64 {
+        let self_norm = self.clifford_repr.norm();
+        let other_norm = other.clifford_repr.norm();
+
+        if self_norm < 1e-10 || other_norm < 1e-10 {
+            return 0.0;
+        }
+
+        // Compute inner product using scalar product with reverse: <A B̃>₀
+        // This is the proper inner product for general multivectors
+        let inner = self
+            .clifford_repr
+            .scalar_product(&other.clifford_repr.reverse());
+
+        // Normalize
+        inner / (self_norm * other_norm)
+    }
+
+    /// Create a random versor (product of vectors) for testing.
+    ///
+    /// A versor is guaranteed to be invertible in Clifford algebra,
+    /// making it suitable for binding/unbinding operations.
+    ///
+    /// # Arguments
+    /// * `num_factors` - Number of vector factors (1=vector, 2=rotor, etc.)
+    pub fn random_versor(num_factors: usize) -> Self
+    where
+        T: num_traits::NumCast,
+    {
+        use alloc::vec;
+
+        if num_factors == 0 {
+            // Return scalar identity
+            return Self::from_clifford(Multivector::<DIM, 0, 0>::scalar(1.0));
+        }
+
+        // Start with a random unit vector
+        let mut clifford_coeffs = vec![0.0; Multivector::<DIM, 0, 0>::BASIS_COUNT];
+        let mut norm_sq = 0.0;
+        for i in 0..DIM.min(8) {
+            let index = 1 << i;
+            if index < clifford_coeffs.len() {
+                let val = (fastrand::f64() - 0.5) * 2.0;
+                clifford_coeffs[index] = val;
+                norm_sq += val * val;
+            }
+        }
+
+        // Normalize
+        if norm_sq > 1e-10 {
+            let scale = 1.0 / norm_sq.sqrt();
+            for i in 0..DIM.min(8) {
+                let index = 1 << i;
+                if index < clifford_coeffs.len() {
+                    clifford_coeffs[index] *= scale;
+                }
+            }
+        }
+
+        let mut versor = Multivector::from_coefficients(clifford_coeffs);
+
+        // Multiply by additional random unit vectors
+        for _ in 1..num_factors {
+            let mut v_coeffs = vec![0.0; Multivector::<DIM, 0, 0>::BASIS_COUNT];
+            let mut v_norm_sq = 0.0;
+            for i in 0..DIM.min(8) {
+                let index = 1 << i;
+                if index < v_coeffs.len() {
+                    let val = (fastrand::f64() - 0.5) * 2.0;
+                    v_coeffs[index] = val;
+                    v_norm_sq += val * val;
+                }
+            }
+            if v_norm_sq > 1e-10 {
+                let scale = 1.0 / v_norm_sq.sqrt();
+                for i in 0..DIM.min(8) {
+                    let index = 1 << i;
+                    if index < v_coeffs.len() {
+                        v_coeffs[index] *= scale;
+                    }
+                }
+            }
+            let v = Multivector::from_coefficients(v_coeffs);
+            versor = versor.geometric_product(&v);
+        }
+
+        Self::from_clifford(versor)
     }
 }
 

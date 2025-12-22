@@ -410,6 +410,36 @@ impl<const P: usize, const Q: usize, const R: usize> Multivector<P, Q, R> {
         result
     }
 
+    /// Compute the magnitude of a specific grade component.
+    ///
+    /// This extracts the k-vector part and computes its magnitude.
+    /// Useful for determining grade dominance in holographic representations.
+    ///
+    /// # Arguments
+    /// * `grade` - The grade to compute magnitude for (0=scalar, 1=vector, 2=bivector, etc.)
+    ///
+    /// # Returns
+    /// The magnitude of the grade-k component, or 0.0 if no such component exists.
+    ///
+    /// # Example
+    /// ```rust
+    /// use amari_core::Multivector;
+    /// let mv = Multivector::<3,0,0>::basis_vector(0) + Multivector::<3,0,0>::scalar(2.0);
+    /// assert!((mv.grade_magnitude(0) - 2.0).abs() < 1e-10);  // scalar part
+    /// assert!((mv.grade_magnitude(1) - 1.0).abs() < 1e-10);  // vector part
+    /// ```
+    pub fn grade_magnitude(&self, grade: usize) -> f64 {
+        self.grade_projection(grade).magnitude()
+    }
+
+    /// Get all grade magnitudes as a vector.
+    ///
+    /// Returns the magnitude of each grade component from 0 to DIM.
+    /// This provides a "grade spectrum" view of the multivector.
+    pub fn grade_spectrum(&self) -> Vec<f64> {
+        (0..=Self::DIM).map(|g| self.grade_magnitude(g)).collect()
+    }
+
     /// Decompose into grade components
     fn grade_decomposition(&self) -> Vec<Self> {
         let mut grades = Vec::with_capacity(Self::DIM + 1);

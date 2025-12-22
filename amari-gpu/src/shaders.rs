@@ -50,6 +50,18 @@ impl ShaderLibrary {
         shaders.insert("intersection_theory".to_string(), INTERSECTION_THEORY);
         shaders.insert("schubert_calculus".to_string(), SCHUBERT_CALCULUS);
 
+        // Holographic memory shaders
+        shaders.insert("holographic_batch_bind".to_string(), HOLOGRAPHIC_BATCH_BIND);
+        shaders.insert(
+            "holographic_batch_similarity".to_string(),
+            HOLOGRAPHIC_BATCH_SIMILARITY,
+        );
+        shaders.insert("holographic_bundle_all".to_string(), HOLOGRAPHIC_BUNDLE_ALL);
+        shaders.insert(
+            "holographic_resonator_step".to_string(),
+            HOLOGRAPHIC_RESONATOR_STEP,
+        );
+
         Self { shaders }
     }
 
@@ -88,6 +100,14 @@ pub const DUAL_SHADERS: &[(&str, &str)] = &[
 pub const FUSION_SHADERS: &[(&str, &str)] = &[
     ("tropical_dual_clifford", TROPICAL_DUAL_CLIFFORD),
     ("fusion_attention", FUSION_ATTENTION),
+];
+
+/// Holographic memory shader collection
+pub const HOLOGRAPHIC_SHADERS: &[(&str, &str)] = &[
+    ("holographic_batch_bind", HOLOGRAPHIC_BATCH_BIND),
+    ("holographic_batch_similarity", HOLOGRAPHIC_BATCH_SIMILARITY),
+    ("holographic_bundle_all", HOLOGRAPHIC_BUNDLE_ALL),
+    ("holographic_resonator_step", HOLOGRAPHIC_RESONATOR_STEP),
 ];
 
 // =====================================================================
@@ -464,6 +484,407 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
     // Tropical attention: select value from best key (winner-takes-all)
     attention_output[seq_pos * d_model + feature_idx] =
         values[best_key_idx * d_model + feature_idx];
+}
+"#;
+
+// =====================================================================
+// HOLOGRAPHIC MEMORY SHADERS
+// =====================================================================
+
+/// Batch binding operation for holographic memory
+/// Computes key ⊛ value for multiple pairs using Clifford geometric product
+pub const HOLOGRAPHIC_BATCH_BIND: &str = r#"
+// TropicalDualClifford representation for GPU
+// We use a simplified 8-dimensional Clifford representation
+struct TDC {
+    // Tropical component (max element)
+    tropical: f32,
+    // Dual component (real and dual parts)
+    dual_real: f32,
+    dual_dual: f32,
+    // Clifford algebra coefficients (8D: scalar, 3 vectors, 3 bivectors, pseudoscalar)
+    clifford: array<f32, 8>,
+    // Padding for alignment
+    _padding: array<f32, 5>,
+}
+
+@group(0) @binding(0) var<storage, read> keys: array<TDC>;
+@group(0) @binding(1) var<storage, read> values: array<TDC>;
+@group(0) @binding(2) var<storage, read_write> results: array<TDC>;
+@group(0) @binding(3) var<uniform> params: array<u32, 4>; // [count, 0, 0, 0]
+
+// Cayley table for 3D Clifford algebra Cl(3,0)
+// Product signs: e_i * e_j where i,j are grade indices
+fn cayley_sign(i: u32, j: u32) -> f32 {
+    // Simplified: for vectors e_i * e_i = 1, e_i * e_j = -e_j * e_i for i != j
+    let signs = array<array<f32, 8>, 8>(
+        // 1    e1   e2   e3   e12  e13  e23  e123
+        array<f32, 8>(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0),   // 1
+        array<f32, 8>(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, -1.0, 1.0),  // e1
+        array<f32, 8>(1.0, -1.0, 1.0, 1.0, 1.0, -1.0, 1.0, 1.0), // e2
+        array<f32, 8>(1.0, -1.0, -1.0, 1.0, 1.0, 1.0, 1.0, 1.0), // e3
+        array<f32, 8>(1.0, -1.0, 1.0, -1.0, -1.0, 1.0, 1.0, 1.0), // e12
+        array<f32, 8>(1.0, -1.0, 1.0, 1.0, -1.0, -1.0, 1.0, 1.0), // e13
+        array<f32, 8>(1.0, 1.0, -1.0, 1.0, -1.0, -1.0, -1.0, 1.0), // e23
+        array<f32, 8>(1.0, 1.0, 1.0, -1.0, 1.0, -1.0, 1.0, -1.0), // e123
+    );
+    return signs[i][j];
+}
+
+// Result index for e_i * e_j
+fn cayley_index(i: u32, j: u32) -> u32 {
+    let indices = array<array<u32, 8>, 8>(
+        // 1    e1   e2   e3   e12  e13  e23  e123
+        array<u32, 8>(0u, 1u, 2u, 3u, 4u, 5u, 6u, 7u),   // 1
+        array<u32, 8>(1u, 0u, 4u, 5u, 2u, 3u, 7u, 6u),   // e1
+        array<u32, 8>(2u, 4u, 0u, 6u, 1u, 7u, 3u, 5u),   // e2
+        array<u32, 8>(3u, 5u, 6u, 0u, 7u, 1u, 2u, 4u),   // e3
+        array<u32, 8>(4u, 2u, 1u, 7u, 0u, 6u, 5u, 3u),   // e12
+        array<u32, 8>(5u, 3u, 7u, 1u, 6u, 0u, 4u, 2u),   // e13
+        array<u32, 8>(6u, 7u, 3u, 2u, 5u, 4u, 0u, 1u),   // e23
+        array<u32, 8>(7u, 6u, 5u, 4u, 3u, 2u, 1u, 0u),   // e123
+    );
+    return indices[i][j];
+}
+
+@compute @workgroup_size(64)
+fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
+    let idx = global_id.x;
+    let count = params[0];
+
+    if (idx >= count) {
+        return;
+    }
+
+    let key = keys[idx];
+    let value = values[idx];
+
+    var result: TDC;
+
+    // Binding uses geometric product on Clifford components
+    // result = key * value (geometric product)
+    for (var i = 0u; i < 8u; i = i + 1u) {
+        result.clifford[i] = 0.0;
+    }
+
+    for (var i = 0u; i < 8u; i = i + 1u) {
+        for (var j = 0u; j < 8u; j = j + 1u) {
+            let target = cayley_index(i, j);
+            let sign = cayley_sign(i, j);
+            result.clifford[target] += sign * key.clifford[i] * value.clifford[j];
+        }
+    }
+
+    // Tropical: max of both (binding produces new tropical value)
+    result.tropical = max(key.tropical, value.tropical);
+
+    // Dual: product rule for dual numbers
+    result.dual_real = key.dual_real * value.dual_real;
+    result.dual_dual = key.dual_real * value.dual_dual + key.dual_dual * value.dual_real;
+
+    results[idx] = result;
+}
+"#;
+
+/// Batch similarity computation for holographic vectors
+/// Computes pairwise similarities using inner product with reverse: <A B̃>₀
+pub const HOLOGRAPHIC_BATCH_SIMILARITY: &str = r#"
+struct TDC {
+    tropical: f32,
+    dual_real: f32,
+    dual_dual: f32,
+    clifford: array<f32, 8>,
+    _padding: array<f32, 5>,
+}
+
+@group(0) @binding(0) var<storage, read> vectors_a: array<TDC>;
+@group(0) @binding(1) var<storage, read> vectors_b: array<TDC>;
+@group(0) @binding(2) var<storage, read_write> similarities: array<f32>;
+@group(0) @binding(3) var<uniform> params: array<u32, 4>; // [count_a, count_b, mode, 0]
+                                                          // mode: 0=pairwise (a[i] vs b[i]), 1=matrix (all pairs)
+
+// Compute reverse of multivector (flip sign of grades 2 and 3)
+fn reverse_sign(grade: u32) -> f32 {
+    // Grade 0: +1, Grade 1: +1, Grade 2: -1, Grade 3: -1
+    // For Cl(3,0): indices 0=scalar(g0), 1-3=vectors(g1), 4-6=bivectors(g2), 7=trivector(g3)
+    let signs = array<f32, 8>(1.0, 1.0, 1.0, 1.0, -1.0, -1.0, -1.0, -1.0);
+    return signs[grade];
+}
+
+// Compute scalar product <A B̃>₀ - the proper inner product for similarity
+fn scalar_product_with_reverse(a: TDC, b: TDC) -> f32 {
+    var result = 0.0;
+
+    // For each basis element, compute contribution to scalar part
+    // Using simplified formula: sum of a[i] * b[i] * reverse_sign(i) * cayley_contribution_to_scalar
+    // For diagonal elements (same basis): e_i * e_i contributes to scalar
+    for (var i = 0u; i < 8u; i = i + 1u) {
+        result += a.clifford[i] * b.clifford[i] * reverse_sign(i);
+    }
+
+    return result;
+}
+
+fn norm(v: TDC) -> f32 {
+    var sum = 0.0;
+    for (var i = 0u; i < 8u; i = i + 1u) {
+        sum += v.clifford[i] * v.clifford[i];
+    }
+    return sqrt(sum);
+}
+
+@compute @workgroup_size(256)
+fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
+    let idx = global_id.x;
+    let count_a = params[0];
+    let count_b = params[1];
+    let mode = params[2];
+
+    if (mode == 0u) {
+        // Pairwise mode: similarities[i] = sim(a[i], b[i])
+        if (idx >= count_a) {
+            return;
+        }
+
+        let a = vectors_a[idx];
+        let b = vectors_b[idx];
+
+        let norm_a = norm(a);
+        let norm_b = norm(b);
+
+        if (norm_a < 1e-10 || norm_b < 1e-10) {
+            similarities[idx] = 0.0;
+            return;
+        }
+
+        let inner = scalar_product_with_reverse(a, b);
+        similarities[idx] = inner / (norm_a * norm_b);
+    } else {
+        // Matrix mode: similarities[i * count_b + j] = sim(a[i], b[j])
+        let total = count_a * count_b;
+        if (idx >= total) {
+            return;
+        }
+
+        let i = idx / count_b;
+        let j = idx % count_b;
+
+        let a = vectors_a[i];
+        let b = vectors_b[j];
+
+        let norm_a = norm(a);
+        let norm_b = norm(b);
+
+        if (norm_a < 1e-10 || norm_b < 1e-10) {
+            similarities[idx] = 0.0;
+            return;
+        }
+
+        let inner = scalar_product_with_reverse(a, b);
+        similarities[idx] = inner / (norm_a * norm_b);
+    }
+}
+"#;
+
+/// Bundle all vectors into a superposition (weighted average)
+pub const HOLOGRAPHIC_BUNDLE_ALL: &str = r#"
+struct TDC {
+    tropical: f32,
+    dual_real: f32,
+    dual_dual: f32,
+    clifford: array<f32, 8>,
+    _padding: array<f32, 5>,
+}
+
+@group(0) @binding(0) var<storage, read> vectors: array<TDC>;
+@group(0) @binding(1) var<storage, read_write> result: array<TDC>; // Single output
+@group(0) @binding(2) var<uniform> params: vec4<f32>; // [count, beta, normalize, 0]
+
+// Workgroup shared memory for parallel reduction
+var<workgroup> shared_clifford: array<array<f32, 8>, 64>;
+var<workgroup> shared_tropical: array<f32, 64>;
+var<workgroup> shared_dual_real: array<f32, 64>;
+var<workgroup> shared_dual_dual: array<f32, 64>;
+
+@compute @workgroup_size(64)
+fn main(
+    @builtin(global_invocation_id) global_id: vec3<u32>,
+    @builtin(local_invocation_id) local_id: vec3<u32>,
+    @builtin(workgroup_id) workgroup_id: vec3<u32>
+) {
+    let idx = global_id.x;
+    let local_idx = local_id.x;
+    let count = u32(params.x);
+    let beta = params.y;
+    let do_normalize = params.z > 0.5;
+
+    // Initialize shared memory
+    for (var i = 0u; i < 8u; i = i + 1u) {
+        shared_clifford[local_idx][i] = 0.0;
+    }
+    shared_tropical[local_idx] = -3.4028235e+38; // -inf for tropical
+    shared_dual_real[local_idx] = 0.0;
+    shared_dual_dual[local_idx] = 0.0;
+
+    // Load data into shared memory
+    if (idx < count) {
+        let v = vectors[idx];
+        for (var i = 0u; i < 8u; i = i + 1u) {
+            shared_clifford[local_idx][i] = v.clifford[i];
+        }
+        shared_tropical[local_idx] = v.tropical;
+        shared_dual_real[local_idx] = v.dual_real;
+        shared_dual_dual[local_idx] = v.dual_dual;
+    }
+
+    workgroupBarrier();
+
+    // Parallel reduction
+    for (var stride = 32u; stride > 0u; stride = stride / 2u) {
+        if (local_idx < stride && local_idx + stride < 64u) {
+            // Bundle Clifford components (sum/average)
+            for (var i = 0u; i < 8u; i = i + 1u) {
+                shared_clifford[local_idx][i] += shared_clifford[local_idx + stride][i];
+            }
+            // Tropical: take max
+            shared_tropical[local_idx] = max(shared_tropical[local_idx], shared_tropical[local_idx + stride]);
+            // Dual: sum
+            shared_dual_real[local_idx] += shared_dual_real[local_idx + stride];
+            shared_dual_dual[local_idx] += shared_dual_dual[local_idx + stride];
+        }
+        workgroupBarrier();
+    }
+
+    // Thread 0 writes result
+    if (local_idx == 0u) {
+        var final_result: TDC;
+
+        // Average the Clifford components
+        let scale = 1.0 / f32(count);
+        for (var i = 0u; i < 8u; i = i + 1u) {
+            final_result.clifford[i] = shared_clifford[0][i] * scale;
+        }
+
+        final_result.tropical = shared_tropical[0];
+        final_result.dual_real = shared_dual_real[0] * scale;
+        final_result.dual_dual = shared_dual_dual[0] * scale;
+
+        // Optionally normalize
+        if (do_normalize) {
+            var norm_sq = 0.0;
+            for (var i = 0u; i < 8u; i = i + 1u) {
+                norm_sq += final_result.clifford[i] * final_result.clifford[i];
+            }
+            let norm = sqrt(norm_sq);
+            if (norm > 1e-10) {
+                let inv_norm = 1.0 / norm;
+                for (var i = 0u; i < 8u; i = i + 1u) {
+                    final_result.clifford[i] *= inv_norm;
+                }
+            }
+        }
+
+        result[workgroup_id.x] = final_result;
+    }
+}
+"#;
+
+/// Resonator cleanup step - computes similarities against codebook
+pub const HOLOGRAPHIC_RESONATOR_STEP: &str = r#"
+struct TDC {
+    tropical: f32,
+    dual_real: f32,
+    dual_dual: f32,
+    clifford: array<f32, 8>,
+    _padding: array<f32, 5>,
+}
+
+struct ResonatorOutput {
+    cleaned: TDC,
+    best_index: u32,
+    best_similarity: f32,
+    _padding: array<f32, 2>,
+}
+
+@group(0) @binding(0) var<storage, read> input: TDC;
+@group(0) @binding(1) var<storage, read> codebook: array<TDC>;
+@group(0) @binding(2) var<storage, read_write> output: ResonatorOutput;
+@group(0) @binding(3) var<uniform> params: array<u32, 4>; // [codebook_size, max_iterations, 0, 0]
+
+fn reverse_sign(grade: u32) -> f32 {
+    let signs = array<f32, 8>(1.0, 1.0, 1.0, 1.0, -1.0, -1.0, -1.0, -1.0);
+    return signs[grade];
+}
+
+fn scalar_product_with_reverse(a: TDC, b: TDC) -> f32 {
+    var result = 0.0;
+    for (var i = 0u; i < 8u; i = i + 1u) {
+        result += a.clifford[i] * b.clifford[i] * reverse_sign(i);
+    }
+    return result;
+}
+
+fn norm(v: TDC) -> f32 {
+    var sum = 0.0;
+    for (var i = 0u; i < 8u; i = i + 1u) {
+        sum += v.clifford[i] * v.clifford[i];
+    }
+    return sqrt(sum);
+}
+
+fn similarity(a: TDC, b: TDC) -> f32 {
+    let norm_a = norm(a);
+    let norm_b = norm(b);
+    if (norm_a < 1e-10 || norm_b < 1e-10) {
+        return 0.0;
+    }
+    return scalar_product_with_reverse(a, b) / (norm_a * norm_b);
+}
+
+// Workgroup shared memory for parallel max finding
+var<workgroup> shared_best_sim: array<f32, 256>;
+var<workgroup> shared_best_idx: array<u32, 256>;
+
+@compute @workgroup_size(256)
+fn main(
+    @builtin(global_invocation_id) global_id: vec3<u32>,
+    @builtin(local_invocation_id) local_id: vec3<u32>
+) {
+    let idx = global_id.x;
+    let local_idx = local_id.x;
+    let codebook_size = params[0];
+
+    // Initialize
+    shared_best_sim[local_idx] = -2.0; // Below minimum similarity
+    shared_best_idx[local_idx] = 0u;
+
+    // Each thread computes similarity for one codebook entry
+    if (idx < codebook_size) {
+        let sim = similarity(input, codebook[idx]);
+        shared_best_sim[local_idx] = sim;
+        shared_best_idx[local_idx] = idx;
+    }
+
+    workgroupBarrier();
+
+    // Parallel reduction to find max
+    for (var stride = 128u; stride > 0u; stride = stride / 2u) {
+        if (local_idx < stride && local_idx + stride < 256u) {
+            if (shared_best_sim[local_idx + stride] > shared_best_sim[local_idx]) {
+                shared_best_sim[local_idx] = shared_best_sim[local_idx + stride];
+                shared_best_idx[local_idx] = shared_best_idx[local_idx + stride];
+            }
+        }
+        workgroupBarrier();
+    }
+
+    // Thread 0 writes result
+    if (local_idx == 0u) {
+        let best_idx = shared_best_idx[0];
+        output.cleaned = codebook[best_idx];
+        output.best_index = best_idx;
+        output.best_similarity = shared_best_sim[0];
+    }
 }
 "#;
 
@@ -972,6 +1393,12 @@ mod tests {
         assert!(shaders.contains(&"fisher_information".to_string()));
         assert!(shaders.contains(&"ca_evolution".to_string()));
         assert!(shaders.contains(&"intersection_theory".to_string()));
+
+        // Holographic memory shaders
+        assert!(shaders.contains(&"holographic_batch_bind".to_string()));
+        assert!(shaders.contains(&"holographic_batch_similarity".to_string()));
+        assert!(shaders.contains(&"holographic_bundle_all".to_string()));
+        assert!(shaders.contains(&"holographic_resonator_step".to_string()));
     }
 
     #[test]
@@ -989,5 +1416,22 @@ mod tests {
         assert_eq!(TROPICAL_SHADERS.len(), 3);
         assert_eq!(DUAL_SHADERS.len(), 3);
         assert_eq!(FUSION_SHADERS.len(), 2);
+        assert_eq!(HOLOGRAPHIC_SHADERS.len(), 4);
+    }
+
+    #[test]
+    fn test_holographic_shaders() {
+        // Verify holographic shaders contain expected WGSL patterns
+        assert!(HOLOGRAPHIC_BATCH_BIND.contains("@compute"));
+        assert!(HOLOGRAPHIC_BATCH_BIND.contains("cayley"));
+
+        assert!(HOLOGRAPHIC_BATCH_SIMILARITY.contains("@compute"));
+        assert!(HOLOGRAPHIC_BATCH_SIMILARITY.contains("similarity"));
+
+        assert!(HOLOGRAPHIC_BUNDLE_ALL.contains("@compute"));
+        assert!(HOLOGRAPHIC_BUNDLE_ALL.contains("workgroupBarrier"));
+
+        assert!(HOLOGRAPHIC_RESONATOR_STEP.contains("@compute"));
+        assert!(HOLOGRAPHIC_RESONATOR_STEP.contains("codebook"));
     }
 }

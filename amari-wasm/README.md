@@ -15,7 +15,8 @@ Amari is a comprehensive mathematical computing library that brings advanced alg
 - **Geometric Algebra (Clifford Algebra)**: Multivectors, rotors, and geometric products for 3D rotations and spatial transformations
 - **Tropical Algebra**: Max-plus semiring operations for optimization and neural network applications
 - **Automatic Differentiation**: Forward-mode AD with dual numbers for exact derivatives
-- **Measure Theory** *(new in v0.10.0)*: Lebesgue integration, probability measures, and measure-theoretic foundations
+- **Measure Theory** *(v0.10.0)*: Lebesgue integration, probability measures, and measure-theoretic foundations
+- **Holographic Memory** *(v0.12.2)*: Vector Symbolic Architecture for associative memory with binding and bundling operations
 - **Relativistic Physics**: Spacetime algebra (Cl(1,3)) with WebAssembly-compatible precision
 - **Spacecraft Orbital Mechanics**: Full-precision trajectory calculations in browsers
 - **Cellular Automata**: Geometric cellular automata with multivector states
@@ -187,7 +188,7 @@ for (let i = 0; i < 100; i++) {
 console.log(`Generation: ${ca.generation()}`);
 ```
 
-### Measure Theory and Integration *(new in v0.10.0)*
+### Measure Theory and Integration *(v0.10.0)*
 
 Perform numerical integration and work with probability measures:
 
@@ -208,16 +209,109 @@ const prob = WasmProbabilityMeasure.uniform(0, 1);
 const p = prob.probabilityInterval(0.25, 0.75, 0, 1); // P(0.25 ≤ X ≤ 0.75) = 0.5
 ```
 
+### Holographic Memory *(v0.12.2)*
+
+Store and retrieve key-value associations using Vector Symbolic Architecture:
+
+```typescript
+import init, {
+  WasmTropicalDualClifford,
+  WasmHolographicMemory,
+  WasmResonator
+} from '@justinelliottcobb/amari-wasm';
+
+async function holographicDemo() {
+  await init();
+
+  // Create random vectors for keys and values
+  const key1 = WasmTropicalDualClifford.randomVector();
+  const value1 = WasmTropicalDualClifford.randomVector();
+  const key2 = WasmTropicalDualClifford.randomVector();
+  const value2 = WasmTropicalDualClifford.randomVector();
+
+  // Create holographic memory
+  const memory = new WasmHolographicMemory();
+
+  // Store associations
+  memory.store(key1, value1);
+  memory.store(key2, value2);
+
+  // Retrieve with a key
+  const result = memory.retrieve(key1);
+  console.log(`Confidence: ${result.confidence()}`);
+  console.log(`Similarity to original: ${result.value().similarity(value1)}`);
+
+  // Check capacity
+  const info = memory.capacityInfo();
+  console.log(`Items stored: ${info.itemCount}`);
+  console.log(`Estimated SNR: ${info.estimatedSnr}`);
+
+  // Binding operations (key ⊛ value)
+  const bound = key1.bind(value1);
+  const unbound = bound.unbind(key1); // Recovers value1
+
+  // Similarity computation
+  const sim = key1.similarity(key2);
+  console.log(`Key similarity: ${sim}`);
+
+  // Resonator cleanup for noisy inputs
+  const codebook = [key1, key2, value1, value2];
+  const resonator = WasmResonator.new(codebook);
+  const noisyInput = key1; // Add noise in practice
+  const cleaned = resonator.cleanup(noisyInput);
+  console.log(`Best match index: ${cleaned.bestMatchIndex()}`);
+
+  // Clean up WASM memory
+  key1.free();
+  value1.free();
+  key2.free();
+  value2.free();
+  memory.free();
+  bound.free();
+  unbound.free();
+  resonator.free();
+}
+
+holographicDemo();
+```
+
+#### Holographic Memory API
+
+**TropicalDualClifford Operations:**
+- `bind(other)`: Binding operation using geometric product
+- `unbind(other)`: Inverse binding for retrieval
+- `bundle(other, beta)`: Bundling operation for superposition
+- `similarity(other)`: Compute normalized similarity
+- `bindingIdentity()`: Get the identity element for binding
+- `bindingInverse()`: Compute approximate inverse
+- `randomVector()`: Create a random unit vector
+- `normalizeToUnit()`: Normalize to unit magnitude
+
+**HolographicMemory:**
+- `store(key, value)`: Store a key-value association
+- `storeBatch(pairs)`: Store multiple associations efficiently
+- `retrieve(key)`: Retrieve value associated with key
+- `capacityInfo()`: Get storage statistics (item count, SNR, capacity)
+- `clear()`: Clear all stored associations
+
+**Resonator:**
+- `new(codebook)`: Create resonator with clean reference vectors
+- `cleanup(input)`: Clean up noisy input to nearest codebook entry
+- `cleanupWithIterations(input, maxIter)`: Iterative cleanup
+
 ## Use Cases
 
-- Computer Graphics: 3D rotations and transformations using rotors
-- Physics Simulations: Geometric algebra for electromagnetic fields and relativistic calculations
-- Machine Learning: Tropical neural networks and automatic differentiation
-- Optimization: Tropical algebra for shortest path and scheduling problems
-- Scientific Computing: High-performance mathematical operations with orbital-grade precision
-- Probability & Statistics: Measure theory and numerical integration for statistical computations
-- Game Development: Efficient spatial transformations and physics
-- Spacecraft Trajectory Planning: High-precision orbital mechanics in web applications
+- **Computer Graphics**: 3D rotations and transformations using rotors
+- **Physics Simulations**: Geometric algebra for electromagnetic fields and relativistic calculations
+- **Machine Learning**: Tropical neural networks and automatic differentiation
+- **Optimization**: Tropical algebra for shortest path and scheduling problems
+- **Scientific Computing**: High-performance mathematical operations with orbital-grade precision
+- **Probability & Statistics**: Measure theory and numerical integration for statistical computations
+- **Game Development**: Efficient spatial transformations and physics
+- **Spacecraft Trajectory Planning**: High-precision orbital mechanics in web applications
+- **Symbolic AI**: Holographic memory for associative reasoning and concept binding
+- **Cognitive Architectures**: Brain-inspired memory systems for AI agents
+- **Embedding Retrieval**: Content-addressable semantic search in vector databases
 
 ## API Reference
 
@@ -242,6 +336,17 @@ const p = prob.probabilityInterval(0.25, 0.75, 0, 1); // P(0.25 ≤ X ≤ 0.75) 
 - `tropical_add(a, b)`: Tropical addition (max)
 - `tropical_multiply(a, b)`: Tropical multiplication (addition)
 - `tropical_power(base, exp)`: Tropical exponentiation
+
+### Holographic Memory Operations
+
+- `WasmTropicalDualClifford.bind(other)`: Binding via geometric product
+- `WasmTropicalDualClifford.unbind(other)`: Inverse binding
+- `WasmTropicalDualClifford.bundle(other, beta)`: Superposition bundling
+- `WasmTropicalDualClifford.similarity(other)`: Normalized similarity
+- `WasmTropicalDualClifford.randomVector()`: Create random unit vector
+- `WasmHolographicMemory.store(key, value)`: Store association
+- `WasmHolographicMemory.retrieve(key)`: Retrieve by key
+- `WasmResonator.cleanup(input)`: Clean up noisy input
 
 ## Examples
 
