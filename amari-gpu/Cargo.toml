@@ -20,7 +20,7 @@ amari-measure = { workspace = true, optional = true }
 amari-calculus = { workspace = true, optional = true }
 amari-tropical = { workspace = true, optional = true }
 amari-dual = { workspace = true, optional = true }
-amari-fusion = { workspace = true, optional = true }
+amari-fusion = { workspace = true, optional = true, features = ["holographic"] }
 amari-automata = { workspace = true, optional = true }
 amari-enumerative = { workspace = true, optional = true }
 num-traits = { workspace = true }
