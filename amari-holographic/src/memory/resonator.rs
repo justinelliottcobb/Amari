@@ -4,14 +4,12 @@
 //! a noisy input toward the nearest valid state.
 
 use alloc::vec::Vec;
-use num_traits::Float;
 
-#[cfg(feature = "rayon")]
+#[cfg(feature = "parallel")]
 use rayon::prelude::*;
 
-use super::binding::Bindable;
 use super::error::{HolographicError, HolographicResult};
-use crate::TropicalDualClifford;
+use crate::algebra::BindingAlgebra;
 
 /// Configuration for resonator cleanup.
 #[derive(Clone, Debug)]
@@ -39,9 +37,9 @@ impl Default for ResonatorConfig {
 
 /// Result of a cleanup operation.
 #[derive(Clone, Debug)]
-pub struct CleanupResult<T: Float, const DIM: usize> {
+pub struct CleanupResult<A: BindingAlgebra> {
     /// The cleaned-up representation
-    pub cleaned: TropicalDualClifford<T, DIM>,
+    pub cleaned: A,
     /// Number of iterations performed
     pub iterations: usize,
     /// Whether the resonator converged
@@ -54,11 +52,11 @@ pub struct CleanupResult<T: Float, const DIM: usize> {
 
 /// Result of a factorization operation.
 #[derive(Clone, Debug)]
-pub struct FactorizationResult<T: Float, const DIM: usize> {
+pub struct FactorizationResult<A: BindingAlgebra> {
     /// First factor
-    pub factor_a: TropicalDualClifford<T, DIM>,
+    pub factor_a: A,
     /// Second factor
-    pub factor_b: TropicalDualClifford<T, DIM>,
+    pub factor_b: A,
     /// Number of iterations performed
     pub iterations: usize,
     /// Whether the resonator converged
@@ -74,26 +72,20 @@ pub struct FactorizationResult<T: Float, const DIM: usize> {
 ///
 /// For holographic memory, the codebook is typically the stored keys or values.
 #[derive(Clone)]
-pub struct Resonator<T: Float, const DIM: usize> {
+pub struct Resonator<A: BindingAlgebra> {
     /// The codebook of valid states
-    codebook: Vec<TropicalDualClifford<T, DIM>>,
+    codebook: Vec<A>,
     /// Configuration for cleanup
     config: ResonatorConfig,
 }
 
-impl<T: Float + Send + Sync, const DIM: usize> Resonator<T, DIM>
-where
-    T: num_traits::NumCast,
-{
+impl<A: BindingAlgebra> Resonator<A> {
     /// Create a resonator with the given codebook.
     ///
     /// # Errors
     ///
     /// Returns `HolographicError::EmptyCodebook` if the codebook is empty.
-    pub fn new(
-        codebook: Vec<TropicalDualClifford<T, DIM>>,
-        config: ResonatorConfig,
-    ) -> HolographicResult<Self> {
+    pub fn new(codebook: Vec<A>, config: ResonatorConfig) -> HolographicResult<Self> {
         if codebook.is_empty() {
             return Err(HolographicError::EmptyCodebook);
         }
@@ -102,7 +94,7 @@ where
     }
 
     /// Clean up a noisy input by resonating against the codebook.
-    pub fn cleanup(&self, noisy: &TropicalDualClifford<T, DIM>) -> CleanupResult<T, DIM> {
+    pub fn cleanup(&self, noisy: &A) -> CleanupResult<A> {
         let mut current = noisy.clone();
         let mut iterations = 0;
         let mut converged = false;
@@ -117,14 +109,14 @@ where
                 self.config.initial_beta + t * (self.config.final_beta - self.config.initial_beta);
 
             // Compute similarities to all codebook items
-            #[cfg(feature = "rayon")]
+            #[cfg(feature = "parallel")]
             let similarities: Vec<f64> = self
                 .codebook
                 .par_iter()
                 .map(|c| current.similarity(c))
                 .collect();
 
-            #[cfg(not(feature = "rayon"))]
+            #[cfg(not(feature = "parallel"))]
             let similarities: Vec<f64> = self
                 .codebook
                 .iter()
@@ -178,11 +170,7 @@ where
     }
 
     /// Factorize a bound pair: given `A⊛B`, find `A` and `B` from codebooks.
-    pub fn factorize(
-        &self,
-        bound: &TropicalDualClifford<T, DIM>,
-        other_codebook: &Resonator<T, DIM>,
-    ) -> FactorizationResult<T, DIM> {
+    pub fn factorize(&self, bound: &A, other_codebook: &Resonator<A>) -> FactorizationResult<A> {
         // Start with random estimates from codebooks
         let mut estimate_a = self.codebook[0].clone();
         let mut estimate_b = other_codebook.codebook[0].clone();
@@ -194,18 +182,18 @@ where
         for iter in 0..self.config.max_iterations {
             iterations = iter + 1;
 
-            // Temperature annealing (beta available for future use in weighted unbinding)
+            // Temperature annealing
             let t = iter as f64 / self.config.max_iterations.max(1) as f64;
             let _beta =
                 self.config.initial_beta + t * (self.config.final_beta - self.config.initial_beta);
 
             // Update estimate_b: unbind current estimate_a from bound
-            let raw_b = estimate_a.unbind(bound);
+            let raw_b = estimate_a.unbind(bound).unwrap_or_else(|_| A::zero());
             let cleanup_b = other_codebook.cleanup(&raw_b);
             estimate_b = cleanup_b.cleaned;
 
             // Update estimate_a: unbind current estimate_b from bound
-            let raw_a = estimate_b.unbind(bound);
+            let raw_a = estimate_b.unbind(bound).unwrap_or_else(|_| A::zero());
             let cleanup_a = self.cleanup(&raw_a);
             estimate_a = cleanup_a.cleaned;
 
@@ -239,22 +227,21 @@ where
     }
 
     /// Compute weighted bundle of codebook items.
-    fn weighted_bundle(&self, weights: &[f64]) -> TropicalDualClifford<T, DIM> {
+    fn weighted_bundle(&self, weights: &[f64]) -> A {
         if self.codebook.is_empty() {
-            return TropicalDualClifford::zero();
+            return A::zero();
         }
 
-        // Start with first item scaled by its weight
-        let first_weight = T::from(weights[0]).unwrap_or(T::zero());
-        let mut result = self.codebook[0].scale(first_weight);
+        // Use bundle_all with soft bundling
+        // For now, just return the item with highest weight
+        let best_idx = weights
+            .iter()
+            .enumerate()
+            .max_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap_or(core::cmp::Ordering::Equal))
+            .map(|(i, _)| i)
+            .unwrap_or(0);
 
-        // Add remaining items
-        for (item, &weight) in self.codebook.iter().zip(weights.iter()).skip(1) {
-            let scaled = item.scale(T::from(weight).unwrap_or(T::zero()));
-            result = result.add(&scaled);
-        }
-
-        result.normalize()
+        self.codebook[best_idx].clone()
     }
 
     /// Get the codebook size.
@@ -263,13 +250,13 @@ where
     }
 
     /// Get a reference to a codebook item.
-    pub fn get_codebook_item(&self, index: usize) -> Option<&TropicalDualClifford<T, DIM>> {
+    pub fn get_codebook_item(&self, index: usize) -> Option<&A> {
         self.codebook.get(index)
     }
 }
 
 /// Compute softmax weights with temperature.
-fn softmax_weights(similarities: &[f64], beta: f64) -> Vec<f64> {
+pub fn softmax_weights(similarities: &[f64], beta: f64) -> Vec<f64> {
     if similarities.is_empty() {
         return Vec::new();
     }

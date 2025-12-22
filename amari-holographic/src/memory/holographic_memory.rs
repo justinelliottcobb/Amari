@@ -4,32 +4,32 @@
 //! key-value associations using holographic reduced representations.
 
 use alloc::vec::Vec;
-use core::marker::PhantomData;
-use num_traits::Float;
 
-#[cfg(feature = "rayon")]
+#[cfg(feature = "parallel")]
 use rayon::prelude::*;
 
-use super::binding::{Bindable, BindingAlgebra};
-use crate::TropicalDualClifford;
+use crate::algebra::{AlgebraConfig, BindingAlgebra};
 
 /// A holographic associative memory storing key-value pairs in superposition.
 ///
+/// This is generic over any algebra implementing [`BindingAlgebra`], allowing
+/// use with Clifford, ProductClifford, FHRR, MAP, or custom algebras.
+///
 /// # Capacity
 ///
-/// Reliable retrieval degrades as items are added. Capacity scales as O(DIM / log DIM).
+/// Reliable retrieval degrades as items are added. Capacity scales as O(dim / log dim).
 /// The memory tracks estimated SNR and warns when approaching capacity limits.
 ///
 /// # Example
 ///
-/// ```rust,ignore
-/// use amari_fusion::holographic::{HolographicMemory, BindingAlgebra};
-/// use amari_fusion::TropicalDualClifford;
+/// ```ignore
+/// use amari_holographic::{HolographicMemory, AlgebraConfig};
+/// use amari_holographic::algebra::ProductCl3x32;
 ///
-/// let mut memory = HolographicMemory::<f64, 8>::new(BindingAlgebra::default());
+/// let mut memory = HolographicMemory::<ProductCl3x32>::new(AlgebraConfig::default());
 ///
-/// let key = TropicalDualClifford::from_logits(&key_logits);
-/// let value = TropicalDualClifford::from_logits(&value_logits);
+/// let key = ProductCl3x32::random_versor(2);
+/// let value = ProductCl3x32::random_versor(2);
 ///
 /// memory.store(&key, &value);
 ///
@@ -37,39 +37,34 @@ use crate::TropicalDualClifford;
 /// assert!(retrieved.confidence > 0.9);
 /// ```
 #[derive(Clone)]
-pub struct HolographicMemory<T: Float, const DIM: usize> {
+pub struct HolographicMemory<A: BindingAlgebra> {
     /// The superposed memory trace
-    trace: TropicalDualClifford<T, DIM>,
+    trace: A,
     /// Number of items stored
     item_count: usize,
-    /// Binding algebra configuration
-    algebra: BindingAlgebra,
+    /// Algebra configuration (bundling/retrieval parameters)
+    config: AlgebraConfig,
     /// Optional: store keys for resonator cleanup and attribution
-    stored_keys: Option<Vec<TropicalDualClifford<T, DIM>>>,
-    /// Phantom marker for Float trait
-    _phantom: PhantomData<T>,
+    stored_keys: Option<Vec<A>>,
 }
 
 /// Result of a retrieval operation.
 #[derive(Clone, Debug)]
-pub struct RetrievalResult<T: Float, const DIM: usize> {
+pub struct RetrievalResult<A: BindingAlgebra> {
     /// The retrieved value (after cleanup if enabled)
-    pub value: TropicalDualClifford<T, DIM>,
+    pub value: A,
     /// Raw retrieved value before cleanup
-    pub raw_value: TropicalDualClifford<T, DIM>,
+    pub raw_value: A,
     /// Estimated confidence in [0, 1] based on SNR
     pub confidence: f64,
-    /// Attribution: which stored items contributed (from dual gradients)
+    /// Attribution: which stored items contributed
     /// Indices correspond to storage order if key tracking is enabled
     pub attribution: Vec<(usize, f64)>,
     /// Similarity of retrieved value to query (sanity check)
     pub query_similarity: f64,
 }
 
-impl<T: Float + Send + Sync, const DIM: usize> RetrievalResult<T, DIM>
-where
-    T: num_traits::NumCast,
-{
+impl<A: BindingAlgebra> RetrievalResult<A> {
     /// Verify that this retrieval result is valid.
     pub fn verify_result_validity(&self) -> bool {
         // Check that value is finite
@@ -102,38 +97,29 @@ pub struct CapacityInfo {
     pub near_capacity: bool,
 }
 
-impl<T: Float + Send + Sync, const DIM: usize> HolographicMemory<T, DIM>
-where
-    T: num_traits::NumCast,
-{
+impl<A: BindingAlgebra> HolographicMemory<A> {
     /// Create a new empty holographic memory.
-    pub fn new(algebra: BindingAlgebra) -> Self {
+    pub fn new(config: AlgebraConfig) -> Self {
         Self {
-            trace: TropicalDualClifford::zero(),
+            trace: A::zero(),
             item_count: 0,
-            algebra,
+            config,
             stored_keys: None,
-            _phantom: PhantomData,
         }
     }
 
     /// Create with key tracking enabled (for resonator cleanup and attribution).
-    pub fn with_key_tracking(algebra: BindingAlgebra) -> Self {
+    pub fn with_key_tracking(config: AlgebraConfig) -> Self {
         Self {
-            trace: TropicalDualClifford::zero(),
+            trace: A::zero(),
             item_count: 0,
-            algebra,
+            config,
             stored_keys: Some(Vec::new()),
-            _phantom: PhantomData,
         }
     }
 
     /// Store a key-value association.
-    pub fn store(
-        &mut self,
-        key: &TropicalDualClifford<T, DIM>,
-        value: &TropicalDualClifford<T, DIM>,
-    ) {
+    pub fn store(&mut self, key: &A, value: &A) {
         // Bind key and value
         let bound = key.bind(value);
 
@@ -141,7 +127,10 @@ where
         if self.item_count == 0 {
             self.trace = bound;
         } else {
-            self.trace = self.trace.bundle(&bound, self.algebra.bundle_beta);
+            self.trace = self
+                .trace
+                .bundle(&bound, self.config.bundle_beta)
+                .unwrap_or_else(|_| self.trace.clone());
         }
 
         // Track key if enabled
@@ -153,29 +142,30 @@ where
     }
 
     /// Store multiple associations at once (more efficient bundling).
-    pub fn store_batch(
-        &mut self,
-        pairs: &[(TropicalDualClifford<T, DIM>, TropicalDualClifford<T, DIM>)],
-    ) {
+    pub fn store_batch(&mut self, pairs: &[(A, A)]) {
         if pairs.is_empty() {
             return;
         }
 
         // Bind all pairs
-        #[cfg(feature = "rayon")]
+        #[cfg(feature = "parallel")]
         let bindings: Vec<_> = pairs.par_iter().map(|(k, v)| k.bind(v)).collect();
 
-        #[cfg(not(feature = "rayon"))]
+        #[cfg(not(feature = "parallel"))]
         let bindings: Vec<_> = pairs.iter().map(|(k, v)| k.bind(v)).collect();
 
         // Bundle all bindings
-        let batch_trace = TropicalDualClifford::bundle_all(&bindings, self.algebra.bundle_beta);
+        let batch_trace =
+            A::bundle_all(&bindings, self.config.bundle_beta).unwrap_or_else(|_| A::zero());
 
         // Merge with existing trace
         if self.item_count == 0 {
             self.trace = batch_trace;
         } else {
-            self.trace = self.trace.bundle(&batch_trace, self.algebra.bundle_beta);
+            self.trace = self
+                .trace
+                .bundle(&batch_trace, self.config.bundle_beta)
+                .unwrap_or_else(|_| self.trace.clone());
         }
 
         // Track keys if enabled
@@ -189,28 +179,22 @@ where
     }
 
     /// Retrieve the value associated with a key.
-    pub fn retrieve(&self, key: &TropicalDualClifford<T, DIM>) -> RetrievalResult<T, DIM> {
-        self.retrieve_at_temperature(key, self.algebra.retrieval_beta)
+    pub fn retrieve(&self, key: &A) -> RetrievalResult<A> {
+        self.retrieve_at_temperature(key, self.config.retrieval_beta)
     }
 
-    /// Retrieve with custom temperature (override algebra settings).
-    pub fn retrieve_at_temperature(
-        &self,
-        key: &TropicalDualClifford<T, DIM>,
-        beta: f64,
-    ) -> RetrievalResult<T, DIM> {
+    /// Retrieve with custom temperature (override config settings).
+    pub fn retrieve_at_temperature(&self, key: &A, beta: f64) -> RetrievalResult<A> {
         // Unbind with key to get noisy value
-        let raw_value = key.unbind(&self.trace);
+        let raw_value = key.unbind(&self.trace).unwrap_or_else(|_| A::zero());
 
         // Compute confidence based on SNR estimate
         let snr = self.estimate_snr();
         let confidence = self.snr_to_confidence(snr);
 
-        // For hard retrieval, we could apply resonator cleanup here
-        // For now, we just return the raw value
+        // For hard retrieval, normalize the result
         let value = if beta.is_infinite() {
-            // Hard retrieval: normalize the result
-            raw_value.normalize()
+            raw_value.normalize().unwrap_or_else(|_| raw_value.clone())
         } else {
             raw_value.clone()
         };
@@ -231,20 +215,16 @@ where
     }
 
     /// Query with a partial or noisy key (holographic graceful degradation).
-    pub fn query_partial(
-        &self,
-        partial_key: &TropicalDualClifford<T, DIM>,
-        _mask: &[bool],
-    ) -> RetrievalResult<T, DIM> {
+    pub fn query_partial(&self, partial_key: &A, _mask: &[bool]) -> RetrievalResult<A> {
         // For partial queries, we just retrieve normally
         // The holographic representation naturally handles partial information
         self.retrieve(partial_key)
     }
 
     /// Check if a key is likely stored (approximate membership).
-    pub fn probably_contains(&self, key: &TropicalDualClifford<T, DIM>) -> bool {
+    pub fn probably_contains(&self, key: &A) -> bool {
         let result = self.retrieve(key);
-        result.confidence > self.algebra.similarity_threshold
+        result.confidence > self.config.similarity_threshold
     }
 
     /// Get capacity information.
@@ -264,7 +244,7 @@ where
 
     /// Clear the memory.
     pub fn clear(&mut self) {
-        self.trace = TropicalDualClifford::zero();
+        self.trace = A::zero();
         self.item_count = 0;
         if let Some(ref mut keys) = self.stored_keys {
             keys.clear();
@@ -280,7 +260,10 @@ where
         if self.item_count == 0 {
             self.trace = other.trace.clone();
         } else {
-            self.trace = self.trace.bundle(&other.trace, self.algebra.bundle_beta);
+            self.trace = self
+                .trace
+                .bundle(&other.trace, self.config.bundle_beta)
+                .unwrap_or_else(|_| self.trace.clone());
         }
 
         self.item_count += other.item_count;
@@ -294,11 +277,16 @@ where
     }
 
     /// Get the raw memory trace (for inspection/serialization).
-    pub fn trace(&self) -> &TropicalDualClifford<T, DIM> {
+    pub fn trace(&self) -> &A {
         &self.trace
     }
 
-    /// Verify memory consistency (for verified contracts).
+    /// Get the number of stored items.
+    pub fn item_count(&self) -> usize {
+        self.item_count
+    }
+
+    /// Verify memory consistency.
     pub fn verify_consistency(&self) -> bool {
         // Check trace is valid
         let norm = self.trace.norm();
@@ -326,8 +314,8 @@ where
             return f64::INFINITY;
         }
 
-        // SNR ≈ sqrt(DIM / item_count)
-        (DIM as f64 / self.item_count as f64).sqrt()
+        // Use the algebra's estimate_snr method
+        self.trace.estimate_snr(self.item_count)
     }
 
     /// Convert SNR to confidence in [0, 1].
@@ -340,25 +328,18 @@ where
         1.0 - (-snr / 2.0).exp()
     }
 
-    /// Theoretical capacity: DIM / ln(DIM).
+    /// Theoretical capacity.
     fn theoretical_capacity(&self) -> usize {
-        let dim_f = DIM as f64;
-        let ln_dim = dim_f.ln().max(1.0);
-        (dim_f / ln_dim) as usize
+        self.trace.theoretical_capacity()
     }
 
     /// Compute attribution for a retrieval.
-    fn compute_attribution(
-        &self,
-        key: &TropicalDualClifford<T, DIM>,
-        _value: &TropicalDualClifford<T, DIM>,
-    ) -> Vec<(usize, f64)> {
+    fn compute_attribution(&self, key: &A, _value: &A) -> Vec<(usize, f64)> {
         let Some(ref keys) = self.stored_keys else {
             return Vec::new();
         };
 
         // Compute similarity of each stored key to the query key
-        // This approximates attribution
         let mut attributions: Vec<(usize, f64)> = keys
             .iter()
             .enumerate()
@@ -387,10 +368,6 @@ where
     }
 }
 
-// ============================================================================
-// Verified wrapper for HolographicMemory
-// ============================================================================
-
 /// Marker for verified memory operations.
 #[derive(Debug, Clone, Copy)]
 #[allow(dead_code)]
@@ -399,21 +376,51 @@ pub struct MemoryVerified;
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::algebra::product_clifford::ProductCl3x8;
 
     #[test]
-    fn test_capacity_formula() {
-        // For DIM=64, capacity should be approximately 64/ln(64) ≈ 15.4
-        let capacity_64 = (64.0 / 64.0_f64.ln()) as usize;
-        assert!(capacity_64 > 10 && capacity_64 < 20);
+    fn test_memory_store_retrieve() {
+        let mut memory = HolographicMemory::<ProductCl3x8>::new(AlgebraConfig::default());
 
-        // For DIM=256, capacity should be approximately 256/ln(256) ≈ 46
-        let capacity_256 = (256.0 / 256.0_f64.ln()) as usize;
-        assert!(capacity_256 > 40 && capacity_256 < 55);
+        let key = ProductCl3x8::random_versor(2);
+        let value = ProductCl3x8::random_versor(2);
+
+        memory.store(&key, &value);
+
+        let result = memory.retrieve(&key);
+        assert!(result.confidence > 0.5, "confidence: {}", result.confidence);
+
+        let sim = result.value.similarity(&value);
+        assert!(sim > 0.9, "similarity: {}", sim);
+    }
+
+    #[test]
+    fn test_memory_capacity_info() {
+        let memory = HolographicMemory::<ProductCl3x8>::new(AlgebraConfig::default());
+        let info = memory.capacity_info();
+
+        assert_eq!(info.item_count, 0);
+        assert!(info.estimated_snr.is_infinite());
+        assert!(!info.near_capacity);
+    }
+
+    #[test]
+    fn test_memory_clear() {
+        let mut memory = HolographicMemory::<ProductCl3x8>::new(AlgebraConfig::default());
+
+        let key = ProductCl3x8::random_versor(2);
+        let value = ProductCl3x8::random_versor(2);
+
+        memory.store(&key, &value);
+        assert_eq!(memory.item_count(), 1);
+
+        memory.clear();
+        assert_eq!(memory.item_count(), 0);
     }
 
     #[test]
     fn test_snr_to_confidence() {
-        let memory = HolographicMemory::<f64, 8>::new(BindingAlgebra::default());
+        let memory = HolographicMemory::<ProductCl3x8>::new(AlgebraConfig::default());
 
         // High SNR should give high confidence
         let high_conf = memory.snr_to_confidence(10.0);

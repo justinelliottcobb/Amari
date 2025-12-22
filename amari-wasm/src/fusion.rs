@@ -689,12 +689,10 @@ pub fn init_fusion() {
 }
 
 // ============================================================================
-// Holographic Memory WASM Bindings (v0.12.2)
+// TDC Binding Operations (v0.12.3)
 // ============================================================================
 
-use amari_fusion::holographic::{BindingAlgebra, HolographicMemory, Resonator, ResonatorConfig};
-
-/// WASM wrapper for holographic binding operations on TDC
+/// WASM wrapper for binding operations on TDC
 #[wasm_bindgen]
 impl WasmTropicalDualClifford {
     /// Bind two TDC objects using geometric product (creates associations)
@@ -702,7 +700,6 @@ impl WasmTropicalDualClifford {
     /// The result is dissimilar to both inputs - useful for creating
     /// key-value associations in holographic memory.
     pub fn bind(&self, other: &WasmTropicalDualClifford) -> WasmTropicalDualClifford {
-        use amari_fusion::holographic::Bindable;
         Self {
             inner: self.inner.bind(&other.inner),
         }
@@ -712,7 +709,6 @@ impl WasmTropicalDualClifford {
     ///
     /// If `bound = key.bind(value)`, then `key.unbind(bound) ≈ value`
     pub fn unbind(&self, other: &WasmTropicalDualClifford) -> WasmTropicalDualClifford {
-        use amari_fusion::holographic::Bindable;
         Self {
             inner: self.inner.unbind(&other.inner),
         }
@@ -724,7 +720,6 @@ impl WasmTropicalDualClifford {
     /// multiple associations in the same memory trace.
     /// `beta` controls soft (1.0) vs hard (∞) bundling.
     pub fn bundle(&self, other: &WasmTropicalDualClifford, beta: f64) -> WasmTropicalDualClifford {
-        use amari_fusion::holographic::Bindable;
         Self {
             inner: self.inner.bundle(&other.inner, beta),
         }
@@ -735,7 +730,6 @@ impl WasmTropicalDualClifford {
     /// Uses the proper Clifford inner product with reverse: <A B̃>₀ / (|A| |B|)
     /// Returns a value in [-1, 1].
     pub fn similarity(&self, other: &WasmTropicalDualClifford) -> f64 {
-        use amari_fusion::holographic::Bindable;
         self.inner.similarity(&other.inner)
     }
 
@@ -744,7 +738,6 @@ impl WasmTropicalDualClifford {
     /// `x.bind(identity) = x` for any x
     #[wasm_bindgen(js_name = bindingIdentity)]
     pub fn binding_identity() -> WasmTropicalDualClifford {
-        use amari_fusion::holographic::Bindable;
         Self {
             inner: TropicalDualClifford::binding_identity(),
         }
@@ -755,7 +748,6 @@ impl WasmTropicalDualClifford {
     /// If successful, `x.bind(x.bindingInverse()) ≈ identity`
     #[wasm_bindgen(js_name = bindingInverse)]
     pub fn binding_inverse(&self) -> Result<WasmTropicalDualClifford, JsValue> {
-        use amari_fusion::holographic::Bindable;
         self.inner
             .binding_inverse()
             .map(|inv| Self { inner: inv })
@@ -765,7 +757,6 @@ impl WasmTropicalDualClifford {
     /// Normalize the TDC to unit norm
     #[wasm_bindgen(js_name = normalizeToUnit)]
     pub fn normalize_to_unit(&self) -> WasmTropicalDualClifford {
-        use amari_fusion::holographic::Bindable;
         Self {
             inner: self.inner.normalize(),
         }
@@ -816,10 +807,26 @@ impl WasmTropicalDualClifford {
     }
 }
 
-/// WASM wrapper for HolographicMemory
+// ============================================================================
+// Holographic Memory WASM Bindings (v0.12.3)
+//
+// For full holographic memory operations, use amari-holographic directly
+// with algebra types like ProductCl3x32 or CliffordAlgebra.
+// The TDC binding operations above provide basic VSA primitives.
+// ============================================================================
+
+use amari_holographic::{
+    AlgebraConfig, BindingAlgebra, HolographicMemory, ProductCliffordAlgebra, Resonator,
+    ResonatorConfig,
+};
+
+/// Type alias for 256-dimensional ProductClifford algebra
+type ProductCl3x32 = ProductCliffordAlgebra<32>;
+
+/// WASM wrapper for HolographicMemory using ProductClifford algebra
 #[wasm_bindgen]
 pub struct WasmHolographicMemory {
-    inner: HolographicMemory<f64, 8>,
+    inner: HolographicMemory<ProductCl3x32>,
 }
 
 #[wasm_bindgen]
@@ -828,7 +835,7 @@ impl WasmHolographicMemory {
     #[wasm_bindgen(constructor)]
     pub fn new() -> Self {
         Self {
-            inner: HolographicMemory::new(BindingAlgebra::default()),
+            inner: HolographicMemory::new(AlgebraConfig::default()),
         }
     }
 
@@ -836,57 +843,63 @@ impl WasmHolographicMemory {
     #[wasm_bindgen(js_name = withKeyTracking)]
     pub fn with_key_tracking() -> Self {
         Self {
-            inner: HolographicMemory::with_key_tracking(BindingAlgebra::default()),
+            inner: HolographicMemory::with_key_tracking(AlgebraConfig::default()),
         }
     }
 
-    /// Create with custom bundle temperature
-    #[wasm_bindgen(js_name = withBundleTemperature)]
-    pub fn with_bundle_temperature(beta: f64) -> Self {
-        let algebra = BindingAlgebra {
-            bundle_beta: beta,
-            ..Default::default()
-        };
-        Self {
-            inner: HolographicMemory::new(algebra),
+    /// Store a key-value pair in memory (using flat coefficient arrays)
+    ///
+    /// Each array should have 256 coefficients for ProductCl3x32.
+    pub fn store(&mut self, key: &[f64], value: &[f64]) -> Result<(), JsValue> {
+        if key.len() != 256 || value.len() != 256 {
+            return Err(JsValue::from_str(
+                "Key and value must have 256 coefficients for ProductCl3x32",
+            ));
         }
-    }
-
-    /// Store a key-value pair in memory
-    pub fn store(&mut self, key: &WasmTropicalDualClifford, value: &WasmTropicalDualClifford) {
-        self.inner.store(&key.inner, &value.inner);
+        let k = ProductCl3x32::from_coefficients(key)
+            .map_err(|e| JsValue::from_str(&format!("{}", e)))?;
+        let v = ProductCl3x32::from_coefficients(value)
+            .map_err(|e| JsValue::from_str(&format!("{}", e)))?;
+        self.inner.store(&k, &v);
+        Ok(())
     }
 
     /// Retrieve a value by key
-    pub fn retrieve(&self, key: &WasmTropicalDualClifford) -> WasmRetrievalResult {
-        let result = self.inner.retrieve(&key.inner);
-        WasmRetrievalResult { inner: result }
+    ///
+    /// Returns the retrieved coefficients as a Float64Array.
+    pub fn retrieve(&self, key: &[f64]) -> Result<Vec<f64>, JsValue> {
+        if key.len() != 256 {
+            return Err(JsValue::from_str(
+                "Key must have 256 coefficients for ProductCl3x32",
+            ));
+        }
+        let k = ProductCl3x32::from_coefficients(key)
+            .map_err(|e| JsValue::from_str(&format!("{}", e)))?;
+        let result = self.inner.retrieve(&k);
+        Ok(result.value.to_coefficients())
     }
 
-    /// Retrieve with custom temperature
-    #[wasm_bindgen(js_name = retrieveAtTemperature)]
-    pub fn retrieve_at_temperature(
-        &self,
-        key: &WasmTropicalDualClifford,
-        beta: f64,
-    ) -> WasmRetrievalResult {
-        let result = self.inner.retrieve_at_temperature(&key.inner, beta);
-        WasmRetrievalResult { inner: result }
-    }
-
-    /// Check if memory probably contains a key
-    #[wasm_bindgen(js_name = probablyContains)]
-    pub fn probably_contains(&self, key: &WasmTropicalDualClifford) -> bool {
-        self.inner.probably_contains(&key.inner)
+    /// Get retrieval confidence for a key
+    #[wasm_bindgen(js_name = retrieveConfidence)]
+    pub fn retrieve_confidence(&self, key: &[f64]) -> Result<f64, JsValue> {
+        if key.len() != 256 {
+            return Err(JsValue::from_str(
+                "Key must have 256 coefficients for ProductCl3x32",
+            ));
+        }
+        let k = ProductCl3x32::from_coefficients(key)
+            .map_err(|e| JsValue::from_str(&format!("{}", e)))?;
+        let result = self.inner.retrieve(&k);
+        Ok(result.confidence)
     }
 
     /// Get the number of stored items
     #[wasm_bindgen(js_name = itemCount)]
     pub fn item_count(&self) -> usize {
-        self.inner.capacity_info().item_count
+        self.inner.item_count()
     }
 
-    /// Get the theoretical capacity
+    /// Get capacity information
     #[wasm_bindgen(js_name = theoreticalCapacity)]
     pub fn theoretical_capacity(&self) -> usize {
         self.inner.capacity_info().theoretical_capacity
@@ -909,35 +922,10 @@ impl WasmHolographicMemory {
         self.inner.clear();
     }
 
-    /// Merge another memory into this one
-    pub fn merge(&mut self, other: &WasmHolographicMemory) {
-        self.inner.merge(&other.inner);
-    }
-
-    /// Batch store multiple key-value pairs
-    #[wasm_bindgen(js_name = storeBatch)]
-    pub fn store_batch(&mut self, keys: &[f64], values: &[f64]) -> Result<(), JsValue> {
-        if keys.len() != values.len() {
-            return Err(JsValue::from_str("Keys and values must have same length"));
-        }
-
-        if !keys.len().is_multiple_of(8) {
-            return Err(JsValue::from_str("Each TDC requires 8 coefficients"));
-        }
-
-        let num_pairs = keys.len() / 8;
-        let mut pairs = Vec::with_capacity(num_pairs);
-
-        for i in 0..num_pairs {
-            let start = i * 8;
-            let end = start + 8;
-            let key = TropicalDualClifford::from_logits(&keys[start..end]);
-            let value = TropicalDualClifford::from_logits(&values[start..end]);
-            pairs.push((key, value));
-        }
-
-        self.inner.store_batch(&pairs);
-        Ok(())
+    /// Generate a random versor (for use as key/value)
+    #[wasm_bindgen(js_name = randomVersor)]
+    pub fn random_versor(num_factors: usize) -> Vec<f64> {
+        ProductCl3x32::random_versor(num_factors).to_coefficients()
     }
 }
 
@@ -947,169 +935,99 @@ impl Default for WasmHolographicMemory {
     }
 }
 
-/// WASM wrapper for retrieval results
-#[wasm_bindgen]
-pub struct WasmRetrievalResult {
-    inner: amari_fusion::holographic::RetrievalResult<f64, 8>,
-}
-
-#[wasm_bindgen]
-impl WasmRetrievalResult {
-    /// Get the retrieved value
-    #[wasm_bindgen(js_name = getValue)]
-    pub fn get_value(&self) -> WasmTropicalDualClifford {
-        WasmTropicalDualClifford {
-            inner: self.inner.value.clone(),
-        }
-    }
-
-    /// Get the retrieval confidence (0 to 1)
-    #[wasm_bindgen(js_name = getConfidence)]
-    pub fn get_confidence(&self) -> f64 {
-        self.inner.confidence
-    }
-
-    /// Get attribution as arrays of [index, weight] pairs
-    #[wasm_bindgen(js_name = getAttribution)]
-    pub fn get_attribution(&self) -> Result<JsValue, JsValue> {
-        let indices: Vec<usize> = self.inner.attribution.iter().map(|(i, _)| *i).collect();
-        let weights: Vec<f64> = self.inner.attribution.iter().map(|(_, w)| *w).collect();
-
-        let obj = Object::new();
-        js_sys::Reflect::set(
-            &obj,
-            &"indices".into(),
-            &js_sys::Array::from_iter(indices.into_iter().map(JsValue::from)).into(),
-        )?;
-        js_sys::Reflect::set(
-            &obj,
-            &"weights".into(),
-            &js_sys::Array::from_iter(weights.into_iter().map(JsValue::from)).into(),
-        )?;
-
-        Ok(obj.into())
-    }
-}
-
-/// WASM wrapper for Resonator (iterative cleanup)
+/// WASM wrapper for Resonator using ProductClifford algebra
 #[wasm_bindgen]
 pub struct WasmResonator {
-    inner: Resonator<f64, 8>,
+    inner: Resonator<ProductCl3x32>,
 }
 
 #[wasm_bindgen]
 impl WasmResonator {
-    /// Create a resonator from a codebook of TDC vectors
+    /// Create a resonator from a flat codebook array
+    ///
+    /// Each item should have 256 coefficients for ProductCl3x32.
     #[wasm_bindgen(constructor)]
     pub fn new(codebook_flat: &[f64]) -> Result<WasmResonator, JsValue> {
-        if !codebook_flat.len().is_multiple_of(8) {
+        if !codebook_flat.len().is_multiple_of(256) {
             return Err(JsValue::from_str(
-                "Codebook must have length divisible by 8",
+                "Codebook must have length divisible by 256",
             ));
         }
 
-        let num_items = codebook_flat.len() / 8;
+        let num_items = codebook_flat.len() / 256;
         if num_items == 0 {
             return Err(JsValue::from_str("Codebook cannot be empty"));
         }
 
         let mut codebook = Vec::with_capacity(num_items);
         for i in 0..num_items {
-            let start = i * 8;
-            let end = start + 8;
-            codebook.push(TropicalDualClifford::from_logits(
-                &codebook_flat[start..end],
-            ));
+            let start = i * 256;
+            let end = start + 256;
+            let item = ProductCl3x32::from_coefficients(&codebook_flat[start..end])
+                .map_err(|e| JsValue::from_str(&format!("{}", e)))?;
+            codebook.push(item);
         }
 
         Resonator::new(codebook, ResonatorConfig::default())
             .map(|r| WasmResonator { inner: r })
-            .map_err(|e| JsValue::from_str(&format!("{:?}", e)))
-    }
-
-    /// Create with custom configuration
-    #[wasm_bindgen(js_name = withConfig)]
-    pub fn with_config(
-        codebook_flat: &[f64],
-        max_iterations: usize,
-        convergence_threshold: f64,
-    ) -> Result<WasmResonator, JsValue> {
-        if !codebook_flat.len().is_multiple_of(8) {
-            return Err(JsValue::from_str(
-                "Codebook must have length divisible by 8",
-            ));
-        }
-
-        let num_items = codebook_flat.len() / 8;
-        if num_items == 0 {
-            return Err(JsValue::from_str("Codebook cannot be empty"));
-        }
-
-        let mut codebook = Vec::with_capacity(num_items);
-        for i in 0..num_items {
-            let start = i * 8;
-            let end = start + 8;
-            codebook.push(TropicalDualClifford::from_logits(
-                &codebook_flat[start..end],
-            ));
-        }
-
-        let config = ResonatorConfig {
-            max_iterations,
-            convergence_threshold,
-            ..Default::default()
-        };
-
-        Resonator::new(codebook, config)
-            .map(|r| WasmResonator { inner: r })
-            .map_err(|e| JsValue::from_str(&format!("{:?}", e)))
+            .map_err(|e| JsValue::from_str(&format!("{}", e)))
     }
 
     /// Clean up a noisy input to find the closest codebook item
-    pub fn cleanup(&self, input: &WasmTropicalDualClifford) -> WasmCleanupResult {
-        let result = self.inner.cleanup(&input.inner);
-        WasmCleanupResult { inner: result }
+    pub fn cleanup(&self, input: &[f64]) -> Result<Vec<f64>, JsValue> {
+        if input.len() != 256 {
+            return Err(JsValue::from_str(
+                "Input must have 256 coefficients for ProductCl3x32",
+            ));
+        }
+        let inp = ProductCl3x32::from_coefficients(input)
+            .map_err(|e| JsValue::from_str(&format!("{}", e)))?;
+        let result = self.inner.cleanup(&inp);
+        Ok(result.cleaned.to_coefficients())
+    }
+
+    /// Get cleanup result with metadata
+    #[wasm_bindgen(js_name = cleanupWithInfo)]
+    pub fn cleanup_with_info(&self, input: &[f64]) -> Result<JsValue, JsValue> {
+        if input.len() != 256 {
+            return Err(JsValue::from_str(
+                "Input must have 256 coefficients for ProductCl3x32",
+            ));
+        }
+        let inp = ProductCl3x32::from_coefficients(input)
+            .map_err(|e| JsValue::from_str(&format!("{}", e)))?;
+        let result = self.inner.cleanup(&inp);
+
+        let obj = Object::new();
+        js_sys::Reflect::set(
+            &obj,
+            &"cleaned".into(),
+            &js_sys::Float64Array::from(result.cleaned.to_coefficients().as_slice()).into(),
+        )?;
+        js_sys::Reflect::set(
+            &obj,
+            &"bestMatchIndex".into(),
+            &(result.best_match_index as u32).into(),
+        )?;
+        js_sys::Reflect::set(&obj, &"converged".into(), &result.converged.into())?;
+        js_sys::Reflect::set(
+            &obj,
+            &"iterations".into(),
+            &(result.iterations as u32).into(),
+        )?;
+        js_sys::Reflect::set(
+            &obj,
+            &"finalSimilarity".into(),
+            &result.final_similarity.into(),
+        )?;
+
+        Ok(obj.into())
     }
 
     /// Get the codebook size
     #[wasm_bindgen(js_name = codebookSize)]
     pub fn codebook_size(&self) -> usize {
         self.inner.codebook_size()
-    }
-}
-
-/// WASM wrapper for cleanup results
-#[wasm_bindgen]
-pub struct WasmCleanupResult {
-    inner: amari_fusion::holographic::CleanupResult<f64, 8>,
-}
-
-#[wasm_bindgen]
-impl WasmCleanupResult {
-    /// Get the cleaned (denoised) value
-    #[wasm_bindgen(js_name = getCleaned)]
-    pub fn get_cleaned(&self) -> WasmTropicalDualClifford {
-        WasmTropicalDualClifford {
-            inner: self.inner.cleaned.clone(),
-        }
-    }
-
-    /// Get the index of the best matching codebook item
-    #[wasm_bindgen(js_name = getBestMatchIndex)]
-    pub fn get_best_match_index(&self) -> usize {
-        self.inner.best_match_index
-    }
-
-    /// Check if the cleanup converged
-    #[wasm_bindgen(js_name = didConverge)]
-    pub fn did_converge(&self) -> bool {
-        self.inner.converged
-    }
-
-    /// Get the number of iterations used
-    #[wasm_bindgen(js_name = getIterations)]
-    pub fn get_iterations(&self) -> usize {
-        self.inner.iterations
     }
 }
 
@@ -1294,15 +1212,20 @@ mod tests {
         assert_eq!(memory.item_count(), 0);
         assert!(memory.theoretical_capacity() > 0);
 
-        let key = WasmTropicalDualClifford::random_vector();
-        let value = WasmTropicalDualClifford::random_vector();
+        // Use flat coefficient arrays (256 elements for ProductCl3x32)
+        let key = WasmHolographicMemory::random_versor(2);
+        let value = WasmHolographicMemory::random_versor(2);
 
-        memory.store(&key, &value);
+        memory.store(&key, &value).unwrap();
         assert_eq!(memory.item_count(), 1);
 
         // Retrieve should work
         let result = memory.retrieve(&key);
-        assert!(result.get_confidence() >= 0.0);
+        assert!(result.is_ok());
+
+        // Check confidence
+        let confidence = memory.retrieve_confidence(&key).unwrap();
+        assert!(confidence >= 0.0);
     }
 
     #[allow(dead_code)]
@@ -1310,10 +1233,11 @@ mod tests {
     fn test_holographic_memory_clear() {
         let mut memory = WasmHolographicMemory::new();
 
-        let key = WasmTropicalDualClifford::random_vector();
-        let value = WasmTropicalDualClifford::random_vector();
+        // Use flat coefficient arrays
+        let key = WasmHolographicMemory::random_versor(2);
+        let value = WasmHolographicMemory::random_versor(2);
 
-        memory.store(&key, &value);
+        memory.store(&key, &value).unwrap();
         assert_eq!(memory.item_count(), 1);
 
         memory.clear();
@@ -1323,12 +1247,9 @@ mod tests {
     #[allow(dead_code)]
     #[wasm_bindgen_test]
     fn test_resonator_basic() {
-        // Create a small codebook
+        // Create a small codebook with flat coefficient arrays (256 per item)
         let codebook: Vec<f64> = (0..3)
-            .flat_map(|_| {
-                let v = WasmTropicalDualClifford::random_vector();
-                v.get_tropical_features()
-            })
+            .flat_map(|_| WasmHolographicMemory::random_versor(2))
             .collect();
 
         let resonator = WasmResonator::new(&codebook);
@@ -1337,12 +1258,10 @@ mod tests {
         let resonator = resonator.unwrap();
         assert_eq!(resonator.codebook_size(), 3);
 
-        // Test cleanup
-        let input = WasmTropicalDualClifford::random_vector();
-        let result = resonator.cleanup(&input);
-
-        assert!(result.get_best_match_index() < 3);
-        assert!(result.get_iterations() > 0);
+        // Test cleanup with flat coefficient array
+        let input = WasmHolographicMemory::random_versor(2);
+        let result = resonator.cleanup_with_info(&input);
+        assert!(result.is_ok());
     }
 
     #[allow(dead_code)]

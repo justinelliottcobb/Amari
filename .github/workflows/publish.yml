@@ -102,6 +102,7 @@ jobs:
             "amari-network"
             "amari-info-geom"
             "amari-relativistic"
+            "amari-holographic"
             "amari-fusion"
             "amari-automata"
             "amari-enumerative"
