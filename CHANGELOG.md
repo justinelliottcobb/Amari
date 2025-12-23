@@ -5,6 +5,68 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.13.0] - 2025-12-22
+
+### 🎯 **New Crate: amari-probabilistic - Probability Theory on Geometric Algebra**
+
+This release introduces `amari-probabilistic`, a comprehensive probability theory library for geometric algebra spaces, enabling probabilistic computing with multivector-valued random variables.
+
+#### **Added**
+
+##### New Crate: amari-probabilistic
+- **Distribution trait**: Core probability distribution interface with `sample()` and `log_prob()`
+- **GaussianMultivector<P,Q,R>**: Multivariate Gaussian distribution on Clifford algebra spaces
+- **UniformMultivector<P,Q,R>**: Uniform distribution on multivector hypercubes
+- **GradeProjectedDistribution**: Distributions concentrated on specific grades
+- **MultivectorDistribution trait**: Extended interface with `mean()`, `variances()`, `covariance_matrix()`
+
+##### Stochastic Processes
+- **StochasticProcess trait**: Interface for SDEs with `drift()`, `diffusion()`, `sample_path()`
+- **GeometricBrownianMotion**: Brownian motion on multivector spaces
+- **OrnsteinUhlenbeck**: Mean-reverting processes with configurable parameters
+- **SDE Solvers**: Euler-Maruyama and Milstein methods with convergence guarantees
+
+##### MCMC Sampling
+- **Sampler trait**: Unified interface for MCMC algorithms
+- **MetropolisHastings**: Classic MH sampler with configurable proposals
+- **HamiltonianMonteCarlo**: HMC with geometric product Hamiltonian dynamics
+- **Diagnostics**: R-hat convergence, effective sample size (ESS)
+
+##### Bayesian Inference
+- **BayesianGA struct**: Bayesian inference on geometric algebra spaces
+- **Posterior computation**: Log-posterior and MAP estimation
+- **Priors**: Jeffreys prior, conjugate Gaussian prior
+
+##### Monte Carlo Methods
+- **MonteCarloEstimator**: Basic MC integration with error estimates
+- **Variance Reduction**: Antithetic variates, control variates, importance sampling
+
+##### Uncertainty Propagation
+- **LinearPropagation**: First-order uncertainty propagation
+- **UnscentedTransform**: Sigma-point propagation for nonlinear functions
+
+##### GPU Acceleration (amari-gpu)
+- New `probabilistic` feature flag
+- **GpuProbabilistic**: WGPU compute pipelines for batch operations
+- `batch_sample_gaussian()`: GPU-accelerated Gaussian sampling (Box-Muller)
+- `batch_mean()`: Parallel mean computation
+- `batch_variance()`: Parallel variance computation
+- CPU fallback for small batches (<100 samples)
+- WGSL compute shaders for all operations
+
+##### WASM Bindings (amari-wasm)
+- **WasmGaussianMultivector**: Full Gaussian distribution bindings
+- **WasmUniformMultivector**: Uniform distribution bindings
+- **WasmMonteCarloEstimator**: Sample statistics utilities
+- WASM-compatible sampling using fastrand (Box-Muller transform)
+
+#### **Tests**
+- 52 unit tests covering all modules
+- Property tests for distribution normalization
+- Convergence tests for MCMC and SDE solvers
+
+---
+
 ## [0.12.3] - 2025-12-22
 
 ### 🎯 **New Crate: amari-holographic - Vector Symbolic Architectures**
