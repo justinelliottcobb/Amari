@@ -9,6 +9,7 @@
 //! - **Fusion systems** (amari-fusion) - TropicalDualClifford for LLM evaluation
 //! - **Information geometry** (amari-info-geom) - Fisher metrics, statistical manifolds
 //! - **Holographic memory** (amari-holographic) - Vector Symbolic Architectures (v0.12.3+)
+//! - **Probabilistic** (amari-probabilistic) - Probability distributions on GA spaces (v0.13.0+)
 //!
 //! # Holographic Memory (Vector Symbolic Architectures)
 //!
@@ -73,6 +74,7 @@ pub mod info_geom; // Enabled for v0.9.4 - Information geometry and statistical 
 pub mod measure; // Enabled for v0.10.0 - Measure theory and Lebesgue integration for web
 pub mod network; // Enabled for v0.9.4 - Geometric network analysis for web
 pub mod optimization; // Enabled for v0.9.7 - Advanced optimization algorithms for web
+pub mod probabilistic; // Enabled for v0.13.0 - Probability distributions on multivector spaces
 pub mod relativistic;
 pub mod tropical; // Enabled for v0.9.3 - critical for optimization algorithms in web
 

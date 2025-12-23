@@ -32,6 +32,8 @@ bytemuck = { workspace = true, features = ["derive"] }
 thiserror = { workspace = true }
 nalgebra = { workspace = true }
 tokio = { version = "1.0", features = ["sync", "time"] }
+rand = { workspace = true, optional = true }
+rand_distr = { workspace = true, optional = true }
 
 [dev-dependencies]
 criterion = "0.5"
@@ -48,5 +50,6 @@ tropical = ["dep:amari-tropical"]
 dual = ["dep:amari-dual"]
 fusion = ["dep:amari-fusion"]
 holographic = ["dep:amari-holographic"]
+probabilistic = ["dep:rand", "dep:rand_distr"]
 automata = ["dep:amari-automata"]
 enumerative = ["dep:amari-enumerative"]
