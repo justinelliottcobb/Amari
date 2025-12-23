@@ -5,6 +5,49 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.12.3] - 2025-12-22
+
+### 🎯 **New Crate: amari-holographic - Vector Symbolic Architectures**
+
+This release extracts holographic memory and VSA operations from `amari-fusion` into a standalone `amari-holographic` crate for better modularity and reuse.
+
+#### **Added**
+
+##### New Crate: amari-holographic
+- **BindingAlgebra trait**: Core VSA operations (bind, unbind, bundle, similarity)
+- **ProductCliffordAlgebra<K>**: O(64K) compute for 8K dimensions (recommended for production)
+- **Cl3**: Optimized 3D Clifford algebra with fully unrolled operations
+- **CliffordAlgebra<P,Q,R>**: General Clifford algebras wrapping amari-core
+- **FHRRAlgebra<D>**: Frequency-domain operations with element-wise complex multiplication
+- **MAPAlgebra<D>**: Bipolar self-inverse algebra for hardware-efficient implementations
+- **HolographicMemory<A>**: Generic key-value store using superposition
+- **Resonator<A>**: Cleanup networks with annealed softmax dynamics for factorization
+
+##### GPU Acceleration (amari-gpu)
+- New `holographic` module with GPU-accelerated batch operations
+- WGSL compute shaders for bind, similarity, bundle operations
+- CPU fallback for small batches (<100 items)
+
+##### WASM Bindings (amari-wasm)
+- `WasmHolographicMemory` using ProductCl3x32 (256-dimensional)
+- `WasmResonator` for cleanup operations
+- JavaScript usage examples in module documentation
+
+#### **Changed**
+
+##### amari-fusion
+- Added `holographic` feature flag for backward compatibility
+- Re-exports amari-holographic types when feature enabled
+- `TropicalDualClifford` now has inherent binding methods (bind, unbind, bundle, similarity)
+
+#### **Documentation**
+- Comprehensive README.md for amari-holographic with API reference
+- Capacity tables and performance guidelines
+- Integration examples with amari-fusion and amari-gpu
+- Semantic memory and role-filler binding examples
+
+---
+
 ## [0.12.0] - 2025-12-21
 
 ### 🎯 **Major Release: Domain API Refactoring & GPU Module Restoration**

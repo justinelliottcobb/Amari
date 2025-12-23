@@ -1,4 +1,102 @@
 //! GPU acceleration for geometric algebra operations using WebGPU/wgpu
+//!
+//! This crate provides GPU-accelerated implementations of core Amari operations
+//! using WebGPU/wgpu for cross-platform compatibility (native + WASM).
+//!
+//! # Overview
+//!
+//! The crate offers GPU acceleration for:
+//!
+//! - **Clifford Algebra**: Batch geometric products with Cayley table upload
+//! - **Information Geometry**: Batch Amari-Chentsov tensor computation
+//! - **Holographic Memory**: Batch bind, unbind, bundle, similarity (with `holographic` feature)
+//! - **Measure Theory**: GPU-accelerated Monte Carlo integration (with `measure` feature)
+//! - **Relativistic Physics**: Batch Lorentz transformations
+//!
+//! # Quick Start
+//!
+//! ```ignore
+//! use amari_gpu::{GpuCliffordAlgebra, AdaptiveCompute};
+//!
+//! // Create GPU context for Cl(3,0,0)
+//! let gpu = GpuCliffordAlgebra::new::<3, 0, 0>().await?;
+//!
+//! // Batch geometric product
+//! let results = gpu.batch_geometric_product(&a_batch, &b_batch).await?;
+//!
+//! // Or use adaptive dispatch (auto CPU/GPU)
+//! let adaptive = AdaptiveCompute::new::<3, 0, 0>().await;
+//! let results = adaptive.batch_geometric_product(&a_batch, &b_batch).await?;
+//! ```
+//!
+//! # Holographic Memory (with `holographic` feature)
+//!
+//! GPU-accelerated batch operations for vector symbolic architectures:
+//!
+//! ```ignore
+//! use amari_gpu::GpuHolographic;
+//!
+//! // Create GPU holographic processor
+//! let gpu = GpuHolographic::new(256).await?;  // 256-dimensional vectors
+//!
+//! // Batch bind thousands of key-value pairs
+//! let bound_flat = gpu.batch_bind(&keys_flat, &values_flat).await?;
+//!
+//! // Batch similarity computation
+//! let similarities = gpu.batch_similarity(&a_flat, &b_flat).await?;
+//!
+//! // Batch bundle operation
+//! let bundled_flat = gpu.batch_bundle(&a_flat, &b_flat).await?;
+//! ```
+//!
+//! # Information Geometry
+//!
+//! ```ignore
+//! use amari_gpu::GpuInfoGeometry;
+//!
+//! let gpu = GpuInfoGeometry::new().await?;
+//!
+//! // Batch Amari-Chentsov tensor computation
+//! let tensors = gpu.amari_chentsov_tensor_batch(&x_batch, &y_batch, &z_batch).await?;
+//!
+//! // Fisher information matrix
+//! let fisher = gpu.fisher_information_matrix(&params).await?;
+//! ```
+//!
+//! # Adaptive CPU/GPU Dispatch
+//!
+//! All GPU operations automatically fall back to CPU when:
+//! - GPU is unavailable
+//! - Batch size is too small to benefit from GPU parallelism
+//! - Operating in CI/test environments
+//!
+//! The threshold is typically ~100 operations for GPU to be beneficial.
+//!
+//! # Feature Flags
+//!
+//! | Feature | Description |
+//! |---------|-------------|
+//! | `std` | Standard library support |
+//! | `holographic` | GPU-accelerated holographic memory |
+//! | `measure` | GPU-accelerated Monte Carlo integration |
+//! | `calculus` | GPU-accelerated differential geometry |
+//! | `automata` | GPU-accelerated cellular automata |
+//! | `enumerative` | GPU-accelerated combinatorics |
+//! | `webgpu` | Enable WebGPU backend |
+//! | `high-precision` | Enable 128-bit float support |
+//!
+//! # Performance
+//!
+//! GPU acceleration provides significant speedups for batch operations:
+//!
+//! | Operation | Batch Size | Speedup |
+//! |-----------|------------|---------|
+//! | Geometric Product | 1000 | ~10-50x |
+//! | Holographic Bind | 10000 | ~20-100x |
+//! | Similarity Batch | 10000 | ~50-200x |
+//! | Monte Carlo | 100000 | ~100-500x |
+//!
+//! Actual speedups depend on GPU hardware and driver support.
 
 pub mod adaptive;
 #[cfg(feature = "automata")]
@@ -14,6 +112,8 @@ pub mod enumerative;
 // These would need to be created with DualGpuOps, GpuDualNumber, TropicalGpuOps, GpuTropicalNumber types
 // #[cfg(feature = "fusion")]
 // pub mod fusion;
+#[cfg(feature = "holographic")]
+pub mod holographic;
 #[cfg(feature = "measure")]
 pub mod measure;
 pub mod multi_gpu;
@@ -43,6 +143,10 @@ pub use benchmarks::{
 use bytemuck::{Pod, Zeroable};
 #[cfg(feature = "calculus")]
 pub use calculus::GpuCalculus;
+#[cfg(feature = "holographic")]
+pub use holographic::{
+    GpuHolographic, GpuHolographicError, GpuHolographicMemory, GpuHolographicResult,
+};
 #[cfg(feature = "measure")]
 pub use measure::{
     GpuIntegrator, GpuMonteCarloIntegrator, GpuMultidimIntegrator, GpuParametricDensity,

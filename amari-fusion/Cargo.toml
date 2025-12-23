@@ -19,6 +19,7 @@ thiserror = { workspace = true }
 serde = { workspace = true, optional = true }
 fastrand = "2.0"
 rayon = { version = "1.10", optional = true }
+amari-holographic = { workspace = true, optional = true }
 
 # GPU acceleration dependencies
 bytemuck = { version = "1.14", features = ["derive"], optional = true }
@@ -38,7 +39,7 @@ std = []
 serialize = ["serde"]
 high-precision = ["amari-core/high-precision", "amari-dual/high-precision", "amari-tropical/high-precision"]
 gpu = ["bytemuck", "wgpu", "pollster", "futures", "tokio", "amari-dual/gpu", "amari-tropical/gpu"]
-holographic = ["rayon"]
+holographic = ["dep:amari-holographic"]
 full = ["holographic", "serialize", "gpu", "high-precision"]
 
 [[bench]]

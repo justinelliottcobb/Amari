@@ -1,13 +1,63 @@
 //! WASM bindings for the Amari mathematical computing library
 //!
 //! This module provides WebAssembly bindings for:
-//! - Geometric algebra (amari-core)
-//! - Tropical algebra (amari-tropical)
-//! - Automatic differentiation (amari-dual)
-//! - Differential calculus and manifolds (amari-calculus)
-//! - Measure theory and integration (amari-measure)
-//! - Fusion systems (amari-fusion) - v0.9.4 TropicalDualClifford for LLM evaluation
-//! - Information geometry (amari-info-geom)
+//! - **Geometric algebra** (amari-core) - Multivectors, rotors, projections
+//! - **Tropical algebra** (amari-tropical) - Optimization via max-plus operations
+//! - **Automatic differentiation** (amari-dual) - Forward-mode AD for ML
+//! - **Differential calculus** (amari-calculus) - Manifolds, Riemannian geometry
+//! - **Measure theory** (amari-measure) - Lebesgue integration, Monte Carlo
+//! - **Fusion systems** (amari-fusion) - TropicalDualClifford for LLM evaluation
+//! - **Information geometry** (amari-info-geom) - Fisher metrics, statistical manifolds
+//! - **Holographic memory** (amari-holographic) - Vector Symbolic Architectures (v0.12.3+)
+//!
+//! # Holographic Memory (Vector Symbolic Architectures)
+//!
+//! The fusion module exposes holographic memory operations for storing and
+//! retrieving associations in high-dimensional distributed representations:
+//!
+//! ```javascript
+//! import { WasmHolographicMemory, WasmResonator, initHolographic } from 'amari-wasm';
+//!
+//! initHolographic();
+//!
+//! // Create holographic memory (256-dimensional ProductClifford algebra)
+//! const memory = new WasmHolographicMemory();
+//!
+//! // Generate random keys and values
+//! const key = WasmHolographicMemory.randomVersor(2);  // Product of 2 vectors
+//! const value = WasmHolographicMemory.randomVersor(2);
+//!
+//! // Store and retrieve
+//! memory.store(key, value);
+//! const retrieved = memory.retrieve(key);
+//!
+//! // Check capacity
+//! console.log(`Items: ${memory.itemCount()} / ${memory.theoreticalCapacity()}`);
+//! console.log(`Near capacity: ${memory.isNearCapacity()}`);
+//!
+//! // Create resonator for cleanup
+//! const codebook = [key1, key2, key3].flat();  // Flattened codebook
+//! const resonator = new WasmResonator(codebook);
+//! const cleanedUp = resonator.cleanupWithInfo(noisyInput);
+//! ```
+//!
+//! For TropicalDualClifford binding operations:
+//!
+//! ```javascript
+//! import { WasmTropicalDualClifford } from 'amari-wasm';
+//!
+//! const key = WasmTropicalDualClifford.randomVector();
+//! const value = WasmTropicalDualClifford.randomVector();
+//!
+//! // Binding operations
+//! const bound = key.bind(value);      // Create association
+//! const retrieved = key.unbind(bound); // Retrieve value
+//! const bundled = key.bundle(value, 1.0); // Superposition
+//!
+//! // Similarity
+//! const sim = key.similarity(value);
+//! const cliffordSim = key.cliffordSimilarity(value);
+//! ```
 
 use amari_core::{rotor::Rotor, Bivector, Multivector};
 use std::cell::RefCell;
