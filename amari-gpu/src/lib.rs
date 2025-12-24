@@ -80,6 +80,7 @@
 //! | `holographic` | GPU-accelerated holographic memory |
 //! | `measure` | GPU-accelerated Monte Carlo integration |
 //! | `calculus` | GPU-accelerated differential geometry |
+//! | `probabilistic` | GPU-accelerated probability sampling |
 //! | `automata` | GPU-accelerated cellular automata |
 //! | `enumerative` | GPU-accelerated combinatorics |
 //! | `webgpu` | Enable WebGPU backend |
@@ -119,6 +120,8 @@ pub mod measure;
 pub mod multi_gpu;
 pub mod network;
 pub mod performance;
+#[cfg(feature = "probabilistic")]
+pub mod probabilistic;
 pub mod relativistic;
 pub mod shaders;
 pub mod timeline;
@@ -162,6 +165,8 @@ pub use performance::{
     AdaptiveDispatchPolicy, CalibrationResult, GpuProfile, GpuProfiler, WorkgroupConfig,
     WorkgroupOptimizer,
 };
+#[cfg(feature = "probabilistic")]
+pub use probabilistic::{GpuProbabilistic, GpuProbabilisticError, GpuProbabilisticResult};
 pub use relativistic::{
     GpuRelativisticParticle, GpuRelativisticPhysics, GpuSpacetimeVector, GpuTrajectoryParams,
 };

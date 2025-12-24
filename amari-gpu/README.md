@@ -22,7 +22,7 @@ Integration Crates (consume APIs):
 
 **Dependency Rule**: Integration crates depend on domain crates, never the reverse.
 
-## Current Integrations (v0.12.2)
+## Current Integrations (v0.13.0)
 
 ### Implemented GPU Acceleration
 
@@ -37,7 +37,9 @@ Integration Crates (consume APIs):
 | **amari-dual** | `dual` | Automatic differentiation GPU operations | ✅ Implemented (feature: `dual`) |
 | **amari-enumerative** | `enumerative` | Intersection theory GPU operations | ✅ Implemented (feature: `enumerative`) |
 | **amari-automata** | `automata` | Cellular automata GPU evolution | ✅ Implemented (feature: `automata`) |
-| **amari-fusion** | `fusion` | Holographic memory operations, batch binding, similarity matrices | ✅ Implemented (feature: `fusion`) |
+| **amari-fusion** | `fusion` | Tropical-dual-Clifford fusion operations | ✅ Implemented (feature: `fusion`) |
+| **amari-holographic** | `holographic` | Holographic memory, batch binding, similarity matrices | ✅ Implemented (feature: `holographic`) |
+| **amari-probabilistic** | `probabilistic` | Gaussian sampling, batch statistics, Monte Carlo | ✅ Implemented (feature: `probabilistic`) |
 
 ### Temporarily Disabled Modules
 
@@ -60,7 +62,9 @@ calculus = ["dep:amari-calculus"]
 dual = ["dep:amari-dual"]
 enumerative = ["dep:amari-enumerative"]
 automata = ["dep:amari-automata"]
-fusion = ["dep:amari-fusion"]  # Holographic memory GPU acceleration
+fusion = ["dep:amari-fusion"]
+holographic = ["dep:amari-holographic"]  # Holographic memory GPU acceleration
+probabilistic = ["dep:rand", "dep:rand_distr"]  # Probabilistic GPU acceleration
 # tropical = ["dep:amari-tropical"]  # Disabled - orphan impl rules
 ```
 
@@ -170,6 +174,37 @@ The holographic module includes optimized WGSL compute shaders:
 - **`holographic_bundle_all`**: Parallel reduction for vector superposition
 - **`holographic_resonator_step`**: Parallel max-finding for cleanup
 
+### Probabilistic GPU Acceleration
+
+```rust
+use amari_gpu::probabilistic::GpuProbabilistic;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Initialize GPU probabilistic operations
+    let gpu_prob = GpuProbabilistic::new().await?;
+
+    // Batch sample 10,000 Gaussians on GPU
+    let samples = gpu_prob.batch_sample_gaussian(10000, 0.0, 1.0).await?;
+    println!("Generated {} samples", samples.len());
+
+    // Compute batch statistics
+    let mean = gpu_prob.batch_mean(&samples).await?;
+    let variance = gpu_prob.batch_variance(&samples).await?;
+    println!("Sample mean: {:.4}, variance: {:.4}", mean, variance);
+
+    Ok(())
+}
+```
+
+#### Probabilistic GPU Operations
+
+| Operation | Description | GPU Threshold |
+|-----------|-------------|---------------|
+| `batch_sample_gaussian()` | Parallel Box-Muller Gaussian sampling | ≥ 1000 samples |
+| `batch_mean()` | Parallel reduction for mean | ≥ 1000 elements |
+| `batch_variance()` | Two-pass parallel variance | ≥ 1000 elements |
+
 ### Adaptive CPU/GPU Dispatch
 
 The library automatically selects the optimal execution path:
@@ -197,16 +232,26 @@ let values = gpu_calculus.batch_eval_scalar_field(&field, &large_points).await?;
 | Holographic binding | < 100 pairs | ≥ 100 pairs |
 | Holographic similarity | < 100 vectors | ≥ 100 vectors |
 | Resonator cleanup | < 100 codebook | ≥ 100 codebook |
+| Gaussian sampling | < 1000 samples | ≥ 1000 samples |
+| Batch mean/variance | < 1000 elements | ≥ 1000 elements |
 
 ## Implementation Status
 
-### Holographic Module (v0.12.2)
+### Holographic Module (v0.13.0)
 
 **GPU Implementations** (✅ Complete):
 - Batch binding with Cayley table geometric product
 - Batch similarity using proper inner product `<A B̃>₀`
 - Parallel reduction for vector bundling
 - Resonator cleanup with parallel codebook search
+
+### Probabilistic Module (v0.13.0)
+
+**GPU Implementations** (✅ Complete):
+- Batch Gaussian sampling on multivector spaces
+- Parallel mean and variance computation
+- Monte Carlo integration acceleration
+- GPU-based random number generation with Box-Muller transform
 
 **Types**:
 - `GpuHolographicTDC`: GPU-compatible TropicalDualClifford representation
@@ -219,7 +264,7 @@ let values = gpu_calculus.batch_eval_scalar_field(&field, &large_points).await?;
 - `HOLOGRAPHIC_BUNDLE_ALL`: Workgroup-shared memory reduction
 - `HOLOGRAPHIC_RESONATOR_STEP`: 256-thread parallel max-finding
 
-### Calculus Module (v0.12.2)
+### Calculus Module (v0.13.0)
 
 **CPU Implementations** (✅ Complete):
 - Central finite differences for numerical derivatives

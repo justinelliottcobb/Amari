@@ -1,8 +1,8 @@
-# Amari v0.12.2
+# Amari v0.13.0
 
-**Comprehensive Mathematical Computing Platform with Geometric Algebra, Differential Calculus, Measure Theory, and Holographic Memory**
+**Comprehensive Mathematical Computing Platform with Geometric Algebra, Differential Calculus, Measure Theory, Probability Theory, and Vector Symbolic Architectures**
 
-A unified mathematical computing library featuring geometric algebra, differential calculus, measure theory, relativistic physics, tropical algebra, automatic differentiation, holographic associative memory, and information geometry. The library provides multi-GPU infrastructure with intelligent workload distribution and complete WebAssembly support for browser deployment.
+A unified mathematical computing library featuring geometric algebra, differential calculus, measure theory, probability theory on geometric spaces, relativistic physics, tropical algebra, automatic differentiation, holographic associative memory (Vector Symbolic Architectures), and information geometry. The library provides multi-GPU infrastructure with intelligent workload distribution and complete WebAssembly support for browser deployment.
 
 [![Rust](https://img.shields.io/badge/Rust-1.75+-orange.svg)](https://www.rust-lang.org/)
 [![WebAssembly](https://img.shields.io/badge/WebAssembly-Ready-blue.svg)](https://webassembly.org/)
@@ -16,10 +16,12 @@ A unified mathematical computing library featuring geometric algebra, differenti
 - **Geometric Algebra (Clifford Algebra)**: Multivectors, rotors, and geometric products for 3D rotations and spatial transformations
 - **Differential Calculus**: Unified geometric calculus with scalar/vector fields, gradients, divergence, curl, and Lie derivatives
 - **Measure Theory**: Sigma-algebras, measurable functions, integration on geometric spaces, and probability measures
+- **Probability Theory**: Distributions on multivector spaces, stochastic processes, MCMC sampling, and Bayesian inference
+- **Vector Symbolic Architectures**: Holographic Reduced Representations (HRR), binding algebras, and associative memory
 - **Relativistic Physics**: Complete spacetime algebra (Cl(1,3)) with Minkowski signature for relativistic calculations
 - **Tropical Algebra**: Max-plus semiring operations for optimization and neural network applications
 - **Automatic Differentiation**: Forward-mode AD with dual numbers for exact derivatives
-- **Fusion Systems**: Tropical-dual-Clifford fusion combining three algebraic systems with holographic associative memory
+- **Fusion Systems**: Tropical-dual-Clifford fusion combining three algebraic systems
 - **Information Geometry**: Statistical manifolds, KL/JS divergences, and Fisher information
 - **Optimization**: Gradient-based optimization with geometric constraints
 - **Network Analysis**: Geometric network analysis and graph neural networks
@@ -51,36 +53,42 @@ Add to your `Cargo.toml`:
 ```toml
 [dependencies]
 # Complete library with all features
-amari = "0.12.2"
+amari = "0.13.0"
 
 # Or individual crates:
 
 # Core geometric algebra and mathematical foundations
-amari-core = "0.12.2"
+amari-core = "0.13.0"
 
 # Differential calculus with geometric algebra
-amari-calculus = "0.12.2"
+amari-calculus = "0.13.0"
 
 # Measure theory and integration
-amari-measure = "0.12.2"
+amari-measure = "0.13.0"
+
+# Probability theory on geometric algebra spaces
+amari-probabilistic = "0.13.0"
+
+# Vector Symbolic Architectures and holographic memory
+amari-holographic = "0.13.0"
 
 # High-precision relativistic physics
-amari-relativistic = { version = "0.12.2", features = ["high-precision"] }
+amari-relativistic = { version = "0.13.0", features = ["high-precision"] }
 
 # GPU acceleration
-amari-gpu = "0.12.2"
+amari-gpu = "0.13.0"
 
 # Optimization algorithms
-amari-optimization = "0.12.2"
+amari-optimization = "0.13.0"
 
 # Additional mathematical systems
-amari-tropical = "0.12.2"
-amari-dual = "0.12.2"
-amari-info-geom = "0.12.2"
-amari-automata = "0.12.2"
-amari-fusion = "0.12.2"
-amari-network = "0.12.2"
-amari-enumerative = "0.12.2"
+amari-tropical = "0.13.0"
+amari-dual = "0.13.0"
+amari-info-geom = "0.13.0"
+amari-automata = "0.13.0"
+amari-fusion = "0.13.0"
+amari-network = "0.13.0"
+amari-enumerative = "0.13.0"
 ```
 
 ### JavaScript/TypeScript (WebAssembly)
@@ -213,37 +221,73 @@ println!("Combined score: {}", evaluation.combined_score);
 println!("Most sensitive components: {:?}", most_sensitive);
 ```
 
-### Rust: Holographic Associative Memory
+### Rust: Vector Symbolic Architectures (Holographic Memory)
 
 ```rust
-use amari_fusion::TropicalDualClifford;
-use amari_fusion::holographic::{HolographicMemory, BindingAlgebra, Bindable};
+use amari_holographic::{HolographicMemory, ProductCl3x32, BindingAlgebra};
 
-// Create holographic memory
-let mut memory = HolographicMemory::<f64, 8>::new(BindingAlgebra::default());
+// Create holographic memory with 256-dimensional vectors
+let mut memory: HolographicMemory<ProductCl3x32> = HolographicMemory::new();
 
-// Store key-value associations
-let key1 = TropicalDualClifford::random_vector();
-let value1 = TropicalDualClifford::random_vector();
+// Generate random keys and values
+let key1 = ProductCl3x32::random();
+let value1 = ProductCl3x32::random();
+
+// Store key-value associations via superposition
 memory.store(&key1, &value1);
 
-let key2 = TropicalDualClifford::random_vector();
-let value2 = TropicalDualClifford::random_vector();
+let key2 = ProductCl3x32::random();
+let value2 = ProductCl3x32::random();
 memory.store(&key2, &value2);
 
-// Retrieve with a key
-let result = memory.retrieve(&key1);
-println!("Confidence: {:.2}", result.confidence);
-println!("Retrieved similarity: {:.2}", result.value.similarity(&value1));
+// Retrieve with a query key
+let retrieved = memory.retrieve(&key1);
+println!("Similarity to original: {:.3}", retrieved.similarity(&value1));
 
-// Binding operations
-let bound = key1.bind(&value1);           // key ⊛ value
-let recovered = bound.unbind(&key1);       // Approximately recovers value1
-println!("Recovery similarity: {:.2}", recovered.similarity(&value1));
+// Binding operations for role-filler structures
+let bound = key1.bind(&value1);        // key ⊛ value
+let recovered = bound.unbind(&key1);    // Approximately recovers value1
+println!("Recovery similarity: {:.3}", recovered.similarity(&value1));
 
-// Check capacity
-let info = memory.capacity_info();
-println!("Items: {}, SNR: {:.2}", info.item_count, info.estimated_snr);
+// Resonator network for cleanup/factorization
+use amari_holographic::Resonator;
+let codebook = vec![value1.clone(), value2.clone()];
+let resonator = Resonator::new(codebook.clone());
+let noisy = retrieved.clone(); // Noisy retrieval
+let cleaned = resonator.cleanup(&noisy, 10); // 10 iterations
+```
+
+### Rust: Probability on Geometric Algebra
+
+```rust
+use amari_probabilistic::distribution::{GaussianMultivector, Distribution, MultivectorDistribution};
+use amari_probabilistic::stochastic::{GeometricBrownianMotion, StochasticProcess};
+
+// Gaussian distribution on Cl(3,0,0) - 8-dimensional multivector space
+let gaussian = GaussianMultivector::<3, 0, 0>::standard();
+
+// Draw samples
+let mut rng = rand::thread_rng();
+let sample = gaussian.sample(&mut rng);
+println!("Sample: {:?}", sample.to_vec());
+
+// Evaluate log-probability
+let log_p = gaussian.log_prob(&sample).unwrap();
+println!("Log probability: {:.3}", log_p);
+
+// Grade-concentrated distribution (e.g., only on bivectors)
+let bivector_dist = GaussianMultivector::<3, 0, 0>::grade_concentrated(2, 1.0).unwrap();
+
+// Geometric Brownian Motion on multivector space
+let gbm = GeometricBrownianMotion::<3, 0, 0>::new(0.1, 0.2); // drift=0.1, volatility=0.2
+let path = gbm.sample_path(0.0, 1.0, 100, &mut rng).unwrap();
+println!("Path has {} points", path.len());
+
+// MCMC sampling with Metropolis-Hastings
+use amari_probabilistic::sampling::MetropolisHastings;
+let sampler = MetropolisHastings::new(gaussian.clone(), 0.5); // step_size=0.5
+let samples = sampler.sample_n(&mut rng, 1000);
+println!("Drew {} MCMC samples", samples.len());
 ```
 
 ### JavaScript/TypeScript: Mathematical Computing
@@ -290,9 +334,11 @@ main();
 - `amari-core`: Core Clifford algebra types and CPU implementations
 - `amari-measure`: Measure theory, sigma-algebras, and integration
 - `amari-calculus`: Differential calculus with geometric algebra
+- `amari-probabilistic`: Probability distributions on multivector spaces, stochastic processes, MCMC
+- `amari-holographic`: Vector Symbolic Architectures (VSA), binding algebras, holographic memory
 - `amari-tropical`: Tropical (max-plus) algebra for optimization
 - `amari-dual`: Dual numbers for automatic differentiation
-- `amari-fusion`: Unified Tropical-Dual-Clifford system with holographic associative memory
+- `amari-fusion`: Unified Tropical-Dual-Clifford system
 - `amari-info-geom`: Information geometry and statistical manifolds
 - `amari-automata`: Cellular automata with geometric algebra
 - `amari-network`: Graph neural networks and network analysis
@@ -402,7 +448,7 @@ let deriv = x.derivative();
 
 See [MIGRATION_v0.12.0.md](MIGRATION_v0.12.0.md) for complete migration guide.
 
-## GPU Module Status (v0.12.2)
+## GPU Module Status (v0.13.0)
 
 | Module | Status | Feature Flag |
 |--------|--------|--------------|
@@ -415,7 +461,9 @@ See [MIGRATION_v0.12.0.md](MIGRATION_v0.12.0.md) for complete migration guide.
 | Dual | ✅ Enabled | `dual` |
 | Enumerative | ✅ Enabled | `enumerative` |
 | Automata | ✅ Enabled | `automata` |
-| Fusion (Holographic) | ✅ Enabled | `fusion` |
+| Fusion | ✅ Enabled | `fusion` |
+| Holographic | ✅ Enabled | `holographic` |
+| Probabilistic | ✅ Enabled | `probabilistic` |
 | Tropical | ❌ Disabled | - |
 
 Note: Tropical GPU module temporarily disabled due to Rust orphan impl rules. Use CPU implementations from domain crates.

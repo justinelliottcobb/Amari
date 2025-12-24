@@ -1,4 +1,4 @@
-# @justinelliottcobb/amari-wasm v0.9.10
+# @justinelliottcobb/amari-wasm v0.13.0
 
 **Unified Mathematical Computing Library with High-Precision WebAssembly Support**
 
@@ -16,7 +16,8 @@ Amari is a comprehensive mathematical computing library that brings advanced alg
 - **Tropical Algebra**: Max-plus semiring operations for optimization and neural network applications
 - **Automatic Differentiation**: Forward-mode AD with dual numbers for exact derivatives
 - **Measure Theory** *(v0.10.0)*: Lebesgue integration, probability measures, and measure-theoretic foundations
-- **Holographic Memory** *(v0.12.2)*: Vector Symbolic Architecture for associative memory with binding and bundling operations
+- **Holographic Memory** *(v0.12.3)*: Vector Symbolic Architecture for associative memory with binding and bundling operations
+- **Probability Theory** *(v0.13.0)*: Distributions on multivector spaces, MCMC sampling, and Monte Carlo estimation
 - **Relativistic Physics**: Spacetime algebra (Cl(1,3)) with WebAssembly-compatible precision
 - **Spacecraft Orbital Mechanics**: Full-precision trajectory calculations in browsers
 - **Cellular Automata**: Geometric cellular automata with multivector states
@@ -275,6 +276,82 @@ async function holographicDemo() {
 holographicDemo();
 ```
 
+### Probability on Geometric Algebra *(v0.13.0)*
+
+Sample from distributions on multivector spaces and perform Monte Carlo estimation:
+
+```typescript
+import init, {
+  WasmGaussianMultivector,
+  WasmUniformMultivector,
+  WasmMonteCarloEstimator
+} from '@justinelliottcobb/amari-wasm';
+
+async function probabilisticDemo() {
+  await init();
+
+  // Create a standard Gaussian distribution on Cl(3,0,0)
+  const gaussian = WasmGaussianMultivector.standard();
+
+  // Draw samples
+  const samples = [];
+  for (let i = 0; i < 1000; i++) {
+    samples.push(gaussian.sample());
+  }
+  console.log(`Drew ${samples.length} Gaussian samples`);
+
+  // Compute log probability
+  const sample = gaussian.sample();
+  const logProb = gaussian.logProb(sample);
+  console.log(`Log probability: ${logProb}`);
+
+  // Grade-concentrated distribution (e.g., only on bivectors)
+  const bivectorDist = WasmGaussianMultivector.gradeConcentrated(2, 1.0);
+  const bivectorSample = bivectorDist.sample();
+
+  // Uniform distribution on unit multivectors
+  const uniform = WasmUniformMultivector.unitSphere();
+  const unitSample = uniform.sample();
+
+  // Monte Carlo estimation
+  const estimator = new WasmMonteCarloEstimator();
+
+  // Estimate expectation of a function
+  const estimate = estimator.estimate((mv) => mv.norm(), gaussian, 10000);
+  console.log(`Expected norm: ${estimate.mean} ± ${estimate.stdError}`);
+
+  // Clean up WASM memory
+  gaussian.free();
+  bivectorDist.free();
+  uniform.free();
+  sample.free();
+  bivectorSample.free();
+  unitSample.free();
+  estimator.free();
+  samples.forEach(s => s.free());
+}
+
+probabilisticDemo();
+```
+
+#### Probability API
+
+**WasmGaussianMultivector:**
+- `standard()`: Create standard Gaussian on full multivector space
+- `new(mean, covariance)`: Create with specified mean and covariance
+- `gradeConcentrated(grade, scale)`: Gaussian concentrated on specific grade
+- `sample()`: Draw a random sample
+- `logProb(sample)`: Compute log probability density
+
+**WasmUniformMultivector:**
+- `unitSphere()`: Uniform distribution on unit multivectors
+- `gradeSimplex(grade)`: Uniform on grade components summing to 1
+- `sample()`: Draw a random sample
+
+**WasmMonteCarloEstimator:**
+- `estimate(fn, distribution, nSamples)`: Estimate expectation
+- `estimateVariance(fn, distribution, nSamples)`: Estimate variance
+
 #### Holographic Memory API
 
 **TropicalDualClifford Operations:**
@@ -307,6 +384,8 @@ holographicDemo();
 - **Optimization**: Tropical algebra for shortest path and scheduling problems
 - **Scientific Computing**: High-performance mathematical operations with orbital-grade precision
 - **Probability & Statistics**: Measure theory and numerical integration for statistical computations
+- **Bayesian Inference**: Probabilistic modeling on geometric algebra spaces
+- **Uncertainty Quantification**: Monte Carlo methods for error propagation
 - **Game Development**: Efficient spatial transformations and physics
 - **Spacecraft Trajectory Planning**: High-precision orbital mechanics in web applications
 - **Symbolic AI**: Holographic memory for associative reasoning and concept binding
@@ -347,6 +426,16 @@ holographicDemo();
 - `WasmHolographicMemory.store(key, value)`: Store association
 - `WasmHolographicMemory.retrieve(key)`: Retrieve by key
 - `WasmResonator.cleanup(input)`: Clean up noisy input
+
+### Probabilistic Operations
+
+- `WasmGaussianMultivector.standard()`: Standard Gaussian distribution
+- `WasmGaussianMultivector.gradeConcentrated(grade, scale)`: Grade-specific Gaussian
+- `WasmGaussianMultivector.sample()`: Draw random sample
+- `WasmGaussianMultivector.logProb(sample)`: Log probability density
+- `WasmUniformMultivector.unitSphere()`: Uniform on unit sphere
+- `WasmUniformMultivector.sample()`: Draw random sample
+- `WasmMonteCarloEstimator.estimate(fn, dist, n)`: Monte Carlo expectation
 
 ## Examples
 

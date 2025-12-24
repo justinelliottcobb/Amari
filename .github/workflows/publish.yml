@@ -110,6 +110,7 @@ jobs:
             "amari-flynn"
             "amari-measure"
             "amari-calculus"
+            "amari-probabilistic"
             "amari-gpu"
             "amari-optimization"
             "amari"

@@ -1,0 +1,48 @@
+[package]
+name = "amari-probabilistic"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Probability theory on geometric algebra spaces - distributions, stochastic processes, and Bayesian inference for multivector-valued random variables"
+repository = "https://github.com/justinelliottcobb/Amari"
+homepage = "https://github.com/justinelliottcobb/Amari"
+keywords = ["probability", "geometric-algebra", "bayesian", "mcmc", "stochastic-processes"]
+categories = ["mathematics", "science", "algorithms"]
+
+[dependencies]
+amari-core = { workspace = true, features = ["std", "phantom-types"] }
+amari-measure = { workspace = true }
+amari-info-geom = { workspace = true }
+amari-dual = { workspace = true }
+thiserror = { workspace = true }
+num-traits = { workspace = true }
+nalgebra = { workspace = true }
+rand = { workspace = true }
+rand_distr = { workspace = true }
+statrs = { workspace = true }
+
+[dev-dependencies]
+approx = { workspace = true }
+proptest = "1.4"
+criterion = "0.5"
+
+[features]
+default = ["std"]
+std = ["amari-core/std"]
+parallel = ["dep:rayon"]
+gpu = ["dep:amari-gpu"]
+
+[dependencies.rayon]
+version = "1.8"
+optional = true
+
+[dependencies.amari-gpu]
+workspace = true
+optional = true
+
+# Benchmarks will be added later
+# [[bench]]
+# name = "sampling_benchmarks"
+# harness = false
