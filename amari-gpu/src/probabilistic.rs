@@ -786,6 +786,7 @@ mod tests {
         assert_eq!(samples.len(), 1000 * 8);
     }
 
+    #[ignore] // Requires GPU - tests CPU fallback path for small batches
     #[tokio::test]
     async fn test_batch_sample_gaussian_cpu_fallback() {
         let gpu = GpuProbabilistic::new(8).await.unwrap();
@@ -799,6 +800,7 @@ mod tests {
         assert_eq!(samples.len(), 50 * 8);
     }
 
+    #[ignore] // Requires GPU - tests CPU fallback path for small batches
     #[tokio::test]
     async fn test_batch_mean_cpu() {
         let gpu = GpuProbabilistic::new(4).await.unwrap();
@@ -818,6 +820,7 @@ mod tests {
         assert!((mean[3] - 5.0).abs() < 0.001);
     }
 
+    #[ignore] // Requires GPU - tests CPU fallback path for small batches
     #[tokio::test]
     async fn test_batch_variance_cpu() {
         let gpu = GpuProbabilistic::new(2).await.unwrap();
