@@ -8,8 +8,13 @@
 //! - Information geometry
 //! - Fusion systems for neural network optimization
 //! - Measure theory and Lebesgue integration (opt-in via `measure` feature)
+//! - Differential calculus on geometric algebra (opt-in via `calculus` feature)
+//! - Holographic memory / Vector Symbolic Architectures (opt-in via `holographic` feature)
+//! - Probability theory on geometric algebra (opt-in via `probabilistic` feature)
 //! - Probabilistic contracts and verification (opt-in via `flynn` feature)
 //! - Deterministic physics for networked applications (opt-in via `deterministic` feature)
+//!
+//! Use `features = ["full"]` to enable all optional crates.
 
 pub use amari_automata as automata;
 pub use amari_core as core;
@@ -24,8 +29,23 @@ pub use amari_tropical as tropical;
 #[cfg(feature = "measure")]
 pub use amari_measure as measure;
 
+#[cfg(feature = "calculus")]
+pub use amari_calculus as calculus;
+
+#[cfg(feature = "holographic")]
+pub use amari_holographic as holographic;
+
+#[cfg(feature = "probabilistic")]
+pub use amari_probabilistic as probabilistic;
+
 #[cfg(feature = "flynn")]
 pub use amari_flynn as flynn;
+
+#[cfg(feature = "gpu")]
+pub use amari_gpu as gpu;
+
+#[cfg(feature = "optimization")]
+pub use amari_optimization as optimization;
 
 // Deterministic computation module (opt-in via feature flag)
 #[cfg(feature = "deterministic")]
@@ -72,6 +92,21 @@ pub enum AmariError {
     /// Dual number error
     #[error(transparent)]
     Dual(#[from] amari_dual::DualError),
+
+    /// Calculus error
+    #[cfg(feature = "calculus")]
+    #[error(transparent)]
+    Calculus(#[from] amari_calculus::CalculusError),
+
+    /// Holographic memory error
+    #[cfg(feature = "holographic")]
+    #[error(transparent)]
+    Holographic(#[from] amari_holographic::HolographicError),
+
+    /// Probabilistic error
+    #[cfg(feature = "probabilistic")]
+    #[error(transparent)]
+    Probabilistic(#[from] amari_probabilistic::ProbabilisticError),
 }
 
 /// Result type for Amari operations

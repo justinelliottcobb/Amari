@@ -5,6 +5,41 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.13.1] - 2025-12-24
+
+### 🔧 **Housekeeping: Umbrella Crate Feature Completeness**
+
+This patch release adds missing optional crates to the umbrella `amari` crate and fixes CI test failures.
+
+#### **Added**
+
+##### Umbrella Crate Features
+- **`calculus` feature**: Re-exports `amari-calculus` for differential calculus on geometric algebra
+- **`holographic` feature**: Re-exports `amari-holographic` for Vector Symbolic Architectures
+- **`probabilistic` feature**: Re-exports `amari-probabilistic` for probability theory
+- **`full` feature**: Convenience flag enabling all optional crates
+
+##### Error Integration
+- Added `CalculusError`, `HolographicError`, `ProbabilisticError` variants to `AmariError`
+
+#### **Fixed**
+
+##### GPU Tests
+- Marked probabilistic GPU tests as `#[ignore]` for CI environments without GPU adapters
+- Tests `test_batch_sample_gaussian_cpu_fallback`, `test_batch_mean_cpu`, `test_batch_variance_cpu` now skip gracefully
+
+#### **Usage**
+
+```toml
+# Enable all optional crates
+amari = { version = "0.13.1", features = ["full"] }
+
+# Or selectively
+amari = { version = "0.13.1", features = ["calculus", "probabilistic"] }
+```
+
+---
+
 ## [0.13.0] - 2025-12-22
 
 ### 🎯 **New Crate: amari-probabilistic - Probability Theory on Geometric Algebra**
