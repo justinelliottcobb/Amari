@@ -1,0 +1,26 @@
+[build]
+  publish = "dist"
+  command = "npm install && npm run build"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# SPA redirect for client-side routing
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Headers for WASM support
+[[headers]]
+  for = "/*.wasm"
+  [headers.values]
+    Content-Type = "application/wasm"
+    Cross-Origin-Embedder-Policy = "require-corp"
+    Cross-Origin-Opener-Policy = "same-origin"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Cross-Origin-Embedder-Policy = "credentialless"
+    Cross-Origin-Opener-Policy = "same-origin"
