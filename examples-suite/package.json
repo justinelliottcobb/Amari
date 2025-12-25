@@ -10,6 +10,10 @@
     "lint": "eslint --ignore-path .gitignore --cache --cache-location ./node_modules/.cache/eslint .",
     "preview": "vite preview",
     "typecheck": "tsc",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:ui": "vitest --ui",
     "deploy:netlify": "npm run build && netlify deploy --prod --dir=dist",
     "preview:netlify": "npm run build && netlify deploy --dir=dist"
   },
@@ -28,8 +32,12 @@
     "vite-tsconfig-paths": "^4.2.1"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.1",
+    "@testing-library/user-event": "^14.6.1",
     "@types/react": "^19.1.13",
     "@types/react-dom": "^19.1.9",
+    "@vitest/coverage-v8": "^4.0.16",
     "@webgpu/types": "^0.1.65",
     "eslint": "^8.38.0",
     "eslint-import-resolver-typescript": "^3.6.1",
@@ -37,10 +45,12 @@
     "eslint-plugin-jsx-a11y": "^6.7.1",
     "eslint-plugin-react": "^7.33.2",
     "eslint-plugin-react-hooks": "^4.6.0",
+    "jsdom": "^27.3.0",
     "netlify-cli": "^17.0.0",
     "postcss": "^8.4.49",
     "postcss-preset-mantine": "^1.18.0",
-    "postcss-simple-vars": "^7.0.1"
+    "postcss-simple-vars": "^7.0.1",
+    "vitest": "^4.0.16"
   },
   "engines": {
     "node": ">=20.0.0"
