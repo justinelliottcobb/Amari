@@ -1,12 +1,9 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import {
-  Card, CardBody, CardHeader, H1, H2, H3, P, Button, Grid, GridItem,
-  Strong, Code, Table, TableRow, TableHead, TableBody, TableCell,
-  TextArea, StatusBadge, Input
-} from 'jadis-ui';
-import { CodePlayground } from '../components/CodePlayground';
+  Container, Stack, Card, Title, Text, Button, SimpleGrid,
+  Code, Table, Badge, Tabs, NumberInput, TextInput
+} from '@mantine/core';
 import { ExampleCard } from '../components/ExampleCard';
-import { RealTimeDisplay } from '../components/RealTimeDisplay';
 
 // Mock implementations for demonstration (these would normally come from compiled WASM)
 const mockEnumerativeGeometry = {
@@ -44,9 +41,9 @@ const mockEnumerativeGeometry = {
     })
   },
   HigherGenusCurve: {
-    new: (genus: number, degree: number) => ({
+    new: (genus: number, _degree: number) => ({
       genus,
-      degree,
+      _degree,
       canonicalDegree: 2 * genus - 2,
       riemannRochDimension: (d: number) => Math.max(0, d - genus + 1)
     })
@@ -61,32 +58,31 @@ interface ComputationResult {
 }
 
 export function EnumerativeGeometry() {
-  const [activeTab, setActiveTab] = useState('intersection');
   const [computationHistory, setComputationHistory] = useState<ComputationResult[]>([]);
   const [isComputing, setIsComputing] = useState(false);
 
   // Intersection Theory Demo
-  const [projDimension, setProjDimension] = useState(2);
-  const [degree1, setDegree1] = useState(3);
-  const [degree2, setDegree2] = useState(4);
+  const [projDimension, setProjDimension] = useState<number | string>(2);
+  const [degree1, setDegree1] = useState<number | string>(3);
+  const [degree2, setDegree2] = useState<number | string>(4);
   const [intersectionResult, setIntersectionResult] = useState<number | null>(null);
 
   // Schubert Calculus Demo
-  const [grassmannianK, setGrassmannianK] = useState(2);
-  const [grassmannianN, setGrassmannianN] = useState(5);
+  const [grassmannianK, setGrassmannianK] = useState<number | string>(2);
+  const [grassmannianN, setGrassmannianN] = useState<number | string>(5);
   const [partition1, setPartition1] = useState('1');
   const [partition2, setPartition2] = useState('1');
   const [schubertResult, setSchubertResult] = useState<any>(null);
 
   // Tropical Geometry Demo
-  const [tropicalDegree, setTropicalDegree] = useState(3);
-  const [tropicalConstraints, setTropicalConstraints] = useState(8);
+  const [tropicalDegree, setTropicalDegree] = useState<number | string>(3);
+  const [tropicalConstraints, setTropicalConstraints] = useState<number | string>(8);
   const [tropicalResult, setTropicalResult] = useState<number | null>(null);
 
   // Higher Genus Demo
-  const [genus, setGenus] = useState(2);
-  const [curveDegree, setCurveDegree] = useState(4);
-  const [rrDegree, setRrDegree] = useState(5);
+  const [genus, setGenus] = useState<number | string>(2);
+  const [curveDegree, setCurveDegree] = useState<number | string>(4);
+  const [rrDegree, setRrDegree] = useState<number | string>(5);
   const [higherGenusResult, setHigherGenusResult] = useState<any>(null);
 
   const addToHistory = useCallback((input: string, output: any, time: number, error?: string) => {
@@ -98,9 +94,9 @@ export function EnumerativeGeometry() {
     const start = Date.now();
 
     try {
-      const space = mockEnumerativeGeometry.ProjectiveSpace.new(projDimension);
-      const class1 = mockEnumerativeGeometry.ChowClass.hypersurface(degree1);
-      const class2 = mockEnumerativeGeometry.ChowClass.hypersurface(degree2);
+      const space = mockEnumerativeGeometry.ProjectiveSpace.new(Number(projDimension));
+      const class1 = mockEnumerativeGeometry.ChowClass.hypersurface(Number(degree1));
+      const class2 = mockEnumerativeGeometry.ChowClass.hypersurface(Number(degree2));
       const intersection = space.intersect(class1, class2);
       const result = intersection.multiplicity();
 
@@ -122,7 +118,7 @@ export function EnumerativeGeometry() {
     const start = Date.now();
 
     try {
-      const gr = mockEnumerativeGeometry.Grassmannian.new(grassmannianK, grassmannianN);
+      const gr = mockEnumerativeGeometry.Grassmannian.new(Number(grassmannianK), Number(grassmannianN));
       const p1 = partition1.split(',').map(x => parseInt(x.trim()));
       const p2 = partition2.split(',').map(x => parseInt(x.trim()));
 
@@ -154,7 +150,7 @@ export function EnumerativeGeometry() {
     const start = Date.now();
 
     try {
-      const curve = mockEnumerativeGeometry.TropicalCurve.new(tropicalDegree, tropicalConstraints);
+      const curve = mockEnumerativeGeometry.TropicalCurve.new(Number(tropicalDegree), Number(tropicalConstraints));
       const result = curve.count();
 
       setTropicalResult(result);
@@ -175,12 +171,12 @@ export function EnumerativeGeometry() {
     const start = Date.now();
 
     try {
-      const curve = mockEnumerativeGeometry.HigherGenusCurve.new(genus, curveDegree);
-      const rrDim = curve.riemannRochDimension(rrDegree);
+      const curve = mockEnumerativeGeometry.HigherGenusCurve.new(Number(genus), Number(curveDegree));
+      const rrDim = curve.riemannRochDimension(Number(rrDegree));
 
       const result = {
-        genus,
-        degree: curveDegree,
+        genus: Number(genus),
+        degree: Number(curveDegree),
         canonicalDegree: curve.canonicalDegree,
         riemannRochDim: rrDim
       };
@@ -199,531 +195,408 @@ export function EnumerativeGeometry() {
   }, [genus, curveDegree, rrDegree, addToHistory]);
 
   return (
-    <Grid cols={1} gap="lg">
-      <GridItem>
-        <H1>Enumerative Geometry</H1>
-        <P>
-          Interactive examples of intersection theory, Schubert calculus, tropical geometry, and curve counting
-        </P>
-      </GridItem>
+    <Container size="lg" py="xl">
+      <Stack gap="lg">
+        <div>
+          <Title order={1}>Enumerative Geometry</Title>
+          <Text size="lg" c="dimmed">
+            Interactive examples of intersection theory, Schubert calculus, tropical geometry, and curve counting
+          </Text>
+        </div>
 
-      {/* Overview Section */}
-      <GridItem>
-        <Card>
-          <CardHeader>
-            <H2>Mathematical Framework</H2>
-          </CardHeader>
-          <CardBody>
-            <Grid cols={2} gap="lg">
-              <GridItem>
-                <H3>Core Concepts</H3>
-                <P><Strong>Intersection Theory:</Strong> Chow rings and Bézout's theorem</P>
-                <P><Strong>Schubert Calculus:</Strong> Grassmannians and flag varieties</P>
-                <P><Strong>Gromov-Witten Theory:</Strong> Curve counting and quantum cohomology</P>
-                <P><Strong>Tropical Geometry:</Strong> Piecewise-linear structures</P>
-              </GridItem>
-              <GridItem>
-                <H3>Performance Features</H3>
-                <P><Strong>WASM-First:</Strong> Optimized for web deployment</P>
-                <P><Strong>GPU Acceleration:</Strong> WGPU compute shaders</P>
-                <P><Strong>Parallel Computing:</Strong> Multi-threaded algorithms</P>
-                <P><Strong>Memory Efficient:</Strong> Sparse matrix operations</P>
-              </GridItem>
-            </Grid>
-          </CardBody>
+        {/* Overview Section */}
+        <Card withBorder>
+          <Card.Section inheritPadding py="xs" bg="dark.6">
+            <Title order={2} size="h3">Mathematical Framework</Title>
+          </Card.Section>
+          <Card.Section inheritPadding py="md">
+            <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="lg">
+              <div>
+                <Title order={3} size="h4" mb="sm">Core Concepts</Title>
+                <Text size="sm" c="dimmed" component="ul" style={{ paddingLeft: '1rem' }}>
+                  <li><Text span fw={600}>Intersection Theory:</Text> Chow rings and Bézout's theorem</li>
+                  <li><Text span fw={600}>Schubert Calculus:</Text> Grassmannians and flag varieties</li>
+                  <li><Text span fw={600}>Gromov-Witten Theory:</Text> Curve counting and quantum cohomology</li>
+                  <li><Text span fw={600}>Tropical Geometry:</Text> Piecewise-linear structures</li>
+                </Text>
+              </div>
+              <div>
+                <Title order={3} size="h4" mb="sm">Performance Features</Title>
+                <Text size="sm" c="dimmed" component="ul" style={{ paddingLeft: '1rem' }}>
+                  <li><Text span fw={600}>WASM-First:</Text> Optimized for web deployment</li>
+                  <li><Text span fw={600}>GPU Acceleration:</Text> WGPU compute shaders</li>
+                  <li><Text span fw={600}>Parallel Computing:</Text> Multi-threaded algorithms</li>
+                  <li><Text span fw={600}>Memory Efficient:</Text> Sparse matrix operations</li>
+                </Text>
+              </div>
+            </SimpleGrid>
+          </Card.Section>
         </Card>
-      </GridItem>
 
-      {/* Tab Navigation */}
-      <GridItem>
-        <Grid cols={5} gap="sm">
-          {[
-            { id: 'intersection', label: 'Intersection Theory' },
-            { id: 'schubert', label: 'Schubert Calculus' },
-            { id: 'tropical', label: 'Tropical Geometry' },
-            { id: 'higher-genus', label: 'Higher Genus' },
-            { id: 'performance', label: 'Performance' }
-          ].map(tab => (
-            <GridItem key={tab.id}>
-              <Button
-                variant={activeTab === tab.id ? 'primary' : 'secondary'}
-                onClick={() => setActiveTab(tab.id)}
-              >
-                {tab.label}
-              </Button>
-            </GridItem>
-          ))}
-        </Grid>
-      </GridItem>
+        {/* Tabs */}
+        <Tabs defaultValue="intersection">
+          <Tabs.List>
+            <Tabs.Tab value="intersection">Intersection Theory</Tabs.Tab>
+            <Tabs.Tab value="schubert">Schubert Calculus</Tabs.Tab>
+            <Tabs.Tab value="tropical">Tropical Geometry</Tabs.Tab>
+            <Tabs.Tab value="higher-genus">Higher Genus</Tabs.Tab>
+            <Tabs.Tab value="performance">Performance</Tabs.Tab>
+          </Tabs.List>
 
-      {/* Tab Content */}
-      {activeTab === 'intersection' && (
-        <GridItem>
-          <Card>
-            <CardHeader>
-              <H2>Intersection Theory</H2>
-              <P>Compute intersection numbers using Bézout's theorem in projective space</P>
-            </CardHeader>
-            <CardBody>
-              <Grid cols={2} gap="lg">
-                <GridItem>
-                  <Grid cols={1} gap="md">
-                    <GridItem>
-                      <Input
-                        label="Projective Space Dimension"
-                        type="number"
-                        min="1"
-                        max="5"
-                        value={projDimension.toString()}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setProjDimension(parseInt(e.target.value))}
-                      />
-                    </GridItem>
-                    <GridItem>
-                      <Input
-                        label="First Hypersurface Degree"
-                        type="number"
-                        min="1"
-                        max="10"
-                        value={degree1.toString()}
-                        onChange={(e) => setDegree1(parseInt(e.target.value))}
-                      />
-                    </GridItem>
-                    <GridItem>
-                      <Input
-                        label="Second Hypersurface Degree"
-                        type="number"
-                        min="1"
-                        max="10"
-                        value={degree2.toString()}
-                        onChange={(e) => setDegree2(parseInt(e.target.value))}
-                      />
-                    </GridItem>
-                    <GridItem>
-                      <Button
-                        onClick={computeIntersection}
-                        disabled={isComputing}
-                      >
-                        {isComputing ? 'Computing...' : 'Compute Intersection'}
-                      </Button>
-                    </GridItem>
-                  </Grid>
-                </GridItem>
-                <GridItem>
-                  <Card>
-                    <CardHeader>
-                      <H3>Result</H3>
-                    </CardHeader>
-                    <CardBody>
+          <Tabs.Panel value="intersection" pt="md">
+            <Card withBorder>
+              <Card.Section inheritPadding py="xs" bg="dark.6">
+                <Title order={2} size="h3">Intersection Theory</Title>
+                <Text size="sm" c="dimmed">Compute intersection numbers using Bézout's theorem in projective space</Text>
+              </Card.Section>
+              <Card.Section inheritPadding py="md">
+                <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="lg">
+                  <Stack gap="md">
+                    <NumberInput
+                      label="Projective Space Dimension"
+                      min={1}
+                      max={5}
+                      value={projDimension}
+                      onChange={setProjDimension}
+                    />
+                    <NumberInput
+                      label="First Hypersurface Degree"
+                      min={1}
+                      max={10}
+                      value={degree1}
+                      onChange={setDegree1}
+                    />
+                    <NumberInput
+                      label="Second Hypersurface Degree"
+                      min={1}
+                      max={10}
+                      value={degree2}
+                      onChange={setDegree2}
+                    />
+                    <Button onClick={computeIntersection} disabled={isComputing}>
+                      {isComputing ? 'Computing...' : 'Compute Intersection'}
+                    </Button>
+                  </Stack>
+                  <Card withBorder>
+                    <Card.Section inheritPadding py="xs" bg="dark.6">
+                      <Title order={3} size="h4">Result</Title>
+                    </Card.Section>
+                    <Card.Section inheritPadding py="md">
                       {intersectionResult !== null ? (
-                        <Grid cols={1} gap="sm">
-                          <GridItem>
-                            <P><Strong>Intersection Number:</Strong> {intersectionResult}</P>
-                          </GridItem>
-                          <GridItem>
-                            <P>
-                              By Bézout's theorem, two hypersurfaces of degrees {degree1} and {degree2}
-                              in ℙ<sup>{projDimension}</sup> intersect in exactly {degree1} × {degree2} = {intersectionResult} points
-                              (counting multiplicities).
-                            </P>
-                          </GridItem>
-                        </Grid>
+                        <Stack gap="sm">
+                          <Text><Text span fw={600}>Intersection Number:</Text> {intersectionResult}</Text>
+                          <Text size="sm" c="dimmed">
+                            By Bézout's theorem, two hypersurfaces of degrees {String(degree1)} and {String(degree2)}
+                            in P<sup>{String(projDimension)}</sup> intersect in exactly {String(degree1)} × {String(degree2)} = {intersectionResult} points
+                            (counting multiplicities).
+                          </Text>
+                        </Stack>
                       ) : (
-                        <P>Click "Compute Intersection" to see results</P>
+                        <Text c="dimmed">Click "Compute Intersection" to see results</Text>
                       )}
-                    </CardBody>
+                    </Card.Section>
                   </Card>
-                </GridItem>
-              </Grid>
-            </CardBody>
-          </Card>
-        </GridItem>
-      )}
+                </SimpleGrid>
+              </Card.Section>
+            </Card>
+          </Tabs.Panel>
 
-      {activeTab === 'schubert' && (
-        <GridItem>
-          <Card>
-            <CardHeader>
-              <H2>Schubert Calculus</H2>
-              <P>Intersection theory on Grassmannians using Schubert cycles</P>
-            </CardHeader>
-            <CardBody>
-              <Grid cols={2} gap="lg">
-                <GridItem>
-                  <Grid cols={1} gap="md">
-                    <GridItem>
-                      <Input
-                        label="Grassmannian k (subspace dimension)"
-                        type="number"
-                        min="1"
-                        max="5"
-                        value={grassmannianK.toString()}
-                        onChange={(e) => setGrassmannianK(parseInt(e.target.value))}
-                      />
-                    </GridItem>
-                    <GridItem>
-                      <Input
-                        label="Grassmannian n (ambient dimension)"
-                        type="number"
-                        min={grassmannianK + 1}
-                        max="8"
-                        value={grassmannianN.toString()}
-                        onChange={(e) => setGrassmannianN(parseInt(e.target.value))}
-                      />
-                    </GridItem>
-                    <GridItem>
-                      <Input
-                        label="First Partition (comma-separated)"
-                        value={partition1}
-                        onChange={(e) => setPartition1(e.target.value)}
-                        placeholder="e.g., 1,0"
-                      />
-                    </GridItem>
-                    <GridItem>
-                      <Input
-                        label="Second Partition (comma-separated)"
-                        value={partition2}
-                        onChange={(e) => setPartition2(e.target.value)}
-                        placeholder="e.g., 1,0"
-                      />
-                    </GridItem>
-                    <GridItem>
-                      <Button
-                        onClick={computeSchubert}
-                        disabled={isComputing}
-                      >
-                        {isComputing ? 'Computing...' : 'Compute Schubert Intersection'}
-                      </Button>
-                    </GridItem>
-                  </Grid>
-                </GridItem>
-                <GridItem>
-                  <Card>
-                    <CardHeader>
-                      <H3>Result</H3>
-                    </CardHeader>
-                    <CardBody>
+          <Tabs.Panel value="schubert" pt="md">
+            <Card withBorder>
+              <Card.Section inheritPadding py="xs" bg="dark.6">
+                <Title order={2} size="h3">Schubert Calculus</Title>
+                <Text size="sm" c="dimmed">Intersection theory on Grassmannians using Schubert cycles</Text>
+              </Card.Section>
+              <Card.Section inheritPadding py="md">
+                <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="lg">
+                  <Stack gap="md">
+                    <NumberInput
+                      label="Grassmannian k (subspace dimension)"
+                      min={1}
+                      max={5}
+                      value={grassmannianK}
+                      onChange={setGrassmannianK}
+                    />
+                    <NumberInput
+                      label="Grassmannian n (ambient dimension)"
+                      min={Number(grassmannianK) + 1}
+                      max={8}
+                      value={grassmannianN}
+                      onChange={setGrassmannianN}
+                    />
+                    <TextInput
+                      label="First Partition (comma-separated)"
+                      value={partition1}
+                      onChange={(e) => setPartition1(e.target.value)}
+                      placeholder="e.g., 1,0"
+                    />
+                    <TextInput
+                      label="Second Partition (comma-separated)"
+                      value={partition2}
+                      onChange={(e) => setPartition2(e.target.value)}
+                      placeholder="e.g., 1,0"
+                    />
+                    <Button onClick={computeSchubert} disabled={isComputing}>
+                      {isComputing ? 'Computing...' : 'Compute Schubert Intersection'}
+                    </Button>
+                  </Stack>
+                  <Card withBorder>
+                    <Card.Section inheritPadding py="xs" bg="dark.6">
+                      <Title order={3} size="h4">Result</Title>
+                    </Card.Section>
+                    <Card.Section inheritPadding py="md">
                       {schubertResult ? (
-                        <Grid cols={1} gap="sm">
-                          <GridItem>
-                            <P><Strong>Grassmannian:</Strong> {schubertResult.grassmannian}</P>
-                          </GridItem>
-                          <GridItem>
-                            <P><Strong>Dimension:</Strong> {schubertResult.dimension}</P>
-                          </GridItem>
-                          <GridItem>
-                            <P><Strong>Intersection Number:</Strong> {schubertResult.intersection}</P>
-                          </GridItem>
-                          <GridItem>
-                            <P>
-                              Schubert cycles σ<sub>{schubertResult.partitions[0].join(',')}</sub> and
-                              σ<sub>{schubertResult.partitions[1].join(',')}</sub> on Gr({grassmannianK},{grassmannianN})
-                            </P>
-                          </GridItem>
-                        </Grid>
+                        <Stack gap="sm">
+                          <Text><Text span fw={600}>Grassmannian:</Text> {schubertResult.grassmannian}</Text>
+                          <Text><Text span fw={600}>Dimension:</Text> {schubertResult.dimension}</Text>
+                          <Text><Text span fw={600}>Intersection Number:</Text> {schubertResult.intersection}</Text>
+                          <Text size="sm" c="dimmed">
+                            Schubert cycles σ<sub>{schubertResult.partitions[0].join(',')}</sub> and
+                            σ<sub>{schubertResult.partitions[1].join(',')}</sub> on Gr({String(grassmannianK)},{String(grassmannianN)})
+                          </Text>
+                        </Stack>
                       ) : (
-                        <P>Click "Compute Schubert Intersection" to see results</P>
+                        <Text c="dimmed">Click "Compute Schubert Intersection" to see results</Text>
                       )}
-                    </CardBody>
+                    </Card.Section>
                   </Card>
-                </GridItem>
-              </Grid>
-            </CardBody>
-          </Card>
-        </GridItem>
-      )}
+                </SimpleGrid>
+              </Card.Section>
+            </Card>
+          </Tabs.Panel>
 
-      {activeTab === 'tropical' && (
-        <GridItem>
-          <Card>
-            <CardHeader>
-              <H2>Tropical Geometry</H2>
-              <P>Count tropical curves using Mikhalkin correspondence</P>
-            </CardHeader>
-            <CardBody>
-              <Grid cols={2} gap="lg">
-                <GridItem>
-                  <Grid cols={1} gap="md">
-                    <GridItem>
-                      <Input
-                        label="Curve Degree"
-                        type="number"
-                        min="1"
-                        max="6"
-                        value={tropicalDegree.toString()}
-                        onChange={(e) => setTropicalDegree(parseInt(e.target.value))}
-                      />
-                    </GridItem>
-                    <GridItem>
-                      <Input
-                        label="Number of Constraints"
-                        type="number"
-                        min={tropicalDegree}
-                        max="12"
-                        value={tropicalConstraints.toString()}
-                        onChange={(e) => setTropicalConstraints(parseInt(e.target.value))}
-                      />
-                    </GridItem>
-                    <GridItem>
-                      <Button
-                        onClick={computeTropical}
-                        disabled={isComputing}
-                      >
-                        {isComputing ? 'Computing...' : 'Count Tropical Curves'}
-                      </Button>
-                    </GridItem>
-                    <GridItem>
-                      <Card>
-                        <CardBody>
-                          <P>
-                            <Strong>Note:</Strong> For degree {tropicalDegree} curves, the expected dimension is {3 * tropicalDegree - 1}.
-                            Adjust constraints accordingly.
-                          </P>
-                        </CardBody>
-                      </Card>
-                    </GridItem>
-                  </Grid>
-                </GridItem>
-                <GridItem>
-                  <Card>
-                    <CardHeader>
-                      <H3>Result</H3>
-                    </CardHeader>
-                    <CardBody>
+          <Tabs.Panel value="tropical" pt="md">
+            <Card withBorder>
+              <Card.Section inheritPadding py="xs" bg="dark.6">
+                <Title order={2} size="h3">Tropical Geometry</Title>
+                <Text size="sm" c="dimmed">Count tropical curves using Mikhalkin correspondence</Text>
+              </Card.Section>
+              <Card.Section inheritPadding py="md">
+                <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="lg">
+                  <Stack gap="md">
+                    <NumberInput
+                      label="Curve Degree"
+                      min={1}
+                      max={6}
+                      value={tropicalDegree}
+                      onChange={setTropicalDegree}
+                    />
+                    <NumberInput
+                      label="Number of Constraints"
+                      min={Number(tropicalDegree)}
+                      max={12}
+                      value={tropicalConstraints}
+                      onChange={setTropicalConstraints}
+                    />
+                    <Button onClick={computeTropical} disabled={isComputing}>
+                      {isComputing ? 'Computing...' : 'Count Tropical Curves'}
+                    </Button>
+                    <Card withBorder p="sm">
+                      <Text size="sm">
+                        <Text span fw={600}>Note:</Text> For degree {String(tropicalDegree)} curves, the expected dimension is {3 * Number(tropicalDegree) - 1}.
+                        Adjust constraints accordingly.
+                      </Text>
+                    </Card>
+                  </Stack>
+                  <Card withBorder>
+                    <Card.Section inheritPadding py="xs" bg="dark.6">
+                      <Title order={3} size="h4">Result</Title>
+                    </Card.Section>
+                    <Card.Section inheritPadding py="md">
                       {tropicalResult !== null ? (
-                        <Grid cols={1} gap="sm">
-                          <GridItem>
-                            <P><Strong>Curve Count:</Strong> {tropicalResult}</P>
-                          </GridItem>
-                          <GridItem>
-                            <P>
-                              Number of degree-{tropicalDegree} tropical curves satisfying {tropicalConstraints}
-                              generic constraints. This matches the classical count by Mikhalkin correspondence.
-                            </P>
-                          </GridItem>
-                        </Grid>
+                        <Stack gap="sm">
+                          <Text><Text span fw={600}>Curve Count:</Text> {tropicalResult}</Text>
+                          <Text size="sm" c="dimmed">
+                            Number of degree-{String(tropicalDegree)} tropical curves satisfying {String(tropicalConstraints)} generic constraints.
+                            This matches the classical count by Mikhalkin correspondence.
+                          </Text>
+                        </Stack>
                       ) : (
-                        <P>Click "Count Tropical Curves" to see results</P>
+                        <Text c="dimmed">Click "Count Tropical Curves" to see results</Text>
                       )}
-                    </CardBody>
+                    </Card.Section>
                   </Card>
-                </GridItem>
-              </Grid>
-            </CardBody>
-          </Card>
-        </GridItem>
-      )}
+                </SimpleGrid>
+              </Card.Section>
+            </Card>
+          </Tabs.Panel>
 
-      {activeTab === 'higher-genus' && (
-        <GridItem>
-          <Card>
-            <CardHeader>
-              <H2>Higher Genus Curves</H2>
-              <P>Riemann-Roch theorem and moduli space computations</P>
-            </CardHeader>
-            <CardBody>
-              <Grid cols={2} gap="lg">
-                <GridItem>
-                  <Grid cols={1} gap="md">
-                    <GridItem>
-                      <Input
-                        label="Genus"
-                        type="number"
-                        min="0"
-                        max="5"
-                        value={genus.toString()}
-                        onChange={(e) => setGenus(parseInt(e.target.value))}
-                      />
-                    </GridItem>
-                    <GridItem>
-                      <Input
-                        label="Curve Degree"
-                        type="number"
-                        min="1"
-                        max="8"
-                        value={curveDegree.toString()}
-                        onChange={(e) => setCurveDegree(parseInt(e.target.value))}
-                      />
-                    </GridItem>
-                    <GridItem>
-                      <Input
-                        label="Line Bundle Degree (for Riemann-Roch)"
-                        type="number"
-                        min="0"
-                        max="10"
-                        value={rrDegree.toString()}
-                        onChange={(e) => setRrDegree(parseInt(e.target.value))}
-                      />
-                    </GridItem>
-                    <GridItem>
-                      <Button
-                        onClick={computeHigherGenus}
-                        disabled={isComputing}
-                      >
-                        {isComputing ? 'Computing...' : 'Compute Riemann-Roch'}
-                      </Button>
-                    </GridItem>
-                  </Grid>
-                </GridItem>
-                <GridItem>
-                  <Card>
-                    <CardHeader>
-                      <H3>Result</H3>
-                    </CardHeader>
-                    <CardBody>
+          <Tabs.Panel value="higher-genus" pt="md">
+            <Card withBorder>
+              <Card.Section inheritPadding py="xs" bg="dark.6">
+                <Title order={2} size="h3">Higher Genus Curves</Title>
+                <Text size="sm" c="dimmed">Riemann-Roch theorem and moduli space computations</Text>
+              </Card.Section>
+              <Card.Section inheritPadding py="md">
+                <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="lg">
+                  <Stack gap="md">
+                    <NumberInput
+                      label="Genus"
+                      min={0}
+                      max={5}
+                      value={genus}
+                      onChange={setGenus}
+                    />
+                    <NumberInput
+                      label="Curve Degree"
+                      min={1}
+                      max={8}
+                      value={curveDegree}
+                      onChange={setCurveDegree}
+                    />
+                    <NumberInput
+                      label="Line Bundle Degree (for Riemann-Roch)"
+                      min={0}
+                      max={10}
+                      value={rrDegree}
+                      onChange={setRrDegree}
+                    />
+                    <Button onClick={computeHigherGenus} disabled={isComputing}>
+                      {isComputing ? 'Computing...' : 'Compute Riemann-Roch'}
+                    </Button>
+                  </Stack>
+                  <Card withBorder>
+                    <Card.Section inheritPadding py="xs" bg="dark.6">
+                      <Title order={3} size="h4">Result</Title>
+                    </Card.Section>
+                    <Card.Section inheritPadding py="md">
                       {higherGenusResult ? (
-                        <Grid cols={1} gap="sm">
-                          <GridItem>
-                            <P><Strong>Genus:</Strong> {higherGenusResult.genus}</P>
-                          </GridItem>
-                          <GridItem>
-                            <P><Strong>Degree:</Strong> {higherGenusResult.degree}</P>
-                          </GridItem>
-                          <GridItem>
-                            <P><Strong>Canonical Degree:</Strong> {higherGenusResult.canonicalDegree}</P>
-                          </GridItem>
-                          <GridItem>
-                            <P><Strong>h⁰(L<sub>{rrDegree}</sub>):</Strong> {higherGenusResult.riemannRochDim}</P>
-                          </GridItem>
-                          <GridItem>
-                            <P>
-                              By Riemann-Roch: h⁰(L) - h¹(L) = deg(L) + 1 - g = {rrDegree} + 1 - {genus} = {rrDegree + 1 - genus}
-                            </P>
-                          </GridItem>
-                        </Grid>
+                        <Stack gap="sm">
+                          <Text><Text span fw={600}>Genus:</Text> {higherGenusResult.genus}</Text>
+                          <Text><Text span fw={600}>Degree:</Text> {higherGenusResult.degree}</Text>
+                          <Text><Text span fw={600}>Canonical Degree:</Text> {higherGenusResult.canonicalDegree}</Text>
+                          <Text><Text span fw={600}>h⁰(L<sub>{String(rrDegree)}</sub>):</Text> {higherGenusResult.riemannRochDim}</Text>
+                          <Text size="sm" c="dimmed">
+                            By Riemann-Roch: h⁰(L) - h¹(L) = deg(L) + 1 - g = {String(rrDegree)} + 1 - {String(genus)} = {Number(rrDegree) + 1 - Number(genus)}
+                          </Text>
+                        </Stack>
                       ) : (
-                        <P>Click "Compute Riemann-Roch" to see results</P>
+                        <Text c="dimmed">Click "Compute Riemann-Roch" to see results</Text>
                       )}
-                    </CardBody>
+                    </Card.Section>
                   </Card>
-                </GridItem>
-              </Grid>
-            </CardBody>
-          </Card>
-        </GridItem>
-      )}
+                </SimpleGrid>
+              </Card.Section>
+            </Card>
+          </Tabs.Panel>
 
-      {activeTab === 'performance' && (
-        <GridItem>
-          <Card>
-            <CardHeader>
-              <H2>Performance & Optimization</H2>
-              <P>WASM-first architecture with GPU acceleration</P>
-            </CardHeader>
-            <CardBody>
-              <Grid cols={2} gap="lg">
-                <GridItem>
-                  <Grid cols={1} gap="md">
-                    <GridItem>
-                      <H3>WASM Optimization</H3>
-                      <P>Memory-efficient sparse matrix operations</P>
-                      <P>Custom memory pooling for large computations</P>
-                      <P>SIMD optimizations where available</P>
-                      <P>Configurable batch processing</P>
-                    </GridItem>
-                    <GridItem>
-                      <H3>GPU Acceleration</H3>
-                      <P>WGPU compute shaders for intersection numbers</P>
-                      <P>Parallel Schubert calculus kernels</P>
-                      <P>Gromov-Witten invariant computation</P>
-                      <P>Tropical curve counting acceleration</P>
-                    </GridItem>
-                  </Grid>
-                </GridItem>
-                <GridItem>
-                  <Card>
-                    <CardHeader>
-                      <H3>Feature Flags</H3>
-                    </CardHeader>
-                    <CardBody>
+          <Tabs.Panel value="performance" pt="md">
+            <Card withBorder>
+              <Card.Section inheritPadding py="xs" bg="dark.6">
+                <Title order={2} size="h3">Performance & Optimization</Title>
+                <Text size="sm" c="dimmed">WASM-first architecture with GPU acceleration</Text>
+              </Card.Section>
+              <Card.Section inheritPadding py="md">
+                <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="lg">
+                  <Stack gap="md">
+                    <div>
+                      <Title order={3} size="h4" mb="xs">WASM Optimization</Title>
+                      <Text size="sm" c="dimmed" component="ul" style={{ paddingLeft: '1rem' }}>
+                        <li>Memory-efficient sparse matrix operations</li>
+                        <li>Custom memory pooling for large computations</li>
+                        <li>SIMD optimizations where available</li>
+                        <li>Configurable batch processing</li>
+                      </Text>
+                    </div>
+                    <div>
+                      <Title order={3} size="h4" mb="xs">GPU Acceleration</Title>
+                      <Text size="sm" c="dimmed" component="ul" style={{ paddingLeft: '1rem' }}>
+                        <li>WGPU compute shaders for intersection numbers</li>
+                        <li>Parallel Schubert calculus kernels</li>
+                        <li>Gromov-Witten invariant computation</li>
+                        <li>Tropical curve counting acceleration</li>
+                      </Text>
+                    </div>
+                  </Stack>
+                  <Card withBorder>
+                    <Card.Section inheritPadding py="xs" bg="dark.6">
+                      <Title order={3} size="h4">Feature Flags</Title>
+                    </Card.Section>
+                    <Card.Section inheritPadding py="md">
                       <Table>
-                        <TableHead>
-                          <TableRow>
-                            <TableCell>Feature</TableCell>
-                            <TableCell>Status</TableCell>
-                          </TableRow>
-                        </TableHead>
-                        <TableBody>
-                          <TableRow>
-                            <TableCell><Code>wgpu</Code></TableCell>
-                            <TableCell><StatusBadge variant="success">Available</StatusBadge></TableCell>
-                          </TableRow>
-                          <TableRow>
-                            <TableCell><Code>wasm</Code></TableCell>
-                            <TableCell><StatusBadge variant="success">Available</StatusBadge></TableCell>
-                          </TableRow>
-                          <TableRow>
-                            <TableCell><Code>parallel</Code></TableCell>
-                            <TableCell><StatusBadge variant="success">Available</StatusBadge></TableCell>
-                          </TableRow>
-                          <TableRow>
-                            <TableCell><Code>performance</Code></TableCell>
-                            <TableCell><StatusBadge variant="success">Available</StatusBadge></TableCell>
-                          </TableRow>
-                        </TableBody>
+                        <Table.Thead>
+                          <Table.Tr>
+                            <Table.Th>Feature</Table.Th>
+                            <Table.Th>Status</Table.Th>
+                          </Table.Tr>
+                        </Table.Thead>
+                        <Table.Tbody>
+                          <Table.Tr>
+                            <Table.Td><Code>wgpu</Code></Table.Td>
+                            <Table.Td><Badge color="green">Available</Badge></Table.Td>
+                          </Table.Tr>
+                          <Table.Tr>
+                            <Table.Td><Code>wasm</Code></Table.Td>
+                            <Table.Td><Badge color="green">Available</Badge></Table.Td>
+                          </Table.Tr>
+                          <Table.Tr>
+                            <Table.Td><Code>parallel</Code></Table.Td>
+                            <Table.Td><Badge color="green">Available</Badge></Table.Td>
+                          </Table.Tr>
+                          <Table.Tr>
+                            <Table.Td><Code>performance</Code></Table.Td>
+                            <Table.Td><Badge color="green">Available</Badge></Table.Td>
+                          </Table.Tr>
+                        </Table.Tbody>
                       </Table>
-                    </CardBody>
+                    </Card.Section>
                   </Card>
-                </GridItem>
-              </Grid>
-            </CardBody>
-          </Card>
-        </GridItem>
-      )}
+                </SimpleGrid>
+              </Card.Section>
+            </Card>
+          </Tabs.Panel>
+        </Tabs>
 
-      {/* Computation History */}
-      <GridItem>
-        <Card>
-          <CardHeader>
-            <H2>Computation History</H2>
-            <P>Recent calculations and timing information</P>
-          </CardHeader>
-          <CardBody>
+        {/* Computation History */}
+        <Card withBorder>
+          <Card.Section inheritPadding py="xs" bg="dark.6">
+            <Title order={2} size="h3">Computation History</Title>
+            <Text size="sm" c="dimmed">Recent calculations and timing information</Text>
+          </Card.Section>
+          <Card.Section inheritPadding py="md">
             {computationHistory.length > 0 ? (
               <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Input</TableCell>
-                    <TableCell>Output</TableCell>
-                    <TableCell>Time (ms)</TableCell>
-                    <TableCell>Status</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
+                <Table.Thead>
+                  <Table.Tr>
+                    <Table.Th>Input</Table.Th>
+                    <Table.Th>Output</Table.Th>
+                    <Table.Th>Time (ms)</Table.Th>
+                    <Table.Th>Status</Table.Th>
+                  </Table.Tr>
+                </Table.Thead>
+                <Table.Tbody>
                   {computationHistory.map((result, index) => (
-                    <TableRow key={index}>
-                      <TableCell><Code>{result.input}</Code></TableCell>
-                      <TableCell>{result.output}</TableCell>
-                      <TableCell>{result.time}</TableCell>
-                      <TableCell>
-                        <StatusBadge variant={result.error ? "destructive" : "success"}>
+                    <Table.Tr key={index}>
+                      <Table.Td><Code>{result.input}</Code></Table.Td>
+                      <Table.Td>{result.output}</Table.Td>
+                      <Table.Td>{result.time}</Table.Td>
+                      <Table.Td>
+                        <Badge color={result.error ? "red" : "green"}>
                           {result.error ? "Error" : "Success"}
-                        </StatusBadge>
-                      </TableCell>
-                    </TableRow>
+                        </Badge>
+                      </Table.Td>
+                    </Table.Tr>
                   ))}
-                </TableBody>
+                </Table.Tbody>
               </Table>
             ) : (
-              <P>No computations yet. Try the examples above!</P>
+              <Text c="dimmed">No computations yet. Try the examples above!</Text>
             )}
-          </CardBody>
+          </Card.Section>
         </Card>
-      </GridItem>
 
-      {/* Code Examples */}
-      <GridItem>
-        <Card>
-          <CardHeader>
-            <H2>Code Examples</H2>
-            <P>Learn how to use the enumerative geometry API</P>
-          </CardHeader>
-          <CardBody>
-            <Grid cols={1} gap="lg">
-              <GridItem>
-                <ExampleCard
-                  title="Basic Intersection Theory"
-                  description="Compute intersection numbers in projective space"
-                  code={`// Import the enumerative geometry library
+        {/* Code Examples */}
+        <Card withBorder>
+          <Card.Section inheritPadding py="xs" bg="dark.6">
+            <Title order={2} size="h3">Code Examples</Title>
+            <Text size="sm" c="dimmed">Learn how to use the enumerative geometry API</Text>
+          </Card.Section>
+          <Card.Section inheritPadding py="md">
+            <Stack gap="lg">
+              <ExampleCard
+                title="Basic Intersection Theory"
+                description="Compute intersection numbers in projective space"
+                code={`// Import the enumerative geometry library
 import { ProjectiveSpace, ChowClass } from 'amari-enumerative';
 
 // Create projective 2-space
@@ -736,14 +609,12 @@ const quartic = ChowClass.hypersurface(4);
 // Compute intersection number (Bézout's theorem)
 const intersection = p2.intersect(cubic, quartic);
 console.log(intersection.multiplicity()); // 12`}
-                />
-              </GridItem>
+              />
 
-              <GridItem>
-                <ExampleCard
-                  title="Schubert Calculus"
-                  description="Work with Grassmannians and Schubert cycles"
-                  code={`// Import Schubert calculus components
+              <ExampleCard
+                title="Schubert Calculus"
+                description="Work with Grassmannians and Schubert cycles"
+                code={`// Import Schubert calculus components
 import { Grassmannian, SchubertClass } from 'amari-enumerative';
 
 // Create Grassmannian Gr(2,5)
@@ -756,14 +627,12 @@ const sigma2 = SchubertClass.new([0, 1], [2, 5]);
 // Compute intersection
 const result = gr.intersect(sigma1, sigma2);
 console.log(\`Intersection number: \${result.multiplicity()}\`);`}
-                />
-              </GridItem>
+              />
 
-              <GridItem>
-                <ExampleCard
-                  title="Performance Optimization"
-                  description="Configure WASM performance settings"
-                  code={`// Import performance components
+              <ExampleCard
+                title="Performance Optimization"
+                description="Configure WASM performance settings"
+                code={`// Import performance components
 import { WasmPerformanceConfig, FastIntersectionComputer } from 'amari-enumerative';
 
 // Configure for high performance
@@ -777,12 +646,11 @@ const computer = FastIntersectionComputer.new(config);
 
 // Perform fast computations
 const result = computer.fast_intersect(p2, cubic, quartic);`}
-                />
-              </GridItem>
-            </Grid>
-          </CardBody>
+              />
+            </Stack>
+          </Card.Section>
         </Card>
-      </GridItem>
-    </Grid>
+      </Stack>
+    </Container>
   );
 }

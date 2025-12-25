@@ -1,25 +1,43 @@
-import { PageLayout, Sidebar, Grid, GridItem } from "jadis-ui";
-import { Navigation, MobileNavigation } from "./Navigation";
+import { AppShell, Burger, ScrollArea } from '@mantine/core'
+import { useDisclosure } from '@mantine/hooks'
+import { Navigation } from './Navigation'
 
 interface LayoutProps {
-  children: React.ReactNode;
+  children: React.ReactNode
 }
 
 export function Layout({ children }: LayoutProps) {
+  const [opened, { toggle }] = useDisclosure()
+
   return (
-    <PageLayout>
-      <Grid columns={2} gap="none">
-        <GridItem span={1}>
-          <Sidebar>
-            <Navigation />
-          </Sidebar>
-        </GridItem>
-        <GridItem span={1}>
-          <main>
-            {children}
-          </main>
-        </GridItem>
-      </Grid>
-    </PageLayout>
-  );
+    <AppShell
+      header={{ height: { base: 60, md: 0 } }}
+      navbar={{
+        width: 300,
+        breakpoint: 'md',
+        collapsed: { mobile: !opened },
+      }}
+      padding="md"
+    >
+      <AppShell.Header hiddenFrom="md">
+        <Burger
+          opened={opened}
+          onClick={toggle}
+          size="sm"
+          p="md"
+          aria-label="Toggle navigation"
+        />
+      </AppShell.Header>
+
+      <AppShell.Navbar>
+        <AppShell.Section grow component={ScrollArea}>
+          <Navigation onNavigate={() => opened && toggle()} />
+        </AppShell.Section>
+      </AppShell.Navbar>
+
+      <AppShell.Main>
+        {children}
+      </AppShell.Main>
+    </AppShell>
+  )
 }

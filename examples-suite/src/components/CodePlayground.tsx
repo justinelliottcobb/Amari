@@ -1,7 +1,8 @@
 import { useState, useCallback } from "react";
-import { Card, CardHeader, CardBody, Button, CodeBlock, TextArea, H3, P } from "jadis-ui";
+import { Card, Title, Text, Button, Textarea, Group, Stack, Box } from "@mantine/core";
+import { CodeHighlight } from "@mantine/code-highlight";
 import { ErrorBoundary } from "./ErrorBoundary";
-import { safeExecute, validateNumbers, validateArray } from "../utils/safeExecution";
+import { safeExecute } from "../utils/safeExecution";
 
 interface CodePlaygroundProps {
   initialCode?: string;
@@ -88,69 +89,87 @@ export function CodePlayground({
     }
   };
 
-  const lineNumbers = showLineNumbers && code.split('\n').map((_, i) => i + 1);
-
   return (
     <ErrorBoundary>
-      <Card>
-        <CardHeader>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div>
-            <H3>{title}</H3>
-            {description && (
-              <P style={{ fontSize: '0.875rem', marginTop: '0.25rem', opacity: 0.7 }}>{description}</P>
+      <Card withBorder>
+        <Card.Section withBorder inheritPadding py="sm">
+          <Group justify="space-between" align="flex-start">
+            <Box>
+              <Title order={4}>{title}</Title>
+              {description && (
+                <Text size="sm" c="dimmed" mt={4}>{description}</Text>
+              )}
+            </Box>
+            {onRun && (
+              <Group gap="xs">
+                <Button
+                  onClick={runCode}
+                  disabled={isRunning}
+                  loading={isRunning}
+                  size="sm"
+                  title="Run code (Ctrl/Cmd + Enter)"
+                >
+                  {isRunning ? 'Running...' : 'Run'}
+                </Button>
+                <Button
+                  onClick={() => setCode(initialCode)}
+                  variant="outline"
+                  size="sm"
+                  title="Reset to initial code"
+                >
+                  Reset
+                </Button>
+              </Group>
             )}
-          </div>
-          {onRun && (
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <Button
-                onClick={runCode}
-                disabled={isRunning}
-                title="Run code (Ctrl/Cmd + Enter)"
-              >
-                {isRunning ? 'Running...' : 'Run'}
-              </Button>
-              <Button
-                onClick={() => setCode(initialCode)}
-                variant="outline"
-                title="Reset to initial code"
-              >
-                Reset
-              </Button>
-            </div>
-          )}
-        </div>
-      </CardHeader>
-      <CardBody>
-        <div>
-          <TextArea
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
-            onKeyDown={handleKeyDown}
-            style={{
-              fontFamily: 'monospace',
-              fontSize: '0.875rem',
-              minHeight: height === 'h-64' ? '16rem' : '10rem'
-            }}
-            spellCheck={false}
-            placeholder="Enter your code here..."
-          />
-        </div>
+          </Group>
+        </Card.Section>
+        <Card.Section inheritPadding py="md">
+          <Stack gap="md">
+            <Textarea
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              onKeyDown={handleKeyDown}
+              styles={{
+                input: {
+                  fontFamily: 'var(--mantine-font-family-monospace)',
+                  fontSize: '0.875rem',
+                  minHeight: height === 'h-64' ? '16rem' : '10rem'
+                }
+              }}
+              spellCheck={false}
+              placeholder="Enter your code here..."
+              autosize
+              minRows={8}
+            />
 
-        {/* Output Section */}
-        {(output || error) && (
-          <div style={{ marginTop: '1rem' }}>
-            <h4 style={{ fontSize: '0.875rem', fontWeight: '600', marginBottom: '0.5rem' }}>Output:</h4>
-            <CodeBlock
-              language="text"
-              variant={error ? 'error' : 'success'}
-            >
-              {error || output}
-            </CodeBlock>
-          </div>
-        )}
-      </CardBody>
-    </Card>
+            {/* Output Section */}
+            {(output || error) && (
+              <Box>
+                <Text size="sm" fw={600} mb="xs">Output:</Text>
+                <Box
+                  p="sm"
+                  style={{
+                    backgroundColor: error
+                      ? 'rgba(239, 68, 68, 0.1)'
+                      : 'rgba(34, 197, 94, 0.1)',
+                    borderRadius: 'var(--mantine-radius-sm)',
+                    border: `1px solid ${error ? 'var(--mantine-color-red-6)' : 'var(--mantine-color-green-6)'}`
+                  }}
+                >
+                  <Text
+                    size="sm"
+                    ff="monospace"
+                    c={error ? 'red' : 'green'}
+                    style={{ whiteSpace: 'pre-wrap' }}
+                  >
+                    {error || output}
+                  </Text>
+                </Box>
+              </Box>
+            )}
+          </Stack>
+        </Card.Section>
+      </Card>
     </ErrorBoundary>
   );
 }
@@ -187,51 +206,54 @@ export function InlinePlayground({
   };
 
   return (
-    <Card style={{ marginTop: '0.75rem', marginBottom: '0.75rem' }}>
-      <CardHeader style={{ padding: '0.75rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ fontSize: '0.75rem', fontFamily: 'monospace', opacity: 0.7 }}>{language}</span>
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
+    <Card withBorder my="sm">
+      <Card.Section withBorder inheritPadding py="xs">
+        <Group justify="space-between">
+          <Text size="xs" ff="monospace" c="dimmed">{language}</Text>
+          <Group gap="xs">
             <Button
               onClick={runInlineCode}
-              variant="ghost"
-              style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}
+              variant="subtle"
+              size="xs"
             >
               Run
             </Button>
             <Button
               onClick={() => setIsExpanded(!isExpanded)}
-              variant="ghost"
-              style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}
+              variant="subtle"
+              size="xs"
             >
               {isExpanded ? 'Collapse' : 'Expand'}
             </Button>
-          </div>
-        </div>
-      </CardHeader>
-      <CardBody style={{ padding: '0' }}>
-        <div style={{
-          transition: 'all 0.2s',
-          maxHeight: isExpanded ? '24rem' : '6rem',
-          overflow: 'auto'
-        }}>
-          <CodeBlock
+          </Group>
+        </Group>
+      </Card.Section>
+      <Card.Section p={0}>
+        <Box
+          style={{
+            maxHeight: isExpanded ? '24rem' : '6rem',
+            overflow: 'auto',
+            transition: 'max-height 0.2s ease'
+          }}
+        >
+          <CodeHighlight
+            code={code}
             language={language}
-            showLineNumbers={true}
-            showCopyButton={true}
-          >
-            {code}
-          </CodeBlock>
-        </div>
+            withCopyButton
+          />
+        </Box>
 
         {output && (
-          <div style={{ borderTop: '1px solid var(--border)', padding: '0.75rem' }}>
-            <CodeBlock language="text" variant="muted">
+          <Box
+            p="sm"
+            style={{ borderTop: '1px solid var(--mantine-color-dark-4)' }}
+          >
+            <Text size="xs" ff="monospace" c="dimmed" style={{ whiteSpace: 'pre-wrap' }}>
               {output}
-            </CodeBlock>
-          </div>
+            </Text>
+          </Box>
         )}
-      </CardBody>
+      </Card.Section>
     </Card>
   );
 }

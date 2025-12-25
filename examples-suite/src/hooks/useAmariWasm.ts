@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import init, * as amari from '@justinelliottcobb/amari-core/pkg/amari_wasm.js';
+import init, * as amari from '@justinelliottcobb/amari-wasm/amari_wasm.js';
 // @ts-ignore - Import WASM file directly
-import wasmUrl from '@justinelliottcobb/amari-core/pkg/amari_wasm_bg.wasm?url';
+import wasmUrl from '@justinelliottcobb/amari-wasm/amari_wasm_bg.wasm?url';
 
 interface AmariModule {
   ready: boolean;

@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { H1, P, Card, CardHeader, CardBody, Button, CodeBlock } from "jadis-ui";
+import { Container, Stack, Card, Title, Text, Button, TextInput, SimpleGrid, Code } from "@mantine/core";
+import { CodeHighlight } from "@mantine/code-highlight";
 import { TensorVisualization } from "../components/TensorVisualization";
 
 export function AmariChentsovTensorDemo() {
@@ -65,7 +66,7 @@ export function AmariChentsovTensorDemo() {
 
       setProbabilities(probs);
       setTensor(computeTensor(probs));
-    } catch (e) {
+    } catch (_e) {
       alert("Invalid probability format. Use comma-separated values like: 0.5, 0.3, 0.2");
     }
   };
@@ -79,43 +80,45 @@ export function AmariChentsovTensorDemo() {
   ];
 
   return (
-    <div style={{ padding: '2rem' }}>
-      <div style={{ maxWidth: '1536px', margin: '0 auto' }}>
-        <H1>Amari-Chentsov Tensor Interactive Demo</H1>
-        <P style={{ fontSize: '1.125rem', marginBottom: '1.5rem', opacity: 0.7 }}>
-          Explore the fundamental tensor of information geometry with comprehensive visualizations
-        </P>
+    <Container size="lg" py="xl">
+      <Stack gap="lg">
+        <div>
+          <Title order={1}>Amari-Chentsov Tensor Interactive Demo</Title>
+          <Text size="lg" c="dimmed">
+            Explore the fundamental tensor of information geometry with comprehensive visualizations
+          </Text>
+        </div>
 
-        <Card style={{ marginBottom: '1.5rem' }}>
-          <CardHeader>
-            <h3 style={{ fontSize: '1.125rem', fontWeight: '600' }}>What is the Amari-Chentsov Tensor?</h3>
-          </CardHeader>
-          <CardBody>
-            <P style={{ marginBottom: '1rem' }}>
+        <Card withBorder>
+          <Card.Section inheritPadding py="xs" bg="dark.6">
+            <Title order={3} size="h4">What is the Amari-Chentsov Tensor?</Title>
+          </Card.Section>
+          <Card.Section inheritPadding py="md">
+            <Text mb="md">
               The Amari-Chentsov tensor is a fundamental 3rd-order tensor in information geometry that completely
               characterizes the geometric structure of statistical manifolds. It's defined as:
-            </P>
-            <CodeBlock language="math" variant="muted">
-              T(∂ᵢ, ∂ⱼ, ∂ₖ) = E[∂ᵢ log p · ∂ⱼ log p · ∂ₖ log p]
-            </CodeBlock>
-            <P style={{ marginTop: '1rem', fontSize: '0.875rem' }}>
+            </Text>
+            <CodeHighlight
+              code="T(∂ᵢ, ∂ⱼ, ∂ₖ) = E[∂ᵢ log p · ∂ⱼ log p · ∂ₖ log p]"
+              language="plaintext"
+              mb="md"
+            />
+            <Text size="sm" c="dimmed">
               This tensor determines the α-connections and provides the unique geometric structure that makes
               information geometry powerful for machine learning, statistics, and optimization.
-            </P>
-          </CardBody>
+            </Text>
+          </Card.Section>
         </Card>
 
-        <Card style={{ marginBottom: '1.5rem' }}>
-          <CardHeader>
-            <h3 style={{ fontSize: '1.125rem', fontWeight: '600' }}>Configure Probability Distribution</h3>
-          </CardHeader>
-          <CardBody>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+        <Card withBorder>
+          <Card.Section inheritPadding py="xs" bg="dark.6">
+            <Title order={3} size="h4">Configure Probability Distribution</Title>
+          </Card.Section>
+          <Card.Section inheritPadding py="md">
+            <SimpleGrid cols={{ base: 1, md: 2 }} spacing="lg">
               <div>
-                <h4 style={{ fontSize: '0.875rem', fontWeight: '600', marginBottom: '0.5rem' }}>
-                  Example Distributions
-                </h4>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <Title order={4} size="sm" mb="sm">Example Distributions</Title>
+                <Stack gap="xs">
                   {exampleDistributions.map(dist => (
                     <Button
                       key={dist.name}
@@ -125,106 +128,121 @@ export function AmariChentsovTensorDemo() {
                         setTensor(computeTensor(dist.probs));
                       }}
                       variant="outline"
-                      style={{ justifyContent: 'flex-start' }}
+                      fullWidth
+                      justify="flex-start"
                     >
-                      <span>{dist.name}: [{dist.probs.join(', ')}]</span>
+                      {dist.name}: [{dist.probs.join(', ')}]
                     </Button>
                   ))}
-                </div>
+                </Stack>
               </div>
 
               <div>
-                <h4 style={{ fontSize: '0.875rem', fontWeight: '600', marginBottom: '0.5rem' }}>
-                  Custom Distribution
-                </h4>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  <input
-                    type="text"
+                <Title order={4} size="sm" mb="sm">Custom Distribution</Title>
+                <Stack gap="xs">
+                  <TextInput
                     value={customProbs}
                     onChange={(e) => setCustomProbs(e.target.value)}
                     placeholder="e.g., 0.5, 0.3, 0.2"
-                    style={{
-                      padding: '0.5rem',
-                      border: '1px solid var(--border)',
-                      borderRadius: '4px',
-                      backgroundColor: 'var(--background)',
-                      color: 'var(--foreground)'
-                    }}
                   />
                   <Button onClick={handleCustomProbs}>
                     Apply Custom Distribution
                   </Button>
-                  <P style={{ fontSize: '0.75rem', opacity: 0.7 }}>
+                  <Text size="xs" c="dimmed">
                     Enter comma-separated probabilities that sum to 1.0
-                  </P>
-                </div>
+                  </Text>
+                </Stack>
               </div>
-            </div>
+            </SimpleGrid>
 
-            <div style={{ marginTop: '1rem', padding: '1rem', backgroundColor: 'var(--muted)', borderRadius: '4px' }}>
-              <P style={{ fontSize: '0.875rem' }}>
-                Current Distribution: <strong>[{probabilities.map(p => p.toFixed(3)).join(', ')}]</strong>
-              </P>
+            <div style={{ marginTop: '1rem', padding: '1rem', backgroundColor: 'var(--mantine-color-dark-6)', borderRadius: 'var(--mantine-radius-sm)' }}>
+              <Text size="sm">
+                Current Distribution: <Code>[{probabilities.map(p => p.toFixed(3)).join(', ')}]</Code>
+              </Text>
               {!tensor && (
-                <Button onClick={handleCompute} style={{ marginTop: '0.5rem' }}>
+                <Button onClick={handleCompute} mt="sm">
                   Compute Amari-Chentsov Tensor
                 </Button>
               )}
             </div>
-          </CardBody>
+          </Card.Section>
         </Card>
 
         {tensor && (
           <>
             <TensorVisualization tensor={tensor} probabilities={probabilities} />
 
-            <Card style={{ marginTop: '1.5rem' }}>
-              <CardHeader>
-                <h3 style={{ fontSize: '1.125rem', fontWeight: '600' }}>Mathematical Properties</h3>
-              </CardHeader>
-              <CardBody>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <Card withBorder>
+              <Card.Section inheritPadding py="xs" bg="dark.6">
+                <Title order={3} size="h4">Mathematical Properties</Title>
+              </Card.Section>
+              <Card.Section inheritPadding py="md">
+                <SimpleGrid cols={{ base: 1, md: 2 }} spacing="lg">
                   <div>
-                    <h4 style={{ fontSize: '0.875rem', fontWeight: '600', marginBottom: '0.5rem' }}>
-                      Tensor Components
-                    </h4>
-                    <CodeBlock language="javascript" variant="muted">
-{`Diagonal: T[i,i,i] = (1-2pᵢ)/(pᵢ)²
+                    <Title order={4} size="sm" mb="xs">Tensor Components</Title>
+                    <CodeHighlight
+                      code={`Diagonal: T[i,i,i] = (1-2pᵢ)/(pᵢ)²
 Two equal: T[i,i,k] = -1/(pᵢ·pₖ)
 All different: T[i,j,k] = 1/(pᵢ·pⱼ·pₖ)`}
-                    </CodeBlock>
+                      language="plaintext"
+                    />
                   </div>
                   <div>
-                    <h4 style={{ fontSize: '0.875rem', fontWeight: '600', marginBottom: '0.5rem' }}>
-                      α-Connection Relationship
-                    </h4>
-                    <CodeBlock language="javascript" variant="muted">
-{`Γᵅ[i,j,k] = (1-α)/2 · T[i,j,k]
+                    <Title order={4} size="sm" mb="xs">α-Connection Relationship</Title>
+                    <CodeHighlight
+                      code={`Γᵅ[i,j,k] = (1-α)/2 · T[i,j,k]
 
 α = -1: e-connection (exponential)
 α =  0: Levi-Civita connection
 α =  1: m-connection (mixture)`}
-                    </CodeBlock>
+                      language="plaintext"
+                    />
                   </div>
-                </div>
+                </SimpleGrid>
 
-                <div style={{ marginTop: '1rem' }}>
-                  <h4 style={{ fontSize: '0.875rem', fontWeight: '600', marginBottom: '0.5rem' }}>
-                    Geometric Significance
-                  </h4>
-                  <ul style={{ fontSize: '0.875rem', listStyle: 'none', padding: 0 }}>
-                    <li>• Encodes all statistical curvature information</li>
-                    <li>• Defines unique geometric structure of statistical manifolds</li>
-                    <li>• Foundation for natural gradient descent optimization</li>
-                    <li>• Invariant under reparameterization</li>
-                    <li>• Enables efficient computation via coordinate duality</li>
-                  </ul>
+                <div style={{ marginTop: '1.5rem' }}>
+                  <Title order={4} size="sm" mb="xs">Geometric Significance</Title>
+                  <Text size="sm" c="dimmed" component="ul" style={{ paddingLeft: '1rem' }}>
+                    <li>Encodes all statistical curvature information</li>
+                    <li>Defines unique geometric structure of statistical manifolds</li>
+                    <li>Foundation for natural gradient descent optimization</li>
+                    <li>Invariant under reparameterization</li>
+                    <li>Enables efficient computation via coordinate duality</li>
+                  </Text>
                 </div>
-              </CardBody>
+              </Card.Section>
+            </Card>
+
+            <Card withBorder>
+              <Card.Section inheritPadding py="xs" bg="dark.6">
+                <Title order={3} size="h4">Applications</Title>
+              </Card.Section>
+              <Card.Section inheritPadding py="md">
+                <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
+                  <div>
+                    <Title order={4} size="sm" mb="xs">Machine Learning</Title>
+                    <Text size="sm" c="dimmed" component="ul" style={{ paddingLeft: '1rem' }}>
+                      <li>Natural gradient descent</li>
+                      <li>Fisher-Rao metrics for neural networks</li>
+                      <li>Variational inference</li>
+                      <li>Information-geometric regularization</li>
+                    </Text>
+                  </div>
+                  <div>
+                    <Title order={4} size="sm" mb="xs">Statistics</Title>
+                    <Text size="sm" c="dimmed" component="ul" style={{ paddingLeft: '1rem' }}>
+                      <li>Higher-order asymptotics</li>
+                      <li>Exponential family analysis</li>
+                      <li>Geometric interpretation of estimators</li>
+                      <li>Curvature-based model selection</li>
+                    </Text>
+                  </div>
+                </SimpleGrid>
+              </Card.Section>
             </Card>
           </>
         )}
-      </div>
-    </div>
+      </Stack>
+    </Container>
   );
 }

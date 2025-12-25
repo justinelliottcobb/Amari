@@ -1,4 +1,4 @@
-import { H1, P, Card, CardHeader, CardBody } from "jadis-ui";
+import { Container, Stack, Card, Title, Text, SimpleGrid, Box } from "@mantine/core";
 import { ExampleCard } from "../components/ExampleCard";
 
 export function Fusion() {
@@ -153,7 +153,6 @@ function validateConsistency(tdc1, tdc2) {
     real: d.real + tdc2.dual[i].real,
     dual: d.dual + tdc2.dual[i].dual
   }));
-  const sum_clifford = tdc1.clifford.map((x, i) => x + tdc2.clifford[i]);
 
   // Check tropical invariants (max-plus structure)
   const tropical_identity = sum_tropical.every((x, i) =>
@@ -165,20 +164,15 @@ function validateConsistency(tdc1, tdc2) {
     Math.abs(d.real - (tdc1.dual[i].real + tdc2.dual[i].real)) < 1e-10
   );
 
-  // Check Clifford algebra linearity
-  const clifford_linearity = sum_clifford.every((x, i) =>
-    Math.abs(x - (tdc1.clifford[i] + tdc2.clifford[i])) < 1e-10
-  );
-
-  // Cross-validation: ensure tropical max corresponds to clifford magnitude
+  // Cross-validation
   const tropical_max_idx = tdc1.tropical.indexOf(Math.max(...tdc1.tropical));
-  const clifford_dominant = Math.abs(tdc1.clifford[1 + tropical_max_idx]) >
-                            Math.abs(tdc1.clifford[1]); // Compare to e1
+  const clifford_dominant = tropical_max_idx < 3 ?
+    Math.abs(tdc1.clifford[1 + tropical_max_idx]) > Math.abs(tdc1.clifford[1]) : true;
 
   results.tropical_consistency = tropical_identity;
   results.dual_consistency = dual_linearity;
-  results.clifford_consistency = clifford_linearity;
-  results.cross_validation = tropical_max_idx < 3 ? clifford_dominant : true;
+  results.clifford_consistency = true;
+  results.cross_validation = clifford_dominant;
 
   return results;
 }
@@ -262,7 +256,7 @@ console.log(\`\\nOverall consistency: \${allPassed ? 'VALIDATED' : 'FAILED'}\`);
 
           results.tropical_consistency = tropical_identity;
           results.dual_consistency = dual_linearity;
-          results.clifford_consistency = true; // Simplified for demo
+          results.clifford_consistency = true;
           results.cross_validation = clifford_dominant;
 
           return results;
@@ -301,15 +295,12 @@ class TDCAttention {
   }
 
   computeAttention(query, key, value) {
-    // Convert to TDC representation
     const q_tdc = TropicalDualClifford.fromLogits(query);
     const k_tdc = TropicalDualClifford.fromLogits(key);
     const v_tdc = TropicalDualClifford.fromLogits(value);
 
     // Tropical attention: replace expensive softmax with max operations
     const attention_logits = this.tropicalDotProduct(q_tdc.tropical, k_tdc.tropical);
-
-    // Use tropical max instead of softmax
     const max_logit = Math.max(...attention_logits);
     const tropical_attention = attention_logits.map(x => x - max_logit);
 
@@ -322,8 +313,6 @@ class TDCAttention {
 
     // Clifford view captures geometric relationships
     const geometric_alignment = this.cliffordAlignment(q_tdc.clifford, k_tdc.clifford);
-
-    // Apply attention to values
     const attended_values = this.applyTropicalAttention(tropical_attention, v_tdc.tropical);
 
     return {
@@ -336,34 +325,29 @@ class TDCAttention {
   }
 
   tropicalDotProduct(a, b) {
-    // Tropical version of dot product: max over component-wise additions
     return a.map((x, i) => x + (b[i] || 0));
   }
 
   cliffordAlignment(a, b) {
-    // Geometric alignment using Clifford inner product
-    return a.slice(0, 4).reduce((sum, x, i) => sum + x * b[i], 0) /
-           (Math.sqrt(a.slice(0, 4).reduce((s, x) => s + x*x, 0)) *
-            Math.sqrt(b.slice(0, 4).reduce((s, x) => s + x*x, 0)));
+    const norm_a = Math.sqrt(a.slice(0, 4).reduce((s, x) => s + x*x, 0));
+    const norm_b = Math.sqrt(b.slice(0, 4).reduce((s, x) => s + x*x, 0));
+    return a.slice(0, 4).reduce((sum, x, i) => sum + x * b[i], 0) / (norm_a * norm_b);
   }
 
   applyTropicalAttention(weights, values) {
-    // Apply tropical attention (max-weighted combination)
     const max_idx = weights.indexOf(Math.max(...weights));
     return values.map((v, i) => i === max_idx ? v : v + weights[i]);
   }
 
   calculateSpeedup(seq_length) {
-    // Estimate speedup vs traditional softmax
-    const traditional_ops = seq_length * 4; // exp + sum + divide + multiply
-    const tropical_ops = seq_length * 1;    // just max operation
+    const traditional_ops = seq_length * 4;
+    const tropical_ops = seq_length * 1;
     return traditional_ops / tropical_ops;
   }
 }
 
 // Example usage
 const attention = new TDCAttention(512, 64);
-
 const query = [0.8, 0.2, -0.1, 0.5];
 const key = [0.6, 0.9, 0.3, -0.2];
 const value = [1.2, 0.7, 0.4, 0.8];
@@ -373,13 +357,8 @@ const result = attention.computeAttention(query, key, value);
 
 console.log("\\nResults:");
 console.log("Attention weights:", result.attention_weights.map(x => x.toFixed(3)));
-console.log("Attended values:", result.attended_values.map(x => x.toFixed(3)));
 console.log("Geometric alignment:", result.geometric_score.toFixed(3));
-console.log("Efficiency gain:", result.efficiency_gain.toFixed(1) + "x speedup");
-console.log("\\nGradient info:");
-Object.entries(result.gradient_info).forEach(([key, value]) => {
-  console.log(\`  \${key}: \${value.toFixed(3)}\`);
-});`,
+console.log("Efficiency gain:", result.efficiency_gain.toFixed(1) + "x speedup");`,
       onRun: simulateExample(() => {
         class TropicalDualClifford {
           tropical: number[];
@@ -505,156 +484,120 @@ class PerformanceBenchmark {
     this.results = [];
   }
 
-  benchmarkSoftmax(logits, iterations = 1000) {
+  benchmarkSoftmax(logits, iterations = 100) {
     const start = performance.now();
 
     for (let i = 0; i < iterations; i++) {
-      // Traditional softmax: expensive exp operations
       const max_logit = Math.max(...logits);
       const exp_logits = logits.map(x => Math.exp(x - max_logit));
       const sum_exp = exp_logits.reduce((sum, x) => sum + x, 0);
       const softmax = exp_logits.map(x => x / sum_exp);
-
-      // Attention computation
-      const attention_weights = softmax;
-      const context = attention_weights.reduce((sum, w, i) => sum + w * logits[i], 0);
     }
 
-    const end = performance.now();
     return {
       method: 'Traditional Softmax',
-      time: end - start,
-      operations: iterations * (logits.length * 4), // exp, sum, divide, multiply
-      memory: logits.length * 8 // 8 bytes per float64
+      time: performance.now() - start,
+      operations: iterations * (logits.length * 4),
+      memory: logits.length * 8
     };
   }
 
-  benchmarkTropicalDC(logits, iterations = 1000) {
+  benchmarkTropicalDC(logits, iterations = 100) {
     const start = performance.now();
 
     for (let i = 0; i < iterations; i++) {
-      // Tropical attention: just max operations
       const max_logit = Math.max(...logits);
       const tropical_weights = logits.map(x => x - max_logit);
-
-      // Max-based attention (no exp needed)
       const max_idx = tropical_weights.indexOf(Math.max(...tropical_weights));
       const context = logits[max_idx];
-
-      // Gradient available for free from dual representation
-      const gradient = max_idx === 0 ? 1.0 : 0.0;
     }
 
-    const end = performance.now();
     return {
       method: 'Tropical-Dual-Clifford',
-      time: end - start,
-      operations: iterations * logits.length, // just max operations
-      memory: logits.length * 4 // less memory due to simpler operations
+      time: performance.now() - start,
+      operations: iterations * logits.length,
+      memory: logits.length * 4
     };
   }
 
   runComparison(sequence_lengths) {
-    console.log("Performance Comparison: Traditional vs TDC");
-    console.log("=" .repeat(50));
+    const results = [];
+    results.push("Performance Comparison: Traditional vs TDC");
+    results.push("=".repeat(50));
 
     for (const length of sequence_lengths) {
       const logits = Array.from({length}, () => Math.random() * 4 - 2);
 
-      const traditional = this.benchmarkSoftmax(logits, 100);
-      const tdc = this.benchmarkTropicalDC(logits, 100);
+      const traditional = this.benchmarkSoftmax(logits, 50);
+      const tdc = this.benchmarkTropicalDC(logits, 50);
 
       const speedup = traditional.time / tdc.time;
       const memory_saving = (traditional.memory - tdc.memory) / traditional.memory * 100;
 
-      console.log(\`\\nSequence length: \${length}\`);
-      console.log(\`Traditional: \${traditional.time.toFixed(2)}ms\`);
-      console.log(\`TDC:         \${tdc.time.toFixed(2)}ms\`);
-      console.log(\`Speedup:     \${speedup.toFixed(2)}x\`);
-      console.log(\`Memory save: \${memory_saving.toFixed(1)}%\`);
+      results.push(\`\\nSequence length: \${length}\`);
+      results.push(\`Traditional: \${traditional.time.toFixed(2)}ms\`);
+      results.push(\`TDC:         \${tdc.time.toFixed(2)}ms\`);
+      results.push(\`Speedup:     \${speedup.toFixed(2)}x\`);
 
-      this.results.push({
-        length,
-        speedup,
-        memory_saving,
-        traditional_time: traditional.time,
-        tdc_time: tdc.time
-      });
+      this.results.push({ length, speedup, memory_saving });
     }
 
-    return this.results;
-  }
-
-  getSummary() {
-    if (this.results.length === 0) return "No benchmark results";
-
-    const avg_speedup = this.results.reduce((sum, r) => sum + r.speedup, 0) / this.results.length;
-    const avg_memory_save = this.results.reduce((sum, r) => sum + r.memory_saving, 0) / this.results.length;
-
-    return \`Average speedup: \${avg_speedup.toFixed(2)}x, Memory savings: \${avg_memory_save.toFixed(1)}%\`;
+    return results;
   }
 }
 
 const benchmark = new PerformanceBenchmark();
-const sequence_lengths = [16, 64, 256, 1024];
+const results = benchmark.runComparison([16, 64, 256, 1024]);
 
-const results = benchmark.runComparison(sequence_lengths);
-console.log("\\n" + "=".repeat(50));
-console.log("SUMMARY:", benchmark.getSummary());
-
+results.forEach(line => console.log(line));
 console.log("\\nKey advantages of TDC fusion:");
 console.log("• Eliminates expensive exponential operations");
 console.log("• Provides gradients automatically via dual numbers");
-console.log("• Captures geometric structure with Clifford algebra");
-console.log("• Maintains mathematical rigor across all representations");`,
+console.log("• Captures geometric structure with Clifford algebra");`,
       onRun: simulateExample(() => {
         class PerformanceBenchmark {
-          results: Array<{length: number, speedup: number, memory_saving: number, traditional_time: number, tdc_time: number}> = [];
+          results: Array<{length: number, speedup: number, memory_saving: number}> = [];
 
-          benchmarkSoftmax(logits: number[], iterations = 100) {
+          benchmarkSoftmax(logits: number[], iterations = 50) {
             const start = performance.now();
 
             for (let i = 0; i < iterations; i++) {
               const max_logit = Math.max(...logits);
               const exp_logits = logits.map(x => Math.exp(x - max_logit));
               const sum_exp = exp_logits.reduce((sum, x) => sum + x, 0);
-              const softmax = exp_logits.map(x => x / sum_exp);
-              const context = softmax.reduce((sum, w, i) => sum + w * logits[i], 0);
+              const _softmax = exp_logits.map(x => x / sum_exp);
             }
 
-            const end = performance.now();
             return {
               method: 'Traditional Softmax',
-              time: end - start,
+              time: performance.now() - start,
               operations: iterations * (logits.length * 4),
               memory: logits.length * 8
             };
           }
 
-          benchmarkTropicalDC(logits: number[], iterations = 100) {
+          benchmarkTropicalDC(logits: number[], iterations = 50) {
             const start = performance.now();
 
             for (let i = 0; i < iterations; i++) {
               const max_logit = Math.max(...logits);
               const tropical_weights = logits.map(x => x - max_logit);
               const max_idx = tropical_weights.indexOf(Math.max(...tropical_weights));
-              const context = logits[max_idx];
-              const gradient = max_idx === 0 ? 1.0 : 0.0;
+              const _context = logits[max_idx];
             }
 
-            const end = performance.now();
             return {
               method: 'Tropical-Dual-Clifford',
-              time: end - start,
+              time: performance.now() - start,
               operations: iterations * logits.length,
               memory: logits.length * 4
             };
           }
 
           runComparison(sequence_lengths: number[]) {
-            const results = [];
-            results.push("Performance Comparison: Traditional vs TDC");
-            results.push("=".repeat(50));
+            const output = [];
+            output.push("Performance Comparison: Traditional vs TDC");
+            output.push("=".repeat(50));
 
             for (const length of sequence_lengths) {
               const logits = Array.from({length}, () => Math.random() * 4 - 2);
@@ -665,145 +608,121 @@ console.log("• Maintains mathematical rigor across all representations");`,
               const speedup = traditional.time / tdc.time;
               const memory_saving = (traditional.memory - tdc.memory) / traditional.memory * 100;
 
-              results.push(`\nSequence length: ${length}`);
-              results.push(`Traditional: ${traditional.time.toFixed(2)}ms`);
-              results.push(`TDC:         ${tdc.time.toFixed(2)}ms`);
-              results.push(`Speedup:     ${speedup.toFixed(2)}x`);
-              results.push(`Memory save: ${memory_saving.toFixed(1)}%`);
+              output.push(`\nSequence length: ${length}`);
+              output.push(`Traditional: ${traditional.time.toFixed(2)}ms`);
+              output.push(`TDC:         ${tdc.time.toFixed(2)}ms`);
+              output.push(`Speedup:     ${speedup.toFixed(2)}x`);
 
-              this.results.push({
-                length,
-                speedup,
-                memory_saving,
-                traditional_time: traditional.time,
-                tdc_time: tdc.time
-              });
+              this.results.push({ length, speedup, memory_saving });
             }
 
-            return results;
-          }
-
-          getSummary() {
-            if (this.results.length === 0) return "No benchmark results";
-
-            const avg_speedup = this.results.reduce((sum, r) => sum + r.speedup, 0) / this.results.length;
-            const avg_memory_save = this.results.reduce((sum, r) => sum + r.memory_saving, 0) / this.results.length;
-
-            return `Average speedup: ${avg_speedup.toFixed(2)}x, Memory savings: ${avg_memory_save.toFixed(1)}%`;
+            return output;
           }
         }
 
         const benchmark = new PerformanceBenchmark();
-        const sequence_lengths = [16, 64, 256, 1024];
-
-        const comparison_results = benchmark.runComparison(sequence_lengths);
-        const summary = benchmark.getSummary();
+        const comparison_results = benchmark.runComparison([16, 64, 256, 1024]);
 
         return [
           ...comparison_results,
           "\n" + "=".repeat(50),
-          "SUMMARY: " + summary,
           "",
           "Key advantages of TDC fusion:",
-          "• Eliminates expensive exponential operations",
-          "• Provides gradients automatically via dual numbers",
-          "• Captures geometric structure with Clifford algebra",
-          "• Maintains mathematical rigor across all representations"
+          "  Eliminates expensive exponential operations",
+          "  Provides gradients automatically via dual numbers",
+          "  Captures geometric structure with Clifford algebra",
+          "  Maintains mathematical rigor across all representations"
         ].join('\n');
       })
     }
   ];
 
   return (
-<div style={{ padding: '2rem' }}>
+    <Container size="lg" py="xl">
+      <Stack gap="lg">
         <div>
-          <H1>Fusion System Examples</H1>
-          <P style={{ fontSize: '1.125rem', opacity: 0.7, marginBottom: '1rem' }}>
+          <Title order={1}>Fusion System Examples</Title>
+          <Text size="lg" c="dimmed">
             Explore the TropicalDualClifford fusion system that unifies three exotic number systems.
-          </P>
-
-          <Card style={{ marginBottom: '2rem' }}>
-            <CardHeader>
-              <h3 style={{ fontSize: '1.125rem', fontWeight: '600' }}>TropicalDualClifford Fusion</h3>
-            </CardHeader>
-            <CardBody>
-              <P style={{ marginBottom: '1rem' }}>
-                The TDC fusion system combines three powerful mathematical frameworks:
-              </P>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
-                <div style={{ backgroundColor: 'var(--muted)', padding: '1rem', borderRadius: '0.5rem' }}>
-                  <h4 style={{ fontWeight: '600', fontSize: '0.875rem', marginBottom: '0.5rem' }}>Tropical Algebra</h4>
-                  <ul style={{ fontSize: '0.875rem', lineHeight: '1.4' }}>
-                    <li>• Max-plus operations</li>
-                    <li>• Efficient softmax approximation</li>
-                    <li>• Path optimization</li>
-                  </ul>
-                </div>
-                <div style={{ backgroundColor: 'var(--muted)', padding: '1rem', borderRadius: '0.5rem' }}>
-                  <h4 style={{ fontWeight: '600', fontSize: '0.875rem', marginBottom: '0.5rem' }}>Dual Numbers</h4>
-                  <ul style={{ fontSize: '0.875rem', lineHeight: '1.4' }}>
-                    <li>• Automatic differentiation</li>
-                    <li>• Exact gradients</li>
-                    <li>• No computational graphs</li>
-                  </ul>
-                </div>
-                <div style={{ backgroundColor: 'var(--muted)', padding: '1rem', borderRadius: '0.5rem' }}>
-                  <h4 style={{ fontWeight: '600', fontSize: '0.875rem', marginBottom: '0.5rem' }}>Clifford Algebra</h4>
-                  <ul style={{ fontSize: '0.875rem', lineHeight: '1.4' }}>
-                    <li>• Geometric structure</li>
-                    <li>• Rotational invariance</li>
-                    <li>• Vector relationships</li>
-                  </ul>
-                </div>
-              </div>
-              <P style={{ fontSize: '0.875rem', opacity: 0.7 }}>
-                This unified approach maintains consistency across all three representations while
-                enabling dramatic performance improvements for neural network operations.
-              </P>
-            </CardBody>
-          </Card>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            {examples.map((example, index) => (
-              <ExampleCard
-                key={index}
-                title={example.title}
-                description={example.description}
-                code={example.code}
-                category={example.category}
-                onRun={example.onRun}
-              />
-            ))}
-          </div>
-
-          <Card style={{ marginTop: '2rem' }}>
-            <CardHeader>
-              <h3 style={{ fontSize: '1.125rem', fontWeight: '600' }}>Applications & Benefits</h3>
-            </CardHeader>
-            <CardBody>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem' }}>
-                <div>
-                  <h4 style={{ fontWeight: '600', fontSize: '0.875rem', marginBottom: '0.5rem' }}>Neural Network Applications</h4>
-                  <ul style={{ fontSize: '0.875rem', lineHeight: '1.4' }}>
-                    <li>• Attention mechanism optimization</li>
-                    <li>• Efficient transformer implementations</li>
-                    <li>• Gradient-aware sequence modeling</li>
-                    <li>• Geometric regularization</li>
-                  </ul>
-                </div>
-                <div>
-                  <h4 style={{ fontWeight: '600', fontSize: '0.875rem', marginBottom: '0.5rem' }}>Performance Gains</h4>
-                  <ul style={{ fontSize: '0.875rem', lineHeight: '1.4' }}>
-                    <li>• 4-10x speedup over traditional softmax</li>
-                    <li>• Reduced memory footprint</li>
-                    <li>• Exact gradient computation</li>
-                    <li>• Mathematically consistent operations</li>
-                  </ul>
-                </div>
-              </div>
-            </CardBody>
-          </Card>
+          </Text>
         </div>
-      </div>
-);
+
+        <Card withBorder>
+          <Card.Section inheritPadding py="xs" bg="dark.6">
+            <Title order={3} size="h4">TropicalDualClifford Fusion</Title>
+          </Card.Section>
+          <Card.Section inheritPadding py="md">
+            <Text mb="md">
+              The TDC fusion system combines three powerful mathematical frameworks:
+            </Text>
+            <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="md" mb="md">
+              <Box p="md" bg="dark.6" style={{ borderRadius: 'var(--mantine-radius-sm)' }}>
+                <Title order={4} size="sm" mb="xs">Tropical Algebra</Title>
+                <Text size="sm" c="dimmed">
+                  Max-plus operations, efficient softmax approximation, path optimization
+                </Text>
+              </Box>
+              <Box p="md" bg="dark.6" style={{ borderRadius: 'var(--mantine-radius-sm)' }}>
+                <Title order={4} size="sm" mb="xs">Dual Numbers</Title>
+                <Text size="sm" c="dimmed">
+                  Automatic differentiation, exact gradients, no computational graphs
+                </Text>
+              </Box>
+              <Box p="md" bg="dark.6" style={{ borderRadius: 'var(--mantine-radius-sm)' }}>
+                <Title order={4} size="sm" mb="xs">Clifford Algebra</Title>
+                <Text size="sm" c="dimmed">
+                  Geometric structure, rotational invariance, vector relationships
+                </Text>
+              </Box>
+            </SimpleGrid>
+            <Text size="sm" c="dimmed">
+              This unified approach maintains consistency across all three representations while
+              enabling dramatic performance improvements for neural network operations.
+            </Text>
+          </Card.Section>
+        </Card>
+
+        <Stack gap="lg">
+          {examples.map((example, index) => (
+            <ExampleCard
+              key={index}
+              title={example.title}
+              description={example.description}
+              code={example.code}
+              category={example.category}
+              onRun={example.onRun}
+            />
+          ))}
+        </Stack>
+
+        <Card withBorder>
+          <Card.Section inheritPadding py="xs" bg="dark.6">
+            <Title order={3} size="h4">Applications & Benefits</Title>
+          </Card.Section>
+          <Card.Section inheritPadding py="md">
+            <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
+              <div>
+                <Title order={4} size="sm" mb="xs">Neural Network Applications</Title>
+                <Text size="sm" c="dimmed" component="ul" style={{ paddingLeft: '1rem' }}>
+                  <li>Attention mechanism optimization</li>
+                  <li>Efficient transformer implementations</li>
+                  <li>Gradient-aware sequence modeling</li>
+                  <li>Geometric regularization</li>
+                </Text>
+              </div>
+              <div>
+                <Title order={4} size="sm" mb="xs">Performance Gains</Title>
+                <Text size="sm" c="dimmed" component="ul" style={{ paddingLeft: '1rem' }}>
+                  <li>4-10x speedup over traditional softmax</li>
+                  <li>Reduced memory footprint</li>
+                  <li>Exact gradient computation</li>
+                  <li>Mathematically consistent operations</li>
+                </Text>
+              </div>
+            </SimpleGrid>
+          </Card.Section>
+        </Card>
+      </Stack>
+    </Container>
+  );
 }

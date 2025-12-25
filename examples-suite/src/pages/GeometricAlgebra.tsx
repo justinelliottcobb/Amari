@@ -1,7 +1,8 @@
-import { H1, P } from "jadis-ui";
+import { Title, Text, Container, Stack, Alert } from "@mantine/core";
 import { ExampleCard } from "../components/ExampleCard";
 import { useAmariWasm } from "../hooks/useAmariWasm";
 import { LoadingState } from "../components/LoadingState";
+
 export function GeometricAlgebra() {
   const { ready, error, amari } = useAmariWasm();
 
@@ -11,12 +12,12 @@ export function GeometricAlgebra() {
 
   if (error) {
     return (
-      <div style={{ padding: '2rem' }}>
-        <div style={{}}>
-          <H1>Geometric Algebra Examples</H1>
-          <P style={{ color: '#dc2626' }}>Failed to load WASM module: {error}</P>
-        </div>
-      </div>
+      <Container size="lg" py="xl">
+        <Title order={1} mb="md">Geometric Algebra Examples</Title>
+        <Alert color="red" title="Error">
+          Failed to load WASM module: {error}
+        </Alert>
+      </Container>
     );
   }
 
@@ -49,11 +50,9 @@ console.log("Scalar component:", scalar);
 console.log("e1 component:", e1);
 console.log("Grade 1 coefficients:", grade1.getCoefficients());`,
       onRun: runExample(() => {
-        // Create a 3D Euclidean multivector from coefficients
         const coeffs = new Float64Array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0]);
         const mv = amari!.WasmMultivector.fromCoefficients(coeffs);
 
-        // Access individual components
         const scalar = mv.getCoefficient(0);
         const e1 = mv.getCoefficient(1);
         const grade1 = mv.gradeProjection(1);
@@ -65,7 +64,6 @@ console.log("Grade 1 coefficients:", grade1.getCoefficients());`,
           `Grade 1 coefficients: [${Array.from(grade1Coeffs).join(', ')}]`
         ].join('\n');
 
-        // Clean up WASM objects
         mv.free();
         grade1.free();
 
@@ -88,11 +86,8 @@ console.log("v2 coefficients:", v2.getCoefficients());
 console.log("Product coefficients:", product.getCoefficients());
 console.log("e12 component:", product.getCoefficient(4));`,
       onRun: runExample(() => {
-        // Create two basis vectors
-        const v1 = amari!.WasmMultivector.basisVector(0); // e1
-        const v2 = amari!.WasmMultivector.basisVector(1); // e2
-
-        // Geometric product: e1 * e2 = e1∧e2 (bivector)
+        const v1 = amari!.WasmMultivector.basisVector(0);
+        const v2 = amari!.WasmMultivector.basisVector(1);
         const product = v1.geometricProduct(v2);
 
         const v1Coeffs = v1.getCoefficients();
@@ -107,7 +102,6 @@ console.log("e12 component:", product.getCoefficient(4));`,
           `e12 component: ${e12Component}`
         ].join('\n');
 
-        // Clean up WASM objects
         v1.free();
         v2.free();
         product.free();
@@ -137,19 +131,12 @@ const rotated = rotor.apply(vector);
 console.log("Original vector:", vector.getCoefficients());
 console.log("Rotated vector:", rotated.getCoefficients());`,
       onRun: runExample(() => {
-        // Create a vector to rotate (e1)
         const vector = amari!.WasmMultivector.basisVector(0);
-
-        // Create bivector for rotation plane (e1∧e2)
         const e1 = amari!.WasmMultivector.basisVector(0);
         const e2 = amari!.WasmMultivector.basisVector(1);
         const bivector = e1.outerProduct(e2);
-
-        // Create rotor for 90-degree rotation
-        const angle = Math.PI / 2; // 90 degrees
+        const angle = Math.PI / 2;
         const rotor = amari!.WasmRotor.fromBivector(bivector, angle);
-
-        // Apply rotation
         const rotated = rotor.apply(vector);
 
         const originalCoeffs = vector.getCoefficients();
@@ -160,7 +147,6 @@ console.log("Rotated vector:", rotated.getCoefficients());`,
           `Rotated vector: [${Array.from(rotatedCoeffs).join(', ')}]`
         ].join('\n');
 
-        // Clean up WASM objects
         vector.free();
         e1.free();
         e2.free();
@@ -194,18 +180,13 @@ console.log("v2:", coeffs2);
 console.log("Inner product (scalar):", innerScalar);
 console.log("Outer product:", outer.getCoefficients());`,
       onRun: runExample(() => {
-        // Create two vectors with mixed components
-        const coeffs1 = new Float64Array([0.0, 1.0, 2.0, 3.0, 0.0, 0.0, 0.0, 0.0]); // 1e1 + 2e2 + 3e3
-        const coeffs2 = new Float64Array([0.0, 4.0, 5.0, 6.0, 0.0, 0.0, 0.0, 0.0]); // 4e1 + 5e2 + 6e3
+        const coeffs1 = new Float64Array([0.0, 1.0, 2.0, 3.0, 0.0, 0.0, 0.0, 0.0]);
+        const coeffs2 = new Float64Array([0.0, 4.0, 5.0, 6.0, 0.0, 0.0, 0.0, 0.0]);
 
         const v1 = amari!.WasmMultivector.fromCoefficients(coeffs1);
         const v2 = amari!.WasmMultivector.fromCoefficients(coeffs2);
-
-        // Inner product (dot product for vectors)
         const inner = v1.innerProduct(v2);
         const innerScalar = inner.getCoefficient(0);
-
-        // Outer product (wedge product - produces bivector)
         const outer = v1.outerProduct(v2);
 
         const outerCoeffs = outer.getCoefficients();
@@ -217,7 +198,6 @@ console.log("Outer product:", outer.getCoefficients());`,
           `Outer product: [${Array.from(outerCoeffs).join(', ')}]`
         ].join('\n');
 
-        // Clean up WASM objects
         v1.free();
         v2.free();
         inner.free();
@@ -229,26 +209,28 @@ console.log("Outer product:", outer.getCoefficients());`,
   ];
 
   return (
-<div style={{ padding: '2rem' }}>
-        <div style={{}}>
-          <H1>Geometric Algebra Examples</H1>
-          <P style={{ fontSize: '1.125rem', opacity: 0.7, marginBottom: '2rem' }}>
+    <Container size="lg" py="xl">
+      <Stack gap="lg">
+        <div>
+          <Title order={1} mb="sm">Geometric Algebra Examples</Title>
+          <Text size="lg" c="dimmed">
             Explore multivectors, geometric products, and rotors in Clifford algebra with interactive examples.
-          </P>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            {examples.map((example, index) => (
-              <ExampleCard
-                key={index}
-                title={example.title}
-                description={example.description}
-                code={example.code}
-                category={example.category}
-                onRun={example.onRun}
-              />
-            ))}
-          </div>
+          </Text>
         </div>
-      </div>
-);
+
+        <Stack gap="lg">
+          {examples.map((example, index) => (
+            <ExampleCard
+              key={index}
+              title={example.title}
+              description={example.description}
+              code={example.code}
+              category={example.category}
+              onRun={example.onRun}
+            />
+          ))}
+        </Stack>
+      </Stack>
+    </Container>
+  );
 }

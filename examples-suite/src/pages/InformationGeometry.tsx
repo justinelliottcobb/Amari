@@ -1,4 +1,4 @@
-import { H1, P, Card, CardHeader, CardBody } from "jadis-ui";
+import { Container, Stack, Card, Title, Text, List, Code } from "@mantine/core";
 import { ExampleCard } from "../components/ExampleCard";
 
 export function InformationGeometry() {
@@ -263,31 +263,20 @@ function amariChentsovTensor(probabilities) {
     Array(n).fill().map(() => Array(n).fill(0))
   );
 
-  // For multinomial distribution: ∂ᵢ log p = δᵢₖ/pₖ - 1
-  // where δᵢₖ is the Kronecker delta
-
   for (let i = 0; i < n; i++) {
     for (let j = 0; j < n; j++) {
       for (let k = 0; k < n; k++) {
         let tensorValue = 0;
 
-        // E[∂ᵢ log p · ∂ⱼ log p · ∂ₖ log p]
-        // For multinomial: this simplifies based on the expectation
-
         if (i === j && j === k) {
-          // All three indices equal: T[i,i,i] = (1-2p_i)/(p_i)²
           tensorValue = (1 - 2 * probabilities[i]) / Math.pow(probabilities[i], 2);
         } else if (i === j && i !== k) {
-          // Two indices equal: T[i,i,k] = -1/(p_i * p_k)
           tensorValue = -1 / (probabilities[i] * probabilities[k]);
         } else if (i === k && i !== j) {
-          // Two indices equal: T[i,j,i] = -1/(p_i * p_j)
           tensorValue = -1 / (probabilities[i] * probabilities[j]);
         } else if (j === k && j !== i) {
-          // Two indices equal: T[i,j,j] = -1/(p_i * p_j)
           tensorValue = -1 / (probabilities[i] * probabilities[j]);
         } else if (i !== j && j !== k && i !== k) {
-          // All indices different: T[i,j,k] = 1/(p_i * p_j * p_k)
           tensorValue = 1 / (probabilities[i] * probabilities[j] * probabilities[k]);
         }
 
@@ -299,87 +288,13 @@ function amariChentsovTensor(probabilities) {
   return tensor;
 }
 
-// α-connection coefficients using Amari-Chentsov tensor
-function alphaConnectionCoefficients(tensor, alpha) {
-  const n = tensor.length;
-  const connections = Array(n).fill().map(() =>
-    Array(n).fill().map(() => Array(n).fill(0))
-  );
-
-  for (let i = 0; i < n; i++) {
-    for (let j = 0; j < n; j++) {
-      for (let k = 0; k < n; k++) {
-        // Γᵅ[i,j,k] = (1-α)/2 * T[i,j,k]
-        connections[i][j][k] = ((1 - alpha) / 2) * tensor[i][j][k];
-      }
-    }
-  }
-
-  return connections;
-}
-
-// Example computation
 const probs = [0.5, 0.3, 0.2];
-console.log("Probability distribution:", probs);
-
 const tensor = amariChentsovTensor(probs);
-console.log("\\nAmari-Chentsov Tensor T[i,j,k]:");
 
-// Display key tensor components
-console.log("Diagonal components T[i,i,i]:");
+console.log("Probability distribution:", probs);
+console.log("\\nDiagonal components T[i,i,i]:");
 for (let i = 0; i < probs.length; i++) {
   console.log(\`  T[\${i},\${i},\${i}] = \${tensor[i][i][i].toFixed(4)}\`);
-}
-
-console.log("\\nOff-diagonal components T[0,1,2]:");
-console.log(\`  T[0,1,2] = \${tensor[0][1][2].toFixed(4)}\`);
-console.log(\`  T[1,0,2] = \${tensor[1][0][2].toFixed(4)}\`);
-
-// α-connection examples
-const alphas = [-1, 0, 1]; // e-connection, Levi-Civita, m-connection
-console.log("\\nα-Connection coefficients:");
-alphas.forEach(alpha => {
-  const conn = alphaConnectionCoefficients(tensor, alpha);
-  const name = alpha === -1 ? "e-connection" :
-               alpha === 0 ? "Levi-Civita" : "m-connection";
-  console.log(\`  \${name} (α=\${alpha}): Γ[0,1,2] = \${conn[0][1][2].toFixed(4)}\`);
-});
-
-console.log("\\nGeometric interpretation:");
-console.log("• Tensor encodes all statistical curvature information");
-console.log("• Defines the unique geometric structure of statistical manifolds");
-console.log("• Foundation for natural gradient descent and efficient optimization");
-
-// Create heat map visualization
-console.log("\\nTensor Heat Map (k=0 slice):");
-console.log("    j=0     j=1     j=2");
-for (let i = 0; i < probs.length; i++) {
-  let row = \`i=\${i} \`;
-  for (let j = 0; j < probs.length; j++) {
-    const val = tensor[i][j][0];
-    const formatted = val.toFixed(2).padStart(7);
-    row += formatted + " ";
-  }
-  console.log(row);
-}
-
-// ASCII visualization of tensor magnitude
-console.log("\\nTensor Magnitude Visualization (■ = high, · = low):");
-const maxVal = Math.max(...tensor.flat(2).map(Math.abs));
-for (let k = 0; k < probs.length; k++) {
-  console.log(\`\\nSlice k=\${k}:\`);
-  for (let i = 0; i < probs.length; i++) {
-    let row = "";
-    for (let j = 0; j < probs.length; j++) {
-      const magnitude = Math.abs(tensor[i][j][k]) / maxVal;
-      if (magnitude > 0.75) row += "■■ ";
-      else if (magnitude > 0.5) row += "▓▓ ";
-      else if (magnitude > 0.25) row += "▒▒ ";
-      else if (magnitude > 0.1) row += "░░ ";
-      else row += "·· ";
-    }
-    console.log(\`  \${row}\`);
-  }
 }`,
       onRun: simulateExample(() => {
         function amariChentsovTensor(probabilities: number[]) {
@@ -412,25 +327,8 @@ for (let k = 0; k < probs.length; k++) {
           return tensor;
         }
 
-        function alphaConnectionCoefficients(tensor: number[][][], alpha: number) {
-          const n = tensor.length;
-          const connections = Array(n).fill(null).map(() =>
-            Array(n).fill(null).map(() => Array(n).fill(0))
-          );
-
-          for (let i = 0; i < n; i++) {
-            for (let j = 0; j < n; j++) {
-              for (let k = 0; k < n; k++) {
-                connections[i][j][k] = ((1 - alpha) / 2) * tensor[i][j][k];
-              }
-            }
-          }
-          return connections;
-        }
-
         const probs = [0.5, 0.3, 0.2];
         const tensor = amariChentsovTensor(probs);
-        const alphas = [-1, 0, 1];
 
         const results = [
           `Probability distribution: [${probs.join(', ')}]`,
@@ -441,65 +339,12 @@ for (let k = 0; k < probs.length; k++) {
           ``,
           `Off-diagonal components T[0,1,2]:`,
           `  T[0,1,2] = ${tensor[0][1][2].toFixed(4)}`,
-          `  T[1,0,2] = ${tensor[1][0][2].toFixed(4)}`,
-          ``,
-          `α-Connection coefficients:`
-        ];
-
-        alphas.forEach(alpha => {
-          const conn = alphaConnectionCoefficients(tensor, alpha);
-          const name = alpha === -1 ? "e-connection" :
-                       alpha === 0 ? "Levi-Civita" : "m-connection";
-          results.push(`  ${name} (α=${alpha}): Γ[0,1,2] = ${conn[0][1][2].toFixed(4)}`);
-        });
-
-        results.push(
           ``,
           `Geometric interpretation:`,
           `• Tensor encodes all statistical curvature information`,
           `• Defines the unique geometric structure of statistical manifolds`,
           `• Foundation for natural gradient descent and efficient optimization`
-        );
-
-        // Add heat map visualization
-        results.push(``, `Tensor Heat Map (k=0 slice):`, `    j=0     j=1     j=2`);
-        for (let i = 0; i < probs.length; i++) {
-          let row = `i=${i} `;
-          for (let j = 0; j < probs.length; j++) {
-            const val = tensor[i][j][0];
-            const formatted = val.toFixed(2).padStart(7);
-            row += formatted + " ";
-          }
-          results.push(row);
-        }
-
-        // ASCII visualization of tensor magnitude
-        results.push(``, `Tensor Magnitude Visualization (■ = high, · = low):`);
-        const flatTensor = [];
-        for (let i = 0; i < probs.length; i++) {
-          for (let j = 0; j < probs.length; j++) {
-            for (let k = 0; k < probs.length; k++) {
-              flatTensor.push(tensor[i][j][k]);
-            }
-          }
-        }
-        const maxVal = Math.max(...flatTensor.map(Math.abs));
-
-        for (let k = 0; k < probs.length; k++) {
-          results.push(``, `Slice k=${k}:`);
-          for (let i = 0; i < probs.length; i++) {
-            let row = "  ";
-            for (let j = 0; j < probs.length; j++) {
-              const magnitude = Math.abs(tensor[i][j][k]) / maxVal;
-              if (magnitude > 0.75) row += "■■ ";
-              else if (magnitude > 0.5) row += "▓▓ ";
-              else if (magnitude > 0.25) row += "▒▒ ";
-              else if (magnitude > 0.1) row += "░░ ";
-              else row += "·· ";
-            }
-            results.push(row);
-          }
-        }
+        ];
 
         return results.join('\n');
       })
@@ -595,73 +440,73 @@ console.log("• Respects geometry of parameter space");`,
   ];
 
   return (
-<div style={{ padding: '2rem' }}>
+    <Container size="lg" py="xl">
+      <Stack gap="lg">
         <div>
-          <H1>Information Geometry Examples</H1>
-          <P style={{ fontSize: '1.125rem', opacity: 0.7, marginBottom: '1rem' }}>
+          <Title order={1}>Information Geometry Examples</Title>
+          <Text size="lg" c="dimmed">
             Explore Fisher metrics, Bregman divergences, and α-connections on statistical manifolds.
-          </P>
-
-          <Card style={{ marginBottom: '2rem' }}>
-            <CardHeader>
-              <h3 style={{ fontSize: '1.125rem', fontWeight: '600' }}>What is Information Geometry?</h3>
-            </CardHeader>
-            <CardBody>
-              <P style={{ marginBottom: '1rem' }}>
-                Information geometry studies statistical models as Riemannian manifolds, providing geometric insights into:
-              </P>
-              <ul style={{ listStyleType: 'disc', listStylePosition: 'inside', fontSize: '0.875rem', lineHeight: '1.5', marginBottom: '1rem' }}>
-                <li><strong>Fisher Information Metric</strong>: Riemannian metric on parameter space</li>
-                <li><strong>α-Connections</strong>: Family of affine connections (-1 ≤ α ≤ 1)</li>
-                <li><strong>Bregman Divergences</strong>: Generalization of squared distance</li>
-                <li><strong>Dually Flat Manifolds</strong>: Special structure with dual coordinate systems</li>
-              </ul>
-              <div style={{ backgroundColor: 'var(--muted)', padding: '1rem', borderRadius: '0.5rem' }}>
-                <h4 style={{ fontWeight: '600', fontSize: '0.875rem', marginBottom: '0.5rem' }}>Key Applications:</h4>
-                <ul style={{ fontSize: '0.875rem', lineHeight: '1.4' }}>
-                  <li>• Natural gradient descent in machine learning</li>
-                  <li>• Optimal transport and Wasserstein geometry</li>
-                  <li>• Statistical inference and hypothesis testing</li>
-                  <li>• Neural network optimization</li>
-                </ul>
-              </div>
-            </CardBody>
-          </Card>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            {examples.map((example, index) => (
-              <ExampleCard
-                key={index}
-                title={example.title}
-                description={example.description}
-                code={example.code}
-                category={example.category}
-                onRun={example.onRun}
-              />
-            ))}
-          </div>
-
-          <Card style={{ marginTop: '2rem' }}>
-            <CardHeader>
-              <h3 style={{ fontSize: '1.125rem', fontWeight: '600' }}>Amari-Chentsov Tensor</h3>
-            </CardHeader>
-            <CardBody>
-              <P style={{ marginBottom: '1rem' }}>
-                The Amari-Chentsov tensor is a fundamental object in information geometry that captures
-                the intrinsic geometric structure of statistical manifolds.
-              </P>
-              <div style={{ backgroundColor: 'var(--muted)', padding: '1rem', borderRadius: '0.5rem' }}>
-                <code style={{ fontSize: '0.875rem' }}>
-                  T(∂ᵢ, ∂ⱼ, ∂ₖ) = E[∂ᵢ log p · ∂ⱼ log p · ∂ₖ log p]
-                </code>
-              </div>
-              <P style={{ marginTop: '1rem', fontSize: '0.875rem', opacity: 0.7 }}>
-                This tensor defines the α-connections and provides the unique geometric structure
-                that makes information geometry so powerful for statistical applications.
-              </P>
-            </CardBody>
-          </Card>
+          </Text>
         </div>
-      </div>
-);
+
+        <Card withBorder>
+          <Card.Section inheritPadding py="xs" bg="dark.6">
+            <Title order={3}>What is Information Geometry?</Title>
+          </Card.Section>
+          <Card.Section inheritPadding py="md">
+            <Text mb="md">
+              Information geometry studies statistical models as Riemannian manifolds, providing geometric insights into:
+            </Text>
+            <List size="sm" mb="md">
+              <List.Item><Text fw={600} span>Fisher Information Metric</Text>: Riemannian metric on parameter space</List.Item>
+              <List.Item><Text fw={600} span>α-Connections</Text>: Family of affine connections (-1 ≤ α ≤ 1)</List.Item>
+              <List.Item><Text fw={600} span>Bregman Divergences</Text>: Generalization of squared distance</List.Item>
+              <List.Item><Text fw={600} span>Dually Flat Manifolds</Text>: Special structure with dual coordinate systems</List.Item>
+            </List>
+            <Card withBorder bg="dark.7" p="md">
+              <Title order={4} size="sm" mb="xs">Key Applications:</Title>
+              <List size="sm">
+                <List.Item>Natural gradient descent in machine learning</List.Item>
+                <List.Item>Optimal transport and Wasserstein geometry</List.Item>
+                <List.Item>Statistical inference and hypothesis testing</List.Item>
+                <List.Item>Neural network optimization</List.Item>
+              </List>
+            </Card>
+          </Card.Section>
+        </Card>
+
+        <Stack gap="lg">
+          {examples.map((example, index) => (
+            <ExampleCard
+              key={index}
+              title={example.title}
+              description={example.description}
+              code={example.code}
+              category={example.category}
+              onRun={example.onRun}
+            />
+          ))}
+        </Stack>
+
+        <Card withBorder>
+          <Card.Section inheritPadding py="xs" bg="dark.6">
+            <Title order={3}>Amari-Chentsov Tensor</Title>
+          </Card.Section>
+          <Card.Section inheritPadding py="md">
+            <Text mb="md">
+              The Amari-Chentsov tensor is a fundamental object in information geometry that captures
+              the intrinsic geometric structure of statistical manifolds.
+            </Text>
+            <Code block mb="md">
+              T(∂ᵢ, ∂ⱼ, ∂ₖ) = E[∂ᵢ log p · ∂ⱼ log p · ∂ₖ log p]
+            </Code>
+            <Text size="sm" c="dimmed">
+              This tensor defines the α-connections and provides the unique geometric structure
+              that makes information geometry so powerful for statistical applications.
+            </Text>
+          </Card.Section>
+        </Card>
+      </Stack>
+    </Container>
+  );
 }

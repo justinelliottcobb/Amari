@@ -1,4 +1,4 @@
-import { H1, P, Card, CardHeader, CardBody } from "jadis-ui";
+import { Container, Stack, Card, Title, Text, List, SimpleGrid, Code } from "@mantine/core";
 import { ExampleCard } from "../components/ExampleCard";
 
 export function DualNumbers() {
@@ -253,80 +253,79 @@ console.log("Updated weight =", newW.toFixed(3));`,
   ];
 
   return (
-<div style={{ padding: '2rem' }}>
+    <Container size="lg" py="xl">
+      <Stack gap="lg">
         <div>
-          <H1>Dual Number Automatic Differentiation</H1>
-          <P style={{ fontSize: '1.125rem', opacity: 0.7, marginBottom: '1rem' }}>
+          <Title order={1}>Dual Number Automatic Differentiation</Title>
+          <Text size="lg" c="dimmed">
             Explore forward-mode automatic differentiation with dual numbers for exact gradient computation.
-          </P>
-
-          <Card style={{ marginBottom: '2rem' }}>
-            <CardHeader>
-              <h3 style={{ fontSize: '1.125rem', fontWeight: '600' }}>What are Dual Numbers?</h3>
-            </CardHeader>
-            <CardBody>
-              <P style={{ marginBottom: '1rem' }}>
-                Dual numbers extend real numbers with an infinitesimal unit ε where ε² = 0:
-              </P>
-              <div style={{ backgroundColor: 'var(--muted)', padding: '1rem', borderRadius: '0.5rem', marginBottom: '1rem' }}>
-                <code style={{ fontSize: '0.875rem' }}>
-                  x = a + bε
-                  <br />
-                  where a = function value, b = derivative
-                </code>
-              </div>
-              <ul style={{ listStyleType: 'disc', listStylePosition: 'inside', fontSize: '0.875rem', lineHeight: '1.5' }}>
-                <li><strong>Addition</strong>: (a + bε) + (c + dε) = (a + c) + (b + d)ε</li>
-                <li><strong>Multiplication</strong>: (a + bε)(c + dε) = ac + (ad + bc)ε</li>
-                <li><strong>Chain Rule</strong>: Automatically applied through operations</li>
-                <li><strong>No Approximation</strong>: Exact derivatives, not finite differences</li>
-              </ul>
-              <P style={{ marginTop: '1rem', fontSize: '0.875rem', opacity: 0.7 }}>
-                This enables efficient forward-mode automatic differentiation without computational graphs,
-                perfect for gradients in neural networks and optimization.
-              </P>
-            </CardBody>
-          </Card>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            {examples.map((example, index) => (
-              <ExampleCard
-                key={index}
-                title={example.title}
-                description={example.description}
-                code={example.code}
-                category={example.category}
-                onRun={example.onRun}
-              />
-            ))}
-          </div>
-
-          <Card style={{ marginTop: '2rem' }}>
-            <CardHeader>
-              <h3 style={{ fontSize: '1.125rem', fontWeight: '600' }}>Advantages of Dual Numbers</h3>
-            </CardHeader>
-            <CardBody>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem' }}>
-                <div>
-                  <h4 style={{ fontWeight: '600', fontSize: '0.875rem', marginBottom: '0.5rem' }}>vs. Numerical Differentiation</h4>
-                  <ul style={{ fontSize: '0.875rem', lineHeight: '1.4' }}>
-                    <li>✅ Exact (no approximation error)</li>
-                    <li>✅ No step size tuning</li>
-                    <li>✅ Numerically stable</li>
-                  </ul>
-                </div>
-                <div>
-                  <h4 style={{ fontWeight: '600', fontSize: '0.875rem', marginBottom: '0.5rem' }}>vs. Symbolic Differentiation</h4>
-                  <ul style={{ fontSize: '0.875rem', lineHeight: '1.4' }}>
-                    <li>✅ No expression explosion</li>
-                    <li>✅ Works with any code structure</li>
-                    <li>✅ Efficient for many variables</li>
-                  </ul>
-                </div>
-              </div>
-            </CardBody>
-          </Card>
+          </Text>
         </div>
-      </div>
-);
+
+        <Card withBorder>
+          <Card.Section inheritPadding py="xs" bg="dark.6">
+            <Title order={3}>What are Dual Numbers?</Title>
+          </Card.Section>
+          <Card.Section inheritPadding py="md">
+            <Text mb="md">
+              Dual numbers extend real numbers with an infinitesimal unit ε where ε² = 0:
+            </Text>
+            <Code block mb="md">
+              {`x = a + bε
+where a = function value, b = derivative`}
+            </Code>
+            <List size="sm">
+              <List.Item><Text fw={600} span>Addition</Text>: (a + bε) + (c + dε) = (a + c) + (b + d)ε</List.Item>
+              <List.Item><Text fw={600} span>Multiplication</Text>: (a + bε)(c + dε) = ac + (ad + bc)ε</List.Item>
+              <List.Item><Text fw={600} span>Chain Rule</Text>: Automatically applied through operations</List.Item>
+              <List.Item><Text fw={600} span>No Approximation</Text>: Exact derivatives, not finite differences</List.Item>
+            </List>
+            <Text mt="md" size="sm" c="dimmed">
+              This enables efficient forward-mode automatic differentiation without computational graphs,
+              perfect for gradients in neural networks and optimization.
+            </Text>
+          </Card.Section>
+        </Card>
+
+        <Stack gap="lg">
+          {examples.map((example, index) => (
+            <ExampleCard
+              key={index}
+              title={example.title}
+              description={example.description}
+              code={example.code}
+              category={example.category}
+              onRun={example.onRun}
+            />
+          ))}
+        </Stack>
+
+        <Card withBorder>
+          <Card.Section inheritPadding py="xs" bg="dark.6">
+            <Title order={3}>Advantages of Dual Numbers</Title>
+          </Card.Section>
+          <Card.Section inheritPadding py="md">
+            <SimpleGrid cols={{ base: 1, sm: 2 }}>
+              <div>
+                <Title order={4} size="sm" mb="xs">vs. Numerical Differentiation</Title>
+                <List size="sm">
+                  <List.Item>Exact (no approximation error)</List.Item>
+                  <List.Item>No step size tuning</List.Item>
+                  <List.Item>Numerically stable</List.Item>
+                </List>
+              </div>
+              <div>
+                <Title order={4} size="sm" mb="xs">vs. Symbolic Differentiation</Title>
+                <List size="sm">
+                  <List.Item>No expression explosion</List.Item>
+                  <List.Item>Works with any code structure</List.Item>
+                  <List.Item>Efficient for many variables</List.Item>
+                </List>
+              </div>
+            </SimpleGrid>
+          </Card.Section>
+        </Card>
+      </Stack>
+    </Container>
+  );
 }

@@ -1,4 +1,5 @@
-import { Card, CardHeader, CardBody, H3, P, Button, CodeBlock, StatusBadge } from "jadis-ui";
+import { Card, Title, Text, Button, Badge, Group, Stack, Box } from "@mantine/core";
+import { CodeHighlight } from "@mantine/code-highlight";
 import { useState } from "react";
 import { safeExecute, globalPerformanceMonitor } from "../utils/safeExecution";
 import { ErrorBoundary } from "./ErrorBoundary";
@@ -68,67 +69,78 @@ export function ExampleCard({
 
   return (
     <ErrorBoundary>
-      <Card style={{ marginBottom: '1.5rem', width: '100%' }}>
-        <CardHeader>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div>
-              <H3>{title}</H3>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.25rem' }}>
+      <Card withBorder mb="lg" w="100%">
+        <Card.Section withBorder inheritPadding py="sm">
+          <Group justify="space-between" align="flex-start">
+            <Box>
+              <Title order={4}>{title}</Title>
+              <Group gap="xs" mt={4}>
                 {category && (
-                  <StatusBadge variant="info">
+                  <Badge variant="light" color="blue" size="sm">
                     {category}
-                  </StatusBadge>
+                  </Badge>
                 )}
                 {performanceInfo && (
-                  <StatusBadge variant="success">
+                  <Badge variant="light" color="green" size="sm">
                     {performanceInfo}
-                  </StatusBadge>
+                  </Badge>
                 )}
-              </div>
-            </div>
+              </Group>
+            </Box>
             {onRun && (
               <Button
                 onClick={handleRun}
                 disabled={isRunning}
+                loading={isRunning}
+                size="sm"
               >
                 {isRunning ? 'Running...' : 'Run'}
               </Button>
             )}
-          </div>
-          <P style={{ fontSize: '0.875rem', marginTop: '0.5rem', opacity: 0.7 }}>{description}</P>
-        </CardHeader>
-        <CardBody>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          </Group>
+          <Text size="sm" c="dimmed" mt="xs">{description}</Text>
+        </Card.Section>
+        <Card.Section inheritPadding py="md">
+          <Stack gap="md">
             {/* Code Section */}
-            <div>
-              <h4 style={{ fontSize: '0.875rem', fontWeight: '600', marginBottom: '0.5rem' }}>Code:</h4>
-              <CodeBlock
+            <Box>
+              <Text size="sm" fw={600} mb="xs">Code:</Text>
+              <CodeHighlight
+                code={code}
                 language="javascript"
-                showLineNumbers={true}
-                showCopyButton={true}
-                style={{ width: '100%' }}
-              >
-                {code}
-              </CodeBlock>
-            </div>
+                withCopyButton
+              />
+            </Box>
 
             {/* Result Section */}
             {(result || error) && (
-              <div>
-                <h4 style={{ fontSize: '0.875rem', fontWeight: '600', marginBottom: '0.5rem' }}>
+              <Box>
+                <Text size="sm" fw={600} mb="xs">
                   {error ? 'Error:' : 'Result:'}
-                </h4>
-                <CodeBlock
-                  language="text"
-                  variant={error ? 'error' : 'success'}
-                  style={{ width: '100%' }}
+                </Text>
+                <Box
+                  p="sm"
+                  style={{
+                    backgroundColor: error
+                      ? 'rgba(239, 68, 68, 0.1)'
+                      : 'rgba(34, 197, 94, 0.1)',
+                    borderRadius: 'var(--mantine-radius-sm)',
+                    border: `1px solid ${error ? 'var(--mantine-color-red-6)' : 'var(--mantine-color-green-6)'}`
+                  }}
                 >
-                  {error || result}
-                </CodeBlock>
-              </div>
+                  <Text
+                    size="sm"
+                    ff="monospace"
+                    c={error ? 'red' : 'green'}
+                    style={{ whiteSpace: 'pre-wrap' }}
+                  >
+                    {error || result}
+                  </Text>
+                </Box>
+              </Box>
             )}
-          </div>
-        </CardBody>
+          </Stack>
+        </Card.Section>
       </Card>
     </ErrorBoundary>
   );

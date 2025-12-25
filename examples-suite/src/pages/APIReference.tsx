@@ -1,4 +1,5 @@
-import { H1, P, Card, CardHeader, CardBody, Button, CodeBlock, H2, H3, H4, StatusBadge } from "jadis-ui";
+import { Container, Stack, Card, Title, Text, Button, Badge, SimpleGrid, Code } from "@mantine/core";
+import { CodeHighlight } from "@mantine/code-highlight";
 import { RealTimeVisualization } from "../components/RealTimeDisplay";
 import { useState } from "react";
 
@@ -186,82 +187,86 @@ export function APIReference() {
   const currentSection = apiSections.find(section => section.id === activeSection);
 
   return (
-    <div style={{ padding: '2rem' }}>
-      <div style={{ maxWidth: '1536px', margin: '0 auto' }}>
-        <H1>API Reference</H1>
-        <P style={{ fontSize: '1.125rem', marginBottom: '1.5rem', opacity: 0.7 }}>
-          Complete documentation with real-time mathematical visualizations
-        </P>
+    <Container size="lg" py="xl">
+      <Stack gap="lg">
+        <div>
+          <Title order={1}>API Reference</Title>
+          <Text size="lg" c="dimmed">
+            Complete documentation with real-time mathematical visualizations
+          </Text>
+        </div>
 
         <div style={{ display: 'flex', flexDirection: 'row', gap: '1.5rem' }}>
           {/* Navigation Sidebar */}
           <div style={{ minWidth: '280px', maxWidth: '320px' }}>
-            <Card>
-              <CardHeader>
-                <H3>API Sections</H3>
-              </CardHeader>
-              <CardBody>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <Card withBorder>
+              <Card.Section inheritPadding py="xs" bg="dark.6">
+                <Title order={3} size="h4">API Sections</Title>
+              </Card.Section>
+              <Card.Section inheritPadding py="md">
+                <Stack gap="xs">
                   {apiSections.map((section) => (
                     <Button
                       key={section.id}
                       onClick={() => setActiveSection(section.id)}
-                      variant={activeSection === section.id ? 'default' : 'outline'}
-                      style={{ width: '100%', justifyContent: 'flex-start', textAlign: 'left' }}
+                      variant={activeSection === section.id ? 'filled' : 'outline'}
+                      fullWidth
+                      justify="flex-start"
+                      styles={{ inner: { justifyContent: 'flex-start' } }}
                     >
-                      <div>
-                        <div style={{ fontWeight: '500' }}>{section.title}</div>
+                      <div style={{ textAlign: 'left' }}>
+                        <div style={{ fontWeight: 500 }}>{section.title}</div>
                         <div style={{ fontSize: '0.75rem', opacity: 0.7 }}>
                           {section.methods.length} methods
                         </div>
                       </div>
                     </Button>
                   ))}
-                </div>
-              </CardBody>
+                </Stack>
+              </Card.Section>
             </Card>
 
-            <Card style={{ marginTop: '1.5rem' }}>
-              <CardHeader>
-                <H3>Live Visualizations</H3>
-              </CardHeader>
-              <CardBody>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <Card withBorder mt="lg">
+              <Card.Section inheritPadding py="xs" bg="dark.6">
+                <Title order={3} size="h4">Live Visualizations</Title>
+              </Card.Section>
+              <Card.Section inheritPadding py="md">
+                <Stack gap="xs">
                   <Button
                     onClick={() => toggleVisualization('rotor')}
-                    variant={visualizations.rotor ? 'default' : 'outline'}
-                    style={{ width: '100%' }}
+                    variant={visualizations.rotor ? 'filled' : 'outline'}
+                    fullWidth
                   >
                     Rotor Evolution
                   </Button>
                   <Button
                     onClick={() => toggleVisualization('tropical')}
-                    variant={visualizations.tropical ? 'default' : 'outline'}
-                    style={{ width: '100%' }}
+                    variant={visualizations.tropical ? 'filled' : 'outline'}
+                    fullWidth
                   >
                     Tropical Convergence
                   </Button>
                   <Button
                     onClick={() => toggleVisualization('dual')}
-                    variant={visualizations.dual ? 'default' : 'outline'}
-                    style={{ width: '100%' }}
+                    variant={visualizations.dual ? 'filled' : 'outline'}
+                    fullWidth
                   >
                     Dual Number AD
                   </Button>
                   <Button
                     onClick={() => toggleVisualization('fisher')}
-                    variant={visualizations.fisher ? 'default' : 'outline'}
-                    style={{ width: '100%' }}
+                    variant={visualizations.fisher ? 'filled' : 'outline'}
+                    fullWidth
                   >
                     Fisher Information
                   </Button>
-                </div>
-              </CardBody>
+                </Stack>
+              </Card.Section>
             </Card>
           </div>
 
           {/* Main Content */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', flex: 1 }}>
+          <Stack gap="lg" style={{ flex: 1 }}>
             {/* Real-time Visualizations */}
             {visualizations.rotor && (
               <RealTimeVisualization
@@ -305,107 +310,100 @@ export function APIReference() {
 
             {/* API Documentation */}
             {currentSection && (
-              <Card>
-                <CardHeader>
-                  <H2>{currentSection.title}</H2>
-                  <P style={{ opacity: 0.7 }}>{currentSection.description}</P>
-                </CardHeader>
-                <CardBody>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+              <Card withBorder>
+                <Card.Section inheritPadding py="xs" bg="dark.6">
+                  <Title order={2} size="h3">{currentSection.title}</Title>
+                  <Text size="sm" c="dimmed">{currentSection.description}</Text>
+                </Card.Section>
+                <Card.Section inheritPadding py="md">
+                  <Stack gap="xl">
                     {currentSection.methods.map((method, index) => (
-                      <div key={index} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                        <div>
-                          <H3 style={{ marginBottom: '0.5rem' }}>{method.name}</H3>
-                          <CodeBlock
-                            language="typescript"
-                            showCopyButton={true}
-                            style={{ marginBottom: '0.75rem', width: '100%' }}
-                          >
-                            {method.signature}
-                          </CodeBlock>
-                          <P style={{ fontSize: '0.875rem', marginBottom: '0.75rem', opacity: 0.7 }}>
-                            {method.description}
-                          </P>
-                        </div>
+                      <div key={index}>
+                        <Title order={3} size="h4" mb="xs">{method.name}</Title>
+                        <CodeHighlight
+                          code={method.signature}
+                          language="typescript"
+                          mb="sm"
+                        />
+                        <Text size="sm" c="dimmed" mb="md">
+                          {method.description}
+                        </Text>
 
                         {method.parameters && (
-                          <div>
-                            <H4 style={{ fontSize: '0.875rem', marginBottom: '0.5rem' }}>Parameters:</H4>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                          <div style={{ marginBottom: '1rem' }}>
+                            <Title order={4} size="sm" mb="xs">Parameters:</Title>
+                            <Stack gap="xs">
                               {method.parameters.map((param, i) => (
-                                <div key={i} style={{ display: 'flex', gap: '1rem', fontSize: '0.875rem' }}>
-                                  <StatusBadge variant="muted">
+                                <div key={i} style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                                  <Badge variant="light" size="sm">
                                     {param.name}: {param.type}
-                                  </StatusBadge>
-                                  <span style={{ opacity: 0.7 }}>
+                                  </Badge>
+                                  <Text size="sm" c="dimmed">
                                     {param.description}
-                                  </span>
+                                  </Text>
                                 </div>
                               ))}
-                            </div>
+                            </Stack>
                           </div>
                         )}
 
                         {method.returns && (
-                          <div>
-                            <H4 style={{ fontSize: '0.875rem', marginBottom: '0.25rem' }}>Returns:</H4>
-                            <P style={{ fontSize: '0.875rem', opacity: 0.7 }}>{method.returns}</P>
+                          <div style={{ marginBottom: '1rem' }}>
+                            <Title order={4} size="sm" mb="xs">Returns:</Title>
+                            <Text size="sm" c="dimmed">{method.returns}</Text>
                           </div>
                         )}
 
                         <div>
-                          <H4 style={{ fontSize: '0.875rem', marginBottom: '0.5rem' }}>Example:</H4>
-                          <CodeBlock
+                          <Title order={4} size="sm" mb="xs">Example:</Title>
+                          <CodeHighlight
+                            code={method.example}
                             language="javascript"
-                            showLineNumbers={true}
-                            showCopyButton={true}
-                            style={{ width: '100%' }}
-                          >
-                            {method.example}
-                          </CodeBlock>
+                            withCopyButton
+                          />
                         </div>
 
                         {index < currentSection.methods.length - 1 && (
-                          <hr style={{ border: 'none', borderTop: '1px solid var(--border)' }} />
+                          <hr style={{ border: 'none', borderTop: '1px solid var(--mantine-color-dark-4)', marginTop: '1.5rem' }} />
                         )}
                       </div>
                     ))}
-                  </div>
-                </CardBody>
+                  </Stack>
+                </Card.Section>
               </Card>
             )}
 
             {/* Quick Reference */}
-            <Card>
-              <CardHeader>
-                <H3>Quick Reference</H3>
-              </CardHeader>
-              <CardBody>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <Card withBorder>
+              <Card.Section inheritPadding py="xs" bg="dark.6">
+                <Title order={3} size="h4">Quick Reference</Title>
+              </Card.Section>
+              <Card.Section inheritPadding py="md">
+                <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
                   <div>
-                    <H4 style={{ fontSize: '0.875rem', marginBottom: '0.5rem' }}>Common Patterns</H4>
-                    <ul style={{ fontSize: '0.875rem', opacity: 0.7, listStyle: 'none', padding: 0 }}>
-                      <li>• Create basis vectors for geometric operations</li>
-                      <li>• Use tropical operations for efficient approximations</li>
-                      <li>• Apply dual numbers for automatic gradients</li>
-                      <li>• Combine systems with TDC for neural networks</li>
-                    </ul>
+                    <Title order={4} size="sm" mb="xs">Common Patterns</Title>
+                    <Text size="sm" c="dimmed" component="ul" style={{ paddingLeft: '1rem', margin: 0 }}>
+                      <li>Create basis vectors for geometric operations</li>
+                      <li>Use tropical operations for efficient approximations</li>
+                      <li>Apply dual numbers for automatic gradients</li>
+                      <li>Combine systems with TDC for neural networks</li>
+                    </Text>
                   </div>
                   <div>
-                    <H4 style={{ fontSize: '0.875rem', marginBottom: '0.5rem' }}>Performance Tips</H4>
-                    <ul style={{ fontSize: '0.875rem', opacity: 0.7, listStyle: 'none', padding: 0 }}>
-                      <li>• Batch operations when possible</li>
-                      <li>• Use WebGPU for large computations</li>
-                      <li>• Prefer tropical approximations for softmax</li>
-                      <li>• Cache multivector calculations</li>
-                    </ul>
+                    <Title order={4} size="sm" mb="xs">Performance Tips</Title>
+                    <Text size="sm" c="dimmed" component="ul" style={{ paddingLeft: '1rem', margin: 0 }}>
+                      <li>Batch operations when possible</li>
+                      <li>Use WebGPU for large computations</li>
+                      <li>Prefer tropical approximations for softmax</li>
+                      <li>Cache multivector calculations</li>
+                    </Text>
                   </div>
-                </div>
-              </CardBody>
+                </SimpleGrid>
+              </Card.Section>
             </Card>
-          </div>
+          </Stack>
         </div>
-      </div>
-    </div>
+      </Stack>
+    </Container>
   );
 }

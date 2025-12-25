@@ -1,7 +1,6 @@
-import { useState, useEffect, useRef, useCallback } from "react";
-import { Card, CardHeader, CardBody, Button } from "jadis-ui";
+import { useState, useEffect } from "react";
+import { Card, Title, Text, Button, Group, Box, Stack, Progress } from "@mantine/core";
 import { ErrorBoundary } from "./ErrorBoundary";
-import { safeExecute, validateNumbers } from "../utils/safeExecution";
 
 interface Point3D {
   x: number;
@@ -46,18 +45,27 @@ function RotorVisualization({ isRunning }: { isRunning: boolean }) {
   }, [isRunning, angle]);
 
   return (
-    <div style={{ position: 'relative', width: '100%', height: '16rem', backgroundColor: 'var(--muted)', borderRadius: '0.5rem', overflow: 'hidden' }}>
+    <Box
+      style={{
+        position: 'relative',
+        width: '100%',
+        height: '16rem',
+        backgroundColor: 'var(--mantine-color-dark-7)',
+        borderRadius: 'var(--mantine-radius-sm)',
+        overflow: 'hidden'
+      }}
+    >
       <svg width="100%" height="100%" viewBox="-100 -100 200 200">
         {/* Grid */}
         <defs>
           <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
-            <path d="M 20 0 L 0 0 0 20" fill="none" stroke="currentColor" strokeWidth="0.5" opacity="0.3"/>
+            <path d="M 20 0 L 0 0 0 20" fill="none" stroke="var(--mantine-color-dark-4)" strokeWidth="0.5"/>
           </pattern>
         </defs>
         <rect x="-100" y="-100" width="200" height="200" fill="url(#grid)" />
 
         {/* Center point */}
-        <circle cx="0" cy="0" r="2" fill="currentColor" opacity="0.5" />
+        <circle cx="0" cy="0" r="2" fill="var(--mantine-color-cyan-5)" opacity="0.5" />
 
         {/* Rotating vectors */}
         {vectors.map((vector, i) => (
@@ -67,7 +75,7 @@ function RotorVisualization({ isRunning }: { isRunning: boolean }) {
               y1="0"
               x2={vector.x}
               y2={vector.y}
-              stroke="currentColor"
+              stroke="var(--mantine-color-cyan-5)"
               strokeWidth="2"
               opacity={0.7}
             />
@@ -75,18 +83,18 @@ function RotorVisualization({ isRunning }: { isRunning: boolean }) {
               cx={vector.x}
               cy={vector.y}
               r="3"
-              fill="currentColor"
+              fill="var(--mantine-color-cyan-5)"
               opacity={0.8}
             />
           </g>
         ))}
 
         {/* Rotor info */}
-        <text x="-90" y="-80" fontSize="12" fill="currentColor" opacity="0.7">
-          Angle: {(angle * 180 / Math.PI).toFixed(1)}°
+        <text x="-90" y="-80" fontSize="12" fill="var(--mantine-color-dimmed)">
+          Angle: {(angle * 180 / Math.PI).toFixed(1)}deg
         </text>
       </svg>
-    </div>
+    </Box>
   );
 }
 
@@ -125,41 +133,39 @@ function TropicalVisualization({ isRunning }: { isRunning: boolean }) {
   const range = maxVal - minVal || 1;
 
   return (
-    <div style={{ width: '100%', height: '16rem', backgroundColor: 'var(--muted)', borderRadius: '0.5rem', padding: '1rem' }}>
-      <div style={{ fontSize: '0.875rem', marginBottom: '1rem' }}>
+    <Box
+      p="md"
+      style={{
+        width: '100%',
+        height: '16rem',
+        backgroundColor: 'var(--mantine-color-dark-7)',
+        borderRadius: 'var(--mantine-radius-sm)'
+      }}
+    >
+      <Text size="sm" mb="md">
         Tropical Convergence (Iteration: {iteration})
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+      </Text>
+      <Stack gap="sm">
         {values.map((value, i) => {
           const normalized = ((value - minVal) / range) * 100;
           const isMax = Math.abs(value - maxVal) < 0.1;
 
           return (
-            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              <span style={{ fontSize: '0.75rem', width: '2rem' }}>v{i}</span>
-              <div style={{ flex: 1, backgroundColor: 'var(--background)', borderRadius: '9999px', height: '1.5rem', overflow: 'hidden' }}>
-                <div
-                  style={{
-                    height: '100%',
-                    transition: 'all 0.2s',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'flex-end',
-                    paddingRight: '0.5rem',
-                    backgroundColor: isMax ? 'var(--primary)' : 'rgba(var(--primary-rgb), 0.6)',
-                    width: `${Math.max(normalized, 5)}%`
-                  }}
-                >
-                  <span style={{ fontSize: '0.75rem', color: 'white' }}>
-                    {value.toFixed(2)}
-                  </span>
-                </div>
-              </div>
-            </div>
+            <Group key={i} gap="sm" align="center">
+              <Text size="xs" w={30}>v{i}</Text>
+              <Box style={{ flex: 1 }}>
+                <Progress
+                  value={Math.max(normalized, 5)}
+                  color={isMax ? 'cyan' : 'dark.3'}
+                  size="lg"
+                />
+              </Box>
+              <Text size="xs" w={50} ta="right">{value.toFixed(2)}</Text>
+            </Group>
           );
         })}
-      </div>
-    </div>
+      </Stack>
+    </Box>
   );
 }
 
@@ -187,7 +193,18 @@ function DualVisualization({ isRunning }: { isRunning: boolean }) {
     return () => clearInterval(interval);
   }, [isRunning, x]);
 
-  if (functionValues.length === 0) return <div style={{ width: '100%', height: '16rem', backgroundColor: 'var(--muted)', borderRadius: '0.5rem' }} />;
+  if (functionValues.length === 0) {
+    return (
+      <Box
+        style={{
+          width: '100%',
+          height: '16rem',
+          backgroundColor: 'var(--mantine-color-dark-7)',
+          borderRadius: 'var(--mantine-radius-sm)'
+        }}
+      />
+    );
+  }
 
   const maxFx = Math.max(...functionValues.map(v => v.fx));
   const minFx = Math.min(...functionValues.map(v => v.fx));
@@ -195,15 +212,23 @@ function DualVisualization({ isRunning }: { isRunning: boolean }) {
   const minFpx = Math.min(...functionValues.map(v => v.fpx));
 
   return (
-    <div style={{ width: '100%', height: '16rem', backgroundColor: 'var(--muted)', borderRadius: '0.5rem', padding: '1rem' }}>
-      <div style={{ fontSize: '0.875rem', marginBottom: '1rem' }}>
-        Dual Number AD: f(x) = sin(x) + 0.5x² (x = {x.toFixed(2)})
-      </div>
+    <Box
+      p="md"
+      style={{
+        width: '100%',
+        height: '16rem',
+        backgroundColor: 'var(--mantine-color-dark-7)',
+        borderRadius: 'var(--mantine-radius-sm)'
+      }}
+    >
+      <Text size="sm" mb="md">
+        Dual Number AD: f(x) = sin(x) + 0.5x^2 (x = {x.toFixed(2)})
+      </Text>
       <svg width="100%" height="180" viewBox="0 0 400 180">
         {/* Grid */}
         <defs>
           <pattern id="dual-grid" width="20" height="20" patternUnits="userSpaceOnUse">
-            <path d="M 20 0 L 0 0 0 20" fill="none" stroke="currentColor" strokeWidth="0.5" opacity="0.2"/>
+            <path d="M 20 0 L 0 0 0 20" fill="none" stroke="var(--mantine-color-dark-5)" strokeWidth="0.5"/>
           </pattern>
         </defs>
         <rect x="0" y="0" width="400" height="180" fill="url(#dual-grid)" />
@@ -218,7 +243,7 @@ function DualVisualization({ isRunning }: { isRunning: boolean }) {
                 return `${x},${y}`;
               }).join(' ')}
               fill="none"
-              stroke="currentColor"
+              stroke="var(--mantine-color-cyan-5)"
               strokeWidth="2"
               opacity="0.8"
             />
@@ -231,7 +256,7 @@ function DualVisualization({ isRunning }: { isRunning: boolean }) {
                 return `${x},${y}`;
               }).join(' ')}
               fill="none"
-              stroke="currentColor"
+              stroke="var(--mantine-color-yellow-5)"
               strokeWidth="2"
               strokeDasharray="5,5"
               opacity="0.6"
@@ -240,14 +265,14 @@ function DualVisualization({ isRunning }: { isRunning: boolean }) {
         )}
 
         {/* Labels */}
-        <text x="10" y="15" fontSize="10" fill="currentColor" opacity="0.7">
+        <text x="10" y="15" fontSize="10" fill="var(--mantine-color-cyan-5)">
           f(x) = {functionValues[functionValues.length - 1]?.fx.toFixed(3)}
         </text>
-        <text x="10" y="95" fontSize="10" fill="currentColor" opacity="0.7">
+        <text x="10" y="95" fontSize="10" fill="var(--mantine-color-yellow-5)">
           f'(x) = {functionValues[functionValues.length - 1]?.fpx.toFixed(3)}
         </text>
       </svg>
-    </div>
+    </Box>
   );
 }
 
@@ -284,41 +309,52 @@ function FisherVisualization({ isRunning }: { isRunning: boolean }) {
   }, [probabilities]);
 
   return (
-    <div style={{ width: '100%', height: '16rem', backgroundColor: 'var(--muted)', borderRadius: '0.5rem', padding: '1rem' }}>
-      <div style={{ fontSize: '0.875rem', marginBottom: '1rem' }}>
+    <Box
+      p="md"
+      style={{
+        width: '100%',
+        height: '16rem',
+        backgroundColor: 'var(--mantine-color-dark-7)',
+        borderRadius: 'var(--mantine-radius-sm)'
+      }}
+    >
+      <Text size="sm" mb="md">
         Fisher Information Matrix Evolution
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      </Text>
+      <Stack gap="md">
         {/* Probability bars */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+        <Stack gap="xs">
           {probabilities.map((prob, i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              <span style={{ fontSize: '0.75rem', width: '2rem' }}>p{i}</span>
-              <div style={{ flex: 1, backgroundColor: 'var(--background)', borderRadius: '9999px', height: '1rem', overflow: 'hidden' }}>
-                <div
-                  style={{ height: '100%', backgroundColor: 'var(--primary)', transition: 'all 0.2s', width: `${prob * 100}%` }}
-                />
-              </div>
-              <span style={{ fontSize: '0.75rem', width: '3rem' }}>{prob.toFixed(3)}</span>
-            </div>
+            <Group key={i} gap="sm" align="center">
+              <Text size="xs" w={30}>p{i}</Text>
+              <Box style={{ flex: 1 }}>
+                <Progress value={prob * 100} color="cyan" size="md" />
+              </Box>
+              <Text size="xs" w={50} ta="right">{prob.toFixed(3)}</Text>
+            </Group>
           ))}
-        </div>
+        </Stack>
 
         {/* Fisher matrix visualization */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-          <div style={{ fontSize: '0.75rem', opacity: 0.7 }}>Fisher Matrix (diagonal elements):</div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}>
+        <Box>
+          <Text size="xs" c="dimmed" mb="xs">Fisher Matrix (diagonal elements):</Text>
+          <Group gap="sm" justify="center">
             {fisherMatrix.map((row, i) => (
-              <div key={i} style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: '0.75rem', backgroundColor: 'var(--background)', borderRadius: '0.25rem', padding: '0.25rem' }}>
+              <Box
+                key={i}
+                p="xs"
+                bg="dark.6"
+                style={{ borderRadius: 'var(--mantine-radius-sm)', textAlign: 'center' }}
+              >
+                <Text size="xs" ff="monospace">
                   {row[i]?.toFixed(1) || '0'}
-                </div>
-              </div>
+                </Text>
+              </Box>
             ))}
-          </div>
-        </div>
-      </div>
-    </div>
+          </Group>
+        </Box>
+      </Stack>
+    </Box>
   );
 }
 
@@ -334,47 +370,72 @@ export function RealTimeVisualization({ title, description, type, isRunning, onT
       case 'fisher':
         return <FisherVisualization isRunning={isRunning} />;
       default:
-        return <div style={{ width: '100%', height: '16rem', backgroundColor: 'var(--muted)', borderRadius: '0.5rem' }} />;
+        return (
+          <Box
+            style={{
+              width: '100%',
+              height: '16rem',
+              backgroundColor: 'var(--mantine-color-dark-7)',
+              borderRadius: 'var(--mantine-radius-sm)'
+            }}
+          />
+        );
     }
   };
 
   return (
     <ErrorBoundary
       fallback={
-        <Card style={{ borderColor: 'var(--destructive)', backgroundColor: 'rgba(var(--destructive-rgb), 0.05)' }}>
-          <CardHeader>
-            <h3 style={{ fontSize: '1.125rem', fontWeight: '600', color: 'var(--destructive)' }}>Visualization Error</h3>
-            <p style={{ fontSize: '0.875rem', color: 'var(--muted-foreground)' }}>
+        <Card
+          withBorder
+          style={{
+            borderColor: 'var(--mantine-color-red-6)',
+            backgroundColor: 'rgba(239, 68, 68, 0.05)'
+          }}
+        >
+          <Card.Section withBorder inheritPadding py="sm">
+            <Title order={4} c="red">Visualization Error</Title>
+            <Text size="sm" c="dimmed">
               Failed to render {title}. The visualization may be too complex or encountered an error.
-            </p>
-          </CardHeader>
-          <CardBody>
-            <div style={{ width: '100%', height: '16rem', backgroundColor: 'var(--muted)', borderRadius: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <p style={{ color: 'var(--muted-foreground)' }}>Visualization unavailable</p>
-            </div>
-          </CardBody>
+            </Text>
+          </Card.Section>
+          <Card.Section inheritPadding py="md">
+            <Box
+              style={{
+                width: '100%',
+                height: '16rem',
+                backgroundColor: 'var(--mantine-color-dark-7)',
+                borderRadius: 'var(--mantine-radius-sm)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              <Text c="dimmed">Visualization unavailable</Text>
+            </Box>
+          </Card.Section>
         </Card>
       }
     >
-      <Card>
-        <CardHeader>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div>
-              <h3 style={{ fontSize: '1.125rem', fontWeight: '600' }}>{title}</h3>
-              <p style={{ fontSize: '0.875rem', color: 'var(--muted-foreground)' }}>{description}</p>
-            </div>
+      <Card withBorder>
+        <Card.Section withBorder inheritPadding py="sm">
+          <Group justify="space-between" align="flex-start">
+            <Box>
+              <Title order={4}>{title}</Title>
+              <Text size="sm" c="dimmed">{description}</Text>
+            </Box>
             <Button
               onClick={onToggle}
-              variant={isRunning ? "default" : "outline"}
+              variant={isRunning ? "filled" : "outline"}
               size="sm"
             >
               {isRunning ? "Pause" : "Start"}
             </Button>
-          </div>
-        </CardHeader>
-        <CardBody>
+          </Group>
+        </Card.Section>
+        <Card.Section inheritPadding py="md">
           {renderVisualization()}
-        </CardBody>
+        </Card.Section>
       </Card>
     </ErrorBoundary>
   );
