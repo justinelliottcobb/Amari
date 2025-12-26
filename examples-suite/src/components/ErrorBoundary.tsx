@@ -1,5 +1,5 @@
 import { Component, ReactNode } from "react";
-import { Card, CardHeader, CardBody, Button } from "jadis-ui";
+import { Card, Text, Button, Box, Stack } from "@mantine/core";
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -38,39 +38,47 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       }
 
       return (
-        <Card style={{ borderColor: 'var(--destructive)', backgroundColor: 'rgba(239, 68, 68, 0.05)' }}>
-          <CardHeader>
-            <h3 style={{ fontSize: '1.125rem', fontWeight: '600', color: 'var(--destructive)' }}>
+        <Card
+          withBorder
+          style={{
+            borderColor: 'var(--mantine-color-red-6)',
+            backgroundColor: 'rgba(239, 68, 68, 0.05)'
+          }}
+        >
+          <Card.Section withBorder inheritPadding py="sm">
+            <Text fw={600} size="lg" c="red">
               Something went wrong
-            </h3>
-          </CardHeader>
-          <CardBody>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <p style={{ fontSize: '0.875rem', color: 'var(--muted-foreground)' }}>
+            </Text>
+          </Card.Section>
+          <Card.Section inheritPadding py="md">
+            <Stack gap="md">
+              <Text size="sm" c="dimmed">
                 An unexpected error occurred while rendering this component.
-              </p>
+              </Text>
 
               {this.state.error && (
                 <details style={{ fontSize: '0.75rem' }}>
                   <summary style={{
                     cursor: 'pointer',
-                    color: 'var(--muted-foreground)',
-                    transition: 'color 0.2s'
+                    color: 'var(--mantine-color-dimmed)'
                   }}>
                     Error details
                   </summary>
-                  <pre style={{
-                    marginTop: '0.5rem',
-                    padding: '0.5rem',
-                    backgroundColor: 'var(--muted)',
-                    borderRadius: '0.25rem',
-                    fontSize: '0.75rem',
-                    overflow: 'auto',
-                    whiteSpace: 'pre-wrap'
-                  }}>
-                    {this.state.error.message}
-                    {this.state.error.stack && `\n\n${this.state.error.stack}`}
-                  </pre>
+                  <Box
+                    mt="xs"
+                    p="xs"
+                    bg="dark.7"
+                    style={{ borderRadius: 'var(--mantine-radius-sm)' }}
+                  >
+                    <Text
+                      size="xs"
+                      ff="monospace"
+                      style={{ whiteSpace: 'pre-wrap', overflow: 'auto' }}
+                    >
+                      {this.state.error.message}
+                      {this.state.error.stack && `\n\n${this.state.error.stack}`}
+                    </Text>
+                  </Box>
                 </details>
               )}
 
@@ -81,8 +89,8 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
               >
                 Try again
               </Button>
-            </div>
-          </CardBody>
+            </Stack>
+          </Card.Section>
         </Card>
       );
     }

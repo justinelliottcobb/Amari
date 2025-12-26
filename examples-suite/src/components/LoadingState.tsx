@@ -1,31 +1,20 @@
-import { Card, CardHeader, CardBody } from "jadis-ui";
+import { Card, Loader, Text, Stack, Box, Button, Title } from "@mantine/core";
 
 interface LoadingStateProps {
   message?: string;
-  className?: string;
 }
 
 export function LoadingState({
-  message = "Loading...",
-  className = ""
+  message = "Loading..."
 }: LoadingStateProps) {
   return (
-    <Card style={className ? {} : undefined}>
-      <CardBody>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem 0' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <div style={{
-              width: '1.5rem',
-              height: '1.5rem',
-              border: '2px solid transparent',
-              borderBottom: '2px solid var(--primary)',
-              borderRadius: '50%',
-              animation: 'spin 1s linear infinite'
-            }}></div>
-            <span style={{ fontSize: '0.875rem', color: 'var(--muted-foreground)' }}>{message}</span>
-          </div>
-        </div>
-      </CardBody>
+    <Card withBorder>
+      <Card.Section inheritPadding py="xl">
+        <Stack align="center" gap="md">
+          <Loader color="cyan" />
+          <Text size="sm" c="dimmed">{message}</Text>
+        </Stack>
+      </Card.Section>
     </Card>
   );
 }
@@ -34,28 +23,26 @@ interface EmptyStateProps {
   title: string;
   description?: string;
   action?: React.ReactNode;
-  className?: string;
 }
 
 export function EmptyState({
   title,
   description,
-  action,
-  className = ""
+  action
 }: EmptyStateProps) {
   return (
-    <Card style={className ? {} : undefined}>
-      <CardBody>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '3rem 0', textAlign: 'center' }}>
-          <h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '0.5rem' }}>{title}</h3>
+    <Card withBorder>
+      <Card.Section inheritPadding py="xl">
+        <Stack align="center" gap="md" style={{ textAlign: 'center' }}>
+          <Title order={4}>{title}</Title>
           {description && (
-            <p style={{ fontSize: '0.875rem', color: 'var(--muted-foreground)', marginBottom: '1rem', maxWidth: '28rem' }}>
+            <Text size="sm" c="dimmed" maw={400}>
               {description}
-            </p>
+            </Text>
           )}
           {action}
-        </div>
-      </CardBody>
+        </Stack>
+      </Card.Section>
     </Card>
   );
 }
@@ -70,34 +57,26 @@ export function NetworkError({
   message = "Failed to load data. Please check your connection."
 }: NetworkErrorProps) {
   return (
-    <Card style={{ borderColor: 'var(--destructive)', backgroundColor: 'rgba(239, 68, 68, 0.05)' }}>
-      <CardHeader>
-        <h3 style={{ fontSize: '1.125rem', fontWeight: '600', color: 'var(--destructive)' }}>
-          Network Error
-        </h3>
-      </CardHeader>
-      <CardBody>
-        <p style={{ fontSize: '0.875rem', color: 'var(--muted-foreground)', marginBottom: '1rem' }}>{message}</p>
-        {onRetry && (
-          <button
-            onClick={onRetry}
-            style={{
-              padding: '0.5rem 1rem',
-              backgroundColor: 'var(--primary)',
-              color: 'var(--primary-foreground)',
-              borderRadius: '0.375rem',
-              fontSize: '0.875rem',
-              border: 'none',
-              cursor: 'pointer',
-              transition: 'background-color 0.2s'
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--primary)/90'}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--primary)'}
-          >
-            Retry
-          </button>
-        )}
-      </CardBody>
+    <Card
+      withBorder
+      style={{
+        borderColor: 'var(--mantine-color-red-6)',
+        backgroundColor: 'rgba(239, 68, 68, 0.05)'
+      }}
+    >
+      <Card.Section withBorder inheritPadding py="sm">
+        <Title order={4} c="red">Network Error</Title>
+      </Card.Section>
+      <Card.Section inheritPadding py="md">
+        <Stack gap="md">
+          <Text size="sm" c="dimmed">{message}</Text>
+          {onRetry && (
+            <Button onClick={onRetry} size="sm">
+              Retry
+            </Button>
+          )}
+        </Stack>
+      </Card.Section>
     </Card>
   );
 }

@@ -125,6 +125,7 @@ async fn test_performance_monitor_integration() {
 }
 
 #[tokio::test]
+#[ignore] // Requires GPU hardware
 async fn test_benchmark_runner_quick_validation() {
     // Test quick validation benchmarks
     match BenchmarkRunner::run_quick_validation().await {

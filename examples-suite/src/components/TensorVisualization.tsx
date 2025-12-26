@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Card, CardHeader, CardBody, H3, Button, P } from "jadis-ui";
+import { Card, Title, Text, Button, Group, Box, Stack, Slider, SimpleGrid } from "@mantine/core";
 
 interface TensorVisualizationProps {
   tensor: number[][][];
@@ -38,16 +38,16 @@ export function TensorVisualization({ tensor, probabilities }: TensorVisualizati
 
   // Render heat map visualization
   const renderHeatMap = () => (
-    <div style={{ fontFamily: 'monospace' }}>
-      <h4 style={{ fontSize: '0.875rem', marginBottom: '0.5rem' }}>
+    <Box ff="monospace">
+      <Text size="sm" fw={600} mb="sm">
         Heat Map - Slice k={selectedSlice}
-      </h4>
-      <div style={{ display: 'grid', gridTemplateColumns: `repeat(${n}, 60px)`, gap: '2px', marginBottom: '1rem' }}>
+      </Text>
+      <SimpleGrid cols={n} spacing={2} mb="md">
         {Array.from({ length: n }).map((_, i) =>
           Array.from({ length: n }).map((_, j) => {
             const value = tensor[i][j][selectedSlice];
             return (
-              <div
+              <Box
                 key={`${i}-${j}`}
                 style={{
                   width: '60px',
@@ -58,8 +58,8 @@ export function TensorVisualization({ tensor, probabilities }: TensorVisualizati
                   alignItems: 'center',
                   justifyContent: 'center',
                   fontSize: '0.75rem',
-                  border: '1px solid var(--border)',
-                  borderRadius: '4px',
+                  border: '1px solid var(--mantine-color-dark-4)',
+                  borderRadius: 'var(--mantine-radius-xs)',
                   position: 'relative'
                 }}
                 title={`T[${i},${j},${selectedSlice}] = ${value.toFixed(4)}`}
@@ -74,24 +74,24 @@ export function TensorVisualization({ tensor, probabilities }: TensorVisualizati
                 }}>
                   [{i},{j}]
                 </span>
-              </div>
+              </Box>
             );
           })
         )}
-      </div>
-      <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+      </SimpleGrid>
+      <Group gap="xs" mt="sm">
         {Array.from({ length: n }).map((_, k) => (
           <Button
             key={k}
             onClick={() => setSelectedSlice(k)}
-            variant={selectedSlice === k ? 'default' : 'outline'}
-            style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}
+            variant={selectedSlice === k ? 'filled' : 'outline'}
+            size="xs"
           >
             k={k}
           </Button>
         ))}
-      </div>
-    </div>
+      </Group>
+    </Box>
   );
 
   // Render 3D surface plot (ASCII representation)
@@ -123,25 +123,27 @@ export function TensorVisualization({ tensor, probabilities }: TensorVisualizati
     }
 
     return (
-      <div style={{ fontFamily: 'monospace' }}>
-        <h4 style={{ fontSize: '0.875rem', marginBottom: '0.5rem' }}>
+      <Box ff="monospace">
+        <Text size="sm" fw={600} mb="sm">
           3D Surface Plot (Magnitude as Height: 0-9)
-        </h4>
-        <pre style={{ fontSize: '0.75rem', lineHeight: '1.2' }}>
+        </Text>
+        <Box
+          component="pre"
+          style={{ fontSize: '0.75rem', lineHeight: '1.2' }}
+        >
           {layers.join('\n')}
-        </pre>
-        <div style={{ marginTop: '0.5rem', fontSize: '0.7rem', opacity: 0.7 }}>
-          <P>Higher numbers = larger tensor magnitude</P>
-          <P>Layers stacked in isometric view</P>
-        </div>
-      </div>
+        </Box>
+        <Stack gap={4} mt="sm">
+          <Text size="xs" c="dimmed">Higher numbers = larger tensor magnitude</Text>
+          <Text size="xs" c="dimmed">Layers stacked in isometric view</Text>
+        </Stack>
+      </Box>
     );
   };
 
   // Render network graph visualization
   const renderNetworkGraph = () => {
     const nodes: Array<{id: string, x: number, y: number, value: number}> = [];
-    const edges: Array<{from: string, to: string, value: number}> = [];
 
     // Create nodes for each tensor position
     const radius = 100;
@@ -164,13 +166,14 @@ export function TensorVisualization({ tensor, probabilities }: TensorVisualizati
     }
 
     // Create edges for significant connections
+    const edges: Array<{from: typeof nodes[0], to: typeof nodes[0], value: number}> = [];
     for (let i = 0; i < nodes.length; i++) {
       for (let j = i + 1; j < nodes.length; j++) {
         const val = Math.abs(nodes[i].value * nodes[j].value);
         if (val > maxVal * 0.3) { // Only show significant connections
           edges.push({
-            from: nodes[i].id,
-            to: nodes[j].id,
+            from: nodes[i],
+            to: nodes[j],
             value: val
           });
         }
@@ -178,30 +181,31 @@ export function TensorVisualization({ tensor, probabilities }: TensorVisualizati
     }
 
     return (
-      <div style={{ fontFamily: 'monospace' }}>
-        <h4 style={{ fontSize: '0.875rem', marginBottom: '0.5rem' }}>
+      <Box ff="monospace">
+        <Text size="sm" fw={600} mb="sm">
           Network Graph - Component Relationships
-        </h4>
-        <svg width="500" height="250" style={{ border: '1px solid var(--border)', borderRadius: '4px' }}>
+        </Text>
+        <svg
+          width="500"
+          height="250"
+          style={{
+            border: '1px solid var(--mantine-color-dark-4)',
+            borderRadius: 'var(--mantine-radius-sm)'
+          }}
+        >
           {/* Draw edges */}
-          {edges.slice(0, 20).map((edge, idx) => {
-            const fromNode = nodes.find(n => n.id === edge.from);
-            const toNode = nodes.find(n => n.id === edge.to);
-            if (!fromNode || !toNode) return null;
-
-            return (
-              <line
-                key={idx}
-                x1={fromNode.x}
-                y1={fromNode.y}
-                x2={toNode.x}
-                y2={toNode.y}
-                stroke="var(--muted)"
-                strokeWidth={edge.value / maxVal}
-                opacity={0.3}
-              />
-            );
-          })}
+          {edges.slice(0, 20).map((edge, idx) => (
+            <line
+              key={idx}
+              x1={edge.from.x}
+              y1={edge.from.y}
+              x2={edge.to.x}
+              y2={edge.to.y}
+              stroke="var(--mantine-color-dark-3)"
+              strokeWidth={edge.value / maxVal}
+              opacity={0.3}
+            />
+          ))}
 
           {/* Draw nodes */}
           {nodes.map((node, idx) => {
@@ -214,13 +218,12 @@ export function TensorVisualization({ tensor, probabilities }: TensorVisualizati
                   r={size}
                   fill={node.value > 0 ? '#ff4444' : '#4444ff'}
                   opacity={0.8}
-                  title={`T[${node.id}] = ${node.value.toFixed(4)}`}
                 />
                 <text
                   x={node.x}
                   y={node.y - size - 2}
                   fontSize="8"
-                  fill="var(--foreground)"
+                  fill="var(--mantine-color-dimmed)"
                   textAnchor="middle"
                 >
                   {node.id}
@@ -229,16 +232,16 @@ export function TensorVisualization({ tensor, probabilities }: TensorVisualizati
             );
           })}
         </svg>
-        <div style={{ marginTop: '0.5rem', fontSize: '0.7rem', opacity: 0.7 }}>
-          <P>Red nodes: positive values, Blue nodes: negative values</P>
-          <P>Node size: magnitude, Edge width: interaction strength</P>
-        </div>
-      </div>
+        <Stack gap={4} mt="sm">
+          <Text size="xs" c="dimmed">Red nodes: positive values, Blue nodes: negative values</Text>
+          <Text size="xs" c="dimmed">Node size: magnitude, Edge width: interaction strength</Text>
+        </Stack>
+      </Box>
     );
   };
 
   // Render interactive exploration
-  const renderInteractive = () => {
+  const InteractiveExplorer = () => {
     const [i, setI] = useState(0);
     const [j, setJ] = useState(0);
     const [k, setK] = useState(0);
@@ -247,143 +250,146 @@ export function TensorVisualization({ tensor, probabilities }: TensorVisualizati
     const magnitude = Math.abs(value) / maxVal;
 
     return (
-      <div style={{ fontFamily: 'monospace' }}>
-        <h4 style={{ fontSize: '0.875rem', marginBottom: '0.5rem' }}>
+      <Box ff="monospace">
+        <Text size="sm" fw={600} mb="sm">
           Interactive Tensor Explorer
-        </h4>
+        </Text>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '1rem' }}>
+        <Group align="flex-start" gap="xl">
           {/* Controls */}
-          <div>
-            <div style={{ marginBottom: '0.75rem' }}>
-              <label style={{ display: 'block', fontSize: '0.75rem', marginBottom: '0.25rem' }}>
-                i = {i} (p_{i} = {probabilities[i].toFixed(3)})
-              </label>
-              <input
-                type="range"
-                min="0"
+          <Stack gap="md" style={{ width: '200px' }}>
+            <Box>
+              <Text size="xs" mb="xs">
+                i = {i} (p_i = {probabilities[i].toFixed(3)})
+              </Text>
+              <Slider
+                min={0}
                 max={n - 1}
                 value={i}
-                onChange={(e) => setI(Number(e.target.value))}
-                style={{ width: '100%' }}
+                onChange={setI}
+                marks={Array.from({ length: n }, (_, idx) => ({ value: idx }))}
               />
-            </div>
+            </Box>
 
-            <div style={{ marginBottom: '0.75rem' }}>
-              <label style={{ display: 'block', fontSize: '0.75rem', marginBottom: '0.25rem' }}>
-                j = {j} (p_{j} = {probabilities[j].toFixed(3)})
-              </label>
-              <input
-                type="range"
-                min="0"
+            <Box>
+              <Text size="xs" mb="xs">
+                j = {j} (p_j = {probabilities[j].toFixed(3)})
+              </Text>
+              <Slider
+                min={0}
                 max={n - 1}
                 value={j}
-                onChange={(e) => setJ(Number(e.target.value))}
-                style={{ width: '100%' }}
+                onChange={setJ}
+                marks={Array.from({ length: n }, (_, idx) => ({ value: idx }))}
               />
-            </div>
+            </Box>
 
-            <div style={{ marginBottom: '0.75rem' }}>
-              <label style={{ display: 'block', fontSize: '0.75rem', marginBottom: '0.25rem' }}>
-                k = {k} (p_{k} = {probabilities[k].toFixed(3)})
-              </label>
-              <input
-                type="range"
-                min="0"
+            <Box>
+              <Text size="xs" mb="xs">
+                k = {k} (p_k = {probabilities[k].toFixed(3)})
+              </Text>
+              <Slider
+                min={0}
                 max={n - 1}
                 value={k}
-                onChange={(e) => setK(Number(e.target.value))}
-                style={{ width: '100%' }}
+                onChange={setK}
+                marks={Array.from({ length: n }, (_, idx) => ({ value: idx }))}
               />
-            </div>
-          </div>
+            </Box>
+          </Stack>
 
           {/* Display */}
-          <div>
-            <div style={{
-              padding: '1rem',
-              border: '2px solid var(--border)',
-              borderRadius: '8px',
-              backgroundColor: value > 0 ? 'rgba(255, 0, 0, 0.1)' : 'rgba(0, 0, 255, 0.1)'
-            }}>
-              <div style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>
+          <Box style={{ flex: 1 }}>
+            <Box
+              p="md"
+              style={{
+                border: '2px solid var(--mantine-color-dark-4)',
+                borderRadius: 'var(--mantine-radius-md)',
+                backgroundColor: value > 0 ? 'rgba(255, 0, 0, 0.1)' : 'rgba(0, 0, 255, 0.1)'
+              }}
+            >
+              <Text size="xl" fw={700} mb="sm">
                 T[{i},{j},{k}] = {value.toFixed(6)}
-              </div>
+              </Text>
 
-              <div style={{ fontSize: '0.75rem', opacity: 0.7 }}>
-                <P>Magnitude: {magnitude.toFixed(4)} ({(magnitude * 100).toFixed(1)}% of max)</P>
-                <P>Visual: {getAsciiChar(magnitude).repeat(Math.round(magnitude * 10))}</P>
-              </div>
+              <Stack gap={4}>
+                <Text size="xs" c="dimmed">
+                  Magnitude: {magnitude.toFixed(4)} ({(magnitude * 100).toFixed(1)}% of max)
+                </Text>
+                <Text size="xs" c="dimmed">
+                  Visual: {getAsciiChar(magnitude).repeat(Math.round(magnitude * 10))}
+                </Text>
+              </Stack>
 
-              <div style={{ marginTop: '0.75rem' }}>
-                <P style={{ fontSize: '0.7rem' }}>
+              <Box mt="md">
+                <Text size="xs">
                   {i === j && j === k && "Diagonal element (all indices equal)"}
                   {i === j && i !== k && "Two indices equal (i=j≠k)"}
                   {i === k && i !== j && "Two indices equal (i=k≠j)"}
                   {j === k && j !== i && "Two indices equal (j=k≠i)"}
                   {i !== j && j !== k && i !== k && "All indices different"}
-                </P>
-              </div>
-            </div>
+                </Text>
+              </Box>
+            </Box>
 
             {/* Related values */}
-            <div style={{ marginTop: '1rem', fontSize: '0.7rem' }}>
-              <P>Related tensor values:</P>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem', marginTop: '0.5rem' }}>
-                <div>T[{j},{i},{k}] = {tensor[j][i][k].toFixed(4)}</div>
-                <div>T[{k},{j},{i}] = {tensor[k][j][i].toFixed(4)}</div>
-                <div>T[{i},{k},{j}] = {tensor[i][k][j].toFixed(4)}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+            <Box mt="md">
+              <Text size="xs" c="dimmed" mb="xs">Related tensor values:</Text>
+              <SimpleGrid cols={3} spacing="xs">
+                <Text size="xs">T[{j},{i},{k}] = {tensor[j][i][k].toFixed(4)}</Text>
+                <Text size="xs">T[{k},{j},{i}] = {tensor[k][j][i].toFixed(4)}</Text>
+                <Text size="xs">T[{i},{k},{j}] = {tensor[i][k][j].toFixed(4)}</Text>
+              </SimpleGrid>
+            </Box>
+          </Box>
+        </Group>
+      </Box>
     );
   };
 
   return (
-    <Card style={{ marginTop: '1rem' }}>
-      <CardHeader>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <H3>Tensor Visualizations</H3>
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
+    <Card withBorder mt="md">
+      <Card.Section withBorder inheritPadding py="sm">
+        <Group justify="space-between" align="center">
+          <Title order={4}>Tensor Visualizations</Title>
+          <Group gap="xs">
             <Button
               onClick={() => setVisualizationType('heatmap')}
-              variant={visualizationType === 'heatmap' ? 'default' : 'outline'}
-              style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}
+              variant={visualizationType === 'heatmap' ? 'filled' : 'outline'}
+              size="xs"
             >
               Heat Map
             </Button>
             <Button
               onClick={() => setVisualizationType('surface')}
-              variant={visualizationType === 'surface' ? 'default' : 'outline'}
-              style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}
+              variant={visualizationType === 'surface' ? 'filled' : 'outline'}
+              size="xs"
             >
               3D Surface
             </Button>
             <Button
               onClick={() => setVisualizationType('network')}
-              variant={visualizationType === 'network' ? 'default' : 'outline'}
-              style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}
+              variant={visualizationType === 'network' ? 'filled' : 'outline'}
+              size="xs"
             >
               Network
             </Button>
             <Button
               onClick={() => setVisualizationType('interactive')}
-              variant={visualizationType === 'interactive' ? 'default' : 'outline'}
-              style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}
+              variant={visualizationType === 'interactive' ? 'filled' : 'outline'}
+              size="xs"
             >
               Interactive
             </Button>
-          </div>
-        </div>
-      </CardHeader>
-      <CardBody>
+          </Group>
+        </Group>
+      </Card.Section>
+      <Card.Section inheritPadding py="md">
         {visualizationType === 'heatmap' && renderHeatMap()}
         {visualizationType === 'surface' && render3DSurface()}
         {visualizationType === 'network' && renderNetworkGraph()}
-        {visualizationType === 'interactive' && renderInteractive()}
-      </CardBody>
+        {visualizationType === 'interactive' && <InteractiveExplorer />}
+      </Card.Section>
     </Card>
   );
 }

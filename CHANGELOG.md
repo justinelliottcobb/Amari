@@ -5,6 +5,60 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.14.0] - 2025-12-25
+
+### **Examples Suite v0.14.0 - Complete MantineUI Migration & Interactive Documentation**
+
+This release delivers a completely rebuilt Examples Suite with modern MantineUI v7, comprehensive API documentation, and interactive live visualizations for all mathematical systems.
+
+#### **Added**
+
+##### Interactive Examples Suite
+- **[Live Demo](https://amari-math.netlify.app)**: Fully deployed interactive documentation site
+- **MantineUI v7 Migration**: Complete migration from JadisUI to MantineUI for modern, accessible UI
+- **React 19 Support**: Updated to latest React with improved performance
+
+##### Live Visualizations (7 Interactive Demos)
+- **MultivectorVisualization**: Interactive Cl(3,0,0) with 8-component sliders and real-time coefficient display
+- **TropicalVisualization**: Tropical ⊕/⊗ operations with animated convergence to max-plus results
+- **DualNumberVisualization**: Forward-mode AD with live f(x) and f'(x) derivative curves
+- **RotorVisualization**: 3D rotation via geometric algebra rotors with angle slider
+- **FisherVisualization**: Probability simplex visualization with Fisher metric random walk
+- **MCMCVisualization**: Metropolis-Hastings sampling on 2D Gaussian with acceptance rate tracking
+- **NetworkVisualization**: Interactive geometric network with draggable nodes
+
+##### Comprehensive API Reference
+- **77 Classes Documented**: All WASM-exported classes with full type signatures
+- **300+ Methods**: Complete method documentation with parameters, return types, and examples
+- **12 Categories**: Organized into Geometric Algebra, Tropical Algebra, Dual Numbers, Fusion, Information Geometry, Probability, Holographic Memory, Relativistic, Network, Measure Theory, Calculus, and Utility classes
+- **Searchable Interface**: Quick navigation through all API types
+
+##### Interactive Playground
+- **Live Code Editor**: Write and execute JavaScript/TypeScript with WASM
+- **Pre-built Templates**: Example code for all major use cases
+- **Real-time Output**: Instant feedback on code execution
+
+#### **Changed**
+
+##### UI Framework
+- Migrated from JadisUI (deprecated) to MantineUI v7
+- Updated all components to use Mantine's design system
+- Improved accessibility with ARIA labels and keyboard navigation
+
+##### Build System
+- Updated to Vite 5.1.0 for faster builds
+- Added Vitest for component testing
+- Configured Netlify deployment pipeline
+
+#### **Technical Details**
+
+- **examples-suite/**: New location for Examples Suite (moved from `/examples`)
+- **React 19.1.1**: Latest React with automatic batching and concurrent features
+- **TypeScript 5.1+**: Strict type checking throughout
+- **Responsive Design**: Mobile-friendly layouts for all visualizations
+
+---
+
 ## [0.13.1] - 2025-12-24
 
 ### 🔧 **Housekeeping: Umbrella Crate Feature Completeness**

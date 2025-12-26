@@ -1,4 +1,4 @@
-import { H1, P, Card, CardHeader, CardBody } from "jadis-ui";
+import { Container, Stack, Card, Title, Text, SimpleGrid, Box } from "@mantine/core";
 import { ExampleCard } from "../components/ExampleCard";
 import { useState } from "react";
 
@@ -26,18 +26,23 @@ export function Automata() {
     if (grid.length === 0) return null;
 
     return (
-      <div style={{ marginTop: '1rem', padding: '1rem', backgroundColor: 'var(--muted)', borderRadius: '0.5rem' }}>
-        <h4 style={{ fontSize: '0.875rem', fontWeight: '600', marginBottom: '0.5rem' }}>Grid Visualization:</h4>
+      <Box mt="md" p="md" bg="dark.6" style={{ borderRadius: 'var(--mantine-radius-sm)' }}>
+        <Title order={4} size="sm" mb="xs">Grid Visualization:</Title>
         <div style={{ display: 'grid', gap: '0.25rem', gridTemplateColumns: `repeat(${grid[0].length}, 1fr)` }}>
           {grid.flat().map((cell, i) => (
             <div
               key={i}
-              style={{ width: '1rem', height: '1rem', border: '1px solid var(--border)', backgroundColor: cell > 0.5 ? 'var(--primary)' : 'var(--background)' }}
+              style={{
+                width: '1rem',
+                height: '1rem',
+                border: '1px solid var(--mantine-color-dark-4)',
+                backgroundColor: cell > 0.5 ? 'var(--mantine-color-cyan-6)' : 'var(--mantine-color-dark-7)'
+              }}
               title={`Cell ${i}: ${cell.toFixed(3)}`}
             />
           ))}
         </div>
-      </div>
+      </Box>
     );
   };
 
@@ -102,9 +107,8 @@ class GeometricCA {
         let newCell = currentCell.map(c => c * 0.9); // Decay factor
 
         neighbors.forEach(neighbor => {
-          // Simplified geometric product influence
           const influence = neighbor[0] * 0.1; // Use scalar part
-          newCell[0] += influence; // Add to scalar part
+          newCell[0] += influence;
         });
 
         // Keep values bounded
@@ -117,10 +121,9 @@ class GeometricCA {
     this.generation++;
   }
 
-  // Extract visualization data (scalar components)
   getVisualization() {
     return this.grid.map(row =>
-      row.map(cell => Math.abs(cell[0])) // Use absolute value of scalar part
+      row.map(cell => Math.abs(cell[0]))
     );
   }
 }
@@ -128,7 +131,7 @@ class GeometricCA {
 // Create and run geometric CA
 const ca = new GeometricCA(8, 8);
 
-// Set initial pattern - glider-like structure with multivectors
+// Set initial pattern
 ca.setCell(1, 1, [1.0, 0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
 ca.setCell(2, 1, [0.8, 0.3, 0.2, 0.0, 0.0, 0.0, 0.0, 0.0]);
 ca.setCell(3, 1, [1.2, 0.7, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
@@ -259,93 +262,70 @@ class RotorCA {
 
     // Each cell contains a rotor (rotation) as a multivector
     this.rotors = Array(size).fill(null).map(() => [
-      1.0, 0, 0, 0,  // cos(θ/2) + sin(θ/2) * bivector
-      0, 0, 0, 0     // [1, e1, e2, e3, e12, e13, e23, e123]
+      1.0, 0, 0, 0, 0, 0, 0, 0
     ]);
 
     // Target vectors to be rotated
-    this.vectors = Array(size).fill(null).map(() => [0, 1, 0, 0, 0, 0, 0, 0]); // e1 vector
+    this.vectors = Array(size).fill(null).map(() => [0, 1, 0, 0, 0, 0, 0, 0]);
   }
 
-  // Create a rotor from angle and axis
   createRotor(angle, axis_x, axis_y, axis_z) {
     const halfAngle = angle / 2;
     const cos_half = Math.cos(halfAngle);
     const sin_half = Math.sin(halfAngle);
 
-    // Normalize axis
     const length = Math.sqrt(axis_x*axis_x + axis_y*axis_y + axis_z*axis_z);
     const nx = axis_x / length;
     const ny = axis_y / length;
     const nz = axis_z / length;
 
     return [
-      cos_half,                    // scalar part
-      0, 0, 0,                    // vector part (zero for rotors)
-      -sin_half * nx * ny,        // e12 = e1^e2
-      -sin_half * nx * nz,        // e13 = e1^e3
-      -sin_half * ny * nz,        // e23 = e2^e3
-      0                           // e123
+      cos_half, 0, 0, 0,
+      -sin_half * nx * ny,
+      -sin_half * nx * nz,
+      -sin_half * ny * nz,
+      0
     ];
   }
 
-  // Apply rotor to vector: R * v * R†
   applyRotor(rotor, vector) {
-    // Simplified rotor application (real implementation would use geometric product)
     const angle = 2 * Math.acos(Math.abs(rotor[0]));
     const rotated = [...vector];
-
-    // Simple rotation in xy-plane for demonstration
     const cos_a = Math.cos(angle);
     const sin_a = Math.sin(angle);
 
-    const x = vector[1]; // e1 component
-    const y = vector[2]; // e2 component
+    const x = vector[1];
+    const y = vector[2];
 
-    rotated[1] = cos_a * x - sin_a * y; // new e1
-    rotated[2] = sin_a * x + cos_a * y; // new e2
+    rotated[1] = cos_a * x - sin_a * y;
+    rotated[2] = sin_a * x + cos_a * y;
 
     return rotated;
   }
 
   evolve() {
-    const newRotors = [...this.rotors];
-    const newVectors = [...this.vectors];
-
     for (let i = 0; i < this.size; i++) {
-      // Get neighbors (periodic boundary)
       const leftIdx = (i - 1 + this.size) % this.size;
       const rightIdx = (i + 1) % this.size;
 
-      // Create evolution rotor based on neighbor influence
-      const leftInfluence = this.rotors[leftIdx][0]; // scalar part
+      const leftInfluence = this.rotors[leftIdx][0];
       const rightInfluence = this.rotors[rightIdx][0];
 
       const evolutionAngle = (leftInfluence + rightInfluence) * 0.1;
-      const evolutionRotor = this.createRotor(evolutionAngle, 0, 0, 1); // rotate around z-axis
+      const evolutionRotor = this.createRotor(evolutionAngle, 0, 0, 1);
 
-      // Apply evolution to current rotor (composition)
-      newRotors[i][0] *= evolutionRotor[0]; // simplified composition
-
-      // Apply rotor to vector
-      newVectors[i] = this.applyRotor(newRotors[i], this.vectors[i]);
+      this.rotors[i][0] *= evolutionRotor[0];
+      this.vectors[i] = this.applyRotor(this.rotors[i], this.vectors[i]);
     }
 
-    this.rotors = newRotors;
-    this.vectors = newVectors;
     this.generation++;
   }
 
   getRotationAngles() {
     return this.rotors.map(rotor => 2 * Math.acos(Math.abs(rotor[0])));
   }
-
-  getVectorMagnitudes() {
-    return this.vectors.map(v => Math.sqrt(v[1]*v[1] + v[2]*v[2] + v[3]*v[3]));
-  }
 }
 
-// Create and run rotor CA
 const rotorCA = new RotorCA(8);
 
 // Initialize with some rotations
@@ -357,21 +337,15 @@ for (let i = 0; i < 8; i++) {
 console.log("Rotor Cellular Automaton Evolution:");
 console.log(\`Initial angles: [\${rotorCA.getRotationAngles().map(a => (a * 180/Math.PI).toFixed(1)).join('°, ')}°]\`);
 
-// Evolve the system
 for (let step = 0; step < 5; step++) {
   rotorCA.evolve();
   const angles = rotorCA.getRotationAngles();
-  const magnitudes = rotorCA.getVectorMagnitudes();
-
-  console.log(\`Step \${step + 1}:\`);
-  console.log(\`  Angles: [\${angles.map(a => (a * 180/Math.PI).toFixed(1)).join('°, ')}°]\`);
-  console.log(\`  Vector magnitudes: [\${magnitudes.map(m => m.toFixed(3)).join(', ')}]\`);
+  console.log(\`Step \${step + 1}: [\${angles.map(a => (a * 180/Math.PI).toFixed(1)).join('°, ')}°]\`);
 }
 
 console.log("\\nRotor CA demonstrates:");
 console.log("• Smooth rotational evolution using geometric algebra");
-console.log("• Composition of rotations through rotor multiplication");
-console.log("• Natural handling of 3D orientations without gimbal lock");`,
+console.log("• Composition of rotations through rotor multiplication");`,
       onRun: simulateExample(() => {
         class RotorCA {
           size: number;
@@ -421,9 +395,6 @@ console.log("• Natural handling of 3D orientations without gimbal lock");`,
           }
 
           evolve() {
-            const newRotors = [...this.rotors];
-            const newVectors = [...this.vectors];
-
             for (let i = 0; i < this.size; i++) {
               const leftIdx = (i - 1 + this.size) % this.size;
               const rightIdx = (i + 1) % this.size;
@@ -434,21 +405,15 @@ console.log("• Natural handling of 3D orientations without gimbal lock");`,
               const evolutionAngle = (leftInfluence + rightInfluence) * 0.1;
               const evolutionRotor = this.createRotor(evolutionAngle, 0, 0, 1);
 
-              newRotors[i][0] *= evolutionRotor[0];
-              newVectors[i] = this.applyRotor(newRotors[i], this.vectors[i]);
+              this.rotors[i][0] *= evolutionRotor[0];
+              this.vectors[i] = this.applyRotor(this.rotors[i], this.vectors[i]);
             }
 
-            this.rotors = newRotors;
-            this.vectors = newVectors;
             this.generation++;
           }
 
           getRotationAngles() {
             return this.rotors.map(rotor => 2 * Math.acos(Math.abs(rotor[0])));
-          }
-
-          getVectorMagnitudes() {
-            return this.vectors.map(v => Math.sqrt(v[1]*v[1] + v[2]*v[2] + v[3]*v[3]));
           }
         }
 
@@ -461,23 +426,19 @@ console.log("• Natural handling of 3D orientations without gimbal lock");`,
 
         let result = [];
         result.push("Rotor Cellular Automaton Evolution:");
-        result.push(`Initial angles: [${rotorCA.getRotationAngles().map(a => (a * 180/Math.PI).toFixed(1)).join('°, ')}°]`);
+        result.push(`Initial angles: [${rotorCA.getRotationAngles().map(a => (a * 180/Math.PI).toFixed(1)).join(', ')}°]`);
 
         for (let step = 0; step < 5; step++) {
           rotorCA.evolve();
           const angles = rotorCA.getRotationAngles();
-          const magnitudes = rotorCA.getVectorMagnitudes();
-
-          result.push(`Step ${step + 1}:`);
-          result.push(`  Angles: [${angles.map(a => (a * 180/Math.PI).toFixed(1)).join('°, ')}°]`);
-          result.push(`  Vector magnitudes: [${magnitudes.map(m => m.toFixed(3)).join(', ')}]`);
+          result.push(`Step ${step + 1}: [${angles.map(a => (a * 180/Math.PI).toFixed(1)).join(', ')}°]`);
         }
 
         result.push("");
         result.push("Rotor CA demonstrates:");
-        result.push("• Smooth rotational evolution using geometric algebra");
-        result.push("• Composition of rotations through rotor multiplication");
-        result.push("• Natural handling of 3D orientations without gimbal lock");
+        result.push("  Smooth rotational evolution using geometric algebra");
+        result.push("  Composition of rotations through rotor multiplication");
+        result.push("  Natural handling of 3D orientations without gimbal lock");
 
         return result.join('\n');
       })
@@ -496,20 +457,17 @@ class SelfAssemblySystem {
     this.generation = 0;
   }
 
-  // Define a component with geometric constraints
   addComponent(id, position, orientation, connectionPoints) {
     this.components.push({
       id,
-      position: [...position],           // [x, y, z]
-      orientation: [...orientation],     // Rotor as [s, e12, e13, e23]
-      connectionPoints: connectionPoints.map(cp => [...cp]), // Array of 3D points
+      position: [...position],
+      orientation: [...orientation],
+      connectionPoints: connectionPoints.map(cp => [...cp]),
       connected: false
     });
   }
 
-  // Check if two components can connect based on geometric constraints
   canConnect(comp1, comp2, tolerance = 0.1) {
-    // Check each connection point of comp1 against comp2's points
     for (let i = 0; i < comp1.connectionPoints.length; i++) {
       for (let j = 0; j < comp2.connectionPoints.length; j++) {
         const p1 = this.transformPoint(comp1.connectionPoints[i], comp1.position, comp1.orientation);
@@ -529,19 +487,15 @@ class SelfAssemblySystem {
     return { canConnect: false };
   }
 
-  // Transform a point using position and orientation (simplified rotor application)
   transformPoint(point, position, rotor) {
-    // Apply rotation (simplified - real implementation would use full rotor math)
     const angle = 2 * Math.acos(Math.abs(rotor[0]));
     const cos_a = Math.cos(angle);
     const sin_a = Math.sin(angle);
 
-    // Rotate in xy-plane for simplification
     const rotatedX = cos_a * point[0] - sin_a * point[1];
     const rotatedY = sin_a * point[0] + cos_a * point[1];
     const rotatedZ = point[2];
 
-    // Translate
     return [
       rotatedX + position[0],
       rotatedY + position[1],
@@ -549,7 +503,6 @@ class SelfAssemblySystem {
     ];
   }
 
-  // Attempt to connect compatible components
   tryAssemble() {
     const newConnections = [];
 
@@ -558,7 +511,6 @@ class SelfAssemblySystem {
         const comp1 = this.components[i];
         const comp2 = this.components[j];
 
-        // Skip if already connected
         if (this.connections.some(conn =>
           (conn.comp1 === i && conn.comp2 === j) || (conn.comp1 === j && conn.comp2 === i)
         )) {
@@ -566,13 +518,11 @@ class SelfAssemblySystem {
         }
 
         const connectionResult = this.canConnect(comp1, comp2);
-        if (connectionResult.canConnect) {
+        if (connectionResult.canConnect && connectionResult.distance !== undefined) {
           newConnections.push({
             comp1: i,
             comp2: j,
-            point1: connectionResult.point1,
-            point2: connectionResult.point2,
-            strength: 1.0 / (connectionResult.distance + 0.001) // Stronger for closer fits
+            strength: 1.0 / (connectionResult.distance + 0.001)
           });
 
           comp1.connected = true;
@@ -587,20 +537,19 @@ class SelfAssemblySystem {
     return newConnections.length;
   }
 
-  // Get assembly statistics
   getAssemblyStats() {
     const totalComponents = this.components.length;
     const connectedComponents = this.components.filter(c => c.connected).length;
     const totalConnections = this.connections.length;
-    const averageConnectionStrength = this.connections.length > 0 ?
+    const avgStrength = this.connections.length > 0 ?
       this.connections.reduce((sum, conn) => sum + conn.strength, 0) / this.connections.length : 0;
 
     return {
       totalComponents,
       connectedComponents,
       totalConnections,
-      averageConnectionStrength,
-      assemblyProgress: connectedComponents / totalComponents
+      avgStrength,
+      progress: connectedComponents / totalComponents
     };
   }
 }
@@ -608,51 +557,27 @@ class SelfAssemblySystem {
 // Create self-assembly system
 const assembly = new SelfAssemblySystem();
 
-// Add some components with connection points
 console.log("Initializing self-assembly system...");
 
-// Component A: L-shaped piece
-assembly.addComponent('A', [0, 0, 0], [1, 0, 0, 0], [
-  [1, 0, 0],   // Right connection
-  [0, 1, 0]    // Top connection
-]);
-
-// Component B: Straight piece
-assembly.addComponent('B', [0.9, 0, 0], [1, 0, 0, 0], [
-  [-0.1, 0, 0], // Left connection
-  [0.9, 0, 0]   // Right connection
-]);
-
-// Component C: Corner piece
-assembly.addComponent('C', [0, 0.9, 0], [1, 0, 0, 0], [
-  [0, -0.1, 0], // Bottom connection
-  [1, 0.9, 0]   // Right connection
-]);
-
-// Component D: T-shaped piece
-assembly.addComponent('D', [2, 0, 0], [1, 0, 0, 0], [
-  [-0.1, 0, 0], // Left connection
-  [0, 1, 0],    // Top connection
-  [0, -1, 0]    // Bottom connection
-]);
+assembly.addComponent('A', [0, 0, 0], [1, 0, 0, 0], [[1, 0, 0], [0, 1, 0]]);
+assembly.addComponent('B', [0.9, 0, 0], [1, 0, 0, 0], [[-0.1, 0, 0], [0.9, 0, 0]]);
+assembly.addComponent('C', [0, 0.9, 0], [1, 0, 0, 0], [[0, -0.1, 0], [1, 0.9, 0]]);
+assembly.addComponent('D', [2, 0, 0], [1, 0, 0, 0], [[-0.1, 0, 0], [0, 1, 0]]);
 
 console.log(\`Added \${assembly.components.length} components\`);
-
-// Attempt assembly over multiple generations
 console.log("\\nAttempting self-assembly...");
+
 for (let gen = 0; gen < 3; gen++) {
   const newConnections = assembly.tryAssemble();
   const stats = assembly.getAssemblyStats();
 
   console.log(\`Generation \${gen + 1}:\`);
   console.log(\`  New connections: \${newConnections}\`);
-  console.log(\`  Connected components: \${stats.connectedComponents}/\${stats.totalComponents}\`);
-  console.log(\`  Assembly progress: \${(stats.assemblyProgress * 100).toFixed(1)}%\`);
-  console.log(\`  Average connection strength: \${stats.averageConnectionStrength.toFixed(3)}\`);
+  console.log(\`  Connected: \${stats.connectedComponents}/\${stats.totalComponents}\`);
+  console.log(\`  Progress: \${(stats.progress * 100).toFixed(1)}%\`);
 }
 
-console.log("\\nSelf-assembly complete!");
-console.log("Geometric constraints ensure proper component alignment");`,
+console.log("\\nSelf-assembly complete!");`,
       onRun: simulateExample(() => {
         class SelfAssemblySystem {
           components: Array<{
@@ -665,8 +590,6 @@ console.log("Geometric constraints ensure proper component alignment");`,
           connections: Array<{
             comp1: number,
             comp2: number,
-            point1: number,
-            point2: number,
             strength: number
           }> = [];
           generation = 0;
@@ -736,8 +659,6 @@ console.log("Geometric constraints ensure proper component alignment");`,
                   newConnections.push({
                     comp1: i,
                     comp2: j,
-                    point1: connectionResult.point1!,
-                    point2: connectionResult.point2!,
                     strength: 1.0 / (connectionResult.distance + 0.001)
                   });
 
@@ -757,15 +678,15 @@ console.log("Geometric constraints ensure proper component alignment");`,
             const totalComponents = this.components.length;
             const connectedComponents = this.components.filter(c => c.connected).length;
             const totalConnections = this.connections.length;
-            const averageConnectionStrength = this.connections.length > 0 ?
+            const avgStrength = this.connections.length > 0 ?
               this.connections.reduce((sum, conn) => sum + conn.strength, 0) / this.connections.length : 0;
 
             return {
               totalComponents,
               connectedComponents,
               totalConnections,
-              averageConnectionStrength,
-              assemblyProgress: connectedComponents / totalComponents
+              avgStrength,
+              progress: connectedComponents / totalComponents
             };
           }
         }
@@ -790,8 +711,8 @@ console.log("Geometric constraints ensure proper component alignment");`,
           result.push(`Generation ${gen + 1}:`);
           result.push(`  New connections: ${newConnections}`);
           result.push(`  Connected components: ${stats.connectedComponents}/${stats.totalComponents}`);
-          result.push(`  Assembly progress: ${(stats.assemblyProgress * 100).toFixed(1)}%`);
-          result.push(`  Average connection strength: ${stats.averageConnectionStrength.toFixed(3)}`);
+          result.push(`  Assembly progress: ${(stats.progress * 100).toFixed(1)}%`);
+          result.push(`  Average connection strength: ${stats.avgStrength.toFixed(3)}`);
         }
 
         result.push("");
@@ -804,91 +725,93 @@ console.log("Geometric constraints ensure proper component alignment");`,
   ];
 
   return (
-<div style={{ padding: '2rem' }}>
+    <Container size="lg" py="xl">
+      <Stack gap="lg">
         <div>
-          <H1>Cellular Automata Examples</H1>
-          <P style={{ fontSize: '1.125rem', opacity: 0.7, marginBottom: '1rem' }}>
+          <Title order={1}>Cellular Automata Examples</Title>
+          <Text size="lg" c="dimmed">
             Explore geometric cellular automata, rotor evolution, and self-assembling systems.
-          </P>
-
-          <Card style={{ marginBottom: '2rem' }}>
-            <CardHeader>
-              <h3 style={{ fontSize: '1.125rem', fontWeight: '600' }}>Geometric Cellular Automata</h3>
-            </CardHeader>
-            <CardBody>
-              <P style={{ marginBottom: '1rem' }}>
-                The Amari automata system extends traditional cellular automata with geometric algebra:
-              </P>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
-                <div>
-                  <h4 style={{ fontWeight: '600', fontSize: '0.875rem', marginBottom: '0.5rem' }}>Traditional CA</h4>
-                  <ul style={{ fontSize: '0.875rem', lineHeight: '1.4' }}>
-                    <li>• Binary or discrete states</li>
-                    <li>• Simple neighborhood rules</li>
-                    <li>• Limited spatial relationships</li>
-                  </ul>
-                </div>
-                <div>
-                  <h4 style={{ fontWeight: '600', fontSize: '0.875rem', marginBottom: '0.5rem' }}>Geometric CA</h4>
-                  <ul style={{ fontSize: '0.875rem', lineHeight: '1.4' }}>
-                    <li>• Multivector cell states</li>
-                    <li>• Geometric product evolution</li>
-                    <li>• Rich spatial/rotational dynamics</li>
-                  </ul>
-                </div>
-              </div>
-              <P style={{ fontSize: '0.875rem', opacity: 0.7 }}>
-                This enables sophisticated behaviors like rotor-based rotations, self-assembly
-                with geometric constraints, and inverse design for target configurations.
-              </P>
-            </CardBody>
-          </Card>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            {examples.map((example, index) => (
-              <div key={index}>
-                <ExampleCard
-                  title={example.title}
-                  description={example.description}
-                  code={example.code}
-                  category={example.category}
-                  onRun={example.onRun}
-                />
-                {gridData.length > 0 && index === 0 && (
-                  <GridVisualization grid={gridData} />
-                )}
-              </div>
-            ))}
-          </div>
-
-          <Card style={{ marginTop: '2rem' }}>
-            <CardHeader>
-              <h3 style={{ fontSize: '1.125rem', fontWeight: '600' }}>Applications & Research Directions</h3>
-            </CardHeader>
-            <CardBody>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem' }}>
-                <div>
-                  <h4 style={{ fontWeight: '600', fontSize: '0.875rem', marginBottom: '0.5rem' }}>Current Applications</h4>
-                  <ul style={{ fontSize: '0.875rem', lineHeight: '1.4' }}>
-                    <li>• Self-assembling UI components</li>
-                    <li>• Geometric pattern generation</li>
-                    <li>• Spatial constraint solving</li>
-                    <li>• 3D structure optimization</li>
-                  </ul>
-                </div>
-                <div>
-                  <h4 style={{ fontWeight: '600', fontSize: '0.875rem', marginBottom: '0.5rem' }}>Research Potential</h4>
-                  <ul style={{ fontSize: '0.875rem', lineHeight: '1.4' }}>
-                    <li>• Quantum cellular automata simulation</li>
-                    <li>• Crystalline growth modeling</li>
-                    <li>• Robotic swarm coordination</li>
-                    <li>• Architectural design automation</li>
-                  </ul>
-                </div>
-              </div>
-            </CardBody>
-          </Card>
+          </Text>
         </div>
-      </div>
-);
+
+        <Card withBorder>
+          <Card.Section inheritPadding py="xs" bg="dark.6">
+            <Title order={3} size="h4">Geometric Cellular Automata</Title>
+          </Card.Section>
+          <Card.Section inheritPadding py="md">
+            <Text mb="md">
+              The Amari automata system extends traditional cellular automata with geometric algebra:
+            </Text>
+            <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md" mb="md">
+              <div>
+                <Title order={4} size="sm" mb="xs">Traditional CA</Title>
+                <Text size="sm" c="dimmed" component="ul" style={{ paddingLeft: '1rem' }}>
+                  <li>Binary or discrete states</li>
+                  <li>Simple neighborhood rules</li>
+                  <li>Limited spatial relationships</li>
+                </Text>
+              </div>
+              <div>
+                <Title order={4} size="sm" mb="xs">Geometric CA</Title>
+                <Text size="sm" c="dimmed" component="ul" style={{ paddingLeft: '1rem' }}>
+                  <li>Multivector cell states</li>
+                  <li>Geometric product evolution</li>
+                  <li>Rich spatial/rotational dynamics</li>
+                </Text>
+              </div>
+            </SimpleGrid>
+            <Text size="sm" c="dimmed">
+              This enables sophisticated behaviors like rotor-based rotations, self-assembly
+              with geometric constraints, and inverse design for target configurations.
+            </Text>
+          </Card.Section>
+        </Card>
+
+        <Stack gap="lg">
+          {examples.map((example, index) => (
+            <div key={index}>
+              <ExampleCard
+                title={example.title}
+                description={example.description}
+                code={example.code}
+                category={example.category}
+                onRun={example.onRun}
+              />
+              {gridData.length > 0 && index === 0 && (
+                <GridVisualization grid={gridData} />
+              )}
+            </div>
+          ))}
+        </Stack>
+
+        <Card withBorder>
+          <Card.Section inheritPadding py="xs" bg="dark.6">
+            <Title order={3} size="h4">Applications & Research Directions</Title>
+          </Card.Section>
+          <Card.Section inheritPadding py="md">
+            <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
+              <div>
+                <Title order={4} size="sm" mb="xs">Current Applications</Title>
+                <Text size="sm" c="dimmed" component="ul" style={{ paddingLeft: '1rem' }}>
+                  <li>Self-assembling UI components</li>
+                  <li>Geometric pattern generation</li>
+                  <li>Spatial constraint solving</li>
+                  <li>3D structure optimization</li>
+                </Text>
+              </div>
+              <div>
+                <Title order={4} size="sm" mb="xs">Research Potential</Title>
+                <Text size="sm" c="dimmed" component="ul" style={{ paddingLeft: '1rem' }}>
+                  <li>Quantum cellular automata simulation</li>
+                  <li>Crystalline growth modeling</li>
+                  <li>Robotic swarm coordination</li>
+                  <li>Architectural design automation</li>
+                </Text>
+              </div>
+            </SimpleGrid>
+          </Card.Section>
+        </Card>
+      </Stack>
+    </Container>
+  );
 }

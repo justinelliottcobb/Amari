@@ -1,411 +1,2578 @@
-import { H1, P, Card, CardHeader, CardBody, Button, CodeBlock, H2, H3, H4, StatusBadge } from "jadis-ui";
-import { RealTimeVisualization } from "../components/RealTimeDisplay";
+import { Container, Stack, Card, Title, Text, Badge, SimpleGrid, Accordion, Group, Box, Tabs } from "@mantine/core";
+import { CodeHighlight } from "@mantine/code-highlight";
 import { useState } from "react";
-
-interface ApiSection {
-  id: string;
-  title: string;
-  description: string;
-  methods: ApiMethod[];
-}
+import { LiveVisualizationSection } from "../components/LiveVisualization";
 
 interface ApiMethod {
   name: string;
   signature: string;
   description: string;
-  example: string;
+  example?: string;
   parameters?: { name: string; type: string; description: string; }[];
   returns?: string;
+  isStatic?: boolean;
+}
+
+interface ApiClass {
+  name: string;
+  description: string;
+  methods: ApiMethod[];
+}
+
+interface ApiSection {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  classes: ApiClass[];
+  functions?: ApiMethod[];
 }
 
 const apiSections: ApiSection[] = [
   {
     id: "geometric",
     title: "Geometric Algebra",
-    description: "Multivector operations and geometric product computations",
-    methods: [
+    description: "Multivector operations, geometric products, rotors, and transformations in Cl(3,0,0)",
+    icon: "△",
+    classes: [
       {
-        name: "WasmMultivector.basisVector",
-        signature: "static basisVector(index: number): WasmMultivector",
-        description: "Create a basis vector (e1, e2, e3, etc.)",
-        parameters: [
-          { name: "index", type: "number", description: "Basis vector index (0-2 for 3D)" }
-        ],
-        returns: "WasmMultivector representing the basis vector",
-        example: `const e1 = amari.WasmMultivector.basisVector(0);
-const e2 = amari.WasmMultivector.basisVector(1);
-
-// Get coefficients [scalar, e1, e2, e3, e12, e13, e23, e123]
+        name: "WasmMultivector",
+        description: "Core multivector type representing elements of Cl(3,0,0) with 8 basis components: 1, e₁, e₂, e₃, e₁₂, e₁₃, e₂₃, e₁₂₃",
+        methods: [
+          {
+            name: "constructor",
+            signature: "new WasmMultivector()",
+            description: "Create a new zero multivector",
+            returns: "WasmMultivector",
+            example: `const mv = new WasmMultivector();
+console.log(mv.getCoefficients()); // [0, 0, 0, 0, 0, 0, 0, 0]`
+          },
+          {
+            name: "scalar",
+            signature: "static scalar(value: number): WasmMultivector",
+            description: "Create a scalar multivector (grade 0)",
+            isStatic: true,
+            parameters: [{ name: "value", type: "number", description: "Scalar value" }],
+            returns: "WasmMultivector with only scalar component",
+            example: `const s = WasmMultivector.scalar(3.14);
+console.log(s.getCoefficient(0)); // 3.14`
+          },
+          {
+            name: "basisVector",
+            signature: "static basisVector(index: number): WasmMultivector",
+            description: "Create a basis vector e₁, e₂, or e₃ (indices 0, 1, 2)",
+            isStatic: true,
+            parameters: [{ name: "index", type: "number", description: "Basis index (0=e₁, 1=e₂, 2=e₃)" }],
+            returns: "WasmMultivector representing the basis vector",
+            example: `const e1 = WasmMultivector.basisVector(0);
+const e2 = WasmMultivector.basisVector(1);
 console.log(e1.getCoefficients()); // [0, 1, 0, 0, 0, 0, 0, 0]`
-      },
-      {
-        name: "geometricProduct",
-        signature: "geometricProduct(other: WasmMultivector): WasmMultivector",
-        description: "Compute the geometric product of two multivectors",
-        parameters: [
-          { name: "other", type: "WasmMultivector", description: "The multivector to multiply with" }
-        ],
-        returns: "WasmMultivector result of the geometric product",
-        example: `const e1 = amari.WasmMultivector.basisVector(0);
-const e2 = amari.WasmMultivector.basisVector(1);
-
-// e1 * e2 = e12 (bivector)
+          },
+          {
+            name: "fromCoefficients",
+            signature: "static fromCoefficients(coefficients: Float64Array): WasmMultivector",
+            description: "Create multivector from 8 coefficients [scalar, e₁, e₂, e₃, e₁₂, e₁₃, e₂₃, e₁₂₃]",
+            isStatic: true,
+            parameters: [{ name: "coefficients", type: "Float64Array", description: "8 basis coefficients" }],
+            returns: "WasmMultivector",
+            example: `const mv = WasmMultivector.fromCoefficients(
+  new Float64Array([1, 2, 3, 4, 0, 0, 0, 0])
+); // 1 + 2e₁ + 3e₂ + 4e₃`
+          },
+          {
+            name: "geometricProduct",
+            signature: "geometricProduct(other: WasmMultivector): WasmMultivector",
+            description: "Compute the geometric product AB = A·B + A∧B",
+            parameters: [{ name: "other", type: "WasmMultivector", description: "Right operand" }],
+            returns: "WasmMultivector result",
+            example: `const e1 = WasmMultivector.basisVector(0);
+const e2 = WasmMultivector.basisVector(1);
 const e12 = e1.geometricProduct(e2);
-console.log(e12.getCoefficient(4)); // 1.0 (e12 component)`
+console.log(e12.getCoefficient(4)); // 1.0 (e₁₂ component)`
+          },
+          {
+            name: "innerProduct",
+            signature: "innerProduct(other: WasmMultivector): WasmMultivector",
+            description: "Compute the inner product (contraction) A·B",
+            parameters: [{ name: "other", type: "WasmMultivector", description: "Right operand" }],
+            returns: "WasmMultivector result",
+            example: `const v1 = WasmMultivector.fromCoefficients(new Float64Array([0,1,2,3,0,0,0,0]));
+const v2 = WasmMultivector.fromCoefficients(new Float64Array([0,4,5,6,0,0,0,0]));
+const dot = v1.innerProduct(v2);
+console.log(dot.getCoefficient(0)); // 1*4 + 2*5 + 3*6 = 32`
+          },
+          {
+            name: "outerProduct",
+            signature: "outerProduct(other: WasmMultivector): WasmMultivector",
+            description: "Compute the outer (wedge) product A∧B",
+            parameters: [{ name: "other", type: "WasmMultivector", description: "Right operand" }],
+            returns: "WasmMultivector result",
+            example: `const e1 = WasmMultivector.basisVector(0);
+const e2 = WasmMultivector.basisVector(1);
+const e12 = e1.outerProduct(e2); // e₁∧e₂ = e₁₂`
+          },
+          {
+            name: "add",
+            signature: "add(other: WasmMultivector): WasmMultivector",
+            description: "Add two multivectors",
+            parameters: [{ name: "other", type: "WasmMultivector", description: "Addend" }],
+            returns: "WasmMultivector sum"
+          },
+          {
+            name: "sub",
+            signature: "sub(other: WasmMultivector): WasmMultivector",
+            description: "Subtract two multivectors",
+            parameters: [{ name: "other", type: "WasmMultivector", description: "Subtrahend" }],
+            returns: "WasmMultivector difference"
+          },
+          {
+            name: "scale",
+            signature: "scale(scalar: number): WasmMultivector",
+            description: "Scale multivector by a scalar",
+            parameters: [{ name: "scalar", type: "number", description: "Scale factor" }],
+            returns: "Scaled WasmMultivector"
+          },
+          {
+            name: "reverse",
+            signature: "reverse(): WasmMultivector",
+            description: "Compute the reverse (reversion) Ã - reverses order of basis vectors in each term",
+            returns: "Reversed WasmMultivector"
+          },
+          {
+            name: "inverse",
+            signature: "inverse(): WasmMultivector",
+            description: "Compute the multiplicative inverse A⁻¹",
+            returns: "Inverse WasmMultivector"
+          },
+          {
+            name: "exp",
+            signature: "exp(): WasmMultivector",
+            description: "Compute exponential exp(A) - especially useful for bivectors to create rotors",
+            returns: "WasmMultivector",
+            example: `// Create a rotor for 90° rotation in the e₁e₂ plane
+const bivector = WasmMultivector.fromCoefficients(
+  new Float64Array([0, 0, 0, 0, Math.PI/4, 0, 0, 0])
+);
+const rotor = bivector.exp();`
+          },
+          {
+            name: "magnitude",
+            signature: "magnitude(): number",
+            description: "Compute the magnitude |A| = √(A·Ã)",
+            returns: "Scalar magnitude"
+          },
+          {
+            name: "normalize",
+            signature: "normalize(): WasmMultivector",
+            description: "Normalize to unit magnitude",
+            returns: "Normalized WasmMultivector"
+          },
+          {
+            name: "gradeProjection",
+            signature: "gradeProjection(grade: number): WasmMultivector",
+            description: "Project onto a specific grade (0=scalar, 1=vector, 2=bivector, 3=pseudoscalar)",
+            parameters: [{ name: "grade", type: "number", description: "Grade to project onto (0-3)" }],
+            returns: "Grade-projected WasmMultivector"
+          },
+          {
+            name: "getCoefficients",
+            signature: "getCoefficients(): Float64Array",
+            description: "Get all 8 coefficients as a typed array",
+            returns: "Float64Array of 8 coefficients"
+          },
+          {
+            name: "getCoefficient",
+            signature: "getCoefficient(index: number): number",
+            description: "Get a specific coefficient",
+            parameters: [{ name: "index", type: "number", description: "Coefficient index (0-7)" }],
+            returns: "Coefficient value"
+          }
+        ]
       },
       {
-        name: "innerProduct",
-        signature: "innerProduct(other: WasmMultivector): WasmMultivector",
-        description: "Compute the inner product (contraction)",
-        parameters: [
-          { name: "other", type: "WasmMultivector", description: "The multivector to contract with" }
-        ],
-        returns: "WasmMultivector result of the inner product",
-        example: `const v1 = amari.WasmMultivector.fromCoefficients([0, 1, 2, 3, 0, 0, 0, 0]);
-const v2 = amari.WasmMultivector.fromCoefficients([0, 4, 5, 6, 0, 0, 0, 0]);
-
-const inner = v1.innerProduct(v2);
-console.log(inner.getCoefficient(0)); // Scalar result: 1*4 + 2*5 + 3*6 = 32`
+        name: "WasmRotor",
+        description: "Rotor for efficient 3D rotations using geometric algebra. Rotors are normalized even multivectors (scalar + bivector).",
+        methods: [
+          {
+            name: "fromBivector",
+            signature: "static fromBivector(bivector: WasmMultivector, angle: number): WasmRotor",
+            description: "Create a rotor from a bivector (rotation plane) and angle",
+            isStatic: true,
+            parameters: [
+              { name: "bivector", type: "WasmMultivector", description: "Bivector defining rotation plane" },
+              { name: "angle", type: "number", description: "Rotation angle in radians" }
+            ],
+            returns: "WasmRotor",
+            example: `// Rotation in the xy-plane
+const e12 = WasmMultivector.fromCoefficients(new Float64Array([0,0,0,0,1,0,0,0]));
+const rotor = WasmRotor.fromBivector(e12, Math.PI / 2); // 90° rotation`
+          },
+          {
+            name: "apply",
+            signature: "apply(mv: WasmMultivector): WasmMultivector",
+            description: "Apply rotor to transform a multivector: RMR̃",
+            parameters: [{ name: "mv", type: "WasmMultivector", description: "Multivector to transform" }],
+            returns: "Transformed WasmMultivector"
+          },
+          {
+            name: "compose",
+            signature: "compose(other: WasmRotor): WasmRotor",
+            description: "Compose two rotors (multiply)",
+            parameters: [{ name: "other", type: "WasmRotor", description: "Second rotor" }],
+            returns: "Composed WasmRotor"
+          },
+          {
+            name: "inverse",
+            signature: "inverse(): WasmRotor",
+            description: "Get the inverse rotor (reverses the rotation)",
+            returns: "Inverse WasmRotor"
+          }
+        ]
+      },
+      {
+        name: "BatchOperations",
+        description: "High-performance batch operations for multiple multivectors",
+        methods: [
+          {
+            name: "batchGeometricProduct",
+            signature: "static batchGeometricProduct(a_batch: Float64Array, b_batch: Float64Array): Float64Array",
+            description: "Compute geometric products for multiple pairs in parallel",
+            isStatic: true,
+            parameters: [
+              { name: "a_batch", type: "Float64Array", description: "First batch (n × 8 values)" },
+              { name: "b_batch", type: "Float64Array", description: "Second batch (n × 8 values)" }
+            ],
+            returns: "Float64Array of results (n × 8 values)"
+          },
+          {
+            name: "batchAdd",
+            signature: "static batchAdd(a_batch: Float64Array, b_batch: Float64Array): Float64Array",
+            description: "Add multiple multivector pairs",
+            isStatic: true
+          }
+        ]
+      },
+      {
+        name: "PerformanceOperations",
+        description: "Optimized vector operations with memory pooling",
+        methods: [
+          {
+            name: "vectorDotProduct",
+            signature: "static vectorDotProduct(v1: Float64Array, v2: Float64Array): number",
+            description: "Optimized dot product",
+            isStatic: true
+          },
+          {
+            name: "vectorCrossProduct",
+            signature: "static vectorCrossProduct(v1: Float64Array, v2: Float64Array): Float64Array",
+            description: "Optimized cross product for 3D vectors",
+            isStatic: true
+          },
+          {
+            name: "batchNormalize",
+            signature: "static batchNormalize(vectors: Float64Array, vector_size: number): Float64Array",
+            description: "Normalize multiple vectors in batch",
+            isStatic: true
+          }
+        ]
       }
     ]
   },
   {
     id: "tropical",
     title: "Tropical Algebra",
-    description: "Max-plus semiring operations for efficient computation",
-    methods: [
+    description: "Max-plus semiring operations for optimization, shortest paths, and neural network efficiency",
+    icon: "⊕",
+    classes: [
       {
-        name: "tropicalAdd",
-        signature: "function tropicalAdd(a: number, b: number): number",
-        description: "Tropical addition: maximum of two values",
-        parameters: [
-          { name: "a", type: "number", description: "First value" },
-          { name: "b", type: "number", description: "Second value" }
-        ],
-        returns: "number - the maximum of a and b",
-        example: `function tropicalAdd(a, b) {
-  return Math.max(a, b);
-}
-
-console.log(tropicalAdd(3.5, 2.1)); // 3.5
-console.log(tropicalAdd(-1, 0));    // 0`
+        name: "WasmTropicalNumber",
+        description: "Tropical (max-plus) number where ⊕ = max and ⊗ = +. Useful for optimization and path-finding.",
+        methods: [
+          {
+            name: "constructor",
+            signature: "new WasmTropicalNumber(value: number)",
+            description: "Create a tropical number from a real value",
+            parameters: [{ name: "value", type: "number", description: "Real value" }],
+            example: `const a = new WasmTropicalNumber(3);
+const b = new WasmTropicalNumber(5);
+console.log(a.tropicalAdd(b).getValue()); // max(3, 5) = 5
+console.log(a.tropicalMul(b).getValue()); // 3 + 5 = 8`
+          },
+          {
+            name: "zero",
+            signature: "static zero(): WasmTropicalNumber",
+            description: "Create tropical zero (-∞), the additive identity",
+            isStatic: true
+          },
+          {
+            name: "one",
+            signature: "static one(): WasmTropicalNumber",
+            description: "Create tropical one (0), the multiplicative identity",
+            isStatic: true
+          },
+          {
+            name: "fromLogProb",
+            signature: "static fromLogProb(log_p: number): WasmTropicalNumber",
+            description: "Create from log probability (natural for softmax)",
+            isStatic: true
+          },
+          {
+            name: "tropicalAdd",
+            signature: "tropicalAdd(other: WasmTropicalNumber): WasmTropicalNumber",
+            description: "Tropical addition: max(a, b)",
+            parameters: [{ name: "other", type: "WasmTropicalNumber", description: "Other operand" }]
+          },
+          {
+            name: "tropicalMul",
+            signature: "tropicalMul(other: WasmTropicalNumber): WasmTropicalNumber",
+            description: "Tropical multiplication: a + b",
+            parameters: [{ name: "other", type: "WasmTropicalNumber", description: "Other operand" }]
+          },
+          {
+            name: "tropicalPow",
+            signature: "tropicalPow(n: number): WasmTropicalNumber",
+            description: "Tropical power: n × a",
+            parameters: [{ name: "n", type: "number", description: "Exponent" }]
+          },
+          {
+            name: "toProb",
+            signature: "toProb(): number",
+            description: "Convert back to probability via exp()"
+          },
+          {
+            name: "getValue",
+            signature: "getValue(): number",
+            description: "Get the underlying value"
+          },
+          {
+            name: "isZero",
+            signature: "isZero(): boolean",
+            description: "Check if tropical zero (-∞)"
+          },
+          {
+            name: "isInfinity",
+            signature: "isInfinity(): boolean",
+            description: "Check if infinite"
+          }
+        ]
       },
       {
-        name: "tropicalMultiply",
-        signature: "function tropicalMultiply(a: number, b: number): number",
-        description: "Tropical multiplication: sum of two values",
-        parameters: [
-          { name: "a", type: "number", description: "First value" },
-          { name: "b", type: "number", description: "Second value" }
-        ],
-        returns: "number - the sum of a and b",
-        example: `function tropicalMultiply(a, b) {
-  return a + b;
-}
-
-console.log(tropicalMultiply(3.5, 2.1)); // 5.6
-console.log(tropicalMultiply(0, -1));    // -1`
+        name: "WasmTropicalPolynomial",
+        description: "Polynomial operations in tropical algebra",
+        methods: [
+          {
+            name: "constructor",
+            signature: "new WasmTropicalPolynomial(coefficients: Float64Array)",
+            description: "Create from coefficients",
+            example: `const poly = new WasmTropicalPolynomial(new Float64Array([1, 2, 3]));`
+          },
+          {
+            name: "evaluate",
+            signature: "evaluate(x: WasmTropicalNumber): WasmTropicalNumber",
+            description: "Evaluate polynomial at a tropical point"
+          },
+          {
+            name: "tropical_roots",
+            signature: "tropical_roots(): Array<any>",
+            description: "Find tropical roots (corners of the tropical curve)"
+          }
+        ]
+      },
+      {
+        name: "WasmTropicalCurve",
+        description: "Tropical curves for enumerative geometry",
+        methods: [
+          {
+            name: "constructor",
+            signature: "new WasmTropicalCurve(degree: number, genus: number)",
+            description: "Create a tropical curve",
+            parameters: [
+              { name: "degree", type: "number", description: "Curve degree" },
+              { name: "genus", type: "number", description: "Curve genus" }
+            ]
+          },
+          {
+            name: "expectedVertices",
+            signature: "expectedVertices(): number",
+            description: "Compute expected vertices using Euler characteristic"
+          }
+        ]
+      },
+      {
+        name: "WasmTropicalViterbi",
+        description: "Viterbi algorithm using tropical algebra for HMM decoding",
+        methods: [
+          {
+            name: "constructor",
+            signature: "new WasmTropicalViterbi(transitions: any, emissions: any)",
+            description: "Create Viterbi decoder from transition and emission matrices"
+          },
+          {
+            name: "decode",
+            signature: "decode(observations: Uint32Array): any",
+            description: "Decode most likely state sequence",
+            returns: "Object with states and log probability"
+          },
+          {
+            name: "forward_probabilities",
+            signature: "forward_probabilities(observations: Uint32Array): Array<any>",
+            description: "Compute forward probabilities"
+          }
+        ]
+      },
+      {
+        name: "TropicalBatch",
+        description: "Batch tropical operations for ML workloads",
+        methods: [
+          {
+            name: "maxLogProb",
+            signature: "static maxLogProb(log_probs: Float64Array): number",
+            description: "Find maximum log probability (tropical sum)",
+            isStatic: true
+          },
+          {
+            name: "viterbiStep",
+            signature: "static viterbiStep(prev_scores: Float64Array, transition_scores: Float64Array, emission_scores: Float64Array, num_states: number): Float64Array",
+            description: "Single Viterbi step for batch processing",
+            isStatic: true
+          },
+          {
+            name: "batchTropicalAdd",
+            signature: "static batchTropicalAdd(values: Float64Array): number",
+            description: "Batch tropical addition (max over all values)",
+            isStatic: true
+          }
+        ]
+      },
+      {
+        name: "TropicalMLOps",
+        description: "Tropical algebra for machine learning optimization",
+        methods: [
+          {
+            name: "shortestPaths",
+            signature: "static shortestPaths(distance_matrix: any): Array<any>",
+            description: "All-pairs shortest paths using Floyd-Warshall",
+            isStatic: true
+          },
+          {
+            name: "matrixMultiply",
+            signature: "static matrixMultiply(a: any, b: any): Array<any>",
+            description: "Tropical matrix multiplication",
+            isStatic: true
+          }
+        ]
       }
     ]
   },
   {
     id: "dual",
-    title: "Dual Numbers",
-    description: "Automatic differentiation with dual number arithmetic",
-    methods: [
+    title: "Dual Numbers & Autodiff",
+    description: "Automatic differentiation using dual numbers for exact gradients",
+    icon: "∂",
+    classes: [
       {
-        name: "DualNumber.variable",
-        signature: "static variable(value: number): DualNumber",
-        description: "Create a variable for differentiation (dual part = 1)",
-        parameters: [
-          { name: "value", type: "number", description: "The real part value" }
-        ],
-        returns: "DualNumber with dual part set to 1",
-        example: `const x = DualNumber.variable(2.0); // 2 + 1ε
-console.log(x.real); // 2.0
-console.log(x.dual); // 1.0`
+        name: "WasmDualNumber",
+        description: "Dual number a + bε where ε² = 0. Enables forward-mode automatic differentiation.",
+        methods: [
+          {
+            name: "constructor",
+            signature: "new WasmDualNumber(real: number, dual: number)",
+            description: "Create a dual number with real and dual parts",
+            example: `const x = new WasmDualNumber(3.0, 1.0); // x = 3 + ε (variable)
+const c = new WasmDualNumber(2.0, 0.0); // c = 2 (constant)`
+          },
+          {
+            name: "variable",
+            signature: "static variable(value: number): WasmDualNumber",
+            description: "Create a variable (dual part = 1) for differentiation",
+            isStatic: true,
+            example: `const x = WasmDualNumber.variable(2.0);
+const y = x.mul(x); // y = x²
+console.log(y.getReal()); // 4.0 (value)
+console.log(y.getDual()); // 4.0 (derivative: 2x at x=2)`
+          },
+          {
+            name: "constant",
+            signature: "static constant(value: number): WasmDualNumber",
+            description: "Create a constant (dual part = 0)",
+            isStatic: true
+          },
+          {
+            name: "add",
+            signature: "add(other: WasmDualNumber): WasmDualNumber",
+            description: "Addition with derivative tracking"
+          },
+          {
+            name: "sub",
+            signature: "sub(other: WasmDualNumber): WasmDualNumber",
+            description: "Subtraction with derivative tracking"
+          },
+          {
+            name: "mul",
+            signature: "mul(other: WasmDualNumber): WasmDualNumber",
+            description: "Multiplication: d(uv) = u'v + uv'"
+          },
+          {
+            name: "div",
+            signature: "div(other: WasmDualNumber): WasmDualNumber",
+            description: "Division: d(u/v) = (u'v - uv')/v²"
+          },
+          {
+            name: "sin",
+            signature: "sin(): WasmDualNumber",
+            description: "Sine with derivative (cos)"
+          },
+          {
+            name: "cos",
+            signature: "cos(): WasmDualNumber",
+            description: "Cosine with derivative (-sin)"
+          },
+          {
+            name: "tan",
+            signature: "tan(): WasmDualNumber",
+            description: "Tangent with derivative (sec²)"
+          },
+          {
+            name: "exp",
+            signature: "exp(): WasmDualNumber",
+            description: "Exponential with derivative (exp)"
+          },
+          {
+            name: "ln",
+            signature: "ln(): WasmDualNumber",
+            description: "Natural log with derivative (1/x)"
+          },
+          {
+            name: "sqrt",
+            signature: "sqrt(): WasmDualNumber",
+            description: "Square root with derivative (1/(2√x))"
+          },
+          {
+            name: "pow",
+            signature: "pow(exponent: number): WasmDualNumber",
+            description: "Power with derivative (n·x^(n-1))"
+          },
+          {
+            name: "sigmoid",
+            signature: "sigmoid(): WasmDualNumber",
+            description: "Sigmoid activation: σ(x) = 1/(1+e^(-x))"
+          },
+          {
+            name: "tanh",
+            signature: "tanh(): WasmDualNumber",
+            description: "Hyperbolic tangent activation"
+          },
+          {
+            name: "relu",
+            signature: "relu(): WasmDualNumber",
+            description: "ReLU activation: max(0, x)"
+          },
+          {
+            name: "softplus",
+            signature: "softplus(): WasmDualNumber",
+            description: "Softplus activation: ln(1 + e^x)"
+          },
+          {
+            name: "getReal",
+            signature: "getReal(): number",
+            description: "Get the function value"
+          },
+          {
+            name: "getDual",
+            signature: "getDual(): number",
+            description: "Get the derivative"
+          }
+        ]
       },
       {
-        name: "multiply",
-        signature: "multiply(other: DualNumber): DualNumber",
-        description: "Multiply two dual numbers with automatic differentiation",
-        parameters: [
-          { name: "other", type: "DualNumber", description: "The dual number to multiply with" }
-        ],
-        returns: "DualNumber with computed derivative",
-        example: `const x = DualNumber.variable(3.0);
-const c = DualNumber.constant(2.0);
-
-// d/dx(x * 2) = 2
-const result = x.multiply(c);
-console.log(result.real); // 6.0
-console.log(result.dual); // 2.0`
+        name: "WasmMultiDualNumber",
+        description: "Multi-variable dual numbers for computing gradients of functions with multiple inputs",
+        methods: [
+          {
+            name: "constructor",
+            signature: "new WasmMultiDualNumber(real: number, duals: Float64Array)",
+            description: "Create with value and partial derivatives"
+          },
+          {
+            name: "variable",
+            signature: "static variable(value: number, num_vars: number, var_index: number): WasmMultiDualNumber",
+            description: "Create a variable for the i-th input",
+            isStatic: true,
+            example: `// Compute gradient of f(x,y) = x² + xy at (3, 4)
+const x = WasmMultiDualNumber.variable(3, 2, 0);
+const y = WasmMultiDualNumber.variable(4, 2, 1);
+const f = x.mul(x).add(x.mul(y));
+console.log(f.getGradient()); // [2x+y, x] = [10, 3]`
+          },
+          {
+            name: "constant",
+            signature: "static constant(value: number, num_vars: number): WasmMultiDualNumber",
+            description: "Create a constant",
+            isStatic: true
+          },
+          {
+            name: "getGradient",
+            signature: "getGradient(): Float64Array",
+            description: "Get all partial derivatives"
+          },
+          {
+            name: "getPartial",
+            signature: "getPartial(index: number): number",
+            description: "Get specific partial derivative"
+          }
+        ]
+      },
+      {
+        name: "AutoDiff",
+        description: "Automatic differentiation utilities for neural networks",
+        methods: [
+          {
+            name: "linearLayer",
+            signature: "static linearLayer(inputs: Float64Array, weights: Float64Array, bias: Float64Array, input_size: number, output_size: number): Float64Array",
+            description: "Forward pass of linear layer with gradients",
+            isStatic: true
+          },
+          {
+            name: "meanSquaredError",
+            signature: "static meanSquaredError(predictions: Float64Array, targets: Float64Array): WasmDualNumber",
+            description: "MSE loss with gradient",
+            isStatic: true
+          },
+          {
+            name: "evaluatePolynomial",
+            signature: "static evaluatePolynomial(x: number, coefficients: Float64Array): WasmDualNumber",
+            description: "Evaluate polynomial with derivative",
+            isStatic: true
+          }
+        ]
+      },
+      {
+        name: "MLOps",
+        description: "Machine learning operations with automatic differentiation",
+        methods: [
+          {
+            name: "batchActivation",
+            signature: "static batchActivation(inputs: Float64Array, activation: string): Float64Array",
+            description: "Batch activation function ('relu', 'sigmoid', 'tanh')",
+            isStatic: true
+          },
+          {
+            name: "crossEntropyLoss",
+            signature: "static crossEntropyLoss(predictions: Float64Array, targets: Float64Array): WasmDualNumber",
+            description: "Cross-entropy loss with gradient",
+            isStatic: true
+          },
+          {
+            name: "gradientDescentStep",
+            signature: "static gradientDescentStep(parameters: Float64Array, gradients: Float64Array, learning_rate: number): Float64Array",
+            description: "Single gradient descent update",
+            isStatic: true
+          },
+          {
+            name: "softmax",
+            signature: "static softmax(inputs: Float64Array): Float64Array",
+            description: "Softmax normalization",
+            isStatic: true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: "info-geom",
+    title: "Information Geometry",
+    description: "Statistical manifolds, Fisher metrics, and divergences",
+    icon: "ℐ",
+    classes: [
+      {
+        name: "WasmFisherInformationMatrix",
+        description: "Fisher information matrix for statistical inference",
+        methods: [
+          {
+            name: "getEigenvalues",
+            signature: "getEigenvalues(): Float64Array",
+            description: "Get eigenvalues of the Fisher matrix"
+          },
+          {
+            name: "conditionNumber",
+            signature: "conditionNumber(): number",
+            description: "Ratio of largest to smallest eigenvalue"
+          },
+          {
+            name: "isPositiveDefinite",
+            signature: "isPositiveDefinite(): boolean",
+            description: "Check if the matrix is positive definite"
+          }
+        ]
+      },
+      {
+        name: "WasmDuallyFlatManifold",
+        description: "Dually flat manifold for exponential families",
+        methods: [
+          {
+            name: "constructor",
+            signature: "new WasmDuallyFlatManifold(dimension: number, alpha: number)",
+            description: "Create with dimension and α-connection parameter"
+          },
+          {
+            name: "klDivergence",
+            signature: "klDivergence(p: Float64Array, q: Float64Array): number",
+            description: "KL divergence D_KL(P||Q)",
+            example: `const manifold = new WasmDuallyFlatManifold(3, 0);
+const kl = manifold.klDivergence(
+  new Float64Array([0.5, 0.3, 0.2]),
+  new Float64Array([0.33, 0.33, 0.34])
+);`
+          },
+          {
+            name: "jsDivergence",
+            signature: "jsDivergence(p: Float64Array, q: Float64Array): number",
+            description: "Jensen-Shannon divergence (symmetric)"
+          },
+          {
+            name: "bregmanDivergence",
+            signature: "bregmanDivergence(p: Float64Array, q: Float64Array): number",
+            description: "Bregman divergence"
+          },
+          {
+            name: "wassersteinDistance",
+            signature: "wassersteinDistance(p: Float64Array, q: Float64Array): number",
+            description: "Wasserstein-1 distance (Earth Mover's Distance)"
+          },
+          {
+            name: "fisherMetricAt",
+            signature: "fisherMetricAt(point: Float64Array): WasmFisherInformationMatrix",
+            description: "Compute Fisher metric at a point"
+          }
+        ]
+      },
+      {
+        name: "WasmAlphaConnection",
+        description: "α-connection on statistical manifolds",
+        methods: [
+          {
+            name: "constructor",
+            signature: "new WasmAlphaConnection(alpha: number)",
+            description: "Create α-connection",
+            parameters: [{ name: "alpha", type: "number", description: "α parameter (-1=mixture, 0=Levi-Civita, 1=exponential)" }]
+          },
+          {
+            name: "isExponential",
+            signature: "isExponential(): boolean",
+            description: "Check if α = 1"
+          },
+          {
+            name: "isMixture",
+            signature: "isMixture(): boolean",
+            description: "Check if α = -1"
+          },
+          {
+            name: "isLeviCivita",
+            signature: "isLeviCivita(): boolean",
+            description: "Check if α = 0"
+          }
+        ]
+      },
+      {
+        name: "InfoGeomUtils",
+        description: "Information geometry utilities",
+        methods: [
+          {
+            name: "entropy",
+            signature: "static entropy(p: Float64Array): number",
+            description: "Shannon entropy H(p) = -Σp log p",
+            isStatic: true
+          },
+          {
+            name: "crossEntropy",
+            signature: "static crossEntropy(p: Float64Array, q: Float64Array): number",
+            description: "Cross-entropy H(p,q) = -Σp log q",
+            isStatic: true
+          },
+          {
+            name: "mutualInformation",
+            signature: "static mutualInformation(joint: Float64Array, marginal_x: Float64Array, marginal_y: Float64Array, dim_x: number): number",
+            description: "Mutual information I(X;Y)",
+            isStatic: true
+          },
+          {
+            name: "softmax",
+            signature: "static softmax(logits: Float64Array): Float64Array",
+            description: "Softmax normalization",
+            isStatic: true
+          },
+          {
+            name: "randomSimplex",
+            signature: "static randomSimplex(dimension: number): Float64Array",
+            description: "Generate random point on probability simplex",
+            isStatic: true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: "calculus",
+    title: "Calculus & Integration",
+    description: "Differential operators, numerical integration, and field operations",
+    icon: "∫",
+    classes: [
+      {
+        name: "ScalarField",
+        description: "Scalar field f: ℝⁿ → ℝ for calculus operations",
+        methods: [
+          {
+            name: "fromFunction2D",
+            signature: "static fromFunction2D(func: Function): ScalarField",
+            description: "Create 2D scalar field from JavaScript function",
+            isStatic: true,
+            example: `const field = ScalarField.fromFunction2D((x, y) => x*x + y*y);
+const value = field.evaluate(new Float64Array([1.0, 2.0])); // 5.0`
+          },
+          {
+            name: "fromFunction3D",
+            signature: "static fromFunction3D(func: Function): ScalarField",
+            description: "Create 3D scalar field",
+            isStatic: true
+          },
+          {
+            name: "evaluate",
+            signature: "evaluate(point: Float64Array): number",
+            description: "Evaluate field at a point"
+          },
+          {
+            name: "batchEvaluate",
+            signature: "batchEvaluate(points: Float64Array): Float64Array",
+            description: "Evaluate at multiple points"
+          }
+        ]
+      },
+      {
+        name: "VectorField",
+        description: "Vector field F: ℝⁿ → ℝⁿ for differential operations",
+        methods: [
+          {
+            name: "fromFunction2D",
+            signature: "static fromFunction2D(func: Function): VectorField",
+            description: "Create 2D vector field",
+            isStatic: true,
+            example: `// Rotation field
+const field = VectorField.fromFunction2D((x, y) => [y, -x]);
+const vec = field.evaluate(new Float64Array([1.0, 2.0])); // [2.0, -1.0]`
+          },
+          {
+            name: "fromFunction3D",
+            signature: "static fromFunction3D(func: Function): VectorField",
+            description: "Create 3D vector field",
+            isStatic: true
+          },
+          {
+            name: "evaluate",
+            signature: "evaluate(point: Float64Array): Float64Array",
+            description: "Evaluate field at a point"
+          }
+        ]
+      },
+      {
+        name: "NumericalDerivative",
+        description: "Numerical differentiation operations using finite differences",
+        methods: [
+          {
+            name: "constructor",
+            signature: "new NumericalDerivative(step_size?: number)",
+            description: "Create with optional step size (default: 1e-5)"
+          },
+          {
+            name: "gradient",
+            signature: "gradient(field: ScalarField, point: Float64Array): Float64Array",
+            description: "Compute gradient ∇f = [∂f/∂x, ∂f/∂y, ...]",
+            example: `const field = ScalarField.fromFunction2D((x, y) => x*x + y*y);
+const derivative = new NumericalDerivative();
+const grad = derivative.gradient(field, new Float64Array([1.0, 2.0]));
+// Returns [2.0, 4.0] (gradient at (1,2))`
+          },
+          {
+            name: "divergence",
+            signature: "divergence(field: VectorField, point: Float64Array): number",
+            description: "Compute divergence ∇·F = ∂Fx/∂x + ∂Fy/∂y + ..."
+          },
+          {
+            name: "curl",
+            signature: "curl(field: VectorField, point: Float64Array): Float64Array",
+            description: "Compute curl ∇×F (3D only)"
+          },
+          {
+            name: "laplacian",
+            signature: "laplacian(field: ScalarField, point: Float64Array): number",
+            description: "Compute Laplacian ∇²f = ∂²f/∂x² + ∂²f/∂y² + ..."
+          }
+        ]
+      },
+      {
+        name: "Integration",
+        description: "Numerical integration using Simpson's rule",
+        methods: [
+          {
+            name: "integrate1D",
+            signature: "static integrate1D(func: Function, a: number, b: number, n: number): number",
+            description: "1D integral ∫[a,b] f(x) dx",
+            isStatic: true,
+            example: `// Integrate x² from 0 to 1
+const result = Integration.integrate1D(x => x*x, 0, 1, 100);
+// Returns ≈ 0.333...`
+          },
+          {
+            name: "integrate2D",
+            signature: "static integrate2D(func: Function, ax: number, bx: number, ay: number, by: number, nx: number, ny: number): number",
+            description: "2D integral ∫∫ f(x,y) dx dy",
+            isStatic: true
+          }
+        ]
+      },
+      {
+        name: "RiemannianManifold",
+        description: "Curved space with metric tensor for geodesics and curvature",
+        methods: [
+          {
+            name: "sphere",
+            signature: "static sphere(radius: number): RiemannianManifold",
+            description: "Create a 2D sphere with given radius",
+            isStatic: true
+          },
+          {
+            name: "hyperbolic",
+            signature: "static hyperbolic(): RiemannianManifold",
+            description: "Create 2D hyperbolic plane (Poincaré half-plane)",
+            isStatic: true
+          },
+          {
+            name: "euclidean",
+            signature: "static euclidean(dimension: number): RiemannianManifold",
+            description: "Create flat Euclidean space",
+            isStatic: true
+          },
+          {
+            name: "scalarCurvature",
+            signature: "scalarCurvature(coords: Float64Array): number",
+            description: "Compute scalar curvature R"
+          },
+          {
+            name: "christoffel",
+            signature: "christoffel(k: number, i: number, j: number, coords: Float64Array): number",
+            description: "Compute Christoffel symbol Γᵏᵢⱼ"
+          },
+          {
+            name: "geodesic",
+            signature: "geodesic(initial_pos: Float64Array, initial_vel: Float64Array, t_max: number, dt: number): Float64Array",
+            description: "Solve geodesic equations using RK4"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: "measure",
+    title: "Measure Theory",
+    description: "Measures, probability spaces, and parametric densities",
+    icon: "μ",
+    classes: [
+      {
+        name: "WasmLebesgueMeasure",
+        description: "Lebesgue measure generalizing length, area, and volume",
+        methods: [
+          {
+            name: "constructor",
+            signature: "new WasmLebesgueMeasure(dimension: number)",
+            description: "Create for given dimension (1=length, 2=area, 3=volume)"
+          },
+          {
+            name: "measureInterval",
+            signature: "measureInterval(lower: Float64Array, upper: Float64Array): number",
+            description: "Measure of a box [a,b] × [c,d] × ..."
+          },
+          {
+            name: "measureBox",
+            signature: "measureBox(sides: Float64Array): number",
+            description: "Measure of a box with given side lengths"
+          }
+        ]
+      },
+      {
+        name: "WasmCountingMeasure",
+        description: "Counting measure - assigns cardinality to sets",
+        methods: [
+          {
+            name: "constructor",
+            signature: "new WasmCountingMeasure()",
+            description: "Create counting measure"
+          },
+          {
+            name: "measureFiniteSet",
+            signature: "measureFiniteSet(set_size: number): number",
+            description: "Returns set cardinality"
+          }
+        ]
+      },
+      {
+        name: "WasmProbabilityMeasure",
+        description: "Probability measure with total mass 1",
+        methods: [
+          {
+            name: "constructor",
+            signature: "new WasmProbabilityMeasure()",
+            description: "Create uniform probability measure on [0,1]"
+          },
+          {
+            name: "uniform",
+            signature: "static uniform(a: number, b: number): WasmProbabilityMeasure",
+            description: "Create uniform measure on [a,b]",
+            isStatic: true
+          },
+          {
+            name: "probabilityInterval",
+            signature: "probabilityInterval(a: number, b: number, lower: number, upper: number): number",
+            description: "Compute P(X ∈ [a,b])"
+          }
+        ]
+      },
+      {
+        name: "WasmParametricDensity",
+        description: "Parametric probability density families with Fisher information",
+        methods: [
+          {
+            name: "gaussian",
+            signature: "static gaussian(): WasmParametricDensity",
+            description: "Gaussian density N(μ, σ²)",
+            isStatic: true,
+            example: `const gaussian = WasmParametricDensity.gaussian();
+const params = new Float64Array([0, 1]); // μ=0, σ=1
+const pdf = gaussian.evaluate(0.5, params);`
+          },
+          {
+            name: "exponential",
+            signature: "static exponential(): WasmParametricDensity",
+            description: "Exponential density Exp(λ)",
+            isStatic: true
+          },
+          {
+            name: "laplace",
+            signature: "static laplace(): WasmParametricDensity",
+            description: "Laplace density Laplace(μ, b)",
+            isStatic: true
+          },
+          {
+            name: "cauchy",
+            signature: "static cauchy(): WasmParametricDensity",
+            description: "Cauchy density Cauchy(x₀, γ)",
+            isStatic: true
+          },
+          {
+            name: "evaluate",
+            signature: "evaluate(x: number, params: Float64Array): number",
+            description: "Evaluate density at x with parameters"
+          },
+          {
+            name: "logDensity",
+            signature: "logDensity(x: number, params: Float64Array): number",
+            description: "Log-density log p(x|θ)"
+          },
+          {
+            name: "fisherInformation",
+            signature: "fisherInformation(data: Float64Array, params: Float64Array): Float64Array",
+            description: "Compute Fisher information matrix"
+          }
+        ]
+      },
+      {
+        name: "WasmFisherMeasure",
+        description: "Fisher-Riemannian geometry on statistical manifolds",
+        methods: [
+          {
+            name: "fromDensity",
+            signature: "static fromDensity(density: WasmParametricDensity): WasmFisherMeasure",
+            description: "Create from parametric density",
+            isStatic: true
+          },
+          {
+            name: "fisherMetric",
+            signature: "fisherMetric(data: Float64Array, params: Float64Array): Float64Array",
+            description: "Compute Fisher metric at parameter θ"
+          },
+          {
+            name: "volumeElement",
+            signature: "volumeElement(data: Float64Array, params: Float64Array): number",
+            description: "Riemannian volume √det(g(θ))"
+          }
+        ]
+      },
+      {
+        name: "WasmTropicalMeasure",
+        description: "Tropical (max-plus) measure for optimization",
+        methods: [
+          {
+            name: "supremum",
+            signature: "supremum(f: Function, points: Float64Array): Float64Array",
+            description: "Tropical supremum (max) over sample points"
+          },
+          {
+            name: "infimum",
+            signature: "infimum(f: Function, points: Float64Array): Float64Array",
+            description: "Tropical infimum (min) over sample points"
+          },
+          {
+            name: "tropicalIntegrate",
+            signature: "tropicalIntegrate(f: Function, a: number, b: number, samples: number): number",
+            description: "Tropical integration (supremum over region)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: "probabilistic",
+    title: "Probabilistic Computing",
+    description: "Distributions, MCMC sampling, and stochastic processes on multivector spaces",
+    icon: "𝒫",
+    classes: [
+      {
+        name: "WasmGaussianMultivector",
+        description: "Gaussian distribution over 8-dimensional multivector space",
+        methods: [
+          {
+            name: "constructor",
+            signature: "new WasmGaussianMultivector()",
+            description: "Create standard Gaussian (zero mean, unit variance)"
+          },
+          {
+            name: "withParameters",
+            signature: "static withParameters(mean: Float64Array, std_dev: Float64Array): WasmGaussianMultivector",
+            description: "Create with specified mean and standard deviation (8 values each)",
+            isStatic: true
+          },
+          {
+            name: "isotropic",
+            signature: "static isotropic(mean: Float64Array, variance: number): WasmGaussianMultivector",
+            description: "Create isotropic Gaussian (same variance for all components)",
+            isStatic: true
+          },
+          {
+            name: "gradeConcentrated",
+            signature: "static gradeConcentrated(grade: number, variance: number): WasmGaussianMultivector",
+            description: "Gaussian concentrated on specific grade (0-3)",
+            isStatic: true
+          },
+          {
+            name: "sample",
+            signature: "sample(): Float64Array",
+            description: "Draw a sample (8 coefficients)"
+          },
+          {
+            name: "sampleBatch",
+            signature: "sampleBatch(num_samples: number): Float64Array",
+            description: "Draw multiple samples (n × 8 values)"
+          },
+          {
+            name: "logProb",
+            signature: "logProb(coefficients: Float64Array): number",
+            description: "Log probability of a multivector"
+          },
+          {
+            name: "getMean",
+            signature: "getMean(): Float64Array",
+            description: "Get mean (8 values)"
+          },
+          {
+            name: "getCovariance",
+            signature: "getCovariance(): Float64Array",
+            description: "Get covariance matrix (64 values, row-major)"
+          }
+        ]
+      },
+      {
+        name: "WasmMetropolisHastings",
+        description: "Metropolis-Hastings MCMC sampler for multivector distributions",
+        methods: [
+          {
+            name: "constructor",
+            signature: "new WasmMetropolisHastings(target: WasmGaussianMultivector, proposal_std: number)",
+            description: "Create sampler for target distribution",
+            example: `const target = WasmGaussianMultivector.withParameters(
+  new Float64Array([1, 0, 0, 0, 0, 0, 0, 0]),
+  new Float64Array([0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1])
+);
+const sampler = new WasmMetropolisHastings(target, 0.5);
+const samples = sampler.run(1000, 100); // 1000 samples, 100 burn-in`
+          },
+          {
+            name: "run",
+            signature: "run(num_samples: number, burnin: number): Float64Array",
+            description: "Run sampler and collect samples"
+          },
+          {
+            name: "step",
+            signature: "step(): Float64Array",
+            description: "Take single MCMC step"
+          },
+          {
+            name: "diagnostics",
+            signature: "diagnostics(): WasmMCMCDiagnostics",
+            description: "Get convergence diagnostics"
+          },
+          {
+            name: "getAcceptanceRate",
+            signature: "getAcceptanceRate(): number",
+            description: "Current acceptance rate"
+          }
+        ]
+      },
+      {
+        name: "WasmMCMCDiagnostics",
+        description: "MCMC convergence diagnostics",
+        methods: [
+          {
+            name: "isConverged",
+            signature: "isConverged(): boolean",
+            description: "Check if R-hat < 1.1"
+          },
+          {
+            name: "getRHat",
+            signature: "getRHat(): number",
+            description: "Gelman-Rubin R-hat statistic"
+          },
+          {
+            name: "getEffectiveSampleSize",
+            signature: "getEffectiveSampleSize(): number",
+            description: "Effective sample size"
+          }
+        ]
+      },
+      {
+        name: "WasmGeometricBrownianMotion",
+        description: "Geometric Brownian motion: dX = μX dt + σX dW",
+        methods: [
+          {
+            name: "constructor",
+            signature: "new WasmGeometricBrownianMotion(mu: number, sigma: number)",
+            description: "Create GBM with drift μ and volatility σ"
+          },
+          {
+            name: "samplePath",
+            signature: "samplePath(initial: Float64Array, t_end: number, num_steps: number): Float64Array",
+            description: "Sample a path: [(t, coeffs), ...]"
+          },
+          {
+            name: "expectedValue",
+            signature: "expectedValue(initial: Float64Array, t: number): Float64Array",
+            description: "E[X(t)] = X(0)·exp(μt)"
+          },
+          {
+            name: "variance",
+            signature: "variance(initial: Float64Array, t: number): Float64Array",
+            description: "Var(X(t))"
+          }
+        ]
+      },
+      {
+        name: "WasmWienerProcess",
+        description: "Standard Brownian motion W(t) with W(0) = 0",
+        methods: [
+          {
+            name: "constructor",
+            signature: "new WasmWienerProcess(dim?: number)",
+            description: "Create Wiener process (default dim=8 for multivectors)"
+          },
+          {
+            name: "samplePath",
+            signature: "samplePath(t_end: number, num_steps: number): Float64Array",
+            description: "Sample a path: [(t, w), ...]"
+          }
+        ]
+      },
+      {
+        name: "WasmUncertainMultivector",
+        description: "Multivector with uncertainty (mean + covariance) for error propagation",
+        methods: [
+          {
+            name: "constructor",
+            signature: "new WasmUncertainMultivector(mean: Float64Array, variances: Float64Array)",
+            description: "Create with diagonal covariance"
+          },
+          {
+            name: "withCovariance",
+            signature: "static withCovariance(mean: Float64Array, covariance: Float64Array): WasmUncertainMultivector",
+            description: "Create with full 8×8 covariance matrix",
+            isStatic: true
+          },
+          {
+            name: "deterministic",
+            signature: "static deterministic(value: Float64Array): WasmUncertainMultivector",
+            description: "Create with zero uncertainty",
+            isStatic: true
+          },
+          {
+            name: "add",
+            signature: "add(other: WasmUncertainMultivector): WasmUncertainMultivector",
+            description: "Add assuming independence"
+          },
+          {
+            name: "scale",
+            signature: "scale(scalar: number): WasmUncertainMultivector",
+            description: "Linear propagation: Var(aX) = a²Var(X)"
+          },
+          {
+            name: "getMean",
+            signature: "getMean(): Float64Array",
+            description: "Get mean"
+          },
+          {
+            name: "getStdDevs",
+            signature: "getStdDevs(): Float64Array",
+            description: "Get standard deviations"
+          }
+        ]
+      },
+      {
+        name: "WasmMonteCarloEstimator",
+        description: "Monte Carlo estimation utilities",
+        methods: [
+          {
+            name: "sampleMean",
+            signature: "static sampleMean(samples: Float64Array): Float64Array",
+            description: "Compute sample mean from batch",
+            isStatic: true
+          },
+          {
+            name: "sampleVariance",
+            signature: "static sampleVariance(samples: Float64Array): Float64Array",
+            description: "Compute sample variance",
+            isStatic: true
+          },
+          {
+            name: "sampleCovariance",
+            signature: "static sampleCovariance(samples: Float64Array): Float64Array",
+            description: "Compute sample covariance matrix",
+            isStatic: true
+          }
+        ]
       }
     ]
   },
   {
     id: "fusion",
-    title: "TropicalDualClifford",
-    description: "Unified framework combining all three algebraic systems",
-    methods: [
+    title: "TropicalDualClifford Fusion",
+    description: "Unified algebraic system combining tropical, dual, and Clifford algebras for LLM applications",
+    icon: "⊛",
+    classes: [
       {
-        name: "TDC.fromLogits",
-        signature: "static fromLogits(logits: number[]): TropicalDualClifford",
-        description: "Create TDC object from neural network logits",
-        parameters: [
-          { name: "logits", type: "number[]", description: "Array of logit values" }
-        ],
-        returns: "TropicalDualClifford with unified representation",
-        example: `const logits = [1.2, 0.8, -0.5, 0.3];
-const tdc = TropicalDualClifford.fromLogits(logits);
-
-console.log(tdc.tropical);  // Max-plus normalized
-console.log(tdc.dual);      // Gradient-ready
-console.log(tdc.clifford);  // Geometric structure`
+        name: "WasmTropicalDualClifford",
+        description: "Unified representation combining tropical (optimization), dual (gradients), and Clifford (geometry) algebras. Designed for LLM embedding manipulation.",
+        methods: [
+          {
+            name: "constructor",
+            signature: "new WasmTropicalDualClifford()",
+            description: "Create zero TDC object"
+          },
+          {
+            name: "fromLogits",
+            signature: "static fromLogits(logits: Float64Array): WasmTropicalDualClifford",
+            description: "Create from neural network logits",
+            isStatic: true,
+            example: `const logits = new Float64Array([1.2, 0.8, -0.5, 0.3, 1.0, 0.2, -0.1, 0.5]);
+const tdc = WasmTropicalDualClifford.fromLogits(logits);`
+          },
+          {
+            name: "fromProbabilities",
+            signature: "static fromProbabilities(probs: Float64Array): WasmTropicalDualClifford",
+            description: "Create from probability distribution",
+            isStatic: true
+          },
+          {
+            name: "random",
+            signature: "static random(): WasmTropicalDualClifford",
+            description: "Create random TDC for testing",
+            isStatic: true
+          },
+          {
+            name: "randomVector",
+            signature: "static randomVector(): WasmTropicalDualClifford",
+            description: "Create random unit vector (grade 1)",
+            isStatic: true
+          },
+          {
+            name: "bindingIdentity",
+            signature: "static bindingIdentity(): WasmTropicalDualClifford",
+            description: "Get binding identity element",
+            isStatic: true
+          },
+          {
+            name: "bind",
+            signature: "bind(other: WasmTropicalDualClifford): WasmTropicalDualClifford",
+            description: "Bind two TDC objects (geometric product) - creates associations",
+            example: `// Create key-value association
+const key = WasmTropicalDualClifford.randomVector();
+const value = WasmTropicalDualClifford.randomVector();
+const bound = key.bind(value);`
+          },
+          {
+            name: "unbind",
+            signature: "unbind(other: WasmTropicalDualClifford): WasmTropicalDualClifford",
+            description: "Unbind: retrieve associated value"
+          },
+          {
+            name: "bundle",
+            signature: "bundle(other: WasmTropicalDualClifford, beta: number): WasmTropicalDualClifford",
+            description: "Bundle (superposition) - similar to both inputs"
+          },
+          {
+            name: "similarity",
+            signature: "similarity(other: WasmTropicalDualClifford): number",
+            description: "Compute similarity using Clifford inner product [-1, 1]"
+          },
+          {
+            name: "distance",
+            signature: "distance(other: WasmTropicalDualClifford): number",
+            description: "Compute distance between TDC systems"
+          },
+          {
+            name: "evaluate",
+            signature: "evaluate(other: WasmTropicalDualClifford): WasmEvaluationResult",
+            description: "Full evaluation using all three algebras"
+          },
+          {
+            name: "tropicalAttention",
+            signature: "tropicalAttention(keys: Float64Array, values: Float64Array): Float64Array",
+            description: "Tropical attention operation"
+          },
+          {
+            name: "fusionNorm",
+            signature: "fusionNorm(): number",
+            description: "Combined norm across all systems"
+          },
+          {
+            name: "interpolate",
+            signature: "interpolate(other: WasmTropicalDualClifford, t: number): WasmTropicalDualClifford",
+            description: "Interpolate between two TDC objects"
+          },
+          {
+            name: "getTropicalFeatures",
+            signature: "getTropicalFeatures(): Float64Array",
+            description: "Extract tropical component"
+          },
+          {
+            name: "getDualReals",
+            signature: "getDualReals(): Float64Array",
+            description: "Extract dual number real parts"
+          },
+          {
+            name: "getCliffordCoefficients",
+            signature: "getCliffordCoefficients(): Float64Array",
+            description: "Extract Clifford coefficients"
+          }
+        ]
+      },
+      {
+        name: "FusionBatchOperations",
+        description: "Batch operations for LLM workloads",
+        methods: [
+          {
+            name: "batchDistance",
+            signature: "static batchDistance(query_logits: Float64Array, corpus_batch: Float64Array, corpus_size: number): Float64Array",
+            description: "Batch distance computation for similarity search",
+            isStatic: true
+          },
+          {
+            name: "batchTropicalAttention",
+            signature: "static batchTropicalAttention(queries: Float64Array, keys: Float64Array, values: Float64Array, query_dim: number): Float64Array",
+            description: "Batch tropical attention",
+            isStatic: true
+          },
+          {
+            name: "fusionSimilarity",
+            signature: "static fusionSimilarity(tdc1: WasmTropicalDualClifford, tdc2: WasmTropicalDualClifford): number",
+            description: "Compute fusion similarity",
+            isStatic: true
+          },
+          {
+            name: "gradientStep",
+            signature: "static gradientStep(tdc: WasmTropicalDualClifford, learning_rate: number): WasmTropicalDualClifford",
+            description: "Gradient-based optimization step",
+            isStatic: true
+          }
+        ]
+      },
+      {
+        name: "FusionUtils",
+        description: "Conversion utilities",
+        methods: [
+          {
+            name: "validateLogits",
+            signature: "static validateLogits(logits: Float64Array): boolean",
+            description: "Check logits for numerical stability",
+            isStatic: true
+          },
+          {
+            name: "normalizeLogits",
+            signature: "static normalizeLogits(logits: Float64Array): Float64Array",
+            description: "Normalize to prevent overflow",
+            isStatic: true
+          },
+          {
+            name: "softmaxToTropical",
+            signature: "static softmaxToTropical(probs: Float64Array): Float64Array",
+            description: "Convert softmax to tropical",
+            isStatic: true
+          },
+          {
+            name: "tropicalToSoftmax",
+            signature: "static tropicalToSoftmax(tropical_values: Float64Array): Float64Array",
+            description: "Convert tropical to softmax",
+            isStatic: true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: "network",
+    title: "Geometric Networks",
+    description: "Network analysis with geometric algebra node representations",
+    icon: "⊡",
+    classes: [
+      {
+        name: "WasmGeometricNetwork",
+        description: "Network with multivector node positions for geometric analysis",
+        methods: [
+          {
+            name: "constructor",
+            signature: "new WasmGeometricNetwork()",
+            description: "Create empty network"
+          },
+          {
+            name: "withCapacity",
+            signature: "static withCapacity(num_nodes: number, num_edges: number): WasmGeometricNetwork",
+            description: "Create with pre-allocated capacity",
+            isStatic: true
+          },
+          {
+            name: "addNode",
+            signature: "addNode(coefficients: Float64Array): number",
+            description: "Add node with multivector position"
+          },
+          {
+            name: "addEdge",
+            signature: "addEdge(source: number, target: number, weight: number): void",
+            description: "Add directed edge"
+          },
+          {
+            name: "addUndirectedEdge",
+            signature: "addUndirectedEdge(a: number, b: number, weight: number): void",
+            description: "Add undirected edge (two directed edges)"
+          },
+          {
+            name: "geometricDistance",
+            signature: "geometricDistance(node1: number, node2: number): number",
+            description: "Compute geometric distance between nodes"
+          },
+          {
+            name: "shortestPath",
+            signature: "shortestPath(source: number, target: number): any",
+            description: "Find shortest path using edge weights"
+          },
+          {
+            name: "shortestGeometricPath",
+            signature: "shortestGeometricPath(source: number, target: number): any",
+            description: "Find shortest path using geometric distances"
+          },
+          {
+            name: "computeGeometricCentrality",
+            signature: "computeGeometricCentrality(): Float64Array",
+            description: "Centrality based on geometric distances"
+          },
+          {
+            name: "computeBetweennessCentrality",
+            signature: "computeBetweennessCentrality(): Float64Array",
+            description: "Standard betweenness centrality"
+          },
+          {
+            name: "findCommunities",
+            signature: "findCommunities(num_communities: number): Array<any>",
+            description: "Detect communities using geometric clustering"
+          },
+          {
+            name: "spectralClustering",
+            signature: "spectralClustering(num_clusters: number): Array<any>",
+            description: "Perform spectral clustering"
+          },
+          {
+            name: "simulateDiffusion",
+            signature: "simulateDiffusion(initial_sources: Uint32Array, max_steps: number, diffusion_rate: number): WasmPropagationAnalysis",
+            description: "Simulate information diffusion"
+          },
+          {
+            name: "toTropicalNetwork",
+            signature: "toTropicalNetwork(): WasmTropicalNetwork",
+            description: "Convert to tropical network"
+          }
+        ]
+      },
+      {
+        name: "WasmTropicalNetwork",
+        description: "Network with tropical algebra for shortest paths",
+        methods: [
+          {
+            name: "constructor",
+            signature: "new WasmTropicalNetwork(size: number)",
+            description: "Create network with given size"
+          },
+          {
+            name: "fromWeights",
+            signature: "static fromWeights(weights: Float64Array, size: number): WasmTropicalNetwork",
+            description: "Create from weight matrix",
+            isStatic: true
+          },
+          {
+            name: "setEdge",
+            signature: "setEdge(source: number, target: number, weight: number): void",
+            description: "Set edge weight"
+          },
+          {
+            name: "shortestPathTropical",
+            signature: "shortestPathTropical(source: number, target: number): any",
+            description: "Find shortest path using tropical algebra"
+          },
+          {
+            name: "tropicalBetweenness",
+            signature: "tropicalBetweenness(): Float64Array",
+            description: "Tropical betweenness centrality"
+          }
+        ]
+      },
+      {
+        name: "NetworkUtils",
+        description: "Network creation utilities",
+        methods: [
+          {
+            name: "createRandomNetwork",
+            signature: "static createRandomNetwork(num_nodes: number, connection_probability: number): WasmGeometricNetwork",
+            description: "Create Erdős-Rényi random network",
+            isStatic: true
+          },
+          {
+            name: "createSmallWorldNetwork",
+            signature: "static createSmallWorldNetwork(num_nodes: number, k: number, beta: number): WasmGeometricNetwork",
+            description: "Create Watts-Strogatz small-world network",
+            isStatic: true
+          },
+          {
+            name: "clusteringCoefficient",
+            signature: "static clusteringCoefficient(network: WasmGeometricNetwork): number",
+            description: "Compute global clustering coefficient",
+            isStatic: true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: "relativistic",
+    title: "Relativistic Physics",
+    description: "Special and general relativity with spacetime vectors and geodesics",
+    icon: "⚛",
+    classes: [
+      {
+        name: "WasmSpacetimeVector",
+        description: "4-vector (ct, x, y, z) with Minkowski metric",
+        methods: [
+          {
+            name: "constructor",
+            signature: "new WasmSpacetimeVector(t: number, x: number, y: number, z: number)",
+            description: "Create spacetime vector"
+          },
+          {
+            name: "timelike",
+            signature: "static timelike(t: number): WasmSpacetimeVector",
+            description: "Create pure timelike vector",
+            isStatic: true
+          },
+          {
+            name: "spacelike",
+            signature: "static spacelike(x: number, y: number, z: number): WasmSpacetimeVector",
+            description: "Create pure spacelike vector",
+            isStatic: true
+          },
+          {
+            name: "minkowski_dot",
+            signature: "minkowski_dot(other: WasmSpacetimeVector): number",
+            description: "Minkowski inner product: t₁t₂ - x₁x₂ - y₁y₂ - z₁z₂"
+          },
+          {
+            name: "norm_squared",
+            signature: "norm_squared(): number",
+            description: "Minkowski norm squared"
+          },
+          {
+            name: "is_timelike",
+            signature: "is_timelike(): boolean",
+            description: "Check if timelike (norm² > 0)"
+          },
+          {
+            name: "is_spacelike",
+            signature: "is_spacelike(): boolean",
+            description: "Check if spacelike (norm² < 0)"
+          },
+          {
+            name: "is_null",
+            signature: "is_null(): boolean",
+            description: "Check if null/lightlike (norm² = 0)"
+          }
+        ]
+      },
+      {
+        name: "WasmFourVelocity",
+        description: "Relativistic four-velocity",
+        methods: [
+          {
+            name: "from_velocity",
+            signature: "static from_velocity(vx: number, vy: number, vz: number): WasmFourVelocity",
+            description: "Create from 3-velocity components",
+            isStatic: true
+          },
+          {
+            name: "gamma",
+            signature: "gamma(): number",
+            description: "Lorentz factor γ = 1/√(1-v²/c²)"
+          },
+          {
+            name: "rapidity",
+            signature: "rapidity(): number",
+            description: "Rapidity φ = arctanh(v/c)"
+          },
+          {
+            name: "spatial_velocity_magnitude",
+            signature: "spatial_velocity_magnitude(): number",
+            description: "3-velocity magnitude"
+          },
+          {
+            name: "is_normalized",
+            signature: "is_normalized(): boolean",
+            description: "Check if u·u = c²"
+          },
+          {
+            name: "as_spacetime_vector",
+            signature: "as_spacetime_vector(): WasmSpacetimeVector",
+            description: "Convert to spacetime vector"
+          }
+        ]
+      },
+      {
+        name: "WasmRelativisticParticle",
+        description: "Relativistic particle with position, velocity, mass, and charge",
+        methods: [
+          {
+            name: "constructor",
+            signature: "new WasmRelativisticParticle(x: number, y: number, z: number, vx: number, vy: number, vz: number, spin: number, mass: number, charge: number)",
+            description: "Create particle"
+          },
+          {
+            name: "with_energy",
+            signature: "static with_energy(x: number, y: number, z: number, direction_x: number, direction_y: number, direction_z: number, kinetic_energy: number, mass: number, charge: number): WasmRelativisticParticle",
+            description: "Create with specified kinetic energy",
+            isStatic: true
+          },
+          {
+            name: "four_velocity",
+            signature: "four_velocity(): WasmFourVelocity",
+            description: "Get four-velocity"
+          },
+          {
+            name: "kinetic_energy",
+            signature: "kinetic_energy(): number",
+            description: "Kinetic energy (γ-1)mc²"
+          },
+          {
+            name: "total_energy",
+            signature: "total_energy(): number",
+            description: "Total energy γmc²"
+          },
+          {
+            name: "momentum_magnitude",
+            signature: "momentum_magnitude(): number",
+            description: "3-momentum magnitude γmv"
+          }
+        ]
+      },
+      {
+        name: "WasmSchwarzschildMetric",
+        description: "Schwarzschild spacetime metric for spherically symmetric masses",
+        methods: [
+          {
+            name: "from_mass",
+            signature: "static from_mass(mass: number): WasmSchwarzschildMetric",
+            description: "Create for custom mass",
+            isStatic: true
+          },
+          {
+            name: "sun",
+            signature: "static sun(): WasmSchwarzschildMetric",
+            description: "Create for Solar mass",
+            isStatic: true
+          },
+          {
+            name: "earth",
+            signature: "static earth(): WasmSchwarzschildMetric",
+            description: "Create for Earth mass",
+            isStatic: true
+          },
+          {
+            name: "schwarzschild_radius",
+            signature: "schwarzschild_radius(): number",
+            description: "Event horizon radius rs = 2GM/c²"
+          },
+          {
+            name: "effective_potential",
+            signature: "effective_potential(r: number, angular_momentum: number): number",
+            description: "Effective potential for orbital motion"
+          },
+          {
+            name: "has_singularity",
+            signature: "has_singularity(position: WasmSpacetimeVector): boolean",
+            description: "Check if position is at singularity"
+          }
+        ]
+      },
+      {
+        name: "WasmRelativisticConstants",
+        description: "Physical constants",
+        methods: [
+          {
+            name: "speed_of_light",
+            signature: "static readonly speed_of_light: number",
+            description: "c = 299,792,458 m/s",
+            isStatic: true
+          },
+          {
+            name: "gravitational_constant",
+            signature: "static readonly gravitational_constant: number",
+            description: "G = 6.674×10⁻¹¹ m³/kg·s²",
+            isStatic: true
+          },
+          {
+            name: "solar_mass",
+            signature: "static readonly solar_mass: number",
+            description: "M☉ = 1.989×10³⁰ kg",
+            isStatic: true
+          }
+        ]
+      }
+    ],
+    functions: [
+      {
+        name: "velocity_to_gamma",
+        signature: "velocity_to_gamma(velocity_magnitude: number): number",
+        description: "Convert velocity to Lorentz factor"
+      },
+      {
+        name: "gamma_to_velocity",
+        signature: "gamma_to_velocity(gamma: number): number",
+        description: "Convert Lorentz factor to velocity"
+      },
+      {
+        name: "light_deflection_angle",
+        signature: "light_deflection_angle(impact_parameter: number, mass: number): number",
+        description: "Calculate gravitational light bending"
+      }
+    ]
+  },
+  {
+    id: "optimization",
+    title: "Optimization",
+    description: "Gradient descent, GPU-accelerated, and multi-objective optimization",
+    icon: "⬡",
+    classes: [
+      {
+        name: "WasmSimpleOptimizer",
+        description: "Simple gradient-based optimization",
+        methods: [
+          {
+            name: "constructor",
+            signature: "new WasmSimpleOptimizer()",
+            description: "Create optimizer"
+          },
+          {
+            name: "optimizeQuadratic",
+            signature: "optimizeQuadratic(coefficients: Float64Array, initial_point: Float64Array): WasmOptimizationResult",
+            description: "Minimize Σ cᵢxᵢ²"
+          }
+        ]
+      },
+      {
+        name: "WasmGpuOptimizer",
+        description: "GPU-accelerated optimization (when available)",
+        methods: [
+          {
+            name: "constructor",
+            signature: "new WasmGpuOptimizer()",
+            description: "Create GPU optimizer"
+          },
+          {
+            name: "initializeGpu",
+            signature: "initializeGpu(): Promise<boolean>",
+            description: "Initialize GPU context"
+          },
+          {
+            name: "isGpuAvailable",
+            signature: "isGpuAvailable(): boolean",
+            description: "Check GPU availability"
+          },
+          {
+            name: "optimizeQuadraticGpu",
+            signature: "optimizeQuadraticGpu(coefficients: Float64Array, initial_point: Float64Array, max_iterations: number, tolerance: number): Promise<WasmOptimizationResult>",
+            description: "GPU-accelerated quadratic optimization"
+          },
+          {
+            name: "optimizeBatch",
+            signature: "optimizeBatch(problems_data: Float64Array, problem_size: number, num_problems: number, max_iterations: number, tolerance: number): Promise<Float64Array>",
+            description: "Batch optimization with parallel processing"
+          }
+        ]
+      },
+      {
+        name: "WasmMultiObjectiveOptimizer",
+        description: "Multi-objective Pareto optimization",
+        methods: [
+          {
+            name: "constructor",
+            signature: "new WasmMultiObjectiveOptimizer()",
+            description: "Create multi-objective optimizer"
+          },
+          {
+            name: "optimizeBiObjective",
+            signature: "optimizeBiObjective(dimension: number, population_size: number, generations: number): WasmMultiObjectiveResult",
+            description: "Optimize bi-objective problem"
+          }
+        ]
+      },
+      {
+        name: "WasmOptimizationResult",
+        description: "Optimization result",
+        methods: [
+          {
+            name: "solution",
+            signature: "readonly solution: Float64Array",
+            description: "Optimal solution vector"
+          },
+          {
+            name: "objective_value",
+            signature: "readonly objective_value: number",
+            description: "Final objective value"
+          },
+          {
+            name: "converged",
+            signature: "readonly converged: boolean",
+            description: "Whether optimization converged"
+          },
+          {
+            name: "iterations",
+            signature: "readonly iterations: number",
+            description: "Number of iterations"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: "holographic",
+    title: "Holographic Memory",
+    description: "Distributed memory systems using ProductClifford algebra",
+    icon: "⊗",
+    classes: [
+      {
+        name: "WasmHolographicMemory",
+        description: "Content-addressable memory using holographic reduced representations",
+        methods: [
+          {
+            name: "constructor",
+            signature: "new WasmHolographicMemory()",
+            description: "Create holographic memory"
+          },
+          {
+            name: "withKeyTracking",
+            signature: "static withKeyTracking(): WasmHolographicMemory",
+            description: "Create with key tracking enabled",
+            isStatic: true
+          },
+          {
+            name: "randomVersor",
+            signature: "static randomVersor(num_factors: number): Float64Array",
+            description: "Generate random versor for keys/values",
+            isStatic: true
+          },
+          {
+            name: "store",
+            signature: "store(key: Float64Array, value: Float64Array): void",
+            description: "Store key-value pair (256 coefficients each)"
+          },
+          {
+            name: "retrieve",
+            signature: "retrieve(key: Float64Array): Float64Array",
+            description: "Retrieve value by key"
+          },
+          {
+            name: "retrieveConfidence",
+            signature: "retrieveConfidence(key: Float64Array): number",
+            description: "Get retrieval confidence for a key"
+          },
+          {
+            name: "clear",
+            signature: "clear(): void",
+            description: "Clear all stored items"
+          },
+          {
+            name: "itemCount",
+            signature: "itemCount(): number",
+            description: "Number of stored items"
+          },
+          {
+            name: "estimatedSnr",
+            signature: "estimatedSnr(): number",
+            description: "Estimated signal-to-noise ratio"
+          },
+          {
+            name: "theoreticalCapacity",
+            signature: "theoreticalCapacity(): number",
+            description: "Theoretical storage capacity"
+          },
+          {
+            name: "isNearCapacity",
+            signature: "isNearCapacity(): boolean",
+            description: "Check if memory is near capacity"
+          }
+        ]
+      },
+      {
+        name: "WasmResonator",
+        description: "Cleanup memory for noisy retrieval",
+        methods: [
+          {
+            name: "constructor",
+            signature: "new WasmResonator(codebook_flat: Float64Array)",
+            description: "Create from flat codebook array"
+          },
+          {
+            name: "cleanup",
+            signature: "cleanup(input: Float64Array): Float64Array",
+            description: "Clean up noisy input to find closest codebook item"
+          },
+          {
+            name: "cleanupWithInfo",
+            signature: "cleanupWithInfo(input: Float64Array): any",
+            description: "Cleanup with metadata"
+          },
+          {
+            name: "codebookSize",
+            signature: "codebookSize(): number",
+            description: "Number of codebook entries"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: "automata",
+    title: "Cellular Automata",
+    description: "Geometric cellular automata and self-assembly systems",
+    icon: "▦",
+    classes: [
+      {
+        name: "WasmGeometricCA",
+        description: "Cellular automaton with multivector cell states",
+        methods: [
+          {
+            name: "constructor",
+            signature: "new WasmGeometricCA(width: number, height: number)",
+            description: "Create 2D geometric CA"
+          },
+          {
+            name: "step",
+            signature: "step(): void",
+            description: "Evolve one generation"
+          },
+          {
+            name: "reset",
+            signature: "reset(): void",
+            description: "Reset to initial state"
+          },
+          {
+            name: "setCell",
+            signature: "setCell(x: number, y: number, coefficients: Float64Array): void",
+            description: "Set cell value"
+          },
+          {
+            name: "getCell",
+            signature: "getCell(x: number, y: number): Float64Array",
+            description: "Get cell value"
+          },
+          {
+            name: "getGrid",
+            signature: "getGrid(): Float64Array",
+            description: "Get entire grid as flat array"
+          },
+          {
+            name: "setGrid",
+            signature: "setGrid(grid: Float64Array): void",
+            description: "Set entire grid"
+          },
+          {
+            name: "addRandomPattern",
+            signature: "addRandomPattern(density: number): void",
+            description: "Add random pattern with given density"
+          },
+          {
+            name: "addGlider",
+            signature: "addGlider(x: number, y: number): void",
+            description: "Add glider pattern"
+          },
+          {
+            name: "setRule",
+            signature: "setRule(rule_type: string): void",
+            description: "Set CA rule type"
+          },
+          {
+            name: "generation",
+            signature: "generation(): number",
+            description: "Current generation number"
+          },
+          {
+            name: "getPopulation",
+            signature: "getPopulation(): number",
+            description: "Count of non-zero cells"
+          },
+          {
+            name: "getTotalEnergy",
+            signature: "getTotalEnergy(): number",
+            description: "Total energy of system"
+          }
+        ]
+      },
+      {
+        name: "WasmSelfAssembler",
+        description: "Self-assembly simulation",
+        methods: [
+          {
+            name: "constructor",
+            signature: "new WasmSelfAssembler()",
+            description: "Create self-assembler"
+          },
+          {
+            name: "addComponent",
+            signature: "addComponent(type_name: string, position: Float64Array): number",
+            description: "Add component to system"
+          },
+          {
+            name: "checkStability",
+            signature: "checkStability(): boolean",
+            description: "Check if assembly is stable"
+          },
+          {
+            name: "getComponentCount",
+            signature: "getComponentCount(): number",
+            description: "Number of components"
+          }
+        ]
+      },
+      {
+        name: "WasmInverseCADesigner",
+        description: "Find CA seeds that produce target patterns",
+        methods: [
+          {
+            name: "constructor",
+            signature: "new WasmInverseCADesigner(target_width: number, target_height: number)",
+            description: "Create inverse designer"
+          },
+          {
+            name: "setTarget",
+            signature: "setTarget(target_grid: Float64Array): void",
+            description: "Set target pattern"
+          },
+          {
+            name: "findSeed",
+            signature: "findSeed(max_generations: number, max_attempts: number): Float64Array",
+            description: "Find seed that produces target"
+          },
+          {
+            name: "evaluateFitness",
+            signature: "evaluateFitness(candidate: Float64Array): number",
+            description: "Evaluate fitness of candidate seed"
+          }
+        ]
+      },
+      {
+        name: "AutomataUtils",
+        description: "Automata utilities",
+        methods: [
+          {
+            name: "validateGrid",
+            signature: "static validateGrid(grid: Float64Array, width: number, height: number): boolean",
+            description: "Validate grid dimensions",
+            isStatic: true
+          },
+          {
+            name: "createLifePattern",
+            signature: "static createLifePattern(pattern_name: string, width: number, height: number): Float64Array",
+            description: "Create standard Game of Life pattern",
+            isStatic: true
+          },
+          {
+            name: "generateRandomSeed",
+            signature: "static generateRandomSeed(width: number, height: number, density: number): Float64Array",
+            description: "Generate random seed",
+            isStatic: true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: "enumerative",
+    title: "Enumerative Geometry",
+    description: "Intersection theory, Chow classes, and curve counting",
+    icon: "∩",
+    classes: [
+      {
+        name: "WasmProjectiveSpace",
+        description: "Projective space ℙⁿ",
+        methods: [
+          {
+            name: "constructor",
+            signature: "new WasmProjectiveSpace(dimension: number)",
+            description: "Create projective space of given dimension"
+          },
+          {
+            name: "getDimension",
+            signature: "getDimension(): number",
+            description: "Get dimension"
+          },
+          {
+            name: "bezoutIntersection",
+            signature: "bezoutIntersection(degree1: number, degree2: number): number",
+            description: "Compute Bézout intersection number"
+          }
+        ]
+      },
+      {
+        name: "WasmGrassmannian",
+        description: "Grassmannian Gr(k,n) of k-planes in n-space",
+        methods: [
+          {
+            name: "constructor",
+            signature: "new WasmGrassmannian(k: number, n: number)",
+            description: "Create Gr(k,n)"
+          },
+          {
+            name: "getDimension",
+            signature: "getDimension(): number",
+            description: "Get dimension k(n-k)"
+          },
+          {
+            name: "getParameters",
+            signature: "getParameters(): Uint32Array",
+            description: "Get (k, n)"
+          }
+        ]
+      },
+      {
+        name: "WasmChowClass",
+        description: "Chow class in intersection theory",
+        methods: [
+          {
+            name: "constructor",
+            signature: "new WasmChowClass(dimension: number, degree: number)",
+            description: "Create Chow class"
+          },
+          {
+            name: "point",
+            signature: "static point(): WasmChowClass",
+            description: "Point class",
+            isStatic: true
+          },
+          {
+            name: "linearSubspace",
+            signature: "static linearSubspace(codimension: number): WasmChowClass",
+            description: "Linear subspace class",
+            isStatic: true
+          },
+          {
+            name: "hypersurface",
+            signature: "static hypersurface(degree: number): WasmChowClass",
+            description: "Hypersurface class of given degree",
+            isStatic: true
+          },
+          {
+            name: "multiply",
+            signature: "multiply(other: WasmChowClass): WasmChowClass",
+            description: "Intersection product"
+          },
+          {
+            name: "power",
+            signature: "power(n: number): WasmChowClass",
+            description: "Self-intersection"
+          }
+        ]
+      },
+      {
+        name: "WasmModuliSpace",
+        description: "Moduli space of curves M_{g,n}",
+        methods: [
+          {
+            name: "ofCurves",
+            signature: "static ofCurves(genus: number, marked_points: number): WasmModuliSpace",
+            description: "Create M_{g,n}",
+            isStatic: true
+          },
+          {
+            name: "ofStableCurves",
+            signature: "static ofStableCurves(genus: number, marked_points: number): WasmModuliSpace",
+            description: "Create \\bar{M}_{g,n}",
+            isStatic: true
+          },
+          {
+            name: "expectedDimension",
+            signature: "expectedDimension(): number",
+            description: "Expected dimension 3g-3+n"
+          },
+          {
+            name: "isProper",
+            signature: "isProper(): boolean",
+            description: "Check if proper (compactified)"
+          }
+        ]
+      },
+      {
+        name: "EnumerativeUtils",
+        description: "Enumerative geometry utilities",
+        methods: [
+          {
+            name: "binomial",
+            signature: "static binomial(n: number, k: number): number",
+            description: "Binomial coefficient C(n,k)",
+            isStatic: true
+          },
+          {
+            name: "bezoutMultiplicity",
+            signature: "static bezoutMultiplicity(degree1: number, degree2: number, space_dimension: number): number",
+            description: "Bézout intersection multiplicity",
+            isStatic: true
+          },
+          {
+            name: "eulerCharacteristic",
+            signature: "static eulerCharacteristic(dimension: number): number",
+            description: "Euler characteristic of projective space",
+            isStatic: true
+          },
+          {
+            name: "expectedRationalCurves",
+            signature: "static expectedRationalCurves(degree: number, points: number): number",
+            description: "Expected number of rational curves through points",
+            isStatic: true
+          }
+        ]
       }
     ]
   }
 ];
 
 export function APIReference() {
-  const [activeSection, setActiveSection] = useState("geometric");
-  const [visualizations, setVisualizations] = useState({
-    rotor: false,
-    tropical: false,
-    dual: false,
-    fisher: false
-  });
-
-  const toggleVisualization = (type: keyof typeof visualizations) => {
-    setVisualizations(prev => ({
-      ...prev,
-      [type]: !prev[type]
-    }));
-  };
+  const [activeSection, setActiveSection] = useState<string | null>("geometric");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const currentSection = apiSections.find(section => section.id === activeSection);
 
   return (
-    <div style={{ padding: '2rem' }}>
-      <div style={{ maxWidth: '1536px', margin: '0 auto' }}>
-        <H1>API Reference</H1>
-        <P style={{ fontSize: '1.125rem', marginBottom: '1.5rem', opacity: 0.7 }}>
-          Complete documentation with real-time mathematical visualizations
-        </P>
-
-        <div style={{ display: 'flex', flexDirection: 'row', gap: '1.5rem' }}>
-          {/* Navigation Sidebar */}
-          <div style={{ minWidth: '280px', maxWidth: '320px' }}>
-            <Card>
-              <CardHeader>
-                <H3>API Sections</H3>
-              </CardHeader>
-              <CardBody>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  {apiSections.map((section) => (
-                    <Button
-                      key={section.id}
-                      onClick={() => setActiveSection(section.id)}
-                      variant={activeSection === section.id ? 'default' : 'outline'}
-                      style={{ width: '100%', justifyContent: 'flex-start', textAlign: 'left' }}
-                    >
-                      <div>
-                        <div style={{ fontWeight: '500' }}>{section.title}</div>
-                        <div style={{ fontSize: '0.75rem', opacity: 0.7 }}>
-                          {section.methods.length} methods
-                        </div>
-                      </div>
-                    </Button>
-                  ))}
-                </div>
-              </CardBody>
-            </Card>
-
-            <Card style={{ marginTop: '1.5rem' }}>
-              <CardHeader>
-                <H3>Live Visualizations</H3>
-              </CardHeader>
-              <CardBody>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  <Button
-                    onClick={() => toggleVisualization('rotor')}
-                    variant={visualizations.rotor ? 'default' : 'outline'}
-                    style={{ width: '100%' }}
-                  >
-                    Rotor Evolution
-                  </Button>
-                  <Button
-                    onClick={() => toggleVisualization('tropical')}
-                    variant={visualizations.tropical ? 'default' : 'outline'}
-                    style={{ width: '100%' }}
-                  >
-                    Tropical Convergence
-                  </Button>
-                  <Button
-                    onClick={() => toggleVisualization('dual')}
-                    variant={visualizations.dual ? 'default' : 'outline'}
-                    style={{ width: '100%' }}
-                  >
-                    Dual Number AD
-                  </Button>
-                  <Button
-                    onClick={() => toggleVisualization('fisher')}
-                    variant={visualizations.fisher ? 'default' : 'outline'}
-                    style={{ width: '100%' }}
-                  >
-                    Fisher Information
-                  </Button>
-                </div>
-              </CardBody>
-            </Card>
-          </div>
-
-          {/* Main Content */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', flex: 1 }}>
-            {/* Real-time Visualizations */}
-            {visualizations.rotor && (
-              <RealTimeVisualization
-                title="Rotor Evolution"
-                description="Real-time visualization of geometric rotor rotations"
-                type="rotor"
-                isRunning={visualizations.rotor}
-                onToggle={() => toggleVisualization('rotor')}
-              />
-            )}
-
-            {visualizations.tropical && (
-              <RealTimeVisualization
-                title="Tropical Convergence"
-                description="Live tropical algebra convergence to maximum value"
-                type="tropical"
-                isRunning={visualizations.tropical}
-                onToggle={() => toggleVisualization('tropical')}
-              />
-            )}
-
-            {visualizations.dual && (
-              <RealTimeVisualization
-                title="Dual Number Automatic Differentiation"
-                description="Real-time function and derivative computation"
-                type="dual"
-                isRunning={visualizations.dual}
-                onToggle={() => toggleVisualization('dual')}
-              />
-            )}
-
-            {visualizations.fisher && (
-              <RealTimeVisualization
-                title="Fisher Information Matrix"
-                description="Live Fisher information evolution on probability simplex"
-                type="fisher"
-                isRunning={visualizations.fisher}
-                onToggle={() => toggleVisualization('fisher')}
-              />
-            )}
-
-            {/* API Documentation */}
-            {currentSection && (
-              <Card>
-                <CardHeader>
-                  <H2>{currentSection.title}</H2>
-                  <P style={{ opacity: 0.7 }}>{currentSection.description}</P>
-                </CardHeader>
-                <CardBody>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-                    {currentSection.methods.map((method, index) => (
-                      <div key={index} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                        <div>
-                          <H3 style={{ marginBottom: '0.5rem' }}>{method.name}</H3>
-                          <CodeBlock
-                            language="typescript"
-                            showCopyButton={true}
-                            style={{ marginBottom: '0.75rem', width: '100%' }}
-                          >
-                            {method.signature}
-                          </CodeBlock>
-                          <P style={{ fontSize: '0.875rem', marginBottom: '0.75rem', opacity: 0.7 }}>
-                            {method.description}
-                          </P>
-                        </div>
-
-                        {method.parameters && (
-                          <div>
-                            <H4 style={{ fontSize: '0.875rem', marginBottom: '0.5rem' }}>Parameters:</H4>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                              {method.parameters.map((param, i) => (
-                                <div key={i} style={{ display: 'flex', gap: '1rem', fontSize: '0.875rem' }}>
-                                  <StatusBadge variant="muted">
-                                    {param.name}: {param.type}
-                                  </StatusBadge>
-                                  <span style={{ opacity: 0.7 }}>
-                                    {param.description}
-                                  </span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                        {method.returns && (
-                          <div>
-                            <H4 style={{ fontSize: '0.875rem', marginBottom: '0.25rem' }}>Returns:</H4>
-                            <P style={{ fontSize: '0.875rem', opacity: 0.7 }}>{method.returns}</P>
-                          </div>
-                        )}
-
-                        <div>
-                          <H4 style={{ fontSize: '0.875rem', marginBottom: '0.5rem' }}>Example:</H4>
-                          <CodeBlock
-                            language="javascript"
-                            showLineNumbers={true}
-                            showCopyButton={true}
-                            style={{ width: '100%' }}
-                          >
-                            {method.example}
-                          </CodeBlock>
-                        </div>
-
-                        {index < currentSection.methods.length - 1 && (
-                          <hr style={{ border: 'none', borderTop: '1px solid var(--border)' }} />
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </CardBody>
-              </Card>
-            )}
-
-            {/* Quick Reference */}
-            <Card>
-              <CardHeader>
-                <H3>Quick Reference</H3>
-              </CardHeader>
-              <CardBody>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                  <div>
-                    <H4 style={{ fontSize: '0.875rem', marginBottom: '0.5rem' }}>Common Patterns</H4>
-                    <ul style={{ fontSize: '0.875rem', opacity: 0.7, listStyle: 'none', padding: 0 }}>
-                      <li>• Create basis vectors for geometric operations</li>
-                      <li>• Use tropical operations for efficient approximations</li>
-                      <li>• Apply dual numbers for automatic gradients</li>
-                      <li>• Combine systems with TDC for neural networks</li>
-                    </ul>
-                  </div>
-                  <div>
-                    <H4 style={{ fontSize: '0.875rem', marginBottom: '0.5rem' }}>Performance Tips</H4>
-                    <ul style={{ fontSize: '0.875rem', opacity: 0.7, listStyle: 'none', padding: 0 }}>
-                      <li>• Batch operations when possible</li>
-                      <li>• Use WebGPU for large computations</li>
-                      <li>• Prefer tropical approximations for softmax</li>
-                      <li>• Cache multivector calculations</li>
-                    </ul>
-                  </div>
-                </div>
-              </CardBody>
-            </Card>
-          </div>
+    <Container size="xl" py="xl">
+      <Stack gap="lg">
+        <div>
+          <Title order={1}>API Reference</Title>
+          <Text size="lg" c="dimmed">
+            Complete documentation for 77+ classes and 300+ methods with interactive visualizations
+          </Text>
         </div>
-      </div>
-    </div>
+
+        {/* Live Visualization Section */}
+        <LiveVisualizationSection />
+
+        {/* API Documentation Section Header */}
+        <Title order={2} mt="xl">API Documentation</Title>
+
+        <SimpleGrid cols={{ base: 2, sm: 3, md: 4, lg: 6 }} spacing="sm">
+          {apiSections.map((section) => (
+            <Card
+              key={section.id}
+              withBorder
+              p="sm"
+              onClick={() => setActiveSection(section.id)}
+              style={{
+                cursor: 'pointer',
+                borderColor: activeSection === section.id ? 'var(--mantine-color-cyan-6)' : undefined,
+                backgroundColor: activeSection === section.id ? 'var(--mantine-color-dark-6)' : undefined,
+              }}
+            >
+              <Group gap="xs">
+                <Text size="lg" ff="monospace">{section.icon}</Text>
+                <div>
+                  <Text size="sm" fw={500} lineClamp={1}>{section.title}</Text>
+                  <Text size="xs" c="dimmed">{section.classes.length} classes</Text>
+                </div>
+              </Group>
+            </Card>
+          ))}
+        </SimpleGrid>
+
+        {currentSection && (
+          <Card withBorder>
+            <Card.Section inheritPadding py="sm" bg="dark.6">
+              <Group justify="space-between">
+                <div>
+                  <Group gap="xs">
+                    <Text size="xl" ff="monospace">{currentSection.icon}</Text>
+                    <Title order={2}>{currentSection.title}</Title>
+                  </Group>
+                  <Text size="sm" c="dimmed" mt={4}>{currentSection.description}</Text>
+                </div>
+                <Badge size="lg" variant="light">{currentSection.classes.length} classes</Badge>
+              </Group>
+            </Card.Section>
+            <Card.Section inheritPadding py="md">
+              <Accordion variant="separated">
+                {currentSection.classes.map((cls) => (
+                  <Accordion.Item key={cls.name} value={cls.name}>
+                    <Accordion.Control>
+                      <Group justify="space-between" wrap="nowrap">
+                        <div>
+                          <Text fw={600} ff="monospace" size="md">{cls.name}</Text>
+                          <Text size="xs" c="dimmed" lineClamp={1}>{cls.description}</Text>
+                        </div>
+                        <Badge size="sm" variant="outline">{cls.methods.length} methods</Badge>
+                      </Group>
+                    </Accordion.Control>
+                    <Accordion.Panel>
+                      <Text size="sm" c="dimmed" mb="md">{cls.description}</Text>
+                      <Stack gap="md">
+                        {cls.methods.map((method, idx) => (
+                          <Box key={idx} p="sm" bg="dark.7" style={{ borderRadius: 'var(--mantine-radius-sm)' }}>
+                            <Group gap="xs" mb="xs" wrap="nowrap">
+                              {method.isStatic && <Badge size="xs" color="grape">static</Badge>}
+                              <Text fw={600} ff="monospace" size="sm">{method.name}</Text>
+                            </Group>
+                            <CodeHighlight
+                              code={method.signature}
+                              language="typescript"
+                              withCopyButton={false}
+                              mb="xs"
+                            />
+                            <Text size="sm" c="dimmed" mb="xs">{method.description}</Text>
+                            {method.parameters && method.parameters.length > 0 && (
+                              <Box mb="xs">
+                                <Text size="xs" fw={600} mb={4}>Parameters:</Text>
+                                <Stack gap={4}>
+                                  {method.parameters.map((p, i) => (
+                                    <Group key={i} gap="xs">
+                                      <Badge size="xs" variant="light" ff="monospace">{p.name}: {p.type}</Badge>
+                                      <Text size="xs" c="dimmed">{p.description}</Text>
+                                    </Group>
+                                  ))}
+                                </Stack>
+                              </Box>
+                            )}
+                            {method.returns && (
+                              <Text size="xs"><strong>Returns:</strong> {method.returns}</Text>
+                            )}
+                            {method.example && (
+                              <Box mt="xs">
+                                <Text size="xs" fw={600} mb={4}>Example:</Text>
+                                <CodeHighlight
+                                  code={method.example}
+                                  language="javascript"
+                                  withCopyButton
+                                />
+                              </Box>
+                            )}
+                          </Box>
+                        ))}
+                      </Stack>
+                    </Accordion.Panel>
+                  </Accordion.Item>
+                ))}
+              </Accordion>
+
+              {currentSection.functions && currentSection.functions.length > 0 && (
+                <Box mt="lg">
+                  <Title order={4} mb="md">Top-Level Functions</Title>
+                  <Stack gap="md">
+                    {currentSection.functions.map((func, idx) => (
+                      <Box key={idx} p="sm" bg="dark.7" style={{ borderRadius: 'var(--mantine-radius-sm)' }}>
+                        <Group gap="xs" mb="xs">
+                          <Badge size="xs" color="teal">function</Badge>
+                          <Text fw={600} ff="monospace" size="sm">{func.name}</Text>
+                        </Group>
+                        <CodeHighlight
+                          code={func.signature}
+                          language="typescript"
+                          withCopyButton={false}
+                          mb="xs"
+                        />
+                        <Text size="sm" c="dimmed">{func.description}</Text>
+                      </Box>
+                    ))}
+                  </Stack>
+                </Box>
+              )}
+            </Card.Section>
+          </Card>
+        )}
+
+        <Card withBorder>
+          <Card.Section inheritPadding py="xs" bg="dark.6">
+            <Title order={3} size="h4">Quick Reference</Title>
+          </Card.Section>
+          <Card.Section inheritPadding py="md">
+            <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
+              <div>
+                <Title order={4} size="sm" mb="xs">Import Pattern</Title>
+                <CodeHighlight
+                  code={`import init, {
+  WasmMultivector,
+  WasmDualNumber,
+  WasmTropicalNumber,
+  // ...
+} from '@justinelliottcobb/amari-wasm';
+
+await init();`}
+                  language="javascript"
+                  withCopyButton
+                />
+              </div>
+              <div>
+                <Title order={4} size="sm" mb="xs">Memory Management</Title>
+                <Text size="sm" c="dimmed" component="ul" style={{ paddingLeft: '1rem', margin: 0 }}>
+                  <li>WASM objects need manual cleanup</li>
+                  <li>Call <code>.free()</code> when done</li>
+                  <li>Use Float64Array for coefficients</li>
+                  <li>Batch operations for performance</li>
+                </Text>
+              </div>
+              <div>
+                <Title order={4} size="sm" mb="xs">Common Operations</Title>
+                <Text size="sm" c="dimmed" component="ul" style={{ paddingLeft: '1rem', margin: 0 }}>
+                  <li>Geometric product for rotations</li>
+                  <li>Dual numbers for derivatives</li>
+                  <li>Tropical for optimization</li>
+                  <li>TDC for LLM embeddings</li>
+                </Text>
+              </div>
+            </SimpleGrid>
+          </Card.Section>
+        </Card>
+      </Stack>
+    </Container>
   );
 }

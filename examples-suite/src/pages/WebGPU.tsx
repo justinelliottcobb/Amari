@@ -1,4 +1,4 @@
-import { H1, P, Card, CardHeader, CardBody, Button } from "jadis-ui";
+import { Container, Stack, Card, Title, Text, List, SimpleGrid, Badge, Alert } from "@mantine/core";
 import { ExampleCard } from "../components/ExampleCard";
 import { useState, useEffect } from "react";
 
@@ -131,7 +131,6 @@ function generateBatch() {
 
 // Simulate GPU computation
 async function gpuBatchGeometricProduct(batchA, batchB) {
-  // This would use WebGPU compute shaders for actual GPU computation
   const startTime = performance.now();
 
   // CPU simulation of GPU parallel computation
@@ -142,7 +141,6 @@ async function gpuBatchGeometricProduct(batchA, batchB) {
     const offsetB = batch * BASIS_COUNT;
     const offsetResult = batch * BASIS_COUNT;
 
-    // Simulate Clifford algebra geometric product
     for (let i = 0; i < BASIS_COUNT; i++) {
       result[offsetResult + i] = batchA[offsetA + i] * batchB[offsetB + i];
     }
@@ -218,49 +216,18 @@ class AdaptiveCompute {
     console.log(\`Computing Amari-Chentsov tensor using: \${useGPU ? 'GPU' : 'CPU'}\`);
     console.log(\`Batch size: \${batchSize}\`);
 
-    const startTime = performance.now();
-
     if (useGPU) {
-      // GPU computation with WebGPU compute shaders
       return await this.gpuAmariChentsov(parameters, batchSize);
     } else {
-      // CPU fallback
       return await this.cpuAmariChentsov(parameters, batchSize);
     }
   }
 
   shouldUseGPU(operationCount) {
-    // Use GPU for large batches, CPU for small ones
     return operationCount > 50;
   }
 
-  async gpuAmariChentsov(params, batchSize) {
-    const time = Math.random() * 5 + 2; // Simulate GPU time
-    await new Promise(resolve => setTimeout(resolve, time));
-
-    return {
-      tensor: this.computeTensor(params),
-      computeTime: time,
-      device: 'GPU',
-      speedup: 15.7
-    };
-  }
-
-  async cpuAmariChentsov(params, batchSize) {
-    const time = Math.random() * 50 + 20; // Simulate CPU time
-    await new Promise(resolve => setTimeout(resolve, time));
-
-    return {
-      tensor: this.computeTensor(params),
-      computeTime: time,
-      device: 'CPU',
-      speedup: 1.0
-    };
-  }
-
   computeTensor(params) {
-    // Correct Amari-Chentsov tensor computation
-    // T(∂ᵢ, ∂ⱼ, ∂ₖ) = E[∂ᵢ log p · ∂ⱼ log p · ∂ₖ log p]
     const n = params.length;
     const tensor = Array(n).fill(null).map(() =>
       Array(n).fill(null).map(() => Array(n).fill(0))
@@ -272,19 +239,14 @@ class AdaptiveCompute {
           let value = 0;
 
           if (i === j && j === k) {
-            // T[i,i,i] = (1-2p_i)/(p_i)²
             value = (1 - 2 * params[i]) / Math.pow(params[i], 2);
           } else if (i === j && i !== k) {
-            // T[i,i,k] = -1/(p_i * p_k)
             value = -1 / (params[i] * params[k]);
           } else if (i === k && i !== j) {
-            // T[i,j,i] = -1/(p_i * p_j)
             value = -1 / (params[i] * params[j]);
           } else if (j === k && j !== i) {
-            // T[i,j,j] = -1/(p_i * p_j)
             value = -1 / (params[i] * params[j]);
           } else if (i !== j && j !== k && i !== k) {
-            // T[i,j,k] = 1/(p_i * p_j * p_k)
             value = 1 / (params[i] * params[j] * params[k]);
           }
 
@@ -301,9 +263,7 @@ const params = [0.4, 0.35, 0.25];
 const result = await compute.amariChentsovTensor(params, 100);
 
 console.log(\`Device used: \${result.device}\`);
-console.log(\`Compute time: \${result.computeTime.toFixed(2)}ms\`);
-console.log(\`Speedup: \${result.speedup.toFixed(1)}x\`);
-console.log("Tensor shape:", result.tensor.length + "×" + result.tensor[0].length + "×" + result.tensor[0][0].length);`,
+console.log(\`Compute time: \${result.computeTime.toFixed(2)}ms\`);`,
       onRun: simulateGpuExample(async () => {
         class AdaptiveCompute {
           preferGPU: boolean;
@@ -322,13 +282,13 @@ console.log("Tensor shape:", result.tensor.length + "×" + result.tensor[0].leng
             const startTime = performance.now();
 
             if (useGPU) {
-              return await this.gpuAmariChentsov(parameters, batchSize);
+              return await this.gpuAmariChentsov(parameters);
             } else {
-              return await this.cpuAmariChentsov(parameters, batchSize);
+              return await this.cpuAmariChentsov(parameters);
             }
           }
 
-          async gpuAmariChentsov(params: number[], batchSize: number) {
+          async gpuAmariChentsov(params: number[]) {
             const time = Math.random() * 5 + 2;
             await new Promise(resolve => setTimeout(resolve, time));
 
@@ -340,7 +300,7 @@ console.log("Tensor shape:", result.tensor.length + "×" + result.tensor[0].leng
             };
           }
 
-          async cpuAmariChentsov(params: number[], batchSize: number) {
+          async cpuAmariChentsov(params: number[]) {
             const time = Math.random() * 50 + 20;
             await new Promise(resolve => setTimeout(resolve, time));
 
@@ -353,8 +313,6 @@ console.log("Tensor shape:", result.tensor.length + "×" + result.tensor[0].leng
           }
 
           computeTensor(params: number[]) {
-            // Correct Amari-Chentsov tensor computation
-            // T(∂ᵢ, ∂ⱼ, ∂ₖ) = E[∂ᵢ log p · ∂ⱼ log p · ∂ₖ log p]
             const n = params.length;
             const tensor = Array(n).fill(null).map(() =>
               Array(n).fill(null).map(() => Array(n).fill(0))
@@ -366,19 +324,14 @@ console.log("Tensor shape:", result.tensor.length + "×" + result.tensor[0].leng
                   let value = 0;
 
                   if (i === j && j === k) {
-                    // T[i,i,i] = (1-2p_i)/(p_i)²
                     value = (1 - 2 * params[i]) / Math.pow(params[i], 2);
                   } else if (i === j && i !== k) {
-                    // T[i,i,k] = -1/(p_i * p_k)
                     value = -1 / (params[i] * params[k]);
                   } else if (i === k && i !== j) {
-                    // T[i,j,i] = -1/(p_i * p_j)
                     value = -1 / (params[i] * params[j]);
                   } else if (j === k && j !== i) {
-                    // T[i,j,j] = -1/(p_i * p_j)
                     value = -1 / (params[i] * params[j]);
                   } else if (i !== j && j !== k && i !== k) {
-                    // T[i,j,k] = 1/(p_i * p_j * p_k)
                     value = 1 / (params[i] * params[j] * params[k]);
                   }
 
@@ -442,25 +395,12 @@ class ProgressiveCompute {
         console.log('WebGPU not available');
       }
     }
-
-    // Edge device (hypothetical - AI accelerator)
-    if ('aiAccelerator' in navigator) {
-      this.devices.push({
-        name: 'Edge AI',
-        type: 'edge',
-        performance: 50.0,
-        available: true
-      });
-    }
   }
 
   selectOptimalDevice(operationComplexity) {
     const availableDevices = this.devices.filter(d => d.available);
 
-    // Select based on operation complexity and device capabilities
-    if (operationComplexity > 1000 && availableDevices.some(d => d.type === 'edge')) {
-      return availableDevices.find(d => d.type === 'edge');
-    } else if (operationComplexity > 100 && availableDevices.some(d => d.type === 'gpu')) {
+    if (operationComplexity > 100 && availableDevices.some(d => d.type === 'gpu')) {
       return availableDevices.find(d => d.type === 'gpu');
     } else {
       return availableDevices.find(d => d.type === 'cpu');
@@ -469,7 +409,7 @@ class ProgressiveCompute {
 
   async computeBatch(operationCount) {
     const device = this.selectOptimalDevice(operationCount);
-    const baseTime = 100; // Base computation time in ms
+    const baseTime = 100;
     const actualTime = baseTime / device.performance;
 
     await new Promise(resolve => setTimeout(resolve, actualTime));
@@ -478,8 +418,7 @@ class ProgressiveCompute {
       device: device.name,
       operationCount,
       computeTime: actualTime,
-      speedup: device.performance,
-      efficiency: operationCount / actualTime
+      speedup: device.performance
     };
   }
 }
@@ -487,7 +426,6 @@ class ProgressiveCompute {
 const compute = new ProgressiveCompute();
 await compute.initializeDevices();
 
-// Test different workload sizes
 const workloads = [10, 100, 1000, 10000];
 console.log("Progressive Enhancement Results:");
 
@@ -542,8 +480,7 @@ for (const workload of workloads) {
               device: device.name,
               operationCount,
               computeTime: actualTime,
-              speedup: device.performance,
-              efficiency: operationCount / actualTime
+              speedup: device.performance
             };
           }
         }
@@ -564,86 +501,90 @@ for (const workload of workloads) {
   ];
 
   return (
-<div style={{ padding: '2rem' }}>
+    <Container size="lg" py="xl">
+      <Stack gap="lg">
         <div>
-          <H1>WebGPU Acceleration Examples</H1>
-          <P style={{ fontSize: '1.125rem', opacity: 0.7, marginBottom: '1rem' }}>
+          <Title order={1}>WebGPU Acceleration Examples</Title>
+          <Text size="lg" c="dimmed">
             Explore GPU-accelerated mathematical computations with progressive enhancement.
-          </P>
-
-          <Card style={{ marginBottom: '2rem' }}>
-            <CardHeader>
-              <h3 style={{ fontSize: '1.125rem', fontWeight: '600' }}>WebGPU Status</h3>
-            </CardHeader>
-            <CardBody>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                <span>WebGPU Support:</span>
-                <span style={{ padding: '0.25rem 0.5rem', borderRadius: '0.25rem', fontSize: '0.875rem', backgroundColor: webgpuSupported === null ? '#f3f4f6' : webgpuSupported ? '#dcfce7' : '#fee2e2', color: webgpuSupported === null ? 'inherit' : webgpuSupported ? '#166534' : '#991b1b' }}>
-                  {webgpuSupported === null ? 'Checking...' :
-                   webgpuSupported ? 'Available' : 'Not Available'}
-                </span>
-              </div>
-              <P style={{ fontSize: '0.875rem', opacity: 0.7, marginBottom: '1rem' }}>
-                {gpuInfo || 'Checking WebGPU availability...'}
-              </P>
-
-              {!webgpuSupported && webgpuSupported !== null && (
-                <div style={{ backgroundColor: '#fefce8', border: '1px solid #fde047', borderRadius: '0.5rem', padding: '1rem' }}>
-                  <h4 style={{ fontWeight: '600', fontSize: '0.875rem', marginBottom: '0.5rem' }}>WebGPU Requirements:</h4>
-                  <ul style={{ fontSize: '0.875rem', lineHeight: '1.4' }}>
-                    <li>• Chrome 113+ or Firefox 115+ with WebGPU enabled</li>
-                    <li>• Compatible graphics drivers</li>
-                    <li>• Enable chrome://flags/#enable-unsafe-webgpu (if needed)</li>
-                  </ul>
-                  <P style={{ fontSize: '0.875rem', marginTop: '0.5rem' }}>
-                    Examples will run with CPU simulation when WebGPU is unavailable.
-                  </P>
-                </div>
-              )}
-            </CardBody>
-          </Card>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            {examples.map((example, index) => (
-              <ExampleCard
-                key={index}
-                title={example.title}
-                description={example.description}
-                code={example.code}
-                category={example.category}
-                onRun={example.onRun}
-              />
-            ))}
-          </div>
-
-          <Card style={{ marginTop: '2rem' }}>
-            <CardHeader>
-              <h3 style={{ fontSize: '1.125rem', fontWeight: '600' }}>GPU Acceleration Benefits</h3>
-            </CardHeader>
-            <CardBody>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem' }}>
-                <div>
-                  <h4 style={{ fontWeight: '600', fontSize: '0.875rem', marginBottom: '0.5rem' }}>Performance Gains</h4>
-                  <ul style={{ fontSize: '0.875rem', lineHeight: '1.4' }}>
-                    <li>• 10-100x speedup for batch operations</li>
-                    <li>• Parallel processing of thousands of elements</li>
-                    <li>• Memory bandwidth optimization</li>
-                    <li>• Zero-copy data transfer with TypedArrays</li>
-                  </ul>
-                </div>
-                <div>
-                  <h4 style={{ fontWeight: '600', fontSize: '0.875rem', marginBottom: '0.5rem' }}>Use Cases</h4>
-                  <ul style={{ fontSize: '0.875rem', lineHeight: '1.4' }}>
-                    <li>• Geometric algebra batch operations</li>
-                    <li>• Information geometry tensor computation</li>
-                    <li>• Tropical algebra matrix operations</li>
-                    <li>• Real-time mathematical visualizations</li>
-                  </ul>
-                </div>
-              </div>
-            </CardBody>
-          </Card>
+          </Text>
         </div>
-      </div>
-);
+
+        <Card withBorder>
+          <Card.Section inheritPadding py="xs" bg="dark.6">
+            <Title order={3}>WebGPU Status</Title>
+          </Card.Section>
+          <Card.Section inheritPadding py="md">
+            <SimpleGrid cols={2} mb="md">
+              <Text>WebGPU Support:</Text>
+              <Badge
+                color={webgpuSupported === null ? 'gray' : webgpuSupported ? 'green' : 'red'}
+                variant="filled"
+              >
+                {webgpuSupported === null ? 'Checking...' :
+                 webgpuSupported ? 'Available' : 'Not Available'}
+              </Badge>
+            </SimpleGrid>
+            <Text size="sm" c="dimmed" mb="md">
+              {gpuInfo || 'Checking WebGPU availability...'}
+            </Text>
+
+            {!webgpuSupported && webgpuSupported !== null && (
+              <Alert color="yellow" title="WebGPU Requirements">
+                <List size="sm">
+                  <List.Item>Chrome 113+ or Firefox 115+ with WebGPU enabled</List.Item>
+                  <List.Item>Compatible graphics drivers</List.Item>
+                  <List.Item>Enable chrome://flags/#enable-unsafe-webgpu (if needed)</List.Item>
+                </List>
+                <Text size="sm" mt="xs">
+                  Examples will run with CPU simulation when WebGPU is unavailable.
+                </Text>
+              </Alert>
+            )}
+          </Card.Section>
+        </Card>
+
+        <Stack gap="lg">
+          {examples.map((example, index) => (
+            <ExampleCard
+              key={index}
+              title={example.title}
+              description={example.description}
+              code={example.code}
+              category={example.category}
+              onRun={example.onRun}
+            />
+          ))}
+        </Stack>
+
+        <Card withBorder>
+          <Card.Section inheritPadding py="xs" bg="dark.6">
+            <Title order={3}>GPU Acceleration Benefits</Title>
+          </Card.Section>
+          <Card.Section inheritPadding py="md">
+            <SimpleGrid cols={{ base: 1, sm: 2 }}>
+              <div>
+                <Title order={4} size="sm" mb="xs">Performance Gains</Title>
+                <List size="sm">
+                  <List.Item>10-100x speedup for batch operations</List.Item>
+                  <List.Item>Parallel processing of thousands of elements</List.Item>
+                  <List.Item>Memory bandwidth optimization</List.Item>
+                  <List.Item>Zero-copy data transfer with TypedArrays</List.Item>
+                </List>
+              </div>
+              <div>
+                <Title order={4} size="sm" mb="xs">Use Cases</Title>
+                <List size="sm">
+                  <List.Item>Geometric algebra batch operations</List.Item>
+                  <List.Item>Information geometry tensor computation</List.Item>
+                  <List.Item>Tropical algebra matrix operations</List.Item>
+                  <List.Item>Real-time mathematical visualizations</List.Item>
+                </List>
+              </div>
+            </SimpleGrid>
+          </Card.Section>
+        </Card>
+      </Stack>
+    </Container>
+  );
 }

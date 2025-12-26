@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Button, H3, Card, CardBody, P, Strong, Grid, GridItem, Navbar, NavbarNav } from "jadis-ui";
+import { Title, Text, Stack, Box, UnstyledButton } from "@mantine/core";
 
 interface NavSection {
   title: string;
@@ -40,6 +40,16 @@ const navigationSections: NavSection[] = [
         title: "Enumerative Geometry",
         href: "/enumerative-geometry",
         description: "Intersection theory and curve counting"
+      },
+      {
+        title: "Calculus",
+        href: "/calculus",
+        description: "Differential operators and integration"
+      },
+      {
+        title: "Measure Theory",
+        href: "/measure",
+        description: "Measures, probability, and information"
       }
     ]
   },
@@ -60,6 +70,31 @@ const navigationSections: NavSection[] = [
         title: "Cellular Automata",
         href: "/automata",
         description: "Self-assembling systems"
+      },
+      {
+        title: "Probabilistic",
+        href: "/probabilistic",
+        description: "Distributions and stochastic processes"
+      },
+      {
+        title: "Relativistic",
+        href: "/relativistic",
+        description: "Special and general relativity"
+      },
+      {
+        title: "Network",
+        href: "/network",
+        description: "Geometric network analysis"
+      },
+      {
+        title: "Holographic",
+        href: "/holographic",
+        description: "Distributed memory and resonators"
+      },
+      {
+        title: "Optimization",
+        href: "/optimization",
+        description: "Gradient and geodesic optimization"
       }
     ]
   },
@@ -90,80 +125,72 @@ const navigationSections: NavSection[] = [
   }
 ];
 
-export function Navigation() {
+interface NavigationProps {
+  onNavigate?: () => void;
+}
+
+export function Navigation({ onNavigate }: NavigationProps) {
   const location = useLocation();
 
   return (
-    <nav style={{ height: '100vh', overflowY: 'auto', padding: '1.5rem' }}>
-      <div style={{ marginBottom: '2rem' }}>
-        <Link to="/">
-          <H3>Amari Library</H3>
-          <P>Mathematical Computing Examples</P>
-        </Link>
-      </div>
+    <Box p="md">
+      <Box mb="xl">
+        <UnstyledButton component={Link} to="/" onClick={onNavigate}>
+          <Title order={3} c="cyan">Amari Library</Title>
+          <Text size="sm" c="dimmed">Mathematical Computing Examples</Text>
+        </UnstyledButton>
+      </Box>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      <Stack gap="lg">
         {navigationSections.map((section) => (
-          <div key={section.title}>
-            <Strong style={{ fontSize: '0.875rem', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.75rem', display: 'block' }}>
+          <Box key={section.title}>
+            <Text
+              size="xs"
+              fw={600}
+              tt="uppercase"
+              c="dimmed"
+              mb="sm"
+              style={{ letterSpacing: '0.1em' }}
+            >
               {section.title}
-            </Strong>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            </Text>
+            <Stack gap="xs">
               {section.items.map((item) => {
                 const isActive = location.pathname === item.href;
                 return (
-                  <Card key={item.href} style={{
-                    transition: 'all 0.2s',
-                    ...(isActive ? { outline: '2px solid var(--primary)' } : {})
-                  }}>
-                    <CardBody style={{ padding: '0.75rem' }}>
-                      <Link to={item.href}>
-                        <div style={{ fontWeight: 500, fontSize: '0.875rem', marginBottom: '0.25rem' }}>
-                          {item.title}
-                        </div>
-                        <div style={{ fontSize: '0.75rem', opacity: 0.7 }}>
-                          {item.description}
-                        </div>
-                      </Link>
-                    </CardBody>
-                  </Card>
+                  <UnstyledButton
+                    key={item.href}
+                    component={Link}
+                    to={item.href}
+                    onClick={onNavigate}
+                    p="sm"
+                    style={(theme) => ({
+                      borderRadius: theme.radius.sm,
+                      backgroundColor: isActive
+                        ? theme.colors.dark[6]
+                        : 'transparent',
+                      border: isActive
+                        ? `1px solid ${theme.colors.cyan[7]}`
+                        : '1px solid transparent',
+                      transition: 'all 0.15s ease',
+                      '&:hover': {
+                        backgroundColor: theme.colors.dark[6],
+                      }
+                    })}
+                  >
+                    <Text size="sm" fw={500} mb={2}>
+                      {item.title}
+                    </Text>
+                    <Text size="xs" c="dimmed">
+                      {item.description}
+                    </Text>
+                  </UnstyledButton>
                 );
               })}
-            </div>
-          </div>
+            </Stack>
+          </Box>
         ))}
-      </div>
-    </nav>
-  );
-}
-
-export function MobileNavigation() {
-  return (
-    <div style={{ padding: '1rem', borderBottom: '1px solid var(--border)' }}>
-      <details>
-        <summary style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}>
-          <H3>Navigation</H3>
-          <span style={{ transition: 'transform 0.2s' }}>
-            ▼
-          </span>
-        </summary>
-        <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          {navigationSections.map((section) => (
-            <div key={section.title}>
-              <Strong style={{ fontSize: '0.875rem', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.5rem', display: 'block' }}>
-                {section.title}
-              </Strong>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                {section.items.map((item) => (
-                  <Button key={item.href} href={item.href} style={{ textAlign: 'left', justifyContent: 'flex-start' }}>
-                    {item.title}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </details>
-    </div>
+      </Stack>
+    </Box>
   );
 }

@@ -1,9 +1,9 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
-import { ThemeProvider } from 'jadis-ui'
-import '../node_modules/jadis-ui/dist/index.css'
-
+import { MantineProvider, createTheme } from '@mantine/core'
+import '@mantine/core/styles.css'
+import '@mantine/code-highlight/styles.css'
 
 import App from './App'
 import { GeometricAlgebra } from './pages/GeometricAlgebra'
@@ -19,6 +19,41 @@ import { APIReference } from './pages/APIReference'
 import { Home } from './pages/Home'
 import { EnumerativeGeometry } from './pages/EnumerativeGeometry'
 import { AmariChentsovTensorDemo } from './pages/AmariChentsovTensorDemo'
+import { Probabilistic } from './pages/Probabilistic'
+import { Calculus } from './pages/Calculus'
+import { Relativistic } from './pages/Relativistic'
+import { Network } from './pages/Network'
+import { Measure } from './pages/Measure'
+import { Holographic } from './pages/Holographic'
+import { Optimization } from './pages/Optimization'
+
+// Scientific dark theme for mathematical computing
+const theme = createTheme({
+  primaryColor: 'cyan',
+  fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
+  fontFamilyMonospace: 'JetBrains Mono, Menlo, Monaco, monospace',
+  headings: {
+    fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
+    fontWeight: '600',
+  },
+  colors: {
+    dark: [
+      '#C1C2C5',
+      '#A6A7AB',
+      '#909296',
+      '#5c5f66',
+      '#373A40',
+      '#2C2E33',
+      '#25262b',
+      '#1A1B1E',
+      '#141517',
+      '#101113',
+    ],
+  },
+  other: {
+    codeBackground: '#1e1e2e',
+  },
+})
 
 const router = createBrowserRouter([
   {
@@ -77,14 +112,42 @@ const router = createBrowserRouter([
         path: "amari-chentsov-tensor",
         element: <AmariChentsovTensorDemo />,
       },
+      {
+        path: "probabilistic",
+        element: <Probabilistic />,
+      },
+      {
+        path: "calculus",
+        element: <Calculus />,
+      },
+      {
+        path: "relativistic",
+        element: <Relativistic />,
+      },
+      {
+        path: "network",
+        element: <Network />,
+      },
+      {
+        path: "measure",
+        element: <Measure />,
+      },
+      {
+        path: "holographic",
+        element: <Holographic />,
+      },
+      {
+        path: "optimization",
+        element: <Optimization />,
+      },
     ],
   },
 ])
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <ThemeProvider defaultTheme="terminal">
+    <MantineProvider theme={theme} defaultColorScheme="dark">
       <RouterProvider router={router} />
-    </ThemeProvider>
+    </MantineProvider>
   </React.StrictMode>,
 )

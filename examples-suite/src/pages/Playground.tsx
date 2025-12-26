@@ -1,4 +1,4 @@
-import { H1, P, Card, CardHeader, CardBody, Button, Code } from "jadis-ui";
+import { Container, Stack, Card, Title, Text, Button, Code, Badge, SimpleGrid, Textarea } from "@mantine/core";
 import { useState, useCallback, useEffect } from "react";
 
 // Predefined code templates
@@ -255,7 +255,7 @@ export function Playground() {
               if (index < 3) coeffs[index + 1] = 1;
               return coeffs[i];
             },
-            geometricProduct: function(other: any) {
+            geometricProduct: function(_other: any) {
               const result = [0, 0, 0, 0, 1, 0, 0, 0]; // e12 for e1 * e2
               return {
                 getCoefficients: () => result,
@@ -296,177 +296,182 @@ export function Playground() {
   }, []);
 
   return (
-<div style={{ padding: '2rem' }}>
+    <Container size="lg" py="xl">
+      <Stack gap="lg">
         <div>
-          <H1>Interactive Playground</H1>
-          <P style={{ fontSize: '1.125rem', opacity: 0.7, marginBottom: '1.5rem' }}>
+          <Title order={1}>Interactive Playground</Title>
+          <Text size="lg" c="dimmed">
             Experiment with Amari mathematical operations in real-time
-          </P>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
-            {/* Code Editor Section */}
-            <div style={{ gridColumn: 'span 2' }}>
-              <Card>
-                <CardHeader>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <h3 style={{ fontSize: '1.125rem', fontWeight: '600' }}>Code Editor</h3>
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                      <Button
-                        onClick={runCode}
-                        disabled={isRunning || !amariLoaded}
-                        size="sm"
-                      >
-                        {isRunning ? 'Running...' : 'Run Code'}
-                      </Button>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardBody>
-                  <textarea
-                    value={code}
-                    onChange={(e) => setCode(e.target.value)}
-                    style={{ width: '100%', height: '24rem', padding: '1rem', fontFamily: 'monospace', fontSize: '0.875rem', backgroundColor: 'var(--muted)', borderRadius: '0.5rem', border: '1px solid var(--border)' }}
-                    spellCheck={false}
-                  />
-                </CardBody>
-              </Card>
-
-              {/* Output Section */}
-              <Card style={{ marginTop: '1.5rem' }}>
-                <CardHeader>
-                  <h3 style={{ fontSize: '1.125rem', fontWeight: '600' }}>Output</h3>
-                </CardHeader>
-                <CardBody>
-                  {error ? (
-                    <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: '0.5rem', padding: '1rem' }}>
-                      <Code style={{ fontSize: '0.875rem', color: 'var(--destructive)', whiteSpace: 'pre-wrap' }}>
-                        Error: {error}
-                      </Code>
-                    </div>
-                  ) : output ? (
-                    <div style={{ backgroundColor: 'var(--muted)', borderRadius: '0.5rem', padding: '1rem' }}>
-                      <Code style={{ fontSize: '0.875rem', whiteSpace: 'pre-wrap' }}>
-                        {output}
-                      </Code>
-                    </div>
-                  ) : (
-                    <div style={{ opacity: 0.7, fontSize: '0.875rem' }}>
-                      No output yet. Click "Run Code" to execute.
-                    </div>
-                  )}
-                </CardBody>
-              </Card>
-            </div>
-
-            {/* Templates Section */}
-            <div>
-              <Card>
-                <CardHeader>
-                  <h3 style={{ fontSize: '1.125rem', fontWeight: '600' }}>Templates</h3>
-                </CardHeader>
-                <CardBody>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                    <Button
-                      onClick={() => loadTemplate('geometric')}
-                      variant={selectedTemplate === 'geometric' ? 'default' : 'outline'}
-                      style={{ width: '100%', justifyContent: 'flex-start' }}
-                      size="sm"
-                    >
-                      Geometric Algebra
-                    </Button>
-                    <Button
-                      onClick={() => loadTemplate('tropical')}
-                      variant={selectedTemplate === 'tropical' ? 'default' : 'outline'}
-                      style={{ width: '100%', justifyContent: 'flex-start' }}
-                      size="sm"
-                    >
-                      Tropical Algebra
-                    </Button>
-                    <Button
-                      onClick={() => loadTemplate('dual')}
-                      variant={selectedTemplate === 'dual' ? 'default' : 'outline'}
-                      style={{ width: '100%', justifyContent: 'flex-start' }}
-                      size="sm"
-                    >
-                      Dual Numbers AD
-                    </Button>
-                    <Button
-                      onClick={() => loadTemplate('fusion')}
-                      variant={selectedTemplate === 'fusion' ? 'default' : 'outline'}
-                      style={{ width: '100%', justifyContent: 'flex-start' }}
-                      size="sm"
-                    >
-                      TDC Fusion System
-                    </Button>
-                  </div>
-                </CardBody>
-              </Card>
-
-              <Card style={{ marginTop: '1.5rem' }}>
-                <CardHeader>
-                  <h3 style={{ fontSize: '1.125rem', fontWeight: '600' }}>Quick Reference</h3>
-                </CardHeader>
-                <CardBody>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.875rem' }}>
-                    <div>
-                      <h4 style={{ fontWeight: '600', marginBottom: '0.25rem' }}>Available Objects</h4>
-                      <ul style={{ fontSize: '0.75rem', lineHeight: '1.4' }}>
-                        <li><Code>amari</Code> - WASM module</li>
-                        <li><Code>console.log()</Code> - Output</li>
-                        <li><Code>performance</Code> - Timing</li>
-                      </ul>
-                    </div>
-
-                    <div>
-                      <h4 style={{ fontWeight: '600', marginBottom: '0.25rem' }}>Return Values</h4>
-                      <p style={{ fontSize: '0.75rem', opacity: 0.7 }}>
-                        Return an object to display structured data in the output
-                      </p>
-                    </div>
-
-                    <div>
-                      <h4 style={{ fontWeight: '600', marginBottom: '0.25rem' }}>Tips</h4>
-                      <ul style={{ fontSize: '0.75rem', opacity: 0.7, lineHeight: '1.4' }}>
-                        <li>• Use templates as starting points</li>
-                        <li>• Console output appears immediately</li>
-                        <li>• Return values show as JSON</li>
-                        <li>• Errors are safely caught</li>
-                      </ul>
-                    </div>
-                  </div>
-                </CardBody>
-              </Card>
-
-              <Card style={{ marginTop: '1.5rem' }}>
-                <CardHeader>
-                  <h3 style={{ fontSize: '1.125rem', fontWeight: '600' }}>Status</h3>
-                </CardHeader>
-                <CardBody>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem' }}>
-                      <span>Amari Module</span>
-                      <span style={{
-                        padding: '0.125rem 0.5rem',
-                        borderRadius: '0.25rem',
-                        fontSize: '0.75rem',
-                        backgroundColor: amariLoaded ? '#dcfce7' : '#f3f4f6',
-                        color: amariLoaded ? '#166534' : '#374151'
-                      }}>
-                        {amariLoaded ? 'Loaded' : 'Loading...'}
-                      </span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem' }}>
-                      <span>WebAssembly</span>
-                      <span style={{ padding: '0.125rem 0.5rem', backgroundColor: '#dcfce7', color: '#166534', borderRadius: '0.25rem', fontSize: '0.75rem' }}>
-                        Available
-                      </span>
-                    </div>
-                  </div>
-                </CardBody>
-              </Card>
-            </div>
-          </div>
+          </Text>
         </div>
-      </div>
-);
+
+        <SimpleGrid cols={{ base: 1, lg: 3 }} spacing="lg">
+          {/* Code Editor Section */}
+          <div style={{ gridColumn: 'span 2' }}>
+            <Card withBorder>
+              <Card.Section inheritPadding py="xs" bg="dark.6">
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <Title order={3} size="h4">Code Editor</Title>
+                  <Button
+                    onClick={runCode}
+                    disabled={isRunning || !amariLoaded}
+                    size="sm"
+                  >
+                    {isRunning ? 'Running...' : 'Run Code'}
+                  </Button>
+                </div>
+              </Card.Section>
+              <Card.Section inheritPadding py="md">
+                <Textarea
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  minRows={20}
+                  autosize
+                  styles={{
+                    input: {
+                      fontFamily: 'monospace',
+                      fontSize: '0.875rem'
+                    }
+                  }}
+                  spellCheck={false}
+                />
+              </Card.Section>
+            </Card>
+
+            {/* Output Section */}
+            <Card withBorder mt="lg">
+              <Card.Section inheritPadding py="xs" bg="dark.6">
+                <Title order={3} size="h4">Output</Title>
+              </Card.Section>
+              <Card.Section inheritPadding py="md">
+                {error ? (
+                  <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: 'var(--mantine-radius-sm)', padding: '1rem' }}>
+                    <Code c="red" style={{ whiteSpace: 'pre-wrap' }}>
+                      Error: {error}
+                    </Code>
+                  </div>
+                ) : output ? (
+                  <div style={{ backgroundColor: 'var(--mantine-color-dark-6)', borderRadius: 'var(--mantine-radius-sm)', padding: '1rem' }}>
+                    <Code style={{ whiteSpace: 'pre-wrap' }}>
+                      {output}
+                    </Code>
+                  </div>
+                ) : (
+                  <Text size="sm" c="dimmed">
+                    No output yet. Click "Run Code" to execute.
+                  </Text>
+                )}
+              </Card.Section>
+            </Card>
+          </div>
+
+          {/* Templates Section */}
+          <div>
+            <Card withBorder>
+              <Card.Section inheritPadding py="xs" bg="dark.6">
+                <Title order={3} size="h4">Templates</Title>
+              </Card.Section>
+              <Card.Section inheritPadding py="md">
+                <Stack gap="xs">
+                  <Button
+                    onClick={() => loadTemplate('geometric')}
+                    variant={selectedTemplate === 'geometric' ? 'filled' : 'outline'}
+                    fullWidth
+                    justify="flex-start"
+                    size="sm"
+                  >
+                    Geometric Algebra
+                  </Button>
+                  <Button
+                    onClick={() => loadTemplate('tropical')}
+                    variant={selectedTemplate === 'tropical' ? 'filled' : 'outline'}
+                    fullWidth
+                    justify="flex-start"
+                    size="sm"
+                  >
+                    Tropical Algebra
+                  </Button>
+                  <Button
+                    onClick={() => loadTemplate('dual')}
+                    variant={selectedTemplate === 'dual' ? 'filled' : 'outline'}
+                    fullWidth
+                    justify="flex-start"
+                    size="sm"
+                  >
+                    Dual Numbers AD
+                  </Button>
+                  <Button
+                    onClick={() => loadTemplate('fusion')}
+                    variant={selectedTemplate === 'fusion' ? 'filled' : 'outline'}
+                    fullWidth
+                    justify="flex-start"
+                    size="sm"
+                  >
+                    TDC Fusion System
+                  </Button>
+                </Stack>
+              </Card.Section>
+            </Card>
+
+            <Card withBorder mt="lg">
+              <Card.Section inheritPadding py="xs" bg="dark.6">
+                <Title order={3} size="h4">Quick Reference</Title>
+              </Card.Section>
+              <Card.Section inheritPadding py="md">
+                <Stack gap="md">
+                  <div>
+                    <Title order={4} size="sm" mb="xs">Available Objects</Title>
+                    <Text size="xs" c="dimmed" component="ul" style={{ paddingLeft: '1rem', margin: 0 }}>
+                      <li><Code>amari</Code> - WASM module</li>
+                      <li><Code>console.log()</Code> - Output</li>
+                      <li><Code>performance</Code> - Timing</li>
+                    </Text>
+                  </div>
+
+                  <div>
+                    <Title order={4} size="sm" mb="xs">Return Values</Title>
+                    <Text size="xs" c="dimmed">
+                      Return an object to display structured data in the output
+                    </Text>
+                  </div>
+
+                  <div>
+                    <Title order={4} size="sm" mb="xs">Tips</Title>
+                    <Text size="xs" c="dimmed" component="ul" style={{ paddingLeft: '1rem', margin: 0 }}>
+                      <li>Use templates as starting points</li>
+                      <li>Console output appears immediately</li>
+                      <li>Return values show as JSON</li>
+                      <li>Errors are safely caught</li>
+                    </Text>
+                  </div>
+                </Stack>
+              </Card.Section>
+            </Card>
+
+            <Card withBorder mt="lg">
+              <Card.Section inheritPadding py="xs" bg="dark.6">
+                <Title order={3} size="h4">Status</Title>
+              </Card.Section>
+              <Card.Section inheritPadding py="md">
+                <Stack gap="xs">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Text size="sm">Amari Module</Text>
+                    <Badge color={amariLoaded ? 'green' : 'gray'} size="sm">
+                      {amariLoaded ? 'Loaded' : 'Loading...'}
+                    </Badge>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Text size="sm">WebAssembly</Text>
+                    <Badge color="green" size="sm">
+                      Available
+                    </Badge>
+                  </div>
+                </Stack>
+              </Card.Section>
+            </Card>
+          </div>
+        </SimpleGrid>
+      </Stack>
+    </Container>
+  );
 }
