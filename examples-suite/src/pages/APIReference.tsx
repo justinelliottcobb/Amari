@@ -1,6 +1,7 @@
-import { Container, Stack, Card, Title, Text, Badge, SimpleGrid, Accordion, Group, Box, Anchor, ThemeIcon } from "@mantine/core";
+import { Container, Stack, Card, Title, Text, Badge, SimpleGrid, Accordion, Group, Box, Tabs } from "@mantine/core";
 import { CodeHighlight } from "@mantine/code-highlight";
 import { useState } from "react";
+import { LiveVisualizationSection } from "../components/LiveVisualization";
 
 interface ApiMethod {
   name: string;
@@ -2392,9 +2393,15 @@ export function APIReference() {
         <div>
           <Title order={1}>API Reference</Title>
           <Text size="lg" c="dimmed">
-            Complete documentation for 77+ classes and 300+ methods
+            Complete documentation for 77+ classes and 300+ methods with interactive visualizations
           </Text>
         </div>
+
+        {/* Live Visualization Section */}
+        <LiveVisualizationSection />
+
+        {/* API Documentation Section Header */}
+        <Title order={2} mt="xl">API Documentation</Title>
 
         <SimpleGrid cols={{ base: 2, sm: 3, md: 4, lg: 6 }} spacing="sm">
           {apiSections.map((section) => (
