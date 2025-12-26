@@ -1,4 +1,4 @@
-# Amari v0.13.0
+# Amari v0.14.0
 
 **Comprehensive Mathematical Computing Platform with Geometric Algebra, Differential Calculus, Measure Theory, Probability Theory, and Vector Symbolic Architectures**
 
@@ -8,6 +8,8 @@ A unified mathematical computing library featuring geometric algebra, differenti
 [![WebAssembly](https://img.shields.io/badge/WebAssembly-Ready-blue.svg)](https://webassembly.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue.svg)](https://www.typescriptlang.org/)
 [![License](https://img.shields.io/badge/License-MIT%20OR%20Apache--2.0-green.svg)](LICENSE)
+
+**[Live Examples Suite](https://amari-math.netlify.app)** | **[API Documentation](https://docs.rs/amari)**
 
 ## Features
 
@@ -53,42 +55,42 @@ Add to your `Cargo.toml`:
 ```toml
 [dependencies]
 # Complete library with all features
-amari = "0.13.0"
+amari = "0.14.0"
 
 # Or individual crates:
 
 # Core geometric algebra and mathematical foundations
-amari-core = "0.13.0"
+amari-core = "0.14.0"
 
 # Differential calculus with geometric algebra
-amari-calculus = "0.13.0"
+amari-calculus = "0.14.0"
 
 # Measure theory and integration
-amari-measure = "0.13.0"
+amari-measure = "0.14.0"
 
 # Probability theory on geometric algebra spaces
-amari-probabilistic = "0.13.0"
+amari-probabilistic = "0.14.0"
 
 # Vector Symbolic Architectures and holographic memory
-amari-holographic = "0.13.0"
+amari-holographic = "0.14.0"
 
 # High-precision relativistic physics
-amari-relativistic = { version = "0.13.0", features = ["high-precision"] }
+amari-relativistic = { version = "0.14.0", features = ["high-precision"] }
 
 # GPU acceleration
-amari-gpu = "0.13.0"
+amari-gpu = "0.14.0"
 
 # Optimization algorithms
-amari-optimization = "0.13.0"
+amari-optimization = "0.14.0"
 
 # Additional mathematical systems
-amari-tropical = "0.13.0"
-amari-dual = "0.13.0"
-amari-info-geom = "0.13.0"
-amari-automata = "0.13.0"
-amari-fusion = "0.13.0"
-amari-network = "0.13.0"
-amari-enumerative = "0.13.0"
+amari-tropical = "0.14.0"
+amari-dual = "0.14.0"
+amari-info-geom = "0.14.0"
+amari-automata = "0.14.0"
+amari-fusion = "0.14.0"
+amari-network = "0.14.0"
+amari-enumerative = "0.14.0"
 ```
 
 ### JavaScript/TypeScript (WebAssembly)
@@ -448,7 +450,29 @@ let deriv = x.derivative();
 
 See [MIGRATION_v0.12.0.md](MIGRATION_v0.12.0.md) for complete migration guide.
 
-## GPU Module Status (v0.13.0)
+## Interactive Examples Suite
+
+The **[Amari Examples Suite](https://amari-math.netlify.app)** provides comprehensive interactive documentation:
+
+- **Live Visualizations**: 7 interactive visualizations demonstrating mathematical concepts
+  - Multivector coefficient manipulation in Cl(3,0,0)
+  - Tropical algebra operations with convergence animation
+  - Dual numbers with real-time derivative curves
+  - Rotor-based 3D rotations
+  - Fisher information on probability simplex
+  - MCMC sampling visualization
+  - Interactive geometric networks
+
+- **Comprehensive API Reference**: 77 classes with 300+ methods fully documented
+  - Geometric Algebra (Multivector, Rotor, Bivector)
+  - Tropical Algebra (TropicalNumber, TropicalMatrix)
+  - Automatic Differentiation (DualNumber, MultiDualNumber)
+  - Probability (GaussianMultivector, MCMC samplers)
+  - And 12 more categories
+
+- **Interactive Playground**: Write and run JavaScript code with live WASM execution
+
+## GPU Module Status (v0.14.0)
 
 | Module | Status | Feature Flag |
 |--------|--------|--------------|
