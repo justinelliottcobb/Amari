@@ -9,7 +9,7 @@ Computational Structure: Tropical optimization, automatic differentiation
 Geometric Structure: Manifolds, connections, curvature
 
 
-Current State (v0.9.x)
+Current State (v0.14.0)
 Completed Core Crates
 
 ✅ amari-core: Basic Clifford algebra operations
@@ -22,13 +22,17 @@ Completed Core Crates
 ✅ amari-core/deterministic (v0.9.9): Deterministic physics for networked applications
 ✅ amari-flynn (v0.9.10): Probabilistic contracts with Monte Carlo verification
 ✅ amari-flynn-macros (v0.9.10): Procedural macros for probabilistic contract verification
+✅ amari-measure (v0.11.0): Measure-theoretic foundations
+✅ amari-calculus (v0.12.0): Geometric calculus with vector derivatives
+✅ amari-holographic (v0.12.3): Vector Symbolic Architectures and holographic memory
+✅ amari-probabilistic (v0.14.0): Probability theory on geometric algebra spaces
 
 
 Roadmap Structure
 Version Numbering Scheme
 
-0.12.x: Current stable release (holographic memory, GPU acceleration)
-0.13.x - 0.16.x: Core analytical foundations
+0.14.x: Current stable release (probabilistic, holographic, GPU acceleration)
+0.15.x - 0.17.x: Core analytical foundations (functional, topology, dynamics)
 1.0.x: Core algebraic completion + essential analytics (stability release)
 1.1.x: Advanced algebraic extensions
 1.2.x: Deep analytical integration
@@ -131,49 +135,23 @@ rustCore Capabilities:
 - GPU acceleration via amari-gpu (4 WGSL shaders)
 - WebAssembly bindings via amari-wasm
 
-v0.13.0 - v0.16.0: Core Analytical Completions (Next)
-v0.13.0: amari-probabilistic 🎯 NEXT
+v0.14.0 - v0.17.0: Core Analytical Completions
+v0.14.0: amari-probabilistic ✅ COMPLETED
 Purpose: Probability theory with geometric algebra
-rustCore Capabilities:
-- Probability distributions over multivectors
-- Geometric random variables
-- Bayesian inference on manifolds
+Core Capabilities:
+- Probability distributions over multivectors (GaussianMultivector, UniformMultivector)
+- Geometric random variables with moments
+- Bayesian inference on manifolds (BayesianGA)
 - Uncertainty propagation through geometric operations
-- Stochastic processes on multivector spaces
+- Stochastic processes on multivector spaces (GeometricBrownianMotion, OrnsteinUhlenbeck)
 - Monte Carlo methods for geometric integration
-- Importance sampling on manifolds
-Why Critical:
+- MCMC sampling (MetropolisHastings, HamiltonianMonteCarlo)
+- GPU acceleration for batch sampling
+- Full WASM bindings
 
-Mishima needs uncertain epistemic states
-Machine learning requires probabilistic models
-Physics simulations need stochastic dynamics
-Risk quantification in optimization
+Dependencies: amari-core, amari-measure, amari-info-geom, amari-dual
 
-Dependencies: amari-core, amari-measure, amari-info-geom
-
-Key Types:
-rustpub struct MultivectorDistribution<const DIM: usize> {
-    // Probability measure over Cl(p,q,r)
-    measure: GeometricMeasure<DIM>,
-
-    // Sampling strategy
-    sampler: Box<dyn Sampler<DIM>>,
-}
-
-pub struct BayesianGA<const DIM: usize> {
-    // Prior distribution
-    prior: MultivectorDistribution<DIM>,
-
-    // Likelihood function
-    likelihood: Box<dyn Fn(&Multivector<DIM>, &Data) -> f64>,
-}
-
-pub struct StochasticProcess<const DIM: usize> {
-    // SDE: dX_t = μ(X_t)dt + σ(X_t)dW_t
-    drift: Box<dyn Fn(&Multivector<DIM>) -> Multivector<DIM>>,
-    diffusion: Box<dyn Fn(&Multivector<DIM>) -> DiffusionMatrix<DIM>>,
-}
-v0.14.0: amari-functional
+v0.15.0: amari-functional 🎯 NEXT
 Purpose: Functional analysis on multivector spaces
 rustCore Capabilities:
 - Hilbert spaces of multivectors
@@ -184,7 +162,7 @@ rustCore Capabilities:
 - Sobolev spaces W^{k,p}
 - Banach spaces of multivector fields
 Dependencies: amari-core, amari-measure, amari-calculus
-v0.15.0: amari-topology
+v0.16.0: amari-topology
 Purpose: Topological tools for geometric structures
 rustCore Capabilities:
 - Manifold boundary detection
@@ -195,7 +173,7 @@ rustCore Capabilities:
 - Characteristic classes
 Dependencies: amari-core, amari-calculus
 Applications: Mishima boundary dynamics, shape analysis
-v0.16.0: amari-dynamics
+v0.17.0: amari-dynamics
 Purpose: Dynamical systems on geometric spaces
 rustCore Capabilities:
 - State space analysis
@@ -571,7 +549,7 @@ Compatible versioning
 
 
 Priority Matrix
-Completed (v0.9.7 - v0.12.2)
+Completed (v0.9.7 - v0.14.0)
 
 ✅ amari-optimization (v0.9.7) - Multi-objective optimization
 ✅ Version synchronization (v0.9.8) - Publishing stability
@@ -579,17 +557,17 @@ Completed (v0.9.7 - v0.12.2)
 ✅ amari-flynn + amari-flynn-macros (v0.9.10) - Probabilistic contracts
 ✅ amari-measure (v0.11.0) - Measure-theoretic foundations
 ✅ amari-calculus (v0.12.0) - Geometric calculus
-✅ amari-fusion/holographic (v0.12.2) - Holographic associative memory
+✅ amari-holographic (v0.12.3) - Holographic associative memory
+✅ amari-probabilistic (v0.14.0) - Probability on GA spaces
 
 Immediate (Next 6 Months)
 
-amari-probabilistic (v0.13.0) - Critical for ML and Mishima
+amari-functional (v0.15.0) - Hilbert spaces, operators
 
 High Priority (6-12 Months)
 
-amari-functional (v0.14.0) - Hilbert spaces, operators
-amari-topology (v0.15.0) - Boundaries, homology
-amari-dynamics (v0.16.0) - Fixed points, attractors
+amari-topology (v0.16.0) - Boundaries, homology
+amari-dynamics (v0.17.0) - Fixed points, attractors
 v1.0.0 Stabilization
 
 Medium Priority (12-18 Months)
@@ -748,14 +726,15 @@ The implementation of deterministic physics and probabilistic contracts before m
 ✅ Complete probabilistic contracts (v0.9.10)
 ✅ Complete amari-measure (v0.11.0) - Foundation for analytical integration
 ✅ Complete amari-calculus (v0.12.0) - Geometric differential/integral calculus
-✅ Complete amari-fusion/holographic (v0.12.2) - Holographic associative memory with GPU acceleration
-🎯 Begin amari-probabilistic (v0.13.0) - Probability theory on multivector spaces
+✅ Complete amari-holographic (v0.12.3) - Holographic associative memory with GPU acceleration
+✅ Complete amari-probabilistic (v0.14.0) - Probability theory on multivector spaces
+🎯 Begin amari-functional (v0.15.0) - Functional analysis on multivector spaces
 📚 Continue documentation of long-term vision
 🌐 Begin community building
 
-The next critical milestone is amari-probabilistic (v0.13.0), which will enable:
-- Probability distributions over multivector spaces
-- Bayesian inference on manifolds
-- Stochastic processes for physics simulations
-- Monte Carlo methods for geometric integration
-- Full probability theory (distinct from Flynn's statistical contracts)
+The next critical milestone is amari-functional (v0.15.0), which will enable:
+- Hilbert spaces of multivector functions
+- Linear operators and spectral theory
+- Sobolev spaces for weak solutions to PDEs
+- Compact and Fredholm operators
+- Foundation for amari-pde and advanced analysis
