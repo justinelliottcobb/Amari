@@ -83,6 +83,7 @@
 //! | `probabilistic` | GPU-accelerated probability sampling |
 //! | `automata` | GPU-accelerated cellular automata |
 //! | `enumerative` | GPU-accelerated combinatorics |
+//! | `functional` | GPU-accelerated functional analysis (Hilbert spaces, spectral theory) |
 //! | `webgpu` | Enable WebGPU backend |
 //! | `high-precision` | Enable 128-bit float support |
 //!
@@ -109,6 +110,8 @@ pub mod calculus;
 pub mod dual;
 #[cfg(feature = "enumerative")]
 pub mod enumerative;
+#[cfg(feature = "functional")]
+pub mod functional;
 // NOTE: fusion GPU module disabled - requires gpu submodules in amari_dual and amari_tropical crates
 // These would need to be created with DualGpuOps, GpuDualNumber, TropicalGpuOps, GpuTropicalNumber types
 // #[cfg(feature = "fusion")]
@@ -146,6 +149,11 @@ pub use benchmarks::{
 use bytemuck::{Pod, Zeroable};
 #[cfg(feature = "calculus")]
 pub use calculus::GpuCalculus;
+#[cfg(feature = "functional")]
+pub use functional::{
+    AdaptiveFunctionalCompute, GpuFunctionalError, GpuFunctionalResult, GpuHilbertSpace,
+    GpuMatrixOperator, GpuSpectralDecomposition,
+};
 #[cfg(feature = "holographic")]
 pub use holographic::{
     GpuHolographic, GpuHolographicError, GpuHolographicMemory, GpuHolographicResult,
