@@ -5,18 +5,22 @@ import init, {
   WasmDualNumber,
   WasmTropicalDualClifford,
   WasmDuallyFlatManifold,
-  InfoGeomUtils
+  InfoGeomUtils,
+  WasmHilbertSpace,
+  WasmMatrixOperator,
+  WasmSpectralDecomposition
 } from '@justinelliottcobb/amari-wasm';
 
 /**
- * Complete demonstration of all Amari v0.4.0 mathematical systems
+ * Complete demonstration of all Amari v0.15.0 mathematical systems
  * This example showcases the unified power of the expanded WASM library
  */
 async function runCompleteDemo() {
-  console.log('🚀 Amari v0.4.0 Complete Demonstration');
-  console.log('======================================');
+  console.log('🚀 Amari v0.15.0 Complete Demonstration');
+  console.log('=======================================');
   console.log('Unified Mathematical Computing: Geometric Algebra + Tropical Algebra +');
-  console.log('Automatic Differentiation + Fusion Systems + Information Geometry');
+  console.log('Automatic Differentiation + Fusion Systems + Information Geometry +');
+  console.log('Functional Analysis (Hilbert Spaces, Operators, Spectral Theory)');
 
   // Initialize the WASM module
   await init();
@@ -155,8 +159,42 @@ async function runCompleteDemo() {
   console.log(`   Attention 2: ${attention2.tropicalValue().toFixed(3)}`);
   console.log(`   Primary attention: Key ${attention1.tropicalValue() > attention2.tropicalValue() ? '1' : '2'}`);
 
-  // 6. UNIFIED EXAMPLE: Physics + ML + Optimization
-  console.log('\n⚡ 6. UNIFIED EXAMPLE - Physics-Informed Neural Network');
+  // 6. FUNCTIONAL ANALYSIS: Hilbert Spaces and Operators
+  console.log('\n📐 6. FUNCTIONAL ANALYSIS - Hilbert Spaces & Spectral Theory');
+  console.log('   Working with Hilbert space Cl(2,0,0) and linear operators...');
+
+  // Create Hilbert space
+  const hilbertSpace = new WasmHilbertSpace();
+  console.log(`   Hilbert space dimension: ${hilbertSpace.dimension()}`);
+
+  // Create vectors and compute inner products
+  const psi = [1.0, 0.0, 0.0, 0.0];  // Ground state
+  const phi = [0.0, 1.0, 0.0, 0.0];  // First excited state
+
+  const innerProduct = hilbertSpace.innerProduct(psi, phi);
+  const normPsi = hilbertSpace.norm(psi);
+  console.log(`   |ψ⟩ = [1, 0, 0, 0], |φ⟩ = [0, 1, 0, 0]`);
+  console.log(`   ⟨ψ|φ⟩ = ${innerProduct} (orthogonal states)`);
+  console.log(`   ||ψ|| = ${normPsi}`);
+
+  // Create Hamiltonian (energy operator)
+  const hamiltonian = WasmMatrixOperator.diagonal([0.0, 1.0, 2.0, 3.0]);
+  console.log(`   Hamiltonian H = diag(0, 1, 2, 3) - energy levels`);
+
+  // Spectral decomposition
+  const spectral = WasmSpectralDecomposition.compute(hamiltonian, 100, 1e-10);
+  const eigenvalues = spectral.eigenvalues();
+  console.log(`   Eigenvalues (energy levels): [${eigenvalues.map(e => e.toFixed(1)).join(', ')}]`);
+  console.log(`   Spectral radius: ${spectral.spectralRadius()}`);
+  console.log(`   Positive semi-definite: ${spectral.isPositiveSemidefinite()}`);
+
+  // Functional calculus: time evolution
+  const superposition = hilbertSpace.normalize([1.0, 1.0, 0.0, 0.0]);
+  const evolved = spectral.applyFunction((E: number) => Math.exp(-E * 0.5), superposition);
+  console.log(`   Time evolution e^{-Ht/2}|ψ⟩: [${evolved.map(v => v.toFixed(4)).join(', ')}]`);
+
+  // 7. UNIFIED EXAMPLE: Physics + ML + Optimization
+  console.log('\n⚡ 7. UNIFIED EXAMPLE - Physics-Informed Neural Network');
   console.log('   Combining all systems for physics-informed machine learning...');
 
   // Use geometric algebra for physics simulation
@@ -187,7 +225,7 @@ async function runCompleteDemo() {
   console.log(`   Evaluation: KL divergence = ${model_divergence.toFixed(4)}`);
 
   // Performance demonstration
-  console.log('\n🎯 7. PERFORMANCE SHOWCASE');
+  console.log('\n🎯 8. PERFORMANCE SHOWCASE');
   console.log('   Running batch operations across all systems...');
 
   const startTime = performance.now();
@@ -251,8 +289,9 @@ async function runCompleteDemo() {
   console.log('✅ Automatic Differentiation: Function optimization');
   console.log('✅ Information Geometry: ML model evaluation');
   console.log('✅ Fusion Systems: Advanced neural architectures');
+  console.log('✅ Functional Analysis: Hilbert spaces and spectral theory');
   console.log('✅ Unified Systems: Physics-informed machine learning');
-  console.log('\n📦 Amari v0.4.0 - Your unified mathematical computing platform!');
+  console.log('\n📦 Amari v0.15.0 - Your unified mathematical computing platform!');
 }
 
 // Run the complete demonstration
