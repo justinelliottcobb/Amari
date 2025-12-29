@@ -1,8 +1,8 @@
-# Amari v0.15.0
+# Amari v0.15.1
 
 **Comprehensive Mathematical Computing Platform with Geometric Algebra, Differential Calculus, Measure Theory, Probability Theory, Functional Analysis, and Vector Symbolic Architectures**
 
-A unified mathematical computing library featuring geometric algebra, differential calculus, measure theory, probability theory on geometric spaces, functional analysis (Hilbert spaces, operators, spectral theory), relativistic physics, tropical algebra, automatic differentiation, holographic associative memory (Vector Symbolic Architectures), and information geometry. The library provides multi-GPU infrastructure with intelligent workload distribution and complete WebAssembly support for browser deployment.
+A unified mathematical computing library featuring geometric algebra, differential calculus, measure theory, probability theory on geometric spaces, functional analysis (Hilbert spaces, operators, spectral theory), relativistic physics, tropical algebra, automatic differentiation, holographic associative memory (Vector Symbolic Architectures), optical field operations for holographic displays, and information geometry. The library provides multi-GPU infrastructure with intelligent workload distribution and complete WebAssembly support for browser deployment.
 
 [![Rust](https://img.shields.io/badge/Rust-1.75+-orange.svg)](https://www.rust-lang.org/)
 [![WebAssembly](https://img.shields.io/badge/WebAssembly-Ready-blue.svg)](https://webassembly.org/)
@@ -21,6 +21,7 @@ A unified mathematical computing library featuring geometric algebra, differenti
 - **Probability Theory**: Distributions on multivector spaces, stochastic processes, MCMC sampling, and Bayesian inference
 - **Functional Analysis**: Hilbert spaces, bounded operators, spectral decomposition, eigenvalue algorithms, and Sobolev spaces
 - **Vector Symbolic Architectures**: Holographic Reduced Representations (HRR), binding algebras, and associative memory
+- **Optical Field Operations**: GA-native Lee hologram encoding for DMD displays, rotor field algebra, and VSA on optical wavefronts
 - **Relativistic Physics**: Complete spacetime algebra (Cl(1,3)) with Minkowski signature for relativistic calculations
 - **Tropical Algebra**: Max-plus semiring operations for optimization and neural network applications
 - **Automatic Differentiation**: Forward-mode AD with dual numbers for exact derivatives
@@ -56,45 +57,45 @@ Add to your `Cargo.toml`:
 ```toml
 [dependencies]
 # Complete library with all features
-amari = "0.15.0"
+amari = "0.15.1"
 
 # Or individual crates:
 
 # Core geometric algebra and mathematical foundations
-amari-core = "0.15.0"
+amari-core = "0.15.1"
 
 # Differential calculus with geometric algebra
-amari-calculus = "0.15.0"
+amari-calculus = "0.15.1"
 
 # Measure theory and integration
-amari-measure = "0.15.0"
+amari-measure = "0.15.1"
 
 # Probability theory on geometric algebra spaces
-amari-probabilistic = "0.15.0"
+amari-probabilistic = "0.15.1"
 
 # Functional analysis: Hilbert spaces, operators, spectral theory
-amari-functional = "0.15.0"
+amari-functional = "0.15.1"
 
-# Vector Symbolic Architectures and holographic memory
-amari-holographic = "0.15.0"
+# Vector Symbolic Architectures, holographic memory, and optical fields
+amari-holographic = "0.15.1"
 
 # High-precision relativistic physics
-amari-relativistic = { version = "0.15.0", features = ["high-precision"] }
+amari-relativistic = { version = "0.15.1", features = ["high-precision"] }
 
-# GPU acceleration
-amari-gpu = "0.15.0"
+# GPU acceleration (includes optical field GPU operations)
+amari-gpu = "0.15.1"
 
 # Optimization algorithms
-amari-optimization = "0.15.0"
+amari-optimization = "0.15.1"
 
 # Additional mathematical systems
-amari-tropical = "0.15.0"
-amari-dual = "0.15.0"
-amari-info-geom = "0.15.0"
-amari-automata = "0.15.0"
-amari-fusion = "0.15.0"
-amari-network = "0.15.0"
-amari-enumerative = "0.15.0"
+amari-tropical = "0.15.1"
+amari-dual = "0.15.1"
+amari-info-geom = "0.15.1"
+amari-automata = "0.15.1"
+amari-fusion = "0.15.1"
+amari-network = "0.15.1"
+amari-enumerative = "0.15.1"
 ```
 
 ### JavaScript/TypeScript (WebAssembly)
@@ -263,6 +264,65 @@ let noisy = retrieved.clone(); // Noisy retrieval
 let cleaned = resonator.cleanup(&noisy, 10); // 10 iterations
 ```
 
+### Rust: Optical Field Operations (Lee Hologram Encoding)
+
+```rust
+use amari_holographic::optical::{
+    OpticalRotorField, GeometricLeeEncoder, LeeEncoderConfig,
+    OpticalFieldAlgebra, OpticalCodebook, TropicalOpticalAlgebra,
+};
+
+// Create optical rotor fields (phase + amplitude on a 2D grid)
+let field_a = OpticalRotorField::random((256, 256), 42);
+let field_b = OpticalRotorField::random((256, 256), 123);
+let uniform = OpticalRotorField::uniform(0.0, 0.5, (256, 256));
+
+println!("Field dimensions: {:?}", field_a.dimensions());
+println!("Total energy: {:.4}", field_a.total_energy());
+
+// Lee hologram encoding for DMD display
+let config = LeeEncoderConfig::new((256, 256), 0.25); // carrier frequency = 0.25
+let encoder = GeometricLeeEncoder::new(config);
+let hologram = encoder.encode(&uniform);
+
+println!("Hologram fill factor: {:.4}", hologram.fill_factor());
+
+// Get binary data for hardware interface (bit-packed)
+let binary_data = hologram.as_bytes();
+println!("Packed binary size: {} bytes", binary_data.len());
+
+// VSA operations on optical fields
+let algebra = OpticalFieldAlgebra::new((256, 256));
+
+// Bind two fields (rotor multiplication = phase addition)
+let bound = algebra.bind(&field_a, &field_b);
+
+// Compute similarity between fields
+let similarity = algebra.similarity(&field_a, &field_a); // Self-similarity ≈ 1.0
+println!("Self-similarity: {:.4}", similarity);
+
+// Unbind to retrieve original field
+let retrieved = algebra.unbind(&field_a, &bound);
+let retrieval_sim = algebra.similarity(&retrieved, &field_b);
+println!("Retrieval similarity: {:.4}", retrieval_sim);
+
+// Seed-based symbol codebook for reproducible VSA
+let mut codebook = OpticalCodebook::new((64, 64), 42);
+codebook.register("AGENT");
+codebook.register("ACTION");
+codebook.register("TARGET");
+
+let agent_field = codebook.get("AGENT");
+let action_field = codebook.get("ACTION");
+println!("Registered symbols: {:?}", codebook.symbols());
+
+// Tropical operations for attractor dynamics
+let tropical = TropicalOpticalAlgebra::new((64, 64));
+let tropical_sum = tropical.tropical_add(&field_a, &field_b); // Pointwise min phase
+let phase_distance = tropical.phase_distance(&field_a, &field_b);
+println!("Phase distance: {:.4}", phase_distance);
+```
+
 ### Rust: Functional Analysis (Hilbert Spaces & Spectral Theory)
 
 ```rust
@@ -373,7 +433,7 @@ main();
 - `amari-calculus`: Differential calculus with geometric algebra
 - `amari-probabilistic`: Probability distributions on multivector spaces, stochastic processes, MCMC
 - `amari-functional`: Hilbert spaces, bounded operators, spectral decomposition, Sobolev spaces
-- `amari-holographic`: Vector Symbolic Architectures (VSA), binding algebras, holographic memory
+- `amari-holographic`: Vector Symbolic Architectures (VSA), binding algebras, holographic memory, optical field operations
 - `amari-tropical`: Tropical (max-plus) algebra for optimization
 - `amari-dual`: Dual numbers for automatic differentiation
 - `amari-fusion`: Unified Tropical-Dual-Clifford system
@@ -508,7 +568,7 @@ The **[Amari Examples Suite](https://amari-math.netlify.app)** provides comprehe
 
 - **Interactive Playground**: Write and run JavaScript code with live WASM execution
 
-## GPU Module Status (v0.15.0)
+## GPU Module Status (v0.15.1)
 
 | Module | Status | Feature Flag |
 |--------|--------|--------------|
@@ -523,11 +583,22 @@ The **[Amari Examples Suite](https://amari-math.netlify.app)** provides comprehe
 | Automata | ✅ Enabled | `automata` |
 | Fusion | ✅ Enabled | `fusion` |
 | Holographic | ✅ Enabled | `holographic` |
+| **Optical Fields** | ✅ **New in v0.15.1** | `holographic` |
 | Probabilistic | ✅ Enabled | `probabilistic` |
 | Functional | ✅ Enabled | `functional` |
 | Tropical | ❌ Disabled | - |
 
 Note: Tropical GPU module temporarily disabled due to Rust orphan impl rules. Use CPU implementations from domain crates.
+
+### v0.15.1 GPU Additions
+
+The `holographic` feature now includes GPU-accelerated optical field operations:
+
+- **GpuOpticalField**: GPU context for optical rotor field operations
+- **OPTICAL_BIND_SHADER**: Parallel rotor multiplication (256-thread workgroups)
+- **OPTICAL_SIMILARITY_SHADER**: Inner product with workgroup reduction
+- **LEE_ENCODE_SHADER**: Binary hologram encoding with bit-packing
+- Automatic CPU fallback for fields < 4096 pixels (64×64)
 
 ## Building
 
