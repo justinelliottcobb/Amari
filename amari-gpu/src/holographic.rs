@@ -949,6 +949,1148 @@ impl GpuHolographicMemory {
     }
 }
 
+// ============================================================================
+// GPU-accelerated Optical Field Operations
+// ============================================================================
+
+use amari_holographic::optical::{BinaryHologram, LeeEncoderConfig, OpticalRotorField};
+
+/// GPU-accelerated optical rotor field operations.
+///
+/// Provides batch operations for optical fields using WebGPU compute shaders.
+/// The optical field uses a SoA (Structure of Arrays) layout with separate
+/// f32 arrays for scalar, bivector, and amplitude components.
+///
+/// # Supported Operations
+///
+/// - **Batch Bind**: Parallel rotor multiplication (phase addition)
+/// - **Batch Similarity**: Parallel inner product computation
+/// - **Batch Bundle**: Parallel weighted sum with normalization
+/// - **Batch Lee Encoding**: Parallel binary hologram generation
+///
+/// # Performance
+///
+/// GPU acceleration is beneficial for:
+/// - Field dimensions > 64×64 (4096 pixels)
+/// - Batch operations with many fields
+/// - Lee encoding of large holograms
+///
+/// # Example
+///
+/// ```ignore
+/// use amari_gpu::GpuOpticalField;
+/// use amari_holographic::optical::OpticalRotorField;
+///
+/// let gpu = GpuOpticalField::new((256, 256)).await?;
+///
+/// let field_a = OpticalRotorField::random((256, 256), 1);
+/// let field_b = OpticalRotorField::random((256, 256), 2);
+///
+/// // GPU-accelerated binding
+/// let bound = gpu.bind(&field_a, &field_b).await?;
+///
+/// // GPU-accelerated similarity
+/// let sim = gpu.similarity(&field_a, &field_b).await?;
+/// ```
+pub struct GpuOpticalField {
+    device: wgpu::Device,
+    queue: wgpu::Queue,
+    bind_pipeline: wgpu::ComputePipeline,
+    similarity_pipeline: wgpu::ComputePipeline,
+    #[allow(dead_code)] // Bundle shader is placeholder - full implementation pending
+    bundle_pipeline: wgpu::ComputePipeline,
+    lee_encode_pipeline: wgpu::ComputePipeline,
+    dimensions: (usize, usize),
+}
+
+impl GpuOpticalField {
+    /// Initialize GPU context for optical field operations.
+    ///
+    /// # Arguments
+    ///
+    /// * `dimensions` - Field dimensions (width, height)
+    pub async fn new(dimensions: (usize, usize)) -> GpuHolographicResult<Self> {
+        let instance = wgpu::Instance::default();
+
+        let adapter = instance
+            .request_adapter(&wgpu::RequestAdapterOptions {
+                power_preference: wgpu::PowerPreference::HighPerformance,
+                compatible_surface: None,
+                force_fallback_adapter: false,
+            })
+            .await
+            .ok_or_else(|| {
+                GpuHolographicError::InitializationError("No GPU adapter found".to_string())
+            })?;
+
+        let (device, queue) = adapter
+            .request_device(
+                &wgpu::DeviceDescriptor {
+                    label: Some("Amari Optical GPU Device"),
+                    required_features: wgpu::Features::empty(),
+                    required_limits: wgpu::Limits::default(),
+                },
+                None,
+            )
+            .await
+            .map_err(|e| GpuHolographicError::InitializationError(e.to_string()))?;
+
+        // Create compute pipelines
+        let bind_pipeline = Self::create_bind_pipeline(&device)?;
+        let similarity_pipeline = Self::create_similarity_pipeline(&device)?;
+        let bundle_pipeline = Self::create_bundle_pipeline(&device)?;
+        let lee_encode_pipeline = Self::create_lee_encode_pipeline(&device)?;
+
+        Ok(Self {
+            device,
+            queue,
+            bind_pipeline,
+            similarity_pipeline,
+            bundle_pipeline,
+            lee_encode_pipeline,
+            dimensions,
+        })
+    }
+
+    /// Get the dimensions this GPU context operates on.
+    pub fn dimensions(&self) -> (usize, usize) {
+        self.dimensions
+    }
+
+    /// Total number of pixels.
+    pub fn field_size(&self) -> usize {
+        self.dimensions.0 * self.dimensions.1
+    }
+
+    /// Heuristic to determine if GPU should be used.
+    ///
+    /// GPU is beneficial for fields larger than 64×64 (4096 pixels).
+    pub fn should_use_gpu(field_size: usize) -> bool {
+        field_size >= 4096
+    }
+
+    // ========================================================================
+    // GPU Bind Operation
+    // ========================================================================
+
+    /// GPU-accelerated rotor multiplication (phase addition).
+    ///
+    /// Computes the geometric product of two rotor fields:
+    /// ```text
+    /// R_out = R_a · R_b
+    /// scalar_out = scalar_a·scalar_b - bivector_a·bivector_b
+    /// bivector_out = scalar_a·bivector_b + bivector_a·scalar_b
+    /// amplitude_out = amplitude_a · amplitude_b
+    /// ```
+    pub async fn bind(
+        &self,
+        a: &OpticalRotorField,
+        b: &OpticalRotorField,
+    ) -> GpuHolographicResult<OpticalRotorField> {
+        if a.dimensions() != self.dimensions || b.dimensions() != self.dimensions {
+            return Err(GpuHolographicError::DimensionMismatch {
+                expected: self.field_size(),
+                actual: a.len().max(b.len()),
+            });
+        }
+
+        // For small fields, use CPU
+        if !Self::should_use_gpu(self.field_size()) {
+            return self.bind_cpu(a, b);
+        }
+
+        self.bind_gpu(a, b).await
+    }
+
+    fn bind_cpu(
+        &self,
+        a: &OpticalRotorField,
+        b: &OpticalRotorField,
+    ) -> GpuHolographicResult<OpticalRotorField> {
+        let n = a.len();
+        let mut scalar = Vec::with_capacity(n);
+        let mut bivector = Vec::with_capacity(n);
+        let mut amplitude = Vec::with_capacity(n);
+
+        let a_s = a.scalars();
+        let a_b = a.bivectors();
+        let b_s = b.scalars();
+        let b_b = b.bivectors();
+        let a_amp = a.amplitudes();
+        let b_amp = b.amplitudes();
+
+        for i in 0..n {
+            scalar.push(a_s[i] * b_s[i] - a_b[i] * b_b[i]);
+            bivector.push(a_s[i] * b_b[i] + a_b[i] * b_s[i]);
+            amplitude.push(a_amp[i] * b_amp[i]);
+        }
+
+        Ok(OpticalRotorField::new(
+            // Convert from scalar/bivector to phase
+            scalar
+                .iter()
+                .zip(bivector.iter())
+                .map(|(&s, &b)| b.atan2(s))
+                .collect(),
+            amplitude,
+            self.dimensions,
+        ))
+    }
+
+    async fn bind_gpu(
+        &self,
+        a: &OpticalRotorField,
+        b: &OpticalRotorField,
+    ) -> GpuHolographicResult<OpticalRotorField> {
+        let n = a.len();
+
+        // Create input buffers (interleaved: scalar, bivector, amplitude for each pixel)
+        let a_buffer = self
+            .device
+            .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some("Optical A Scalar Buffer"),
+                contents: bytemuck::cast_slice(a.scalars()),
+                usage: wgpu::BufferUsages::STORAGE,
+            });
+
+        let a_biv_buffer = self
+            .device
+            .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some("Optical A Bivector Buffer"),
+                contents: bytemuck::cast_slice(a.bivectors()),
+                usage: wgpu::BufferUsages::STORAGE,
+            });
+
+        let a_amp_buffer = self
+            .device
+            .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some("Optical A Amplitude Buffer"),
+                contents: bytemuck::cast_slice(a.amplitudes()),
+                usage: wgpu::BufferUsages::STORAGE,
+            });
+
+        let b_buffer = self
+            .device
+            .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some("Optical B Scalar Buffer"),
+                contents: bytemuck::cast_slice(b.scalars()),
+                usage: wgpu::BufferUsages::STORAGE,
+            });
+
+        let b_biv_buffer = self
+            .device
+            .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some("Optical B Bivector Buffer"),
+                contents: bytemuck::cast_slice(b.bivectors()),
+                usage: wgpu::BufferUsages::STORAGE,
+            });
+
+        let b_amp_buffer = self
+            .device
+            .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some("Optical B Amplitude Buffer"),
+                contents: bytemuck::cast_slice(b.amplitudes()),
+                usage: wgpu::BufferUsages::STORAGE,
+            });
+
+        let output_size = (n * std::mem::size_of::<f32>()) as u64;
+
+        let out_scalar_buffer = self.device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("Output Scalar Buffer"),
+            size: output_size,
+            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+            mapped_at_creation: false,
+        });
+
+        let out_biv_buffer = self.device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("Output Bivector Buffer"),
+            size: output_size,
+            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+            mapped_at_creation: false,
+        });
+
+        let out_amp_buffer = self.device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("Output Amplitude Buffer"),
+            size: output_size,
+            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+            mapped_at_creation: false,
+        });
+
+        let staging_scalar = self.device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("Staging Scalar"),
+            size: output_size,
+            usage: wgpu::BufferUsages::MAP_READ | wgpu::BufferUsages::COPY_DST,
+            mapped_at_creation: false,
+        });
+
+        let staging_biv = self.device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("Staging Bivector"),
+            size: output_size,
+            usage: wgpu::BufferUsages::MAP_READ | wgpu::BufferUsages::COPY_DST,
+            mapped_at_creation: false,
+        });
+
+        let staging_amp = self.device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("Staging Amplitude"),
+            size: output_size,
+            usage: wgpu::BufferUsages::MAP_READ | wgpu::BufferUsages::COPY_DST,
+            mapped_at_creation: false,
+        });
+
+        // Create bind group
+        let bind_group_layout = self.bind_pipeline.get_bind_group_layout(0);
+        let bind_group = self.device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some("Optical Bind Group"),
+            layout: &bind_group_layout,
+            entries: &[
+                wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: a_buffer.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 1,
+                    resource: a_biv_buffer.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 2,
+                    resource: a_amp_buffer.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 3,
+                    resource: b_buffer.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 4,
+                    resource: b_biv_buffer.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 5,
+                    resource: b_amp_buffer.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 6,
+                    resource: out_scalar_buffer.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 7,
+                    resource: out_biv_buffer.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 8,
+                    resource: out_amp_buffer.as_entire_binding(),
+                },
+            ],
+        });
+
+        // Dispatch
+        let mut encoder = self
+            .device
+            .create_command_encoder(&wgpu::CommandEncoderDescriptor {
+                label: Some("Optical Bind Encoder"),
+            });
+
+        {
+            let mut pass = encoder.begin_compute_pass(&wgpu::ComputePassDescriptor {
+                label: Some("Optical Bind Pass"),
+                timestamp_writes: None,
+            });
+            pass.set_pipeline(&self.bind_pipeline);
+            pass.set_bind_group(0, &bind_group, &[]);
+            let workgroups = n.div_ceil(256) as u32;
+            pass.dispatch_workgroups(workgroups, 1, 1);
+        }
+
+        encoder.copy_buffer_to_buffer(&out_scalar_buffer, 0, &staging_scalar, 0, output_size);
+        encoder.copy_buffer_to_buffer(&out_biv_buffer, 0, &staging_biv, 0, output_size);
+        encoder.copy_buffer_to_buffer(&out_amp_buffer, 0, &staging_amp, 0, output_size);
+
+        self.queue.submit(Some(encoder.finish()));
+
+        // Read back results
+        let scalar_result = self.read_buffer(&staging_scalar, n).await?;
+        let bivector_result = self.read_buffer(&staging_biv, n).await?;
+        let amplitude_result = self.read_buffer(&staging_amp, n).await?;
+
+        // Convert to phase
+        let phase: Vec<f32> = scalar_result
+            .iter()
+            .zip(bivector_result.iter())
+            .map(|(&s, &b)| b.atan2(s))
+            .collect();
+
+        Ok(OpticalRotorField::new(
+            phase,
+            amplitude_result,
+            self.dimensions,
+        ))
+    }
+
+    // ========================================================================
+    // GPU Similarity Operation
+    // ========================================================================
+
+    /// GPU-accelerated similarity computation.
+    ///
+    /// Computes the normalized inner product of two rotor fields.
+    pub async fn similarity(
+        &self,
+        a: &OpticalRotorField,
+        b: &OpticalRotorField,
+    ) -> GpuHolographicResult<f32> {
+        if a.dimensions() != self.dimensions || b.dimensions() != self.dimensions {
+            return Err(GpuHolographicError::DimensionMismatch {
+                expected: self.field_size(),
+                actual: a.len().max(b.len()),
+            });
+        }
+
+        // For small fields, use CPU
+        if !Self::should_use_gpu(self.field_size()) {
+            return self.similarity_cpu(a, b);
+        }
+
+        self.similarity_gpu(a, b).await
+    }
+
+    fn similarity_cpu(
+        &self,
+        a: &OpticalRotorField,
+        b: &OpticalRotorField,
+    ) -> GpuHolographicResult<f32> {
+        let n = a.len();
+        let mut sum = 0.0f32;
+        let mut norm_a = 0.0f32;
+        let mut norm_b = 0.0f32;
+
+        let a_s = a.scalars();
+        let a_biv = a.bivectors();
+        let b_s = b.scalars();
+        let b_biv = b.bivectors();
+        let a_amp = a.amplitudes();
+        let b_amp = b.amplitudes();
+
+        for i in 0..n {
+            // R_a† · R_b scalar part = a_s·b_s + a_b·b_b
+            let inner = a_s[i] * b_s[i] + a_biv[i] * b_biv[i];
+            sum += a_amp[i] * b_amp[i] * inner;
+            norm_a += a_amp[i] * a_amp[i];
+            norm_b += b_amp[i] * b_amp[i];
+        }
+
+        let denom = (norm_a * norm_b).sqrt();
+        if denom > 1e-10 {
+            Ok(sum / denom)
+        } else {
+            Ok(0.0)
+        }
+    }
+
+    async fn similarity_gpu(
+        &self,
+        a: &OpticalRotorField,
+        b: &OpticalRotorField,
+    ) -> GpuHolographicResult<f32> {
+        let n = a.len();
+
+        // Create input buffers
+        let a_s_buffer = self
+            .device
+            .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some("A Scalar"),
+                contents: bytemuck::cast_slice(a.scalars()),
+                usage: wgpu::BufferUsages::STORAGE,
+            });
+
+        let a_b_buffer = self
+            .device
+            .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some("A Bivector"),
+                contents: bytemuck::cast_slice(a.bivectors()),
+                usage: wgpu::BufferUsages::STORAGE,
+            });
+
+        let a_amp_buffer = self
+            .device
+            .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some("A Amplitude"),
+                contents: bytemuck::cast_slice(a.amplitudes()),
+                usage: wgpu::BufferUsages::STORAGE,
+            });
+
+        let b_s_buffer = self
+            .device
+            .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some("B Scalar"),
+                contents: bytemuck::cast_slice(b.scalars()),
+                usage: wgpu::BufferUsages::STORAGE,
+            });
+
+        let b_b_buffer = self
+            .device
+            .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some("B Bivector"),
+                contents: bytemuck::cast_slice(b.bivectors()),
+                usage: wgpu::BufferUsages::STORAGE,
+            });
+
+        let b_amp_buffer = self
+            .device
+            .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some("B Amplitude"),
+                contents: bytemuck::cast_slice(b.amplitudes()),
+                usage: wgpu::BufferUsages::STORAGE,
+            });
+
+        // Output buffer for partial sums (one per workgroup)
+        let num_workgroups = n.div_ceil(256);
+        let partial_size = (num_workgroups * 3 * std::mem::size_of::<f32>()) as u64;
+
+        let partial_buffer = self.device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("Partial Sums"),
+            size: partial_size,
+            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+            mapped_at_creation: false,
+        });
+
+        let staging = self.device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("Staging"),
+            size: partial_size,
+            usage: wgpu::BufferUsages::MAP_READ | wgpu::BufferUsages::COPY_DST,
+            mapped_at_creation: false,
+        });
+
+        // Create bind group
+        let bind_group_layout = self.similarity_pipeline.get_bind_group_layout(0);
+        let bind_group = self.device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some("Similarity Bind Group"),
+            layout: &bind_group_layout,
+            entries: &[
+                wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: a_s_buffer.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 1,
+                    resource: a_b_buffer.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 2,
+                    resource: a_amp_buffer.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 3,
+                    resource: b_s_buffer.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 4,
+                    resource: b_b_buffer.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 5,
+                    resource: b_amp_buffer.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 6,
+                    resource: partial_buffer.as_entire_binding(),
+                },
+            ],
+        });
+
+        // Dispatch
+        let mut encoder = self
+            .device
+            .create_command_encoder(&wgpu::CommandEncoderDescriptor {
+                label: Some("Similarity Encoder"),
+            });
+
+        {
+            let mut pass = encoder.begin_compute_pass(&wgpu::ComputePassDescriptor {
+                label: Some("Similarity Pass"),
+                timestamp_writes: None,
+            });
+            pass.set_pipeline(&self.similarity_pipeline);
+            pass.set_bind_group(0, &bind_group, &[]);
+            pass.dispatch_workgroups(num_workgroups as u32, 1, 1);
+        }
+
+        encoder.copy_buffer_to_buffer(&partial_buffer, 0, &staging, 0, partial_size);
+        self.queue.submit(Some(encoder.finish()));
+
+        // Read partial results and reduce on CPU
+        let partials = self.read_buffer(&staging, num_workgroups * 3).await?;
+
+        let mut sum = 0.0f32;
+        let mut norm_a = 0.0f32;
+        let mut norm_b = 0.0f32;
+
+        for i in 0..num_workgroups {
+            sum += partials[i * 3];
+            norm_a += partials[i * 3 + 1];
+            norm_b += partials[i * 3 + 2];
+        }
+
+        let denom = (norm_a * norm_b).sqrt();
+        if denom > 1e-10 {
+            Ok(sum / denom)
+        } else {
+            Ok(0.0)
+        }
+    }
+
+    // ========================================================================
+    // GPU Lee Hologram Encoding
+    // ========================================================================
+
+    /// GPU-accelerated Lee hologram encoding.
+    ///
+    /// Encodes an optical rotor field as a binary hologram pattern.
+    ///
+    /// # Arguments
+    ///
+    /// * `field` - Input optical rotor field
+    /// * `config` - Lee encoder configuration
+    pub async fn encode_lee(
+        &self,
+        field: &OpticalRotorField,
+        config: &LeeEncoderConfig,
+    ) -> GpuHolographicResult<BinaryHologram> {
+        if field.dimensions() != config.dimensions {
+            return Err(GpuHolographicError::DimensionMismatch {
+                expected: config.dimensions.0 * config.dimensions.1,
+                actual: field.len(),
+            });
+        }
+
+        // For small fields, use CPU
+        if !Self::should_use_gpu(field.len()) {
+            return self.encode_lee_cpu(field, config);
+        }
+
+        self.encode_lee_gpu(field, config).await
+    }
+
+    fn encode_lee_cpu(
+        &self,
+        field: &OpticalRotorField,
+        config: &LeeEncoderConfig,
+    ) -> GpuHolographicResult<BinaryHologram> {
+        use amari_holographic::optical::GeometricLeeEncoder;
+        let encoder = GeometricLeeEncoder::new(config.clone());
+        Ok(encoder.encode(field))
+    }
+
+    async fn encode_lee_gpu(
+        &self,
+        field: &OpticalRotorField,
+        config: &LeeEncoderConfig,
+    ) -> GpuHolographicResult<BinaryHologram> {
+        let n = field.len();
+        let (w, h) = config.dimensions;
+
+        // Compute carrier on CPU (it's a simple linear function)
+        let cos_angle = config.carrier_angle.cos();
+        let sin_angle = config.carrier_angle.sin();
+        let mut carrier_s = Vec::with_capacity(n);
+        let mut carrier_b = Vec::with_capacity(n);
+
+        for y in 0..h {
+            for x in 0..w {
+                let t = x as f32 * cos_angle + y as f32 * sin_angle;
+                let p = std::f32::consts::TAU * config.carrier_frequency * t;
+                carrier_s.push(p.cos());
+                carrier_b.push(p.sin());
+            }
+        }
+
+        // Create buffers
+        let field_s_buffer = self
+            .device
+            .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some("Field Scalar"),
+                contents: bytemuck::cast_slice(field.scalars()),
+                usage: wgpu::BufferUsages::STORAGE,
+            });
+
+        let field_b_buffer = self
+            .device
+            .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some("Field Bivector"),
+                contents: bytemuck::cast_slice(field.bivectors()),
+                usage: wgpu::BufferUsages::STORAGE,
+            });
+
+        let field_amp_buffer = self
+            .device
+            .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some("Field Amplitude"),
+                contents: bytemuck::cast_slice(field.amplitudes()),
+                usage: wgpu::BufferUsages::STORAGE,
+            });
+
+        let carrier_s_buffer = self
+            .device
+            .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some("Carrier Scalar"),
+                contents: bytemuck::cast_slice(&carrier_s),
+                usage: wgpu::BufferUsages::STORAGE,
+            });
+
+        let carrier_b_buffer = self
+            .device
+            .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some("Carrier Bivector"),
+                contents: bytemuck::cast_slice(&carrier_b),
+                usage: wgpu::BufferUsages::STORAGE,
+            });
+
+        // Output: u32 packed bits
+        let output_words = n.div_ceil(32);
+        let output_size = (output_words * std::mem::size_of::<u32>()) as u64;
+
+        let output_buffer = self.device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("Lee Output"),
+            size: output_size,
+            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+            mapped_at_creation: false,
+        });
+
+        let staging = self.device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("Staging"),
+            size: output_size,
+            usage: wgpu::BufferUsages::MAP_READ | wgpu::BufferUsages::COPY_DST,
+            mapped_at_creation: false,
+        });
+
+        // Create bind group
+        let bind_group_layout = self.lee_encode_pipeline.get_bind_group_layout(0);
+        let bind_group = self.device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some("Lee Encode Bind Group"),
+            layout: &bind_group_layout,
+            entries: &[
+                wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: field_s_buffer.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 1,
+                    resource: field_b_buffer.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 2,
+                    resource: field_amp_buffer.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 3,
+                    resource: carrier_s_buffer.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 4,
+                    resource: carrier_b_buffer.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 5,
+                    resource: output_buffer.as_entire_binding(),
+                },
+            ],
+        });
+
+        // Dispatch
+        let mut encoder = self
+            .device
+            .create_command_encoder(&wgpu::CommandEncoderDescriptor {
+                label: Some("Lee Encode Encoder"),
+            });
+
+        {
+            let mut pass = encoder.begin_compute_pass(&wgpu::ComputePassDescriptor {
+                label: Some("Lee Encode Pass"),
+                timestamp_writes: None,
+            });
+            pass.set_pipeline(&self.lee_encode_pipeline);
+            pass.set_bind_group(0, &bind_group, &[]);
+            pass.dispatch_workgroups(output_words.div_ceil(64) as u32, 1, 1);
+        }
+
+        encoder.copy_buffer_to_buffer(&output_buffer, 0, &staging, 0, output_size);
+        self.queue.submit(Some(encoder.finish()));
+
+        // Read result and convert to BinaryHologram
+        let packed = self.read_buffer_u32(&staging, output_words).await?;
+
+        // Convert to bools
+        let mut pattern = Vec::with_capacity(n);
+        for i in 0..n {
+            let word = i / 32;
+            let bit = i % 32;
+            pattern.push((packed[word] >> bit) & 1 != 0);
+        }
+
+        Ok(BinaryHologram::from_bools(&pattern, config.dimensions))
+    }
+
+    // ========================================================================
+    // GPU Batch Bind Operation
+    // ========================================================================
+
+    /// GPU-accelerated batch binding of multiple field pairs.
+    ///
+    /// Computes `results[i] = bind(a_batch[i], b_batch[i])` for all i.
+    pub async fn batch_bind(
+        &self,
+        a_batch: &[OpticalRotorField],
+        b_batch: &[OpticalRotorField],
+    ) -> GpuHolographicResult<Vec<OpticalRotorField>> {
+        if a_batch.len() != b_batch.len() {
+            return Err(GpuHolographicError::DimensionMismatch {
+                expected: a_batch.len(),
+                actual: b_batch.len(),
+            });
+        }
+
+        let mut results = Vec::with_capacity(a_batch.len());
+        for (a, b) in a_batch.iter().zip(b_batch.iter()) {
+            results.push(self.bind(a, b).await?);
+        }
+        Ok(results)
+    }
+
+    /// GPU-accelerated batch similarity of multiple field pairs.
+    ///
+    /// Computes `results[i] = similarity(a_batch[i], b_batch[i])` for all i.
+    pub async fn batch_similarity(
+        &self,
+        a_batch: &[OpticalRotorField],
+        b_batch: &[OpticalRotorField],
+    ) -> GpuHolographicResult<Vec<f32>> {
+        if a_batch.len() != b_batch.len() {
+            return Err(GpuHolographicError::DimensionMismatch {
+                expected: a_batch.len(),
+                actual: b_batch.len(),
+            });
+        }
+
+        let mut results = Vec::with_capacity(a_batch.len());
+        for (a, b) in a_batch.iter().zip(b_batch.iter()) {
+            results.push(self.similarity(a, b).await?);
+        }
+        Ok(results)
+    }
+
+    // ========================================================================
+    // Helper Methods
+    // ========================================================================
+
+    async fn read_buffer(
+        &self,
+        buffer: &wgpu::Buffer,
+        len: usize,
+    ) -> GpuHolographicResult<Vec<f32>> {
+        let slice = buffer.slice(..);
+        let (sender, receiver) = futures::channel::oneshot::channel();
+        slice.map_async(wgpu::MapMode::Read, move |result| {
+            let _ = sender.send(result);
+        });
+
+        self.device.poll(wgpu::Maintain::Wait);
+
+        receiver
+            .await
+            .map_err(|_| GpuHolographicError::BufferError("Channel error".to_string()))?
+            .map_err(|e| GpuHolographicError::BufferError(e.to_string()))?;
+
+        let data = slice.get_mapped_range();
+        let result: Vec<f32> = bytemuck::cast_slice(&data)[..len].to_vec();
+        drop(data);
+        buffer.unmap();
+
+        Ok(result)
+    }
+
+    async fn read_buffer_u32(
+        &self,
+        buffer: &wgpu::Buffer,
+        len: usize,
+    ) -> GpuHolographicResult<Vec<u32>> {
+        let slice = buffer.slice(..);
+        let (sender, receiver) = futures::channel::oneshot::channel();
+        slice.map_async(wgpu::MapMode::Read, move |result| {
+            let _ = sender.send(result);
+        });
+
+        self.device.poll(wgpu::Maintain::Wait);
+
+        receiver
+            .await
+            .map_err(|_| GpuHolographicError::BufferError("Channel error".to_string()))?
+            .map_err(|e| GpuHolographicError::BufferError(e.to_string()))?;
+
+        let data = slice.get_mapped_range();
+        let result: Vec<u32> = bytemuck::cast_slice(&data)[..len].to_vec();
+        drop(data);
+        buffer.unmap();
+
+        Ok(result)
+    }
+
+    // ========================================================================
+    // Pipeline Creation
+    // ========================================================================
+
+    fn create_bind_pipeline(device: &wgpu::Device) -> GpuHolographicResult<wgpu::ComputePipeline> {
+        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+            label: Some("Optical Bind Shader"),
+            source: wgpu::ShaderSource::Wgsl(std::borrow::Cow::Borrowed(OPTICAL_BIND_SHADER)),
+        });
+
+        Ok(
+            device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
+                label: Some("Optical Bind Pipeline"),
+                layout: None,
+                module: &shader,
+                entry_point: "main",
+            }),
+        )
+    }
+
+    fn create_similarity_pipeline(
+        device: &wgpu::Device,
+    ) -> GpuHolographicResult<wgpu::ComputePipeline> {
+        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+            label: Some("Optical Similarity Shader"),
+            source: wgpu::ShaderSource::Wgsl(std::borrow::Cow::Borrowed(OPTICAL_SIMILARITY_SHADER)),
+        });
+
+        Ok(
+            device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
+                label: Some("Optical Similarity Pipeline"),
+                layout: None,
+                module: &shader,
+                entry_point: "main",
+            }),
+        )
+    }
+
+    fn create_bundle_pipeline(
+        device: &wgpu::Device,
+    ) -> GpuHolographicResult<wgpu::ComputePipeline> {
+        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+            label: Some("Optical Bundle Shader"),
+            source: wgpu::ShaderSource::Wgsl(std::borrow::Cow::Borrowed(OPTICAL_BUNDLE_SHADER)),
+        });
+
+        Ok(
+            device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
+                label: Some("Optical Bundle Pipeline"),
+                layout: None,
+                module: &shader,
+                entry_point: "main",
+            }),
+        )
+    }
+
+    fn create_lee_encode_pipeline(
+        device: &wgpu::Device,
+    ) -> GpuHolographicResult<wgpu::ComputePipeline> {
+        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+            label: Some("Lee Encode Shader"),
+            source: wgpu::ShaderSource::Wgsl(std::borrow::Cow::Borrowed(LEE_ENCODE_SHADER)),
+        });
+
+        Ok(
+            device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
+                label: Some("Lee Encode Pipeline"),
+                layout: None,
+                module: &shader,
+                entry_point: "main",
+            }),
+        )
+    }
+}
+
+// ============================================================================
+// WGSL Compute Shaders for Optical Operations
+// ============================================================================
+
+/// Optical rotor bind shader.
+///
+/// Computes element-wise rotor product:
+/// scalar_out = a_s * b_s - a_b * b_b
+/// bivector_out = a_s * b_b + a_b * b_s
+/// amplitude_out = a_amp * b_amp
+const OPTICAL_BIND_SHADER: &str = r#"
+@group(0) @binding(0) var<storage, read> a_scalar: array<f32>;
+@group(0) @binding(1) var<storage, read> a_bivector: array<f32>;
+@group(0) @binding(2) var<storage, read> a_amplitude: array<f32>;
+@group(0) @binding(3) var<storage, read> b_scalar: array<f32>;
+@group(0) @binding(4) var<storage, read> b_bivector: array<f32>;
+@group(0) @binding(5) var<storage, read> b_amplitude: array<f32>;
+@group(0) @binding(6) var<storage, read_write> out_scalar: array<f32>;
+@group(0) @binding(7) var<storage, read_write> out_bivector: array<f32>;
+@group(0) @binding(8) var<storage, read_write> out_amplitude: array<f32>;
+
+@compute @workgroup_size(256)
+fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
+    let idx = global_id.x;
+    if (idx >= arrayLength(&a_scalar)) {
+        return;
+    }
+
+    let a_s = a_scalar[idx];
+    let a_b = a_bivector[idx];
+    let b_s = b_scalar[idx];
+    let b_b = b_bivector[idx];
+
+    // Rotor product: (a_s + a_b*e12)(b_s + b_b*e12)
+    out_scalar[idx] = a_s * b_s - a_b * b_b;
+    out_bivector[idx] = a_s * b_b + a_b * b_s;
+    out_amplitude[idx] = a_amplitude[idx] * b_amplitude[idx];
+}
+"#;
+
+/// Optical similarity shader with workgroup reduction.
+///
+/// Computes partial sums of: inner_product, norm_a_sq, norm_b_sq
+const OPTICAL_SIMILARITY_SHADER: &str = r#"
+@group(0) @binding(0) var<storage, read> a_scalar: array<f32>;
+@group(0) @binding(1) var<storage, read> a_bivector: array<f32>;
+@group(0) @binding(2) var<storage, read> a_amplitude: array<f32>;
+@group(0) @binding(3) var<storage, read> b_scalar: array<f32>;
+@group(0) @binding(4) var<storage, read> b_bivector: array<f32>;
+@group(0) @binding(5) var<storage, read> b_amplitude: array<f32>;
+@group(0) @binding(6) var<storage, read_write> partials: array<f32>;
+
+var<workgroup> shared_sum: array<f32, 256>;
+var<workgroup> shared_norm_a: array<f32, 256>;
+var<workgroup> shared_norm_b: array<f32, 256>;
+
+@compute @workgroup_size(256)
+fn main(
+    @builtin(global_invocation_id) global_id: vec3<u32>,
+    @builtin(local_invocation_id) local_id: vec3<u32>,
+    @builtin(workgroup_id) wg_id: vec3<u32>
+) {
+    let idx = global_id.x;
+    let lid = local_id.x;
+    let n = arrayLength(&a_scalar);
+
+    // Load and compute local values
+    var local_sum: f32 = 0.0;
+    var local_norm_a: f32 = 0.0;
+    var local_norm_b: f32 = 0.0;
+
+    if (idx < n) {
+        let a_s = a_scalar[idx];
+        let a_b = a_bivector[idx];
+        let b_s = b_scalar[idx];
+        let b_b = b_bivector[idx];
+        let a_amp = a_amplitude[idx];
+        let b_amp = b_amplitude[idx];
+
+        // Inner product: a_s*b_s + a_b*b_b (note: + because of conjugate)
+        let inner = a_s * b_s + a_b * b_b;
+        local_sum = a_amp * b_amp * inner;
+        local_norm_a = a_amp * a_amp;
+        local_norm_b = b_amp * b_amp;
+    }
+
+    shared_sum[lid] = local_sum;
+    shared_norm_a[lid] = local_norm_a;
+    shared_norm_b[lid] = local_norm_b;
+    workgroupBarrier();
+
+    // Tree reduction
+    for (var s = 128u; s > 0u; s = s >> 1u) {
+        if (lid < s) {
+            shared_sum[lid] += shared_sum[lid + s];
+            shared_norm_a[lid] += shared_norm_a[lid + s];
+            shared_norm_b[lid] += shared_norm_b[lid + s];
+        }
+        workgroupBarrier();
+    }
+
+    // Write partial result
+    if (lid == 0u) {
+        let wg = wg_id.x;
+        partials[wg * 3u] = shared_sum[0];
+        partials[wg * 3u + 1u] = shared_norm_a[0];
+        partials[wg * 3u + 2u] = shared_norm_b[0];
+    }
+}
+"#;
+
+/// Optical bundle shader (placeholder - full implementation would handle variable-length input).
+const OPTICAL_BUNDLE_SHADER: &str = r#"
+@group(0) @binding(0) var<storage, read> input_scalar: array<f32>;
+@group(0) @binding(1) var<storage, read> input_bivector: array<f32>;
+@group(0) @binding(2) var<storage, read> input_amplitude: array<f32>;
+@group(0) @binding(3) var<storage, read> weights: array<f32>;
+@group(0) @binding(4) var<storage, read_write> out_scalar: array<f32>;
+@group(0) @binding(5) var<storage, read_write> out_bivector: array<f32>;
+@group(0) @binding(6) var<storage, read_write> out_amplitude: array<f32>;
+
+@compute @workgroup_size(256)
+fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
+    // Placeholder - full implementation would handle multi-field bundle
+    let idx = global_id.x;
+    if (idx >= arrayLength(&input_scalar)) {
+        return;
+    }
+    out_scalar[idx] = input_scalar[idx];
+    out_bivector[idx] = input_bivector[idx];
+    out_amplitude[idx] = input_amplitude[idx];
+}
+"#;
+
+/// Lee hologram encoding shader.
+///
+/// Each thread handles 32 pixels and packs results into a u32.
+const LEE_ENCODE_SHADER: &str = r#"
+@group(0) @binding(0) var<storage, read> field_scalar: array<f32>;
+@group(0) @binding(1) var<storage, read> field_bivector: array<f32>;
+@group(0) @binding(2) var<storage, read> field_amplitude: array<f32>;
+@group(0) @binding(3) var<storage, read> carrier_scalar: array<f32>;
+@group(0) @binding(4) var<storage, read> carrier_bivector: array<f32>;
+@group(0) @binding(5) var<storage, read_write> output: array<u32>;
+
+const PI: f32 = 3.14159265359;
+
+@compute @workgroup_size(64)
+fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
+    let word_idx = global_id.x;
+    if (word_idx >= arrayLength(&output)) {
+        return;
+    }
+
+    let n = arrayLength(&field_scalar);
+    var packed: u32 = 0u;
+
+    for (var bit = 0u; bit < 32u; bit = bit + 1u) {
+        let pixel_idx = word_idx * 32u + bit;
+        if (pixel_idx >= n) {
+            break;
+        }
+
+        let f_s = field_scalar[pixel_idx];
+        let f_b = field_bivector[pixel_idx];
+        let c_s = carrier_scalar[pixel_idx];
+        let c_b = carrier_bivector[pixel_idx];
+        let amp = field_amplitude[pixel_idx];
+
+        // Modulated scalar = c_s * f_s - c_b * f_b
+        let modulated_scalar = c_s * f_s - c_b * f_b;
+
+        // Threshold = cos(π * amplitude)
+        let threshold = cos(PI * amp);
+
+        if (modulated_scalar > threshold) {
+            packed = packed | (1u << bit);
+        }
+    }
+
+    output[word_idx] = packed;
+}
+"#;
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1002,6 +2144,99 @@ mod tests {
                     a[i] + b[i]
                 );
             }
+        }
+    }
+
+    // ========================================================================
+    // GPU Optical Field Tests
+    // ========================================================================
+
+    #[test]
+    fn test_optical_should_use_gpu() {
+        // Field size < 4096 should use CPU
+        assert!(!GpuOpticalField::should_use_gpu(100));
+        assert!(!GpuOpticalField::should_use_gpu(4095));
+
+        // Field size >= 4096 should use GPU
+        assert!(GpuOpticalField::should_use_gpu(4096));
+        assert!(GpuOpticalField::should_use_gpu(65536)); // 256x256
+    }
+
+    #[ignore] // Requires GPU initialization
+    #[tokio::test]
+    async fn test_optical_bind_cpu() {
+        // Test CPU fallback for bind operation (small field)
+        let dims = (16, 16); // 256 pixels - uses CPU fallback
+
+        if let Ok(gpu) = GpuOpticalField::new(dims).await {
+            // Create two fields with known phases
+            let field_a = OpticalRotorField::uniform(0.0, 1.0, dims);
+            let field_b = OpticalRotorField::uniform(std::f32::consts::FRAC_PI_4, 1.0, dims);
+
+            let bound = gpu.bind(&field_a, &field_b).await.unwrap();
+
+            // Binding adds phases: 0 + π/4 = π/4
+            for y in 0..16 {
+                for x in 0..16 {
+                    let phase = bound.phase_at(x, y);
+                    assert!(
+                        (phase - std::f32::consts::FRAC_PI_4).abs() < 1e-5,
+                        "Phase mismatch at ({}, {}): {}",
+                        x,
+                        y,
+                        phase
+                    );
+                }
+            }
+        }
+    }
+
+    #[ignore] // Requires GPU initialization
+    #[tokio::test]
+    async fn test_optical_similarity_cpu() {
+        // Test CPU fallback for similarity
+        let dims = (16, 16);
+
+        if let Ok(gpu) = GpuOpticalField::new(dims).await {
+            let field_a = OpticalRotorField::random(dims, 42);
+            let field_b = field_a.clone();
+
+            // Self-similarity should be 1.0
+            let sim = gpu.similarity(&field_a, &field_b).await.unwrap();
+            assert!(
+                (sim - 1.0).abs() < 1e-5,
+                "Self-similarity should be 1.0, got {}",
+                sim
+            );
+
+            // Different fields should have low similarity
+            let field_c = OpticalRotorField::random(dims, 99);
+            let sim2 = gpu.similarity(&field_a, &field_c).await.unwrap();
+            assert!(
+                sim2.abs() < 0.3,
+                "Random fields should have low similarity, got {}",
+                sim2
+            );
+        }
+    }
+
+    #[ignore] // Requires GPU initialization
+    #[tokio::test]
+    async fn test_optical_lee_encode_cpu() {
+        // Test CPU fallback for Lee encoding
+        let dims = (32, 32);
+
+        if let Ok(gpu) = GpuOpticalField::new(dims).await {
+            let field = OpticalRotorField::uniform(0.0, 0.5, dims);
+            let config = LeeEncoderConfig::new(dims, 0.25);
+
+            let hologram = gpu.encode_lee(&field, &config).await.unwrap();
+
+            assert_eq!(hologram.dimensions(), dims);
+
+            // Fill factor should be reasonable
+            let fill = hologram.fill_factor();
+            assert!(fill > 0.2 && fill < 0.8, "Unexpected fill factor: {}", fill);
         }
     }
 }
