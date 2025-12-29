@@ -1,4 +1,4 @@
-# @justinelliottcobb/amari-wasm v0.13.0
+# @justinelliottcobb/amari-wasm v0.15.1
 
 **Unified Mathematical Computing Library with High-Precision WebAssembly Support**
 
@@ -17,6 +17,7 @@ Amari is a comprehensive mathematical computing library that brings advanced alg
 - **Automatic Differentiation**: Forward-mode AD with dual numbers for exact derivatives
 - **Measure Theory** *(v0.10.0)*: Lebesgue integration, probability measures, and measure-theoretic foundations
 - **Holographic Memory** *(v0.12.3)*: Vector Symbolic Architecture for associative memory with binding and bundling operations
+- **Functional Analysis** *(v0.15.0)*: Hilbert spaces, linear operators, spectral decomposition, and Sobolev spaces
 - **Optical Field Operations** *(v0.15.1)*: GA-native Lee hologram encoding for DMD displays and VSA-based optical processing
 - **Probability Theory** *(v0.13.0)*: Distributions on multivector spaces, MCMC sampling, and Monte Carlo estimation
 - **Relativistic Physics**: Spacetime algebra (Cl(1,3)) with WebAssembly-compatible precision
@@ -335,6 +336,150 @@ async function probabilisticDemo() {
 probabilisticDemo();
 ```
 
+### Functional Analysis *(v0.15.0)*
+
+Work with Hilbert spaces, linear operators, and spectral decomposition on multivector spaces:
+
+```typescript
+import init, {
+  WasmHilbertSpace,
+  WasmMatrixOperator,
+  WasmSpectralDecomposition,
+  WasmSobolevSpace,
+  powerMethod,
+  computeEigenvalues
+} from '@justinelliottcobb/amari-wasm';
+
+async function functionalDemo() {
+  await init();
+
+  // Create a Hilbert space Cl(2,0,0) ≅ ℝ⁴
+  const hilbert = new WasmHilbertSpace();
+  console.log(`Dimension: ${hilbert.dimension()}`); // 4
+  console.log(`Signature: ${hilbert.signature()}`); // [2, 0, 0]
+
+  // Create multivectors from coefficients [scalar, e1, e2, e12]
+  const x = hilbert.fromCoefficients([1.0, 2.0, 3.0, 4.0]);
+  const y = hilbert.fromCoefficients([0.5, 1.5, 2.5, 3.5]);
+
+  // Inner product and norm
+  const inner = hilbert.innerProduct(x, y);
+  console.log(`⟨x, y⟩ = ${inner}`);
+
+  const norm = hilbert.norm(x);
+  console.log(`‖x‖ = ${norm}`);
+
+  // Orthogonal projection
+  const proj = hilbert.project(x, y);
+  console.log(`proj_y(x) = ${proj}`);
+
+  // Create a matrix operator (4x4 matrix in row-major order)
+  const A = new WasmMatrixOperator([
+    4, 1, 0, 0,
+    1, 3, 1, 0,
+    0, 1, 2, 1,
+    0, 0, 1, 1
+  ]);
+
+  // Apply operator to a vector
+  const Ax = A.apply(x);
+  console.log(`Ax = ${Ax}`);
+
+  // Operator properties
+  console.log(`‖A‖ = ${A.operatorNorm()}`);
+  console.log(`tr(A) = ${A.trace()}`);
+  console.log(`Symmetric: ${A.isSymmetric(1e-10)}`);
+
+  // Spectral decomposition for symmetric matrices
+  const decomp = WasmSpectralDecomposition.compute(A, 100, 1e-10);
+  const eigenvalues = decomp.eigenvalues();
+  console.log(`Eigenvalues: ${eigenvalues}`);
+  console.log(`Spectral radius: ${decomp.spectralRadius()}`);
+  console.log(`Condition number: ${decomp.conditionNumber()}`);
+
+  // Functional calculus: apply f(A) = exp(A)
+  const expAx = decomp.applyFunction((lambda) => Math.exp(lambda), x);
+  console.log(`exp(A)x = ${expAx}`);
+
+  // Power method for dominant eigenvalue
+  const dominant = powerMethod(A, null, 100, 1e-10);
+  console.log(`Dominant eigenvalue: ${dominant[0]}`);
+
+  // Sobolev spaces for PDE analysis
+  const h1 = new WasmSobolevSpace(1, 0.0, 1.0); // H^1([0,1])
+  console.log(`Poincaré constant: ${h1.poincareConstant()}`);
+
+  // Compute H^1 norm of sin(πx)
+  const f = (x: number) => Math.sin(Math.PI * x);
+  const df = (x: number) => Math.PI * Math.cos(Math.PI * x);
+  const h1Norm = h1.h1Norm(f, df);
+  console.log(`‖sin(πx)‖_{H^1} = ${h1Norm}`);
+
+  // Clean up WASM memory
+  hilbert.free();
+  A.free();
+  decomp.free();
+  h1.free();
+}
+
+functionalDemo();
+```
+
+#### Functional Analysis API
+
+**WasmHilbertSpace:**
+- `new()`: Create Hilbert space Cl(2,0,0) ≅ ℝ⁴
+- `dimension()`: Get space dimension
+- `signature()`: Get Clifford algebra signature [p, q, r]
+- `fromCoefficients(coeffs)`: Create multivector from coefficients
+- `innerProduct(x, y)`: Compute ⟨x, y⟩
+- `norm(x)`: Compute ‖x‖
+- `distance(x, y)`: Compute d(x, y) = ‖x - y‖
+- `normalize(x)`: Normalize to unit length
+- `project(x, y)`: Orthogonal projection of x onto y
+- `isOrthogonal(x, y, tol)`: Check orthogonality
+
+**WasmMatrixOperator:**
+- `new(entries)`: Create from 16 entries (4×4 row-major)
+- `identity()`: Create identity operator
+- `zero()`: Create zero operator
+- `diagonal(entries)`: Create diagonal matrix
+- `scaling(lambda)`: Create λI
+- `apply(x)`: Apply operator T(x)
+- `operatorNorm()`: Compute ‖T‖
+- `isSymmetric(tol)`: Check symmetry
+- `add(other)`: Add operators
+- `compose(other)`: Compose operators (matrix multiply)
+- `scale(lambda)`: Scale by scalar
+- `transpose()`: Compute transpose
+- `trace()`: Compute trace
+
+**WasmSpectralDecomposition:**
+- `compute(matrix, maxIter, tol)`: Compute eigenvalue decomposition
+- `eigenvalues()`: Get eigenvalues
+- `eigenvectors()`: Get eigenvectors (flattened)
+- `isComplete()`: Check if decomposition is complete
+- `spectralRadius()`: Get largest |eigenvalue|
+- `conditionNumber()`: Get condition number
+- `isPositiveDefinite()`: Check positive definiteness
+- `apply(x)`: Apply reconstructed operator
+- `applyFunction(f, x)`: Functional calculus f(T)x
+
+**WasmSobolevSpace:**
+- `new(order, lower, upper)`: Create H^k([a,b])
+- `h1UnitInterval()`: Create H^1([0,1])
+- `h2UnitInterval()`: Create H^2([0,1])
+- `poincareConstant()`: Get Poincaré constant
+- `h1Norm(f, df)`: Compute H^1 norm
+- `h1Seminorm(df)`: Compute H^1 seminorm |f|_{H^1}
+- `l2Norm(f)`: Compute L^2 norm
+- `l2InnerProduct(f, g)`: Compute L^2 inner product
+
+**Standalone Functions:**
+- `powerMethod(matrix, initial, maxIter, tol)`: Dominant eigenvalue
+- `inverseIteration(matrix, shift, initial, maxIter, tol)`: Eigenvalue near shift
+- `computeEigenvalues(matrix, maxIter, tol)`: All eigenvalues
+
 ### Optical Field Operations *(v0.15.1)*
 
 Encode optical fields as binary holograms for DMD displays using geometric algebra:
@@ -581,6 +726,23 @@ opticalDemo();
 - `WasmUniformMultivector.unitSphere()`: Uniform on unit sphere
 - `WasmUniformMultivector.sample()`: Draw random sample
 - `WasmMonteCarloEstimator.estimate(fn, dist, n)`: Monte Carlo expectation
+
+### Functional Analysis Operations
+
+- `WasmHilbertSpace.new()`: Create Hilbert space Cl(2,0,0)
+- `WasmHilbertSpace.innerProduct(x, y)`: Compute inner product
+- `WasmHilbertSpace.norm(x)`: Compute norm
+- `WasmHilbertSpace.project(x, y)`: Orthogonal projection
+- `WasmMatrixOperator.new(entries)`: Create matrix operator
+- `WasmMatrixOperator.apply(x)`: Apply operator to vector
+- `WasmMatrixOperator.operatorNorm()`: Compute operator norm
+- `WasmSpectralDecomposition.compute(matrix, maxIter, tol)`: Eigenvalue decomposition
+- `WasmSpectralDecomposition.eigenvalues()`: Get eigenvalues
+- `WasmSpectralDecomposition.applyFunction(f, x)`: Functional calculus
+- `WasmSobolevSpace.new(order, lower, upper)`: Create Sobolev space
+- `WasmSobolevSpace.h1Norm(f, df)`: Compute H^1 norm
+- `powerMethod(matrix, initial, maxIter, tol)`: Dominant eigenvalue
+- `computeEigenvalues(matrix, maxIter, tol)`: All eigenvalues
 
 ### Optical Field Operations
 

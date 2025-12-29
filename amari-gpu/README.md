@@ -22,7 +22,7 @@ Integration Crates (consume APIs):
 
 **Dependency Rule**: Integration crates depend on domain crates, never the reverse.
 
-## Current Integrations (v0.13.0)
+## Current Integrations (v0.15.1)
 
 ### Implemented GPU Acceleration
 
@@ -38,8 +38,9 @@ Integration Crates (consume APIs):
 | **amari-enumerative** | `enumerative` | Intersection theory GPU operations | ✅ Implemented (feature: `enumerative`) |
 | **amari-automata** | `automata` | Cellular automata GPU evolution | ✅ Implemented (feature: `automata`) |
 | **amari-fusion** | `fusion` | Tropical-dual-Clifford fusion operations | ✅ Implemented (feature: `fusion`) |
-| **amari-holographic** | `holographic` | Holographic memory, batch binding, similarity matrices | ✅ Implemented (feature: `holographic`) |
+| **amari-holographic** | `holographic` | Holographic memory, batch binding, similarity matrices, **optical field operations** | ✅ Implemented (feature: `holographic`) |
 | **amari-probabilistic** | `probabilistic` | Gaussian sampling, batch statistics, Monte Carlo | ✅ Implemented (feature: `probabilistic`) |
+| **amari-functional** | `functional` | Matrix operators, spectral decomposition, Hilbert spaces | ✅ Implemented (feature: `functional`) |
 
 ### Temporarily Disabled Modules
 
@@ -174,6 +175,71 @@ The holographic module includes optimized WGSL compute shaders:
 - **`holographic_bundle_all`**: Parallel reduction for vector superposition
 - **`holographic_resonator_step`**: Parallel max-finding for cleanup
 
+### Optical Field GPU Acceleration *(v0.15.1)*
+
+```rust
+use amari_gpu::GpuOpticalField;
+use amari_holographic::optical::{OpticalRotorField, LeeEncoderConfig};
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Initialize GPU context for optical fields (256x256 dimensions)
+    let gpu = GpuOpticalField::new((256, 256)).await?;
+
+    // Create optical rotor fields
+    let field_a = OpticalRotorField::random((256, 256), 42);
+    let field_b = OpticalRotorField::random((256, 256), 123);
+
+    // GPU-accelerated binding (rotor multiplication = phase addition)
+    let bound = gpu.bind(&field_a, &field_b).await?;
+    println!("Bound field total energy: {:.4}", bound.total_energy());
+
+    // GPU-accelerated similarity computation
+    let similarity = gpu.similarity(&field_a, &field_b).await?;
+    println!("Field similarity: {:.4}", similarity);
+
+    // GPU-accelerated Lee hologram encoding
+    let config = LeeEncoderConfig::new((256, 256), 0.25);
+    let hologram = gpu.encode_lee(&field_a, &config).await?;
+    println!("Hologram fill factor: {:.4}", hologram.fill_factor());
+
+    // Batch operations for multiple field pairs
+    let fields_a = vec![field_a.clone(), field_b.clone()];
+    let fields_b = vec![field_b.clone(), field_a.clone()];
+
+    let batch_bound = gpu.batch_bind(&fields_a, &fields_b).await?;
+    let batch_sim = gpu.batch_similarity(&fields_a, &fields_b).await?;
+
+    println!("Processed {} field pairs", batch_bound.len());
+
+    Ok(())
+}
+```
+
+#### Optical Field GPU Operations
+
+| Operation | Description | GPU Threshold |
+|-----------|-------------|---------------|
+| `bind()` | Rotor multiplication (phase addition) | ≥ 4096 pixels (64×64) |
+| `similarity()` | Normalized inner product with reduction | ≥ 4096 pixels |
+| `encode_lee()` | Binary hologram encoding with bit-packing | ≥ 4096 pixels |
+| `batch_bind()` | Parallel binding of field pairs | Any batch size |
+| `batch_similarity()` | Parallel similarity computation | Any batch size |
+
+#### WGSL Shaders for Optical Operations
+
+- **`OPTICAL_BIND_SHADER`**: Element-wise rotor product in Cl(2,0)
+  - Computes: `s_out = a_s·b_s - a_b·b_b`, `b_out = a_s·b_b + a_b·b_s`
+  - 256-thread workgroups for per-pixel parallelism
+
+- **`OPTICAL_SIMILARITY_SHADER`**: Inner product with workgroup reduction
+  - Computes: `⟨R_a, R_b⟩ = Σ(a_s·b_s + a_b·b_b) × amplitude_a × amplitude_b`
+  - 256-thread workgroups with shared memory reduction
+
+- **`LEE_ENCODE_SHADER`**: Binary hologram encoding with bit-packing
+  - Each thread handles 32 pixels, packing results into u32
+  - 64-thread workgroups for word-level parallelism
+
 ### Probabilistic GPU Acceleration
 
 ```rust
@@ -232,6 +298,9 @@ let values = gpu_calculus.batch_eval_scalar_field(&field, &large_points).await?;
 | Holographic binding | < 100 pairs | ≥ 100 pairs |
 | Holographic similarity | < 100 vectors | ≥ 100 vectors |
 | Resonator cleanup | < 100 codebook | ≥ 100 codebook |
+| Optical field bind | < 4096 pixels | ≥ 4096 pixels (64×64) |
+| Optical similarity | < 4096 pixels | ≥ 4096 pixels |
+| Lee hologram encoding | < 4096 pixels | ≥ 4096 pixels |
 | Gaussian sampling | < 1000 samples | ≥ 1000 samples |
 | Batch mean/variance | < 1000 elements | ≥ 1000 elements |
 
@@ -244,6 +313,20 @@ let values = gpu_calculus.batch_eval_scalar_field(&field, &large_points).await?;
 - Batch similarity using proper inner product `<A B̃>₀`
 - Parallel reduction for vector bundling
 - Resonator cleanup with parallel codebook search
+
+### Optical Field Module (v0.15.1)
+
+**GPU Implementations** (✅ Complete):
+- Rotor field binding via `OPTICAL_BIND_SHADER`
+- Similarity with workgroup reduction via `OPTICAL_SIMILARITY_SHADER`
+- Lee hologram encoding with bit-packing via `LEE_ENCODE_SHADER`
+- Automatic CPU fallback for small fields (< 4096 pixels)
+
+**Types**:
+- `GpuOpticalField`: GPU context for optical rotor field operations
+- Uses `OpticalRotorField` from amari-holographic (SoA layout: scalar, bivector, amplitude)
+- Uses `BinaryHologram` for bit-packed hologram output
+- Uses `LeeEncoderConfig` for carrier wave parameters
 
 ### Probabilistic Module (v0.13.0)
 
