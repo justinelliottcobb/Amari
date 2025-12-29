@@ -10,6 +10,7 @@
 //! - **Information geometry** (amari-info-geom) - Fisher metrics, statistical manifolds
 //! - **Holographic memory** (amari-holographic) - Vector Symbolic Architectures (v0.12.3+)
 //! - **Probabilistic** (amari-probabilistic) - Probability distributions on GA spaces (v0.13.0+)
+//! - **Functional analysis** (amari-functional) - Hilbert spaces, operators, spectral theory (v0.15.0+)
 //!
 //! # Holographic Memory (Vector Symbolic Architectures)
 //!
@@ -69,6 +70,7 @@ pub mod automata; // Enabled for v0.9.4 - Cellular automata, inverse design, sel
 pub mod calculus; // Enabled for v0.11.0 - Differential calculus, manifolds, and Riemannian geometry for web
 pub mod dual; // Enabled for v0.9.3 - automatic differentiation for machine learning in web
 pub mod enumerative; // Enabled for v0.9.4 - Enumerative geometry and intersection theory for web
+pub mod functional; // Enabled for v0.15.0 - Functional analysis on multivector spaces
 pub mod fusion; // Enabled for v0.9.4 - TropicalDualClifford system for LLM evaluation in web
 pub mod info_geom; // Enabled for v0.9.4 - Information geometry and statistical manifolds for web
 pub mod measure; // Enabled for v0.10.0 - Measure theory and Lebesgue integration for web

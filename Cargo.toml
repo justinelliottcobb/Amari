@@ -28,6 +28,7 @@ amari-measure = { workspace = true, optional = true }
 amari-calculus = { workspace = true, optional = true }
 amari-holographic = { workspace = true, optional = true }
 amari-probabilistic = { workspace = true, optional = true }
+amari-functional = { workspace = true, optional = true }
 thiserror = { workspace = true }
 
 [dev-dependencies]
@@ -44,10 +45,11 @@ measure = ["dep:amari-measure"]
 calculus = ["dep:amari-calculus"]
 holographic = ["dep:amari-holographic"]
 probabilistic = ["dep:amari-probabilistic"]
+functional = ["dep:amari-functional"]
 # Deterministic mode for networked physics (~10-20% slower but bit-exact)
 deterministic = []
 # Enable all optional crates
-full = ["gpu", "optimization", "flynn", "measure", "calculus", "holographic", "probabilistic"]
+full = ["gpu", "optimization", "flynn", "measure", "calculus", "holographic", "probabilistic", "functional"]
 
 [[test]]
 name = "integration"
@@ -59,11 +61,11 @@ path = "examples/networked_physics.rs"
 required-features = ["deterministic"]
 
 [workspace]
-members = ["amari-core", "amari-wasm", "amari-gpu", "amari-info-geom", "amari-tropical", "amari-dual", "amari-fusion", "amari-automata", "amari-enumerative", "amari-relativistic", "amari-network", "amari-optimization", "amari-flynn", "amari-flynn-macros", "amari-measure", "amari-calculus", "amari-holographic", "amari-probabilistic"]
+members = ["amari-core", "amari-wasm", "amari-gpu", "amari-info-geom", "amari-tropical", "amari-dual", "amari-fusion", "amari-automata", "amari-enumerative", "amari-relativistic", "amari-network", "amari-optimization", "amari-flynn", "amari-flynn-macros", "amari-measure", "amari-calculus", "amari-holographic", "amari-probabilistic", "amari-functional"]
 resolver = "2"
 
 [workspace.package]
-version = "0.14.0"
+version = "0.15.0"
 authors = ["Amari Contributors"]
 edition = "2021"
 license = "MIT OR Apache-2.0"
@@ -71,25 +73,26 @@ rust-version = "1.75"
 
 [workspace.dependencies]
 # Amari crates (internal dependencies)
-amari = { path = ".", version = "0.14.0" }
-amari-core = { path = "amari-core", version = "0.14.0" }
-amari-tropical = { path = "amari-tropical", version = "0.14.0" }
-amari-dual = { path = "amari-dual", version = "0.14.0" }
-amari-fusion = { path = "amari-fusion", version = "0.14.0" }
-amari-info-geom = { path = "amari-info-geom", version = "0.14.0" }
-amari-automata = { path = "amari-automata", version = "0.14.0" }
-amari-enumerative = { path = "amari-enumerative", version = "0.14.0" }
-amari-relativistic = { path = "amari-relativistic", version = "0.14.0" }
-amari-gpu = { path = "amari-gpu", version = "0.14.0" }
-amari-network = { path = "amari-network", version = "0.14.0" }
-amari-optimization = { path = "amari-optimization", version = "0.14.0" }
-amari-flynn = { path = "amari-flynn", version = "0.14.0" }
-amari-flynn-macros = { path = "amari-flynn-macros", version = "0.14.0" }
-amari-measure = { path = "amari-measure", version = "0.14.0" }
-amari-calculus = { path = "amari-calculus", version = "0.14.0" }
-amari-holographic = { path = "amari-holographic", version = "0.14.0" }
-amari-probabilistic = { path = "amari-probabilistic", version = "0.14.0" }
-amari-wasm = { path = "amari-wasm", version = "0.14.0" }
+amari = { path = ".", version = "0.15.0" }
+amari-core = { path = "amari-core", version = "0.15.0" }
+amari-tropical = { path = "amari-tropical", version = "0.15.0" }
+amari-dual = { path = "amari-dual", version = "0.15.0" }
+amari-fusion = { path = "amari-fusion", version = "0.15.0" }
+amari-info-geom = { path = "amari-info-geom", version = "0.15.0" }
+amari-automata = { path = "amari-automata", version = "0.15.0" }
+amari-enumerative = { path = "amari-enumerative", version = "0.15.0" }
+amari-relativistic = { path = "amari-relativistic", version = "0.15.0" }
+amari-gpu = { path = "amari-gpu", version = "0.15.0" }
+amari-network = { path = "amari-network", version = "0.15.0" }
+amari-optimization = { path = "amari-optimization", version = "0.15.0" }
+amari-flynn = { path = "amari-flynn", version = "0.15.0" }
+amari-flynn-macros = { path = "amari-flynn-macros", version = "0.15.0" }
+amari-measure = { path = "amari-measure", version = "0.15.0" }
+amari-calculus = { path = "amari-calculus", version = "0.15.0" }
+amari-holographic = { path = "amari-holographic", version = "0.15.0" }
+amari-probabilistic = { path = "amari-probabilistic", version = "0.15.0" }
+amari-functional = { path = "amari-functional", version = "0.15.0" }
+amari-wasm = { path = "amari-wasm", version = "0.15.0" }
 
 # External dependencies
 bytemuck = "1.14"

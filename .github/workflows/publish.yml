@@ -111,6 +111,7 @@ jobs:
             "amari-measure"
             "amari-calculus"
             "amari-probabilistic"
+            "amari-functional"
             "amari-gpu"
             "amari-optimization"
             "amari"

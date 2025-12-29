@@ -65,6 +65,17 @@ npx ts-node examples/typescript/complete-demo.ts
 - Geodesic integration for orbital mechanics
 - Light deflection by massive objects
 
+### 7. Functional Analysis (`functional-analysis.ts`)
+**Hilbert Spaces & Operator Theory** *(New in v0.15.0)*
+- Hilbert space Cl(2,0,0) with inner product operations
+- Bounded linear operators as matrices
+- Spectral decomposition for self-adjoint operators
+- Eigenvalue algorithms: power method, inverse iteration, Jacobi
+- Functional calculus f(A) for operator functions
+- Sobolev spaces H^k with weak derivatives
+- Poincaré inequality and embedding theorems
+- Applications to quantum mechanics
+
 ### New in v0.9.0: High-Precision WebAssembly Examples
 **Browser-Based Spacecraft Simulation**
 - International Space Station (ISS) orbital propagation
@@ -114,6 +125,25 @@ const fourVel = WasmFourVelocity.from_velocity(vx, vy, vz);
 const gamma = fourVel.gamma();
 ```
 
+### Functional Analysis & Quantum Computing
+```typescript
+// Hilbert space operations
+const space = new WasmHilbertSpace();
+const inner = space.innerProduct(psi, phi);
+const normalized = space.normalize(state);
+
+// Spectral decomposition of observables
+const decomp = WasmSpectralDecomposition.compute(hamiltonian, 100, 1e-10);
+const eigenvalues = decomp.eigenvalues();
+
+// Functional calculus: time evolution e^{-iHt}
+const evolved = decomp.applyFunction((E) => Math.exp(-E * t), state);
+
+// Sobolev space norms for PDEs
+const h1 = WasmSobolevSpace.h1UnitInterval();
+const norm = h1.h1Norm(f, df);
+```
+
 ### Computer Graphics
 ```typescript
 // Efficient spatial transformations
@@ -135,7 +165,8 @@ const output = attention.apply_to_value(value);
 3. **Machine Learning**: Explore `tropical.ts` and `automatic-diff.ts`
 4. **Statistics**: Study `information-geometry.ts` for statistical analysis
 5. **Physics**: Learn `relativistic.ts` for spacetime physics and orbital mechanics
-6. **Advanced**: Dive into `fusion-systems.ts` for cutting-edge architectures
+6. **Functional Analysis**: Explore `functional-analysis.ts` for Hilbert spaces and spectral theory
+7. **Advanced**: Dive into `fusion-systems.ts` for cutting-edge architectures
 
 ## API Patterns
 
