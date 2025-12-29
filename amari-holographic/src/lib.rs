@@ -280,6 +280,9 @@ pub mod algebra;
 // Holographic memory module
 pub mod memory;
 
+// GA-native optical field operations for Lee hologram encoding
+pub mod optical;
+
 // Re-export core types from algebra
 pub use algebra::{AlgebraConfig, AlgebraError, AlgebraResult, BindingAlgebra, GeometricAlgebra};
 

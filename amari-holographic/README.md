@@ -213,6 +213,189 @@ println!("Factor A similarity: {}", result.factor_a.similarity(&original_a));
 println!("Factor B similarity: {}", result.factor_b.similarity(&original_b));
 ```
 
+## Optical Field Operations
+
+The `optical` module provides GA-native optical field operations for Lee hologram encoding, enabling seamless integration with DMD-based optical systems.
+
+### Mathematical Background
+
+Complex numbers are isomorphic to the even subalgebra of Cl(2,0):
+
+```
+Complex: z = a + bi           where i² = -1
+GA:      R = a + b·e₁₂        where (e₁₂)² = -1
+
+Isomorphism:
+    i  ↔  e₁₂  (unit bivector)
+    z* ↔  R†   (reverse/conjugate)
+    |z|² ↔ R·R† (norm squared)
+```
+
+An optical field at position (x,y) is represented as a rotor field:
+```
+E(x,y) = A(x,y) · exp(φ(x,y) · e₁₂)
+       = A(x,y) · (cos(φ) + sin(φ)·e₁₂)
+```
+
+### OpticalRotorField
+
+Grade-separated rotor field for SIMD-optimized operations:
+
+```rust
+use amari_holographic::optical::{OpticalRotorField, OpticalFieldAlgebra};
+
+// Create from phase array
+let phases = vec![0.0, std::f32::consts::FRAC_PI_4, std::f32::consts::FRAC_PI_2];
+let field = OpticalRotorField::from_phase(phases, (3, 1));
+
+// Random field with deterministic seed
+let random_field = OpticalRotorField::random((64, 64), 42);
+
+// Access components
+let phase = field.phase_at(1, 0);      // π/4
+let amplitude = field.amplitude_at(1, 0); // 1.0
+```
+
+### OpticalFieldAlgebra
+
+VSA operations on optical rotor fields:
+
+```rust
+use amari_holographic::optical::{OpticalFieldAlgebra, OpticalRotorField};
+
+let algebra = OpticalFieldAlgebra::new((64, 64));
+
+let a = OpticalRotorField::random((64, 64), 1);
+let b = OpticalRotorField::random((64, 64), 2);
+
+// Binding = phase addition (rotor product)
+let bound = algebra.bind(&a, &b);
+
+// Inverse = phase negation (rotor reverse)
+let inv = algebra.inverse(&a);
+
+// bind(a, inverse(a)) ≈ identity
+let identity = algebra.bind(&a, &inv);
+
+// Similarity (normalized inner product)
+let sim = algebra.similarity(&a, &a); // 1.0
+
+// Bundling (weighted superposition)
+let bundled = algebra.bundle(&[a.clone(), b.clone()], &[0.5, 0.5]);
+```
+
+| VSA Operation | Complex Form | GA Form |
+|---------------|--------------|---------|
+| Binding | z₁ · z₂ | R₁ · R₂ (rotor product) |
+| Unbinding | z₁ · z₂* | R₁ · R₂† (product with reverse) |
+| Bundling | Σ wᵢzᵢ | Σ wᵢRᵢ (weighted sum) |
+| Similarity | Re(z₁*z₂)/\|z₁\|\|z₂\| | ⟨R₁†R₂⟩₀ / (\|R₁\|\|R₂\|) |
+
+### GeometricLeeEncoder
+
+Lee hologram encoding for DMD display:
+
+```rust
+use amari_holographic::optical::{GeometricLeeEncoder, OpticalRotorField};
+
+// Create encoder with carrier frequency
+let encoder = GeometricLeeEncoder::with_frequency((256, 256), 0.25);
+
+// Create optical field (use amplitude 0.5 for optimal encoding)
+let mut field = OpticalRotorField::random((256, 256), 42);
+for i in 0..field.len() {
+    field.amplitudes_mut()[i] = 0.5;
+}
+
+// Encode to binary hologram
+let hologram = encoder.encode(&field);
+
+// Check encoding quality
+println!("Fill factor: {}", hologram.fill_factor());
+println!("Theoretical efficiency: {}", encoder.theoretical_efficiency(&field));
+```
+
+The Lee encoding process:
+1. Multiply signal by carrier (rotor product = phase addition)
+2. Threshold based on scalar part: `B(x,y) = 1 if ⟨Modulated⟩₀ > cos(π·A)`
+
+### BinaryHologram
+
+Bit-packed binary pattern for hardware interface:
+
+```rust
+use amari_holographic::optical::BinaryHologram;
+
+// Create from boolean pattern
+let pattern = vec![true, false, true, false, true, true, false, false];
+let hologram = BinaryHologram::from_bools(&pattern, (8, 1));
+
+// Access pixels
+assert!(hologram.get(0, 0));
+assert!(!hologram.get(1, 0));
+
+// Statistics
+println!("Fill factor: {}", hologram.fill_factor());
+println!("Popcount: {}", hologram.popcount());
+
+// Hamming distance between holograms
+let other = BinaryHologram::from_bools(&vec![true; 8], (8, 1));
+println!("Hamming distance: {}", hologram.hamming_distance(&other));
+```
+
+### OpticalCodebook
+
+Seed-based symbol mapping for compact serialization:
+
+```rust
+use amari_holographic::optical::{OpticalCodebook, CodebookConfig, SymbolId};
+
+let config = CodebookConfig::new((64, 64), 12345);
+let mut codebook = OpticalCodebook::new(config);
+
+// Register symbols (deterministic from seed)
+codebook.register("AGENT".into());
+codebook.register("ACTION".into());
+codebook.register("OBJECT".into());
+
+// Get field for symbol (generated on first access, cached)
+let agent_field = codebook.get(&"AGENT".into()).unwrap();
+
+// Export seeds for persistence (compact!)
+let seeds = codebook.export_seeds();
+
+// Restore from seeds
+let mut restored = OpticalCodebook::new(CodebookConfig::new((64, 64), 12345));
+restored.import_seeds(seeds);
+```
+
+### TropicalOpticalAlgebra
+
+Tropical semiring operations for attractor dynamics:
+
+```rust
+use amari_holographic::optical::{TropicalOpticalAlgebra, OpticalRotorField};
+
+let tropical = TropicalOpticalAlgebra::new((64, 64));
+
+let a = OpticalRotorField::random((64, 64), 1);
+let b = OpticalRotorField::random((64, 64), 2);
+
+// Tropical add: point-wise minimum phase magnitude
+let min_phase = tropical.tropical_add(&a, &b);
+
+// Soft tropical add with temperature
+let soft = tropical.soft_tropical_add(&a, &b, 10.0);
+
+// Attractor convergence
+let attractors = vec![
+    OpticalRotorField::uniform(0.0, 1.0, (64, 64)),
+    OpticalRotorField::uniform(std::f32::consts::FRAC_PI_4, 1.0, (64, 64)),
+];
+let initial = OpticalRotorField::random((64, 64), 42);
+let (final_state, iterations) = tropical.attractor_converge(&initial, &attractors, 100, 1e-6);
+```
+
 ## API Reference
 
 ### Core Trait: `BindingAlgebra`
@@ -327,7 +510,7 @@ All algebras provide theoretical capacity of O(D / ln D) where D is dimension:
 
 ```toml
 [dependencies]
-amari-holographic = { version = "0.12", features = ["parallel"] }
+amari-holographic = { version = "0.15", features = ["parallel"] }
 ```
 
 | Feature | Description |
@@ -335,6 +518,8 @@ amari-holographic = { version = "0.12", features = ["parallel"] }
 | `std` | Standard library (default) |
 | `parallel` | Parallel operations via rayon |
 | `serialize` | Serde serialization support |
+
+The `optical` module is always available and uses `rand` and `rand_chacha` for deterministic random generation.
 
 ## Integration
 

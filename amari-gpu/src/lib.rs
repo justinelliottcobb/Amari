@@ -157,6 +157,7 @@ pub use functional::{
 #[cfg(feature = "holographic")]
 pub use holographic::{
     GpuHolographic, GpuHolographicError, GpuHolographicMemory, GpuHolographicResult,
+    GpuOpticalField,
 };
 #[cfg(feature = "measure")]
 pub use measure::{
