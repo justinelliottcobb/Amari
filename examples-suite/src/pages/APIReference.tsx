@@ -1982,8 +1982,8 @@ const bound = key.bind(value);`
   },
   {
     id: "holographic",
-    title: "Holographic Memory",
-    description: "Distributed memory systems using ProductClifford algebra",
+    title: "Holographic Memory & Optical Fields",
+    description: "Distributed memory, VSA operations, and Lee hologram encoding using geometric algebra",
     icon: "⊗",
     classes: [
       {
@@ -2072,6 +2072,380 @@ const bound = key.bind(value);`
             name: "codebookSize",
             signature: "codebookSize(): number",
             description: "Number of codebook entries"
+          }
+        ]
+      },
+      // Optical Field Operations (v0.15.1)
+      {
+        name: "WasmOpticalRotorField",
+        description: "Optical wavefront as a grid of Cl(2,0) rotors. Each point stores phase (rotor angle) and amplitude.",
+        methods: [
+          {
+            name: "constructor",
+            signature: "new WasmOpticalRotorField(phase: Float32Array, amplitude: Float32Array, width: number, height: number)",
+            description: "Create from phase and amplitude arrays",
+            parameters: [
+              { name: "phase", type: "Float32Array", description: "Phase values in radians" },
+              { name: "amplitude", type: "Float32Array", description: "Amplitude values" },
+              { name: "width", type: "number", description: "Grid width" },
+              { name: "height", type: "number", description: "Grid height" }
+            ],
+            example: `const phases = new Float32Array(64 * 64).fill(0);
+const amps = new Float32Array(64 * 64).fill(1.0);
+const field = new WasmOpticalRotorField(phases, amps, 64, 64);`
+          },
+          {
+            name: "random",
+            signature: "static random(width: number, height: number, seed: bigint): WasmOpticalRotorField",
+            description: "Create with random phases (deterministic from seed)",
+            isStatic: true,
+            example: `const field = WasmOpticalRotorField.random(64, 64, 12345n);`
+          },
+          {
+            name: "uniform",
+            signature: "static uniform(phase: number, amplitude: number, width: number, height: number): WasmOpticalRotorField",
+            description: "Create uniform field with constant phase and amplitude",
+            isStatic: true
+          },
+          {
+            name: "identity",
+            signature: "static identity(width: number, height: number): WasmOpticalRotorField",
+            description: "Create identity field (phase = 0, amplitude = 1)",
+            isStatic: true
+          },
+          {
+            name: "phaseAt",
+            signature: "phaseAt(x: number, y: number): number",
+            description: "Get phase at point (radians, range [-π, π])"
+          },
+          {
+            name: "amplitudeAt",
+            signature: "amplitudeAt(x: number, y: number): number",
+            description: "Get amplitude at point"
+          },
+          {
+            name: "getScalars",
+            signature: "getScalars(): Float32Array",
+            description: "Get all scalar (cos φ) components"
+          },
+          {
+            name: "getBivectors",
+            signature: "getBivectors(): Float32Array",
+            description: "Get all bivector (sin φ) components"
+          },
+          {
+            name: "getAmplitudes",
+            signature: "getAmplitudes(): Float32Array",
+            description: "Get all amplitude components"
+          },
+          {
+            name: "totalEnergy",
+            signature: "totalEnergy(): number",
+            description: "Sum of squared amplitudes"
+          },
+          {
+            name: "normalized",
+            signature: "normalized(): WasmOpticalRotorField",
+            description: "Create normalized copy (total energy = 1)"
+          }
+        ]
+      },
+      {
+        name: "WasmBinaryHologram",
+        description: "Bit-packed binary pattern for DMD display. Output of Lee encoding.",
+        methods: [
+          {
+            name: "constructor",
+            signature: "new WasmBinaryHologram(pattern: Uint8Array, width: number, height: number)",
+            description: "Create from boolean array (0 = off, non-zero = on)"
+          },
+          {
+            name: "zeros",
+            signature: "static zeros(width: number, height: number): WasmBinaryHologram",
+            description: "Create all-zeros hologram",
+            isStatic: true
+          },
+          {
+            name: "ones",
+            signature: "static ones(width: number, height: number): WasmBinaryHologram",
+            description: "Create all-ones hologram",
+            isStatic: true
+          },
+          {
+            name: "get",
+            signature: "get(x: number, y: number): boolean",
+            description: "Get pixel value"
+          },
+          {
+            name: "set",
+            signature: "set(x: number, y: number, value: boolean): void",
+            description: "Set pixel value"
+          },
+          {
+            name: "toggle",
+            signature: "toggle(x: number, y: number): void",
+            description: "Toggle pixel at (x, y)"
+          },
+          {
+            name: "asBytes",
+            signature: "asBytes(): Uint8Array",
+            description: "Get packed binary data (LSB-first, row-major)"
+          },
+          {
+            name: "popcount",
+            signature: "popcount(): number",
+            description: "Count of 'on' pixels"
+          },
+          {
+            name: "fillFactor",
+            signature: "fillFactor(): number",
+            description: "Fraction of 'on' pixels (0 to 1)"
+          },
+          {
+            name: "hammingDistance",
+            signature: "hammingDistance(other: WasmBinaryHologram): number",
+            description: "Number of differing pixels"
+          },
+          {
+            name: "xor",
+            signature: "xor(other: WasmBinaryHologram): WasmBinaryHologram",
+            description: "XOR two holograms"
+          },
+          {
+            name: "inverted",
+            signature: "inverted(): WasmBinaryHologram",
+            description: "Create inverted copy"
+          }
+        ]
+      },
+      {
+        name: "WasmGeometricLeeEncoder",
+        description: "Lee hologram encoder using geometric algebra. Encodes optical rotor fields to binary patterns.",
+        methods: [
+          {
+            name: "constructor",
+            signature: "new WasmGeometricLeeEncoder(width: number, height: number, frequency: number, angle: number)",
+            description: "Create encoder with carrier frequency and angle",
+            parameters: [
+              { name: "width", type: "number", description: "Grid width" },
+              { name: "height", type: "number", description: "Grid height" },
+              { name: "frequency", type: "number", description: "Carrier frequency (cycles/pixel)" },
+              { name: "angle", type: "number", description: "Carrier angle (radians)" }
+            ]
+          },
+          {
+            name: "withFrequency",
+            signature: "static withFrequency(width: number, height: number, frequency: number): WasmGeometricLeeEncoder",
+            description: "Create with horizontal carrier (angle = 0)",
+            isStatic: true,
+            example: `const encoder = WasmGeometricLeeEncoder.withFrequency(64, 64, 0.25);`
+          },
+          {
+            name: "encode",
+            signature: "encode(field: WasmOpticalRotorField): WasmBinaryHologram",
+            description: "Encode rotor field to binary hologram",
+            example: `const hologram = encoder.encode(field);
+console.log(\`Fill: \${hologram.fillFactor()}\`);`
+          },
+          {
+            name: "modulate",
+            signature: "modulate(field: WasmOpticalRotorField): WasmOpticalRotorField",
+            description: "Get modulated field (before thresholding)"
+          },
+          {
+            name: "theoreticalEfficiency",
+            signature: "theoreticalEfficiency(field: WasmOpticalRotorField): number",
+            description: "Compute theoretical diffraction efficiency"
+          }
+        ]
+      },
+      {
+        name: "WasmOpticalFieldAlgebra",
+        description: "VSA operations on optical rotor fields: bind, bundle, similarity, inverse.",
+        methods: [
+          {
+            name: "constructor",
+            signature: "new WasmOpticalFieldAlgebra(width: number, height: number)",
+            description: "Create algebra for fields of given dimensions",
+            example: `const algebra = new WasmOpticalFieldAlgebra(64, 64);`
+          },
+          {
+            name: "identity",
+            signature: "identity(): WasmOpticalRotorField",
+            description: "Create identity field (phase = 0)"
+          },
+          {
+            name: "random",
+            signature: "random(seed: bigint): WasmOpticalRotorField",
+            description: "Create random field"
+          },
+          {
+            name: "bind",
+            signature: "bind(a: WasmOpticalRotorField, b: WasmOpticalRotorField): WasmOpticalRotorField",
+            description: "Rotor product (phase addition) - creates association",
+            example: `const bound = algebra.bind(role, filler);
+// bound encodes role ⊗ filler`
+          },
+          {
+            name: "unbind",
+            signature: "unbind(key: WasmOpticalRotorField, bound: WasmOpticalRotorField): WasmOpticalRotorField",
+            description: "Retrieve associated field: key⁻¹ ⊗ bound",
+            example: `const retrieved = algebra.unbind(role, bound);
+// retrieved ≈ filler`
+          },
+          {
+            name: "bundle",
+            signature: "bundle(fields: WasmOpticalRotorField[], weights: Float32Array): WasmOpticalRotorField",
+            description: "Weighted superposition of multiple fields"
+          },
+          {
+            name: "bundleUniform",
+            signature: "bundleUniform(fields: WasmOpticalRotorField[]): WasmOpticalRotorField",
+            description: "Bundle with equal weights (1/n)"
+          },
+          {
+            name: "similarity",
+            signature: "similarity(a: WasmOpticalRotorField, b: WasmOpticalRotorField): number",
+            description: "Normalized inner product. Range [-1, 1].",
+            example: `const sim = algebra.similarity(field1, field2);
+console.log(\`Self-similarity: \${algebra.similarity(f, f)}\`); // 1.0`
+          },
+          {
+            name: "inverse",
+            signature: "inverse(field: WasmOpticalRotorField): WasmOpticalRotorField",
+            description: "Rotor reverse (phase negation)"
+          },
+          {
+            name: "scale",
+            signature: "scale(field: WasmOpticalRotorField, factor: number): WasmOpticalRotorField",
+            description: "Scale amplitude by factor"
+          },
+          {
+            name: "addPhase",
+            signature: "addPhase(field: WasmOpticalRotorField, phase: number): WasmOpticalRotorField",
+            description: "Add constant phase to all points"
+          },
+          {
+            name: "meanPhase",
+            signature: "meanPhase(field: WasmOpticalRotorField): number",
+            description: "Circular mean of phases"
+          },
+          {
+            name: "phaseVariance",
+            signature: "phaseVariance(field: WasmOpticalRotorField): number",
+            description: "Circular variance of phases"
+          }
+        ]
+      },
+      {
+        name: "WasmOpticalCodebook",
+        description: "Maps symbols to deterministically-generated rotor fields. Enables compact checkpointing.",
+        methods: [
+          {
+            name: "constructor",
+            signature: "new WasmOpticalCodebook(width: number, height: number, baseSeed: bigint)",
+            description: "Create codebook",
+            example: `const codebook = new WasmOpticalCodebook(64, 64, 12345n);`
+          },
+          {
+            name: "register",
+            signature: "register(symbol: string): void",
+            description: "Register symbol with auto-generated seed"
+          },
+          {
+            name: "registerWithSeed",
+            signature: "registerWithSeed(symbol: string, seed: bigint): void",
+            description: "Register symbol with specific seed"
+          },
+          {
+            name: "registerAll",
+            signature: "registerAll(symbols: string[]): void",
+            description: "Register multiple symbols"
+          },
+          {
+            name: "get",
+            signature: "get(symbol: string): WasmOpticalRotorField | undefined",
+            description: "Get or generate field for symbol"
+          },
+          {
+            name: "generate",
+            signature: "generate(symbol: string): WasmOpticalRotorField | undefined",
+            description: "Generate field without caching"
+          },
+          {
+            name: "contains",
+            signature: "contains(symbol: string): boolean",
+            description: "Check if symbol is registered"
+          },
+          {
+            name: "getSeed",
+            signature: "getSeed(symbol: string): bigint | undefined",
+            description: "Get seed for registered symbol"
+          },
+          {
+            name: "symbols",
+            signature: "symbols(): string[]",
+            description: "Get all registered symbol names"
+          },
+          {
+            name: "clearCache",
+            signature: "clearCache(): void",
+            description: "Clear field cache (seeds retained)"
+          },
+          {
+            name: "remove",
+            signature: "remove(symbol: string): boolean",
+            description: "Remove symbol from codebook"
+          }
+        ]
+      },
+      {
+        name: "WasmTropicalOpticalAlgebra",
+        description: "Tropical (min, +) operations on optical fields for attractor dynamics.",
+        methods: [
+          {
+            name: "constructor",
+            signature: "new WasmTropicalOpticalAlgebra(width: number, height: number)",
+            description: "Create tropical algebra",
+            example: `const tropical = new WasmTropicalOpticalAlgebra(32, 32);`
+          },
+          {
+            name: "tropicalAdd",
+            signature: "tropicalAdd(a: WasmOpticalRotorField, b: WasmOpticalRotorField): WasmOpticalRotorField",
+            description: "Pointwise minimum phase magnitude"
+          },
+          {
+            name: "tropicalMax",
+            signature: "tropicalMax(a: WasmOpticalRotorField, b: WasmOpticalRotorField): WasmOpticalRotorField",
+            description: "Pointwise maximum phase magnitude"
+          },
+          {
+            name: "tropicalMul",
+            signature: "tropicalMul(a: WasmOpticalRotorField, b: WasmOpticalRotorField): WasmOpticalRotorField",
+            description: "Tropical multiplication (binding/phase addition)"
+          },
+          {
+            name: "softTropicalAdd",
+            signature: "softTropicalAdd(a: WasmOpticalRotorField, b: WasmOpticalRotorField, beta: number): WasmOpticalRotorField",
+            description: "Soft minimum with temperature parameter"
+          },
+          {
+            name: "phaseDistance",
+            signature: "phaseDistance(a: WasmOpticalRotorField, b: WasmOpticalRotorField): number",
+            description: "Sum of absolute phase differences"
+          },
+          {
+            name: "normalizedPhaseDistance",
+            signature: "normalizedPhaseDistance(a: WasmOpticalRotorField, b: WasmOpticalRotorField): number",
+            description: "Average phase difference per pixel"
+          },
+          {
+            name: "attractorConverge",
+            signature: "attractorConverge(initial: WasmOpticalRotorField, attractors: WasmOpticalRotorField[], maxIter: number, tolerance: number): WasmOpticalRotorField",
+            description: "Iterate until convergence to attractor",
+            example: `const result = tropical.attractorConverge(
+  initial, attractors, 100, 0.001
+);`
           }
         ]
       }

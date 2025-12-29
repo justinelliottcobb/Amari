@@ -418,6 +418,467 @@ console.log("Estimated capacity:", capacity, "patterns");`,
           `For n=${size}: ~${Math.floor(size / Math.log2(size))} patterns`
         ].join('\n');
       })
+    },
+    // Optical Field Operations (v0.15.1)
+    {
+      title: "Optical Rotor Fields",
+      description: "GA-native representation of optical wavefronts as Cl(2,0) rotors",
+      category: "Optical",
+      code: `// Create optical rotor fields for holographic displays
+const field = WasmOpticalRotorField.random(64, 64, 12345n);
+
+// Each point is a rotor R = cos(φ) + sin(φ)·e₁₂
+// representing phase φ and amplitude
+console.log(\`Field size: \${field.width}×\${field.height}\`);
+console.log(\`Total energy: \${field.totalEnergy()}\`);
+
+// Access individual points
+const phase = field.phaseAt(32, 32);  // Phase in radians
+const amplitude = field.amplitudeAt(32, 32);
+
+// Normalize energy to 1
+const normalized = field.normalized();`,
+      onRun: simulateExample(() => {
+        // Simulate optical field creation
+        const width = 64, height = 64;
+        const phases: number[] = [];
+        const amplitudes: number[] = [];
+
+        for (let y = 0; y < height; y++) {
+          for (let x = 0; x < width; x++) {
+            // Generate random phase
+            phases.push(Math.random() * 2 * Math.PI);
+            amplitudes.push(1.0);
+          }
+        }
+
+        const totalEnergy = amplitudes.reduce((s, a) => s + a * a, 0);
+
+        // Compute phase statistics
+        let sumCos = 0, sumSin = 0;
+        for (const p of phases) {
+          sumCos += Math.cos(p);
+          sumSin += Math.sin(p);
+        }
+        const meanPhase = Math.atan2(sumSin, sumCos);
+
+        return [
+          "Optical Rotor Field",
+          "",
+          `Dimensions: ${width}×${height} = ${width * height} points`,
+          "",
+          "Each point is a rotor: R = cos(φ) + sin(φ)·e₁₂",
+          "  • φ = phase (optical path length × k)",
+          "  • Amplitude = electric field strength",
+          "",
+          `Total energy: ${totalEnergy.toFixed(2)}`,
+          `Mean phase: ${(meanPhase * 180 / Math.PI).toFixed(1)}°`,
+          "",
+          "Memory layout (SIMD-optimized):",
+          "  • Separate arrays for scalar, bivector, amplitude",
+          "  • Enables vectorized operations"
+        ].join('\n');
+      })
+    },
+    {
+      title: "Lee Hologram Encoding",
+      description: "Encode optical fields to binary patterns for DMD displays",
+      category: "Optical",
+      code: `// Lee hologram: encodes phase and amplitude in binary
+const field = WasmOpticalRotorField.uniform(0.0, 0.5, 64, 64);
+
+// Create encoder with carrier frequency
+const encoder = WasmGeometricLeeEncoder.withFrequency(64, 64, 0.25);
+
+// Encode to binary hologram
+const hologram = encoder.encode(field);
+
+console.log(\`Fill factor: \${hologram.fillFactor()}\`);
+console.log(\`Efficiency: \${encoder.theoreticalEfficiency(field)}\`);
+
+// Get binary data for DMD hardware
+const binaryData = hologram.asBytes();`,
+      onRun: simulateExample(() => {
+        const width = 64, height = 64;
+        const carrierFreq = 0.25;  // cycles per pixel
+        const amplitude = 0.5;
+
+        // Simulate Lee encoding
+        let onPixels = 0;
+        for (let y = 0; y < height; y++) {
+          for (let x = 0; x < width; x++) {
+            // Carrier wave
+            const carrier = Math.cos(2 * Math.PI * carrierFreq * x);
+            // Modulated by amplitude
+            const modulated = amplitude * carrier;
+            // Threshold to binary
+            if (modulated > 0) onPixels++;
+          }
+        }
+
+        const fillFactor = onPixels / (width * height);
+        // First-order efficiency for Lee hologram
+        const efficiency = (2 * amplitude / Math.PI) ** 2;
+
+        return [
+          "Lee Hologram Encoding",
+          "",
+          `Field: ${width}×${height}, amplitude=${amplitude}`,
+          `Carrier frequency: ${carrierFreq} cycles/pixel`,
+          "",
+          "Lee encoding principle:",
+          "  1. Modulate field with carrier wave",
+          "  2. Threshold to binary pattern",
+          "  3. First diffraction order contains original field",
+          "",
+          `Fill factor: ${(fillFactor * 100).toFixed(1)}%`,
+          `Theoretical efficiency: ${(efficiency * 100).toFixed(1)}%`,
+          "",
+          "Binary pattern for DMD:",
+          `  ${Math.ceil(width * height / 8)} bytes packed`,
+          "  LSB-first, row-major order"
+        ].join('\n');
+      })
+    },
+    {
+      title: "VSA Bind Operation",
+      description: "Rotor multiplication for associative binding",
+      category: "Optical",
+      code: `// VSA binding uses rotor product (phase addition)
+const algebra = new WasmOpticalFieldAlgebra(64, 64);
+
+// Create symbol fields
+const role = WasmOpticalRotorField.random(64, 64, 1n);
+const filler = WasmOpticalRotorField.random(64, 64, 2n);
+
+// Bind: creates association
+const bound = algebra.bind(role, filler);
+
+// Self-similarity is 1.0
+console.log(\`Self-similarity: \${algebra.similarity(role, role)}\`);
+
+// Bound is dissimilar to components
+console.log(\`Bound vs role: \${algebra.similarity(bound, role)}\`);
+
+// Unbind to retrieve filler
+const retrieved = algebra.unbind(role, bound);
+console.log(\`Retrieved vs filler: \${algebra.similarity(retrieved, filler)}\`);`,
+      onRun: simulateExample(() => {
+        const n = 64 * 64;
+
+        // Random phases for role and filler
+        const rolePhases = Array(n).fill(0).map(() => Math.random() * 2 * Math.PI);
+        const fillerPhases = Array(n).fill(0).map(() => Math.random() * 2 * Math.PI);
+
+        // Bind = pointwise phase addition (mod 2π)
+        const boundPhases = rolePhases.map((r, i) => (r + fillerPhases[i]) % (2 * Math.PI));
+
+        // Unbind = subtract role phase
+        const retrievedPhases = boundPhases.map((b, i) => (b - rolePhases[i] + 4 * Math.PI) % (2 * Math.PI));
+
+        // Compute similarities (cosine similarity of rotors)
+        const similarity = (a: number[], b: number[]) => {
+          let sum = 0;
+          for (let i = 0; i < a.length; i++) {
+            sum += Math.cos(a[i] - b[i]);
+          }
+          return sum / a.length;
+        };
+
+        const selfSim = similarity(rolePhases, rolePhases);
+        const boundVsRole = similarity(boundPhases, rolePhases);
+        const retrievedVsFiller = similarity(retrievedPhases, fillerPhases);
+
+        return [
+          "VSA Binding with Rotor Product",
+          "",
+          "Binding operation: bound = role ⊗ filler",
+          "  • Rotor product: phase_bound = phase_role + phase_filler",
+          "  • Amplitude: product of amplitudes",
+          "",
+          "Properties:",
+          `  Self-similarity: ${selfSim.toFixed(4)} (≈1.0)`,
+          `  Bound vs role: ${boundVsRole.toFixed(4)} (≈0.0)`,
+          `  Bound vs filler: ${similarity(boundPhases, fillerPhases).toFixed(4)} (≈0.0)`,
+          "",
+          "Unbinding: retrieved = role⁻¹ ⊗ bound",
+          `  Retrieved vs filler: ${retrievedVsFiller.toFixed(4)} (≈1.0)`,
+          "",
+          "Key insight: Binding is information-preserving,",
+          "unbinding recovers the original filler exactly."
+        ].join('\n');
+      })
+    },
+    {
+      title: "VSA Bundle Operation",
+      description: "Weighted superposition of multiple fields",
+      category: "Optical",
+      code: `// Bundle combines multiple fields via weighted sum
+const algebra = new WasmOpticalFieldAlgebra(64, 64);
+
+// Create multiple pattern fields
+const patterns = [
+  algebra.random(1n),
+  algebra.random(2n),
+  algebra.random(3n)
+];
+
+// Bundle with equal weights
+const bundled = algebra.bundleUniform(patterns);
+
+// Each pattern is similar to the bundle
+patterns.forEach((p, i) => {
+  const sim = algebra.similarity(p, bundled);
+  console.log(\`Pattern \${i} similarity: \${sim}\`);
+});`,
+      onRun: simulateExample(() => {
+        const n = 64 * 64;
+        const numPatterns = 5;
+
+        // Generate random patterns
+        const patterns = [];
+        for (let p = 0; p < numPatterns; p++) {
+          patterns.push(Array(n).fill(0).map(() => Math.random() * 2 * Math.PI));
+        }
+
+        // Bundle: average of rotor components
+        const bundleScalar = Array(n).fill(0);
+        const bundleBivector = Array(n).fill(0);
+
+        for (let i = 0; i < n; i++) {
+          for (let p = 0; p < numPatterns; p++) {
+            bundleScalar[i] += Math.cos(patterns[p][i]);
+            bundleBivector[i] += Math.sin(patterns[p][i]);
+          }
+          bundleScalar[i] /= numPatterns;
+          bundleBivector[i] /= numPatterns;
+        }
+
+        // Compute bundle phase
+        const bundlePhases = bundleScalar.map((s, i) => Math.atan2(bundleBivector[i], s));
+
+        // Compute similarities
+        const similarity = (a: number[], b: number[]) => {
+          let sum = 0;
+          for (let i = 0; i < a.length; i++) {
+            sum += Math.cos(a[i] - b[i]);
+          }
+          return sum / a.length;
+        };
+
+        const similarities = patterns.map(p => similarity(p, bundlePhases));
+
+        return [
+          "VSA Bundling (Superposition)",
+          "",
+          `Bundling ${numPatterns} random patterns`,
+          "",
+          "Bundle operation: superposition of rotors",
+          "  bundle = (1/n) Σᵢ Rᵢ",
+          "  Each rotor contributes to the sum",
+          "",
+          "Pattern similarities to bundle:",
+          ...similarities.map((s, i) => `  Pattern ${i}: ${s.toFixed(4)}`),
+          "",
+          `Average similarity: ${(similarities.reduce((a, b) => a + b, 0) / numPatterns).toFixed(4)}`,
+          `Expected for ${numPatterns} patterns: ~${(1 / Math.sqrt(numPatterns)).toFixed(4)}`,
+          "",
+          "Bundle contains information from all patterns.",
+          "Similarity decreases with more patterns (capacity limit)."
+        ].join('\n');
+      })
+    },
+    {
+      title: "Symbol Codebook",
+      description: "Deterministic symbol-to-field mapping for VSA",
+      category: "Optical",
+      code: `// Codebook generates reproducible fields from symbols
+const codebook = new WasmOpticalCodebook(64, 64, 12345n);
+
+// Register symbols
+codebook.register("AGENT");
+codebook.register("ACTION");
+codebook.register("LOCATION");
+
+// Get field for symbol (deterministic)
+const agentField = codebook.get("AGENT");
+const actionField = codebook.get("ACTION");
+
+// Same symbol always gives same field
+const agentField2 = codebook.get("AGENT");
+console.log("Identical:", algebra.similarity(agentField, agentField2) === 1.0);
+
+// Symbols are quasi-orthogonal
+console.log(\`AGENT·ACTION: \${algebra.similarity(agentField, actionField)}\`);`,
+      onRun: simulateExample(() => {
+        const symbols = ["AGENT", "ACTION", "LOCATION", "TIME", "OBJECT"];
+
+        // Simulate seed-based generation
+        const hashSymbol = (symbol: string, baseSeed: number) => {
+          let hash = baseSeed;
+          for (let i = 0; i < symbol.length; i++) {
+            hash = hash * 31 + symbol.charCodeAt(i);
+          }
+          return hash;
+        };
+
+        const baseSeed = 12345;
+        const seeds = symbols.map(s => hashSymbol(s, baseSeed));
+
+        // Generate phases from seeds (simplified)
+        const n = 64 * 64;
+        const generatePhases = (seed: number) => {
+          const rng = (s: number) => {
+            s = Math.sin(s) * 10000;
+            return s - Math.floor(s);
+          };
+          return Array(n).fill(0).map((_, i) => rng(seed + i) * 2 * Math.PI);
+        };
+
+        const fields = symbols.map(s => generatePhases(hashSymbol(s, baseSeed)));
+
+        // Compute pairwise similarities
+        const similarity = (a: number[], b: number[]) => {
+          let sum = 0;
+          for (let i = 0; i < a.length; i++) {
+            sum += Math.cos(a[i] - b[i]);
+          }
+          return sum / a.length;
+        };
+
+        return [
+          "Symbol Codebook",
+          "",
+          `Base seed: ${baseSeed}`,
+          `Registered symbols: ${symbols.join(", ")}`,
+          "",
+          "Symbol → Seed mapping (FNV hash):",
+          ...symbols.map((s, i) => `  ${s}: ${seeds[i]}`),
+          "",
+          "Pairwise similarities (should be ≈0):",
+          `  AGENT · ACTION: ${similarity(fields[0], fields[1]).toFixed(4)}`,
+          `  AGENT · LOCATION: ${similarity(fields[0], fields[2]).toFixed(4)}`,
+          `  ACTION · TIME: ${similarity(fields[1], fields[3]).toFixed(4)}`,
+          "",
+          "Self-similarity (should be 1.0):",
+          `  AGENT · AGENT: ${similarity(fields[0], fields[0]).toFixed(4)}`,
+          "",
+          "Benefits:",
+          "  • Reproducible across sessions",
+          "  • Minimal storage (just store seeds)",
+          "  • Lazy generation on demand"
+        ].join('\n');
+      })
+    },
+    {
+      title: "Tropical Attractor Dynamics",
+      description: "Use tropical (min, +) algebra for attractor pattern completion",
+      category: "Optical",
+      code: `// Tropical operations find stable attractors
+const tropical = new WasmTropicalOpticalAlgebra(32, 32);
+
+// Create attractor patterns
+const attractors = [
+  WasmOpticalRotorField.random(32, 32, 100n),
+  WasmOpticalRotorField.random(32, 32, 200n),
+  WasmOpticalRotorField.random(32, 32, 300n)
+];
+
+// Start with noisy initial state
+const initial = WasmOpticalRotorField.random(32, 32, 999n);
+
+// Run attractor dynamics until convergence
+const result = tropical.attractorConverge(
+  initial, attractors, 100, 0.001
+);
+
+// Check which attractor was reached
+attractors.forEach((a, i) => {
+  console.log(\`Distance to attractor \${i}: \${tropical.phaseDistance(result, a)}\`);
+});`,
+      onRun: simulateExample(() => {
+        const n = 32 * 32;
+        const numAttractors = 3;
+
+        // Generate random attractors
+        const attractors = [];
+        for (let a = 0; a < numAttractors; a++) {
+          attractors.push(Array(n).fill(0).map(() => Math.random() * 2 * Math.PI));
+        }
+
+        // Initial state: slightly perturbed version of attractor 0
+        const initial = attractors[0].map(p => p + (Math.random() - 0.5) * 0.5);
+
+        // Tropical dynamics: converge to nearest attractor
+        let state = [...initial];
+        const iterations = [];
+
+        for (let iter = 0; iter < 10; iter++) {
+          // Find closest attractor at each point
+          const newState = state.map((_, i) => {
+            let minDist = Infinity;
+            let bestPhase = state[i];
+
+            for (const attr of attractors) {
+              const dist = Math.abs(state[i] - attr[i]);
+              const wrappedDist = Math.min(dist, 2 * Math.PI - dist);
+              if (wrappedDist < minDist) {
+                minDist = wrappedDist;
+                bestPhase = attr[i];
+              }
+            }
+
+            return bestPhase;
+          });
+
+          // Compute average movement
+          const movement = state.reduce((s, p, i) => {
+            const d = Math.abs(p - newState[i]);
+            return s + Math.min(d, 2 * Math.PI - d);
+          }, 0) / n;
+
+          iterations.push({ iter, movement });
+          state = newState;
+
+          if (movement < 0.001) break;
+        }
+
+        // Find distances to each attractor
+        const phaseDistance = (a: number[], b: number[]) => {
+          let sum = 0;
+          for (let i = 0; i < a.length; i++) {
+            const d = Math.abs(a[i] - b[i]);
+            sum += Math.min(d, 2 * Math.PI - d);
+          }
+          return sum / a.length;
+        };
+
+        const finalDistances = attractors.map(a => phaseDistance(state, a));
+        const convergedTo = finalDistances.indexOf(Math.min(...finalDistances));
+
+        return [
+          "Tropical Attractor Dynamics",
+          "",
+          `${numAttractors} attractors, ${n} points per field`,
+          "",
+          "Dynamics: each point moves toward nearest attractor phase",
+          "  Uses tropical min-plus algebra: select minimum distance",
+          "",
+          "Convergence:",
+          ...iterations.map(it =>
+            `  Iter ${it.iter}: avg movement = ${it.movement.toFixed(6)}`
+          ),
+          "",
+          "Final distances to attractors:",
+          ...finalDistances.map((d, i) =>
+            `  Attractor ${i}: ${d.toFixed(6)}${i === convergedTo ? " ← converged" : ""}`
+          ),
+          "",
+          "Application: content-addressable memory",
+          "  • Store patterns as attractors",
+          "  • Noisy query converges to stored pattern"
+        ].join('\n');
+      })
     }
   ];
 
@@ -438,11 +899,12 @@ console.log("Estimated capacity:", capacity, "patterns");`,
           <Card.Section inheritPadding py="md">
             <Text mb="md">
               The <Code>amari-holographic</Code> module implements holographic memory systems
-              where information is stored in distributed interference patterns.
+              where information is stored in distributed interference patterns. Version 0.15.1
+              adds GA-native optical field operations for Lee hologram encoding and VSA.
             </Text>
-            <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
+            <SimpleGrid cols={{ base: 1, md: 3 }} spacing="md">
               <div>
-                <Title order={4} size="sm" mb="xs">Key Properties</Title>
+                <Title order={4} size="sm" mb="xs">Memory Properties</Title>
                 <Text size="sm" c="dimmed" component="ul" style={{ paddingLeft: '1rem', margin: 0 }}>
                   <li>Distributed representation</li>
                   <li>Content-addressable recall</li>
@@ -451,12 +913,21 @@ console.log("Estimated capacity:", capacity, "patterns");`,
                 </Text>
               </div>
               <div>
+                <Title order={4} size="sm" mb="xs">Optical Operations</Title>
+                <Text size="sm" c="dimmed" component="ul" style={{ paddingLeft: '1rem', margin: 0 }}>
+                  <li>Rotor field wavefronts</li>
+                  <li>Lee hologram encoding</li>
+                  <li>VSA bind/bundle/similarity</li>
+                  <li>Tropical attractor dynamics</li>
+                </Text>
+              </div>
+              <div>
                 <Title order={4} size="sm" mb="xs">Applications</Title>
                 <Text size="sm" c="dimmed" component="ul" style={{ paddingLeft: '1rem', margin: 0 }}>
-                  <li>Associative memory</li>
-                  <li>Pattern completion</li>
+                  <li>DMD holographic displays</li>
+                  <li>Optical neural networks</li>
                   <li>Fault-tolerant storage</li>
-                  <li>Neural-inspired computing</li>
+                  <li>Associative reasoning</li>
                 </Text>
               </div>
             </SimpleGrid>
