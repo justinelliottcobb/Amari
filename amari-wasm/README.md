@@ -17,6 +17,7 @@ Amari is a comprehensive mathematical computing library that brings advanced alg
 - **Automatic Differentiation**: Forward-mode AD with dual numbers for exact derivatives
 - **Measure Theory** *(v0.10.0)*: Lebesgue integration, probability measures, and measure-theoretic foundations
 - **Holographic Memory** *(v0.12.3)*: Vector Symbolic Architecture for associative memory with binding and bundling operations
+- **Optical Field Operations** *(v0.15.1)*: GA-native Lee hologram encoding for DMD displays and VSA-based optical processing
 - **Probability Theory** *(v0.13.0)*: Distributions on multivector spaces, MCMC sampling, and Monte Carlo estimation
 - **Relativistic Physics**: Spacetime algebra (Cl(1,3)) with WebAssembly-compatible precision
 - **Spacecraft Orbital Mechanics**: Full-precision trajectory calculations in browsers
@@ -334,6 +335,148 @@ async function probabilisticDemo() {
 probabilisticDemo();
 ```
 
+### Optical Field Operations *(v0.15.1)*
+
+Encode optical fields as binary holograms for DMD displays using geometric algebra:
+
+```typescript
+import init, {
+  WasmOpticalRotorField,
+  WasmBinaryHologram,
+  WasmGeometricLeeEncoder,
+  WasmOpticalFieldAlgebra,
+  WasmOpticalCodebook,
+  WasmTropicalOpticalAlgebra
+} from '@justinelliottcobb/amari-wasm';
+
+async function opticalDemo() {
+  await init();
+
+  // Create optical rotor fields (phase + amplitude on a grid)
+  const field1 = WasmOpticalRotorField.random(256, 256, 12345n);
+  const field2 = WasmOpticalRotorField.random(256, 256, 67890n);
+  const uniform = WasmOpticalRotorField.uniform(0.0, 0.5, 256, 256);
+
+  console.log(`Field dimensions: ${field1.width} x ${field1.height}`);
+  console.log(`Total energy: ${field1.totalEnergy()}`);
+
+  // Lee hologram encoding for DMD display
+  const encoder = WasmGeometricLeeEncoder.withFrequency(256, 256, 0.25);
+  const hologram = encoder.encode(uniform);
+
+  console.log(`Hologram fill factor: ${hologram.fillFactor()}`);
+  console.log(`Theoretical efficiency: ${encoder.theoreticalEfficiency(uniform)}`);
+
+  // Get binary data for hardware interface
+  const binaryData = hologram.asBytes();
+  console.log(`Packed binary size: ${binaryData.length} bytes`);
+
+  // VSA operations on optical fields
+  const algebra = new WasmOpticalFieldAlgebra(256, 256);
+
+  // Bind two fields (rotor multiplication = phase addition)
+  const bound = algebra.bind(field1, field2);
+
+  // Compute similarity between fields
+  const similarity = algebra.similarity(field1, field1); // Self-similarity = 1.0
+  console.log(`Self-similarity: ${similarity}`);
+
+  // Unbind to retrieve original field
+  const retrieved = algebra.unbind(field1, bound);
+  const retrievalSim = algebra.similarity(retrieved, field2);
+  console.log(`Retrieval similarity: ${retrievalSim}`);
+
+  // Seed-based symbol codebook for VSA
+  const codebook = new WasmOpticalCodebook(64, 64, 42n);
+  codebook.register("AGENT");
+  codebook.register("ACTION");
+  codebook.register("TARGET");
+
+  const agentField = codebook.get("AGENT");
+  const actionField = codebook.get("ACTION");
+  console.log(`Registered symbols: ${codebook.symbols()}`);
+
+  // Tropical operations for attractor dynamics
+  const tropical = new WasmTropicalOpticalAlgebra(64, 64);
+
+  // Tropical add: pointwise minimum of phase magnitudes
+  const tropicalSum = tropical.tropicalAdd(field1, field2);
+
+  // Soft tropical add with temperature parameter
+  const softSum = tropical.softTropicalAdd(field1, field2, 10.0);
+
+  // Phase distance between fields
+  const distance = tropical.phaseDistance(field1, field2);
+  console.log(`Phase distance: ${distance}`);
+
+  // Clean up WASM memory
+  field1.free();
+  field2.free();
+  uniform.free();
+  hologram.free();
+  bound.free();
+  retrieved.free();
+  agentField.free();
+  actionField.free();
+  tropicalSum.free();
+  softSum.free();
+}
+
+opticalDemo();
+```
+
+#### Optical Field API
+
+**WasmOpticalRotorField:**
+- `random(width, height, seed)`: Create random phase field
+- `uniform(phase, amplitude, width, height)`: Uniform field
+- `identity(width, height)`: Identity field (phase = 0)
+- `fromPhase(phases, width, height)`: Create from phase array
+- `phaseAt(x, y)`: Get phase at point (radians)
+- `amplitudeAt(x, y)`: Get amplitude at point
+- `totalEnergy()`: Sum of squared amplitudes
+- `normalized()`: Normalized copy (energy = 1)
+
+**WasmGeometricLeeEncoder:**
+- `withFrequency(width, height, frequency)`: Create horizontal carrier encoder
+- `new(width, height, frequency, angle)`: Create with angled carrier
+- `encode(field)`: Encode to binary hologram
+- `modulate(field)`: Get modulated field before thresholding
+- `theoreticalEfficiency(field)`: Compute diffraction efficiency
+
+**WasmBinaryHologram:**
+- `get(x, y)`: Get pixel value
+- `set(x, y, value)`: Set pixel value
+- `fillFactor()`: Fraction of "on" pixels
+- `hammingDistance(other)`: Compute Hamming distance
+- `asBytes()`: Get packed binary data
+- `inverted()`: Create inverted copy
+
+**WasmOpticalFieldAlgebra:**
+- `bind(a, b)`: Rotor multiplication (phase addition)
+- `unbind(key, bound)`: Retrieve associated field
+- `bundle(fields, weights)`: Weighted superposition
+- `bundleUniform(fields)`: Equal-weight bundle
+- `similarity(a, b)`: Normalized inner product
+- `inverse(field)`: Phase negation
+- `scale(field, factor)`: Amplitude scaling
+- `addPhase(field, phase)`: Add constant phase
+
+**WasmOpticalCodebook:**
+- `new(width, height, baseSeed)`: Create codebook
+- `register(symbol)`: Register symbol with auto-seed
+- `get(symbol)`: Get or generate field for symbol
+- `contains(symbol)`: Check if symbol is registered
+- `symbols()`: Get all registered symbol names
+
+**WasmTropicalOpticalAlgebra:**
+- `tropicalAdd(a, b)`: Pointwise minimum phase magnitude
+- `tropicalMax(a, b)`: Pointwise maximum phase magnitude
+- `tropicalMul(a, b)`: Binding (phase addition)
+- `softTropicalAdd(a, b, beta)`: Soft minimum with temperature
+- `phaseDistance(a, b)`: Sum of absolute phase differences
+- `attractorConverge(initial, attractors, maxIter, tol)`: Attractor dynamics
+
 #### Probability API
 
 **WasmGaussianMultivector:**
@@ -391,6 +534,8 @@ probabilisticDemo();
 - **Symbolic AI**: Holographic memory for associative reasoning and concept binding
 - **Cognitive Architectures**: Brain-inspired memory systems for AI agents
 - **Embedding Retrieval**: Content-addressable semantic search in vector databases
+- **Holographic Displays**: Lee hologram encoding for DMD and SLM devices
+- **Optical Computing**: Phase-encoded VSA operations for optical neural networks
 
 ## API Reference
 
@@ -436,6 +581,21 @@ probabilisticDemo();
 - `WasmUniformMultivector.unitSphere()`: Uniform on unit sphere
 - `WasmUniformMultivector.sample()`: Draw random sample
 - `WasmMonteCarloEstimator.estimate(fn, dist, n)`: Monte Carlo expectation
+
+### Optical Field Operations
+
+- `WasmOpticalRotorField.random(width, height, seed)`: Create random phase field
+- `WasmOpticalRotorField.uniform(phase, amplitude, width, height)`: Uniform field
+- `WasmGeometricLeeEncoder.withFrequency(width, height, freq)`: Create Lee encoder
+- `WasmGeometricLeeEncoder.encode(field)`: Encode to binary hologram
+- `WasmBinaryHologram.fillFactor()`: Fraction of "on" pixels
+- `WasmBinaryHologram.asBytes()`: Get packed binary data for hardware
+- `WasmOpticalFieldAlgebra.bind(a, b)`: Rotor product (phase addition)
+- `WasmOpticalFieldAlgebra.unbind(key, bound)`: Retrieve associated field
+- `WasmOpticalFieldAlgebra.similarity(a, b)`: Normalized inner product
+- `WasmOpticalCodebook.register(symbol)`: Register symbol with auto-seed
+- `WasmOpticalCodebook.get(symbol)`: Get field for symbol
+- `WasmTropicalOpticalAlgebra.tropicalAdd(a, b)`: Pointwise minimum phase
 
 ## Examples
 
