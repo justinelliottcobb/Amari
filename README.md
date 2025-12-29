@@ -1,8 +1,8 @@
-# Amari v0.14.0
+# Amari v0.15.0
 
-**Comprehensive Mathematical Computing Platform with Geometric Algebra, Differential Calculus, Measure Theory, Probability Theory, and Vector Symbolic Architectures**
+**Comprehensive Mathematical Computing Platform with Geometric Algebra, Differential Calculus, Measure Theory, Probability Theory, Functional Analysis, and Vector Symbolic Architectures**
 
-A unified mathematical computing library featuring geometric algebra, differential calculus, measure theory, probability theory on geometric spaces, relativistic physics, tropical algebra, automatic differentiation, holographic associative memory (Vector Symbolic Architectures), and information geometry. The library provides multi-GPU infrastructure with intelligent workload distribution and complete WebAssembly support for browser deployment.
+A unified mathematical computing library featuring geometric algebra, differential calculus, measure theory, probability theory on geometric spaces, functional analysis (Hilbert spaces, operators, spectral theory), relativistic physics, tropical algebra, automatic differentiation, holographic associative memory (Vector Symbolic Architectures), and information geometry. The library provides multi-GPU infrastructure with intelligent workload distribution and complete WebAssembly support for browser deployment.
 
 [![Rust](https://img.shields.io/badge/Rust-1.75+-orange.svg)](https://www.rust-lang.org/)
 [![WebAssembly](https://img.shields.io/badge/WebAssembly-Ready-blue.svg)](https://webassembly.org/)
@@ -19,6 +19,7 @@ A unified mathematical computing library featuring geometric algebra, differenti
 - **Differential Calculus**: Unified geometric calculus with scalar/vector fields, gradients, divergence, curl, and Lie derivatives
 - **Measure Theory**: Sigma-algebras, measurable functions, integration on geometric spaces, and probability measures
 - **Probability Theory**: Distributions on multivector spaces, stochastic processes, MCMC sampling, and Bayesian inference
+- **Functional Analysis**: Hilbert spaces, bounded operators, spectral decomposition, eigenvalue algorithms, and Sobolev spaces
 - **Vector Symbolic Architectures**: Holographic Reduced Representations (HRR), binding algebras, and associative memory
 - **Relativistic Physics**: Complete spacetime algebra (Cl(1,3)) with Minkowski signature for relativistic calculations
 - **Tropical Algebra**: Max-plus semiring operations for optimization and neural network applications
@@ -55,42 +56,45 @@ Add to your `Cargo.toml`:
 ```toml
 [dependencies]
 # Complete library with all features
-amari = "0.14.0"
+amari = "0.15.0"
 
 # Or individual crates:
 
 # Core geometric algebra and mathematical foundations
-amari-core = "0.14.0"
+amari-core = "0.15.0"
 
 # Differential calculus with geometric algebra
-amari-calculus = "0.14.0"
+amari-calculus = "0.15.0"
 
 # Measure theory and integration
-amari-measure = "0.14.0"
+amari-measure = "0.15.0"
 
 # Probability theory on geometric algebra spaces
-amari-probabilistic = "0.14.0"
+amari-probabilistic = "0.15.0"
+
+# Functional analysis: Hilbert spaces, operators, spectral theory
+amari-functional = "0.15.0"
 
 # Vector Symbolic Architectures and holographic memory
-amari-holographic = "0.14.0"
+amari-holographic = "0.15.0"
 
 # High-precision relativistic physics
-amari-relativistic = { version = "0.14.0", features = ["high-precision"] }
+amari-relativistic = { version = "0.15.0", features = ["high-precision"] }
 
 # GPU acceleration
-amari-gpu = "0.14.0"
+amari-gpu = "0.15.0"
 
 # Optimization algorithms
-amari-optimization = "0.14.0"
+amari-optimization = "0.15.0"
 
 # Additional mathematical systems
-amari-tropical = "0.14.0"
-amari-dual = "0.14.0"
-amari-info-geom = "0.14.0"
-amari-automata = "0.14.0"
-amari-fusion = "0.14.0"
-amari-network = "0.14.0"
-amari-enumerative = "0.14.0"
+amari-tropical = "0.15.0"
+amari-dual = "0.15.0"
+amari-info-geom = "0.15.0"
+amari-automata = "0.15.0"
+amari-fusion = "0.15.0"
+amari-network = "0.15.0"
+amari-enumerative = "0.15.0"
 ```
 
 ### JavaScript/TypeScript (WebAssembly)
@@ -259,6 +263,37 @@ let noisy = retrieved.clone(); // Noisy retrieval
 let cleaned = resonator.cleanup(&noisy, 10); // 10 iterations
 ```
 
+### Rust: Functional Analysis (Hilbert Spaces & Spectral Theory)
+
+```rust
+use amari_functional::space::{MultivectorHilbertSpace, HilbertSpace, InnerProductSpace};
+use amari_functional::operator::MatrixOperator;
+use amari_functional::spectral::spectral_decompose;
+
+// Create the Hilbert space Cl(2,0,0) ≅ ℝ⁴
+let space: MultivectorHilbertSpace<2, 0, 0> = MultivectorHilbertSpace::new();
+
+// Create orthogonal elements
+let x = space.from_coefficients(&[1.0, 2.0, 0.0, 0.0]).unwrap();
+let y = space.from_coefficients(&[0.0, 0.0, 3.0, 4.0]).unwrap();
+
+// Inner product and norm
+let ip = space.inner_product(&x, &y);  // 0.0 (orthogonal)
+let norm_x = space.norm(&x);           // √5
+
+// Create a symmetric matrix operator (Hamiltonian)
+let hamiltonian = MatrixOperator::<2, 0, 0>::diagonal(&[0.0, 1.0, 2.0, 3.0]).unwrap();
+
+// Spectral decomposition: H = Σᵢ λᵢ Pᵢ
+let spectral = spectral_decompose(&hamiltonian, 100, 1e-10).unwrap();
+let eigenvalues = spectral.eigenvalues();
+println!("Energy levels: {:?}", eigenvalues.iter().map(|e| e.value).collect::<Vec<_>>());
+
+// Functional calculus: compute e^{-βH} for thermal states
+let beta = 0.5;
+let thermal = spectral.apply_function(|E| (-beta * E).exp(), &x);
+```
+
 ### Rust: Probability on Geometric Algebra
 
 ```rust
@@ -337,6 +372,7 @@ main();
 - `amari-measure`: Measure theory, sigma-algebras, and integration
 - `amari-calculus`: Differential calculus with geometric algebra
 - `amari-probabilistic`: Probability distributions on multivector spaces, stochastic processes, MCMC
+- `amari-functional`: Hilbert spaces, bounded operators, spectral decomposition, Sobolev spaces
 - `amari-holographic`: Vector Symbolic Architectures (VSA), binding algebras, holographic memory
 - `amari-tropical`: Tropical (max-plus) algebra for optimization
 - `amari-dual`: Dual numbers for automatic differentiation
@@ -472,7 +508,7 @@ The **[Amari Examples Suite](https://amari-math.netlify.app)** provides comprehe
 
 - **Interactive Playground**: Write and run JavaScript code with live WASM execution
 
-## GPU Module Status (v0.14.0)
+## GPU Module Status (v0.15.0)
 
 | Module | Status | Feature Flag |
 |--------|--------|--------------|
@@ -488,6 +524,7 @@ The **[Amari Examples Suite](https://amari-math.netlify.app)** provides comprehe
 | Fusion | ✅ Enabled | `fusion` |
 | Holographic | ✅ Enabled | `holographic` |
 | Probabilistic | ✅ Enabled | `probabilistic` |
+| Functional | ✅ Enabled | `functional` |
 | Tropical | ❌ Disabled | - |
 
 Note: Tropical GPU module temporarily disabled due to Rust orphan impl rules. Use CPU implementations from domain crates.
