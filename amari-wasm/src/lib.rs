@@ -12,6 +12,7 @@
 //! - **Optical fields** (amari-holographic) - GA-native Lee hologram encoding (v0.15.1+)
 //! - **Probabilistic** (amari-probabilistic) - Probability distributions on GA spaces (v0.13.0+)
 //! - **Functional analysis** (amari-functional) - Hilbert spaces, operators, spectral theory (v0.15.0+)
+//! - **Computational Topology** (amari-topology) - Simplicial complexes, homology, persistent homology (v0.16.0+)
 //!
 //! # Holographic Memory (Vector Symbolic Architectures)
 //!
@@ -80,6 +81,7 @@ pub mod optical; // Enabled for v0.15.1 - GA-native optical field operations and
 pub mod optimization; // Enabled for v0.9.7 - Advanced optimization algorithms for web
 pub mod probabilistic; // Enabled for v0.13.0 - Probability distributions on multivector spaces
 pub mod relativistic;
+pub mod topology; // Enabled for v0.16.0 - Simplicial complexes, homology, persistent homology
 pub mod tropical; // Enabled for v0.9.3 - critical for optimization algorithms in web
 
 /// Number of coefficients in a 3D Clifford algebra multivector (2^3 = 8)

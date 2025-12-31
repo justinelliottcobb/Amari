@@ -50,6 +50,11 @@ const navigationSections: NavSection[] = [
         title: "Measure Theory",
         href: "/measure",
         description: "Measures, probability, and information"
+      },
+      {
+        title: "Topology",
+        href: "/topology",
+        description: "Homology, persistence, and Morse theory"
       }
     ]
   },

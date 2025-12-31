@@ -1,4 +1,4 @@
-# @justinelliottcobb/amari-wasm v0.15.1
+# @justinelliottcobb/amari-wasm v0.16.0
 
 **Unified Mathematical Computing Library with High-Precision WebAssembly Support**
 
@@ -19,6 +19,7 @@ Amari is a comprehensive mathematical computing library that brings advanced alg
 - **Holographic Memory** *(v0.12.3)*: Vector Symbolic Architecture for associative memory with binding and bundling operations
 - **Functional Analysis** *(v0.15.0)*: Hilbert spaces, linear operators, spectral decomposition, and Sobolev spaces
 - **Optical Field Operations** *(v0.15.1)*: GA-native Lee hologram encoding for DMD displays and VSA-based optical processing
+- **Computational Topology** *(v0.16.0)*: Simplicial complexes, homology computation, persistent homology, and Morse theory
 - **Probability Theory** *(v0.13.0)*: Distributions on multivector spaces, MCMC sampling, and Monte Carlo estimation
 - **Relativistic Physics**: Spacetime algebra (Cl(1,3)) with WebAssembly-compatible precision
 - **Spacecraft Orbital Mechanics**: Full-precision trajectory calculations in browsers
@@ -570,6 +571,202 @@ async function opticalDemo() {
 opticalDemo();
 ```
 
+### Computational Topology *(v0.16.0)*
+
+Compute homology groups, persistent homology, and analyze topological features of data:
+
+```typescript
+import init, {
+  WasmSimplex,
+  WasmSimplicialComplex,
+  WasmFiltration,
+  WasmPersistentHomology,
+  ripsFromDistances,
+  findCriticalPoints2D,
+  WasmMorseComplex
+} from '@justinelliottcobb/amari-wasm';
+
+async function topologyDemo() {
+  await init();
+
+  // ========================================
+  // Simplicial Complexes and Homology
+  // ========================================
+
+  // Create a triangle (2-simplex with all faces)
+  const complex = new WasmSimplicialComplex();
+  complex.addSimplex([0, 1, 2]); // Triangle
+
+  // Closure property: edges and vertices automatically added
+  console.log(`Vertices: ${complex.vertexCount()}`);   // 3
+  console.log(`Edges: ${complex.edgeCount()}`);        // 3
+  console.log(`Triangles: ${complex.simplexCount(2)}`); // 1
+
+  // Compute Betti numbers (topological invariants)
+  const betti = complex.bettiNumbers();
+  console.log(`β₀ = ${betti[0]}`); // 1 (one connected component)
+  console.log(`β₁ = ${betti[1]}`); // 0 (no holes - filled triangle)
+
+  // Euler characteristic: χ = V - E + F
+  console.log(`χ = ${complex.eulerCharacteristic()}`); // 1
+
+  // ========================================
+  // Circle (unfilled triangle boundary)
+  // ========================================
+
+  const circle = new WasmSimplicialComplex();
+  circle.addSimplex([0, 1]); // Edge 0-1
+  circle.addSimplex([1, 2]); // Edge 1-2
+  circle.addSimplex([2, 0]); // Edge 2-0
+
+  const circleBetti = circle.bettiNumbers();
+  console.log(`Circle β₀ = ${circleBetti[0]}`); // 1 (connected)
+  console.log(`Circle β₁ = ${circleBetti[1]}`); // 1 (one hole!)
+
+  // ========================================
+  // Persistent Homology
+  // ========================================
+
+  // Build a filtration (simplices appearing over time)
+  const filt = new WasmFiltration();
+  filt.add(0.0, [0]);       // Point 0 at t=0
+  filt.add(0.0, [1]);       // Point 1 at t=0
+  filt.add(0.0, [2]);       // Point 2 at t=0
+  filt.add(1.0, [0, 1]);    // Edge 0-1 at t=1
+  filt.add(2.0, [1, 2]);    // Edge 1-2 at t=2
+  filt.add(3.0, [0, 2]);    // Edge 0-2 at t=3 (creates loop)
+
+  // Compute persistent homology
+  const ph = WasmPersistentHomology.compute(filt);
+
+  // Get persistence diagram as [dim, birth, death] triples
+  const diagram = ph.getDiagram();
+  for (let i = 0; i < diagram.length; i += 3) {
+    const dim = diagram[i];
+    const birth = diagram[i + 1];
+    const death = diagram[i + 2];
+    console.log(`H${dim}: born at ${birth}, dies at ${death === Infinity ? '∞' : death}`);
+  }
+
+  // Betti numbers at different times
+  console.log(`Betti at t=0.5: ${ph.bettiAt(0.5)}`); // [3, 0] - 3 components
+  console.log(`Betti at t=3.5: ${ph.bettiAt(3.5)}`); // [1, 1] - 1 component, 1 loop
+
+  // ========================================
+  // Vietoris-Rips Filtration from Point Cloud
+  // ========================================
+
+  // 3 points forming an equilateral triangle
+  // Distances: d(0,1)=1, d(1,2)=1, d(0,2)=1
+  const numPoints = 3;
+  const maxDim = 2;
+  // Upper triangular pairwise distances: [d(0,1), d(0,2), d(1,2)]
+  const distances = [1.0, 1.0, 1.0];
+
+  const ripsFilt = ripsFromDistances(numPoints, maxDim, distances);
+  const ripsPH = WasmPersistentHomology.compute(ripsFilt);
+  console.log(`Rips intervals in H0: ${ripsPH.intervalCount(0)}`);
+  console.log(`Rips intervals in H1: ${ripsPH.intervalCount(1)}`);
+
+  // ========================================
+  // Morse Theory (Critical Points)
+  // ========================================
+
+  // Precompute f(x,y) = x² + y² on a grid
+  const resolution = 20;
+  const values = [];
+  for (let i = 0; i <= resolution; i++) {
+    const x = -1.0 + (2.0 * i) / resolution;
+    for (let j = 0; j <= resolution; j++) {
+      const y = -1.0 + (2.0 * j) / resolution;
+      values.push(x * x + y * y);
+    }
+  }
+
+  const criticalPoints = findCriticalPoints2D(
+    resolution,
+    -1.0, 1.0, // x range
+    -1.0, 1.0, // y range
+    0.1,       // tolerance
+    values
+  );
+
+  console.log(`Found ${criticalPoints.length} critical points`);
+  for (const cp of criticalPoints) {
+    console.log(`  ${cp.criticalType} at (${cp.position[0].toFixed(2)}, ${cp.position[1].toFixed(2)}), value=${cp.value.toFixed(2)}`);
+  }
+
+  // Morse complex analysis
+  const morse = new WasmMorseComplex(criticalPoints);
+  const counts = morse.countsByIndex();
+  console.log(`Critical points by index: ${counts}`);
+
+  // Verify Morse inequalities: c_k >= β_k
+  const complexBetti = complex.bettiNumbers();
+  console.log(`Weak Morse inequalities hold: ${morse.checkWeakMorseInequalities(complexBetti)}`);
+
+  // Clean up WASM memory
+  complex.free();
+  circle.free();
+  filt.free();
+  ph.free();
+  ripsFilt.free();
+  ripsPH.free();
+  morse.free();
+  criticalPoints.forEach(cp => cp.free());
+}
+
+topologyDemo();
+```
+
+#### Topology API
+
+**WasmSimplex:**
+- `new(vertices)`: Create simplex from vertex indices
+- `dimension()`: Get dimension (vertices - 1)
+- `getVertices()`: Get sorted vertex array
+- `orientation()`: Get orientation sign (+1 or -1)
+- `containsVertex(v)`: Check if vertex is in simplex
+- `faces(k)`: Get all k-dimensional faces
+- `boundaryFaces()`: Get boundary faces with signs
+
+**WasmSimplicialComplex:**
+- `new()`: Create empty complex
+- `addSimplex(vertices)`: Add simplex and all its faces
+- `contains(vertices)`: Check if simplex exists
+- `dimension()`: Get maximum simplex dimension
+- `simplexCount(dim)`: Count simplices in dimension
+- `totalSimplexCount()`: Total simplex count
+- `vertexCount()`: Count 0-simplices
+- `edgeCount()`: Count 1-simplices
+- `bettiNumbers()`: Compute [β₀, β₁, β₂, ...]
+- `eulerCharacteristic()`: Compute χ = Σ(-1)^k f_k
+- `fVector()`: Get face counts [f₀, f₁, f₂, ...]
+- `isConnected()`: Check if complex is connected
+- `connectedComponents()`: Count components
+
+**WasmFiltration:**
+- `new()`: Create empty filtration
+- `add(time, vertices)`: Add simplex at filtration time
+- `isEmpty()`: Check if filtration is empty
+- `complexAt(time)`: Get complex at given time
+- `bettiAt(time)`: Get Betti numbers at time
+
+**WasmPersistentHomology:**
+- `compute(filtration)`: Compute persistent homology
+- `getDiagram()`: Get [dim, birth, death, ...] triples
+- `bettiAt(time)`: Get Betti numbers at time
+- `intervalCount(dim)`: Count intervals in dimension
+
+**Standalone Functions:**
+- `ripsFromDistances(numPoints, maxDim, distances)`: Create Rips filtration
+- `findCriticalPoints2D(resolution, xMin, xMax, yMin, yMax, tolerance, values)`: Find critical points
+
+**WasmMorseComplex:**
+- `new(criticalPoints)`: Create from critical points
+- `countsByIndex()`: Get counts by Morse index
+- `checkWeakMorseInequalities(betti)`: Verify c_k >= β_k
+
 #### Optical Field API
 
 **WasmOpticalRotorField:**
@@ -681,6 +878,9 @@ opticalDemo();
 - **Embedding Retrieval**: Content-addressable semantic search in vector databases
 - **Holographic Displays**: Lee hologram encoding for DMD and SLM devices
 - **Optical Computing**: Phase-encoded VSA operations for optical neural networks
+- **Topological Data Analysis**: Persistent homology for shape and feature detection
+- **Computational Biology**: Protein structure analysis via simplicial complexes
+- **Sensor Networks**: Coverage analysis using homology
 
 ## API Reference
 
@@ -758,6 +958,21 @@ opticalDemo();
 - `WasmOpticalCodebook.register(symbol)`: Register symbol with auto-seed
 - `WasmOpticalCodebook.get(symbol)`: Get field for symbol
 - `WasmTropicalOpticalAlgebra.tropicalAdd(a, b)`: Pointwise minimum phase
+
+### Topology Operations
+
+- `WasmSimplex.new(vertices)`: Create simplex from vertex array
+- `WasmSimplex.dimension()`: Get simplex dimension
+- `WasmSimplex.faces(k)`: Get k-dimensional faces
+- `WasmSimplicialComplex.new()`: Create empty complex
+- `WasmSimplicialComplex.addSimplex(vertices)`: Add simplex with closure
+- `WasmSimplicialComplex.bettiNumbers()`: Compute Betti numbers
+- `WasmSimplicialComplex.eulerCharacteristic()`: Compute Euler characteristic
+- `WasmFiltration.add(time, vertices)`: Add simplex at filtration time
+- `WasmPersistentHomology.compute(filtration)`: Compute persistence
+- `WasmPersistentHomology.getDiagram()`: Get persistence diagram
+- `ripsFromDistances(n, dim, distances)`: Build Rips filtration
+- `findCriticalPoints2D(...)`: Find Morse critical points
 
 ## Examples
 
