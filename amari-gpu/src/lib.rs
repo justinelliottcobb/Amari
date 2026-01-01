@@ -12,6 +12,7 @@
 //! - **Holographic Memory**: Batch bind, unbind, bundle, similarity (with `holographic` feature)
 //! - **Measure Theory**: GPU-accelerated Monte Carlo integration (with `measure` feature)
 //! - **Relativistic Physics**: Batch Lorentz transformations
+//! - **Topology**: Distance matrices, Morse critical points, Rips filtrations (with `topology` feature)
 //!
 //! # Quick Start
 //!
@@ -84,6 +85,7 @@
 //! | `automata` | GPU-accelerated cellular automata |
 //! | `enumerative` | GPU-accelerated combinatorics |
 //! | `functional` | GPU-accelerated functional analysis (Hilbert spaces, spectral theory) |
+//! | `topology` | GPU-accelerated computational topology (distance matrices, Morse theory) |
 //! | `webgpu` | Enable WebGPU backend |
 //! | `high-precision` | Enable 128-bit float support |
 //!
@@ -97,6 +99,8 @@
 //! | Holographic Bind | 10000 | ~20-100x |
 //! | Similarity Batch | 10000 | ~50-200x |
 //! | Monte Carlo | 100000 | ~100-500x |
+//! | Distance Matrix | 1000 pts | ~50x |
+//! | Morse Critical Points | 100x100 | ~100x |
 //!
 //! Actual speedups depend on GPU hardware and driver support.
 
@@ -132,6 +136,8 @@ pub mod timeline;
 // Would need to use extension traits instead of inherent impls
 // #[cfg(feature = "tropical")]
 // pub mod tropical;
+#[cfg(feature = "topology")]
+pub mod topology;
 pub mod unified;
 pub mod verification;
 
@@ -179,13 +185,19 @@ pub use probabilistic::{GpuProbabilistic, GpuProbabilisticError, GpuProbabilisti
 pub use relativistic::{
     GpuRelativisticParticle, GpuRelativisticPhysics, GpuSpacetimeVector, GpuTrajectoryParams,
 };
-pub use shaders::{ShaderLibrary, DUAL_SHADERS, FUSION_SHADERS, TROPICAL_SHADERS};
+pub use shaders::{
+    ShaderLibrary, DUAL_SHADERS, FUSION_SHADERS, TOPOLOGY_SHADERS, TROPICAL_SHADERS,
+};
 use thiserror::Error;
 pub use timeline::{
     BottleneckAnalysis, DeviceUtilizationStats, GpuTimelineAnalyzer, MultiGpuPerformanceMonitor,
     OptimizationRecommendation, PerformanceAnalysisReport, PerformanceBottleneck,
     PerformanceSummary, RecommendationPriority, SynchronizationAnalysis, TimelineEvent,
     UtilizationAnalysis,
+};
+#[cfg(feature = "topology")]
+pub use topology::{
+    AdaptiveTopologyCompute, GpuCriticalPoint, GpuTopology, GpuTopologyError, GpuTopologyResult,
 };
 pub use unified::{
     BufferPoolStats, EnhancedGpuBufferPool, GpuAccelerated, GpuContext, GpuDispatcher,

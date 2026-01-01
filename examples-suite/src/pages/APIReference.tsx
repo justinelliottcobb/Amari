@@ -2752,6 +2752,271 @@ console.log(\`Self-similarity: \${algebra.similarity(f, f)}\`); // 1.0`
         ]
       }
     ]
+  },
+  {
+    id: "topology",
+    title: "Computational Topology",
+    description: "Simplicial complexes, homology, persistent homology, and Morse theory",
+    icon: "△",
+    classes: [
+      {
+        name: "WasmSimplex",
+        description: "An oriented simplex defined by a set of vertices. Simplices are the building blocks of simplicial complexes.",
+        methods: [
+          {
+            name: "constructor",
+            signature: "new WasmSimplex(vertices: Uint32Array)",
+            description: "Create a simplex from an array of vertex indices",
+            parameters: [{ name: "vertices", type: "Uint32Array", description: "Sorted array of vertex indices" }],
+            returns: "WasmSimplex",
+            example: `// Create a triangle (2-simplex)
+const triangle = new WasmSimplex(new Uint32Array([0, 1, 2]));
+console.log(triangle.dimension()); // 2`
+          },
+          {
+            name: "dimension",
+            signature: "dimension(): number",
+            description: "Get the dimension of the simplex (number of vertices - 1)",
+            returns: "Dimension (0 for vertex, 1 for edge, 2 for triangle, etc.)"
+          },
+          {
+            name: "vertices",
+            signature: "vertices(): Uint32Array",
+            description: "Get the vertex indices of this simplex",
+            returns: "Uint32Array of vertex indices"
+          },
+          {
+            name: "orientation",
+            signature: "orientation(): number",
+            description: "Get the orientation (+1 or -1)",
+            returns: "Orientation sign"
+          },
+          {
+            name: "faces",
+            signature: "faces(): Array<WasmSimplex>",
+            description: "Get all (n-1)-dimensional faces of this n-simplex",
+            returns: "Array of face simplices"
+          },
+          {
+            name: "boundaryFaces",
+            signature: "boundaryFaces(): Array<WasmBoundaryFace>",
+            description: "Get boundary faces with their oriented coefficients for the boundary operator",
+            returns: "Array of {face: WasmSimplex, sign: number}"
+          }
+        ]
+      },
+      {
+        name: "WasmSimplicialComplex",
+        description: "A simplicial complex: a collection of simplices closed under taking faces. Used for computing homology and topological invariants.",
+        methods: [
+          {
+            name: "constructor",
+            signature: "new WasmSimplicialComplex()",
+            description: "Create an empty simplicial complex",
+            returns: "WasmSimplicialComplex",
+            example: `const complex = new WasmSimplicialComplex();
+complex.addSimplex(new WasmSimplex(new Uint32Array([0, 1, 2])));`
+          },
+          {
+            name: "addSimplex",
+            signature: "addSimplex(simplex: WasmSimplex): void",
+            description: "Add a simplex to the complex. Automatically adds all faces.",
+            parameters: [{ name: "simplex", type: "WasmSimplex", description: "Simplex to add" }]
+          },
+          {
+            name: "dimension",
+            signature: "dimension(): number",
+            description: "Get the maximum dimension of any simplex in the complex",
+            returns: "Maximum dimension"
+          },
+          {
+            name: "eulerCharacteristic",
+            signature: "eulerCharacteristic(): number",
+            description: "Compute the Euler characteristic χ = Σ(-1)^k·c_k",
+            returns: "Euler characteristic",
+            example: `// Tetrahedron surface: χ = 4 - 6 + 4 = 2
+console.log(tetrahedron.eulerCharacteristic()); // 2`
+          },
+          {
+            name: "bettiNumbers",
+            signature: "bettiNumbers(): Uint32Array",
+            description: "Compute the Betti numbers β_k = rank(H_k)",
+            returns: "Array of Betti numbers [β₀, β₁, β₂, ...]",
+            example: `// Torus: β₀=1, β₁=2, β₂=1
+const betti = torus.bettiNumbers();`
+          },
+          {
+            name: "simplexCount",
+            signature: "simplexCount(dimension: number): number",
+            description: "Count simplices of a given dimension",
+            parameters: [{ name: "dimension", type: "number", description: "Dimension to count" }],
+            returns: "Number of simplices"
+          }
+        ]
+      },
+      {
+        name: "WasmFiltration",
+        description: "A filtration: a sequence of nested simplicial complexes indexed by a parameter (e.g., distance threshold). Used for persistent homology.",
+        methods: [
+          {
+            name: "constructor",
+            signature: "new WasmFiltration()",
+            description: "Create an empty filtration",
+            returns: "WasmFiltration"
+          },
+          {
+            name: "add",
+            signature: "add(simplex: WasmSimplex, time: number): void",
+            description: "Add a simplex at a given filtration time",
+            parameters: [
+              { name: "simplex", type: "WasmSimplex", description: "Simplex to add" },
+              { name: "time", type: "number", description: "Filtration parameter value" }
+            ]
+          },
+          {
+            name: "complexAt",
+            signature: "complexAt(time: number): WasmSimplicialComplex",
+            description: "Get the simplicial complex at a given filtration time",
+            parameters: [{ name: "time", type: "number", description: "Filtration parameter" }],
+            returns: "Simplicial complex containing all simplices with time ≤ t"
+          },
+          {
+            name: "bettiAt",
+            signature: "bettiAt(time: number): Uint32Array",
+            description: "Compute Betti numbers at a given filtration time",
+            parameters: [{ name: "time", type: "number", description: "Filtration parameter" }],
+            returns: "Betti numbers at that time"
+          },
+          {
+            name: "length",
+            signature: "length(): number",
+            description: "Get the number of simplices in the filtration",
+            returns: "Number of simplices"
+          }
+        ]
+      },
+      {
+        name: "WasmPersistentHomology",
+        description: "Compute persistent homology of a filtration. Tracks birth and death of topological features across scales.",
+        methods: [
+          {
+            name: "constructor",
+            signature: "new WasmPersistentHomology()",
+            description: "Create a persistent homology computer",
+            returns: "WasmPersistentHomology"
+          },
+          {
+            name: "compute",
+            signature: "compute(filtration: WasmFiltration): WasmPersistenceDiagram",
+            description: "Compute persistence diagram from a filtration",
+            parameters: [{ name: "filtration", type: "WasmFiltration", description: "Input filtration" }],
+            returns: "Persistence diagram with birth-death pairs",
+            example: `const ph = new WasmPersistentHomology();
+const diagram = ph.compute(ripsFiltration);
+for (const interval of diagram.getIntervals()) {
+  console.log(\`H\${interval.dimension}: [\${interval.birth}, \${interval.death})\`);
+}`
+          },
+          {
+            name: "getDiagram",
+            signature: "getDiagram(): WasmPersistenceDiagram",
+            description: "Get the computed persistence diagram",
+            returns: "WasmPersistenceDiagram"
+          },
+          {
+            name: "bettiAt",
+            signature: "bettiAt(time: number): Uint32Array",
+            description: "Get Betti numbers at a specific filtration value",
+            parameters: [{ name: "time", type: "number", description: "Filtration parameter" }],
+            returns: "Betti numbers"
+          }
+        ]
+      },
+      {
+        name: "WasmMorseComplex",
+        description: "Morse complex for analyzing critical points of functions. Connects Morse theory to homology.",
+        methods: [
+          {
+            name: "constructor",
+            signature: "new WasmMorseComplex()",
+            description: "Create a Morse complex",
+            returns: "WasmMorseComplex"
+          },
+          {
+            name: "addCriticalPoint",
+            signature: "addCriticalPoint(point: WasmCriticalPoint): void",
+            description: "Add a critical point to the complex",
+            parameters: [{ name: "point", type: "WasmCriticalPoint", description: "Critical point" }]
+          },
+          {
+            name: "getCriticalPoints",
+            signature: "getCriticalPoints(): Array<WasmCriticalPoint>",
+            description: "Get all critical points",
+            returns: "Array of critical points"
+          },
+          {
+            name: "getMinima",
+            signature: "getMinima(): Array<WasmCriticalPoint>",
+            description: "Get all minima (index 0)",
+            returns: "Array of minima"
+          },
+          {
+            name: "getSaddles",
+            signature: "getSaddles(): Array<WasmCriticalPoint>",
+            description: "Get all saddles (index 1 or n-1)",
+            returns: "Array of saddle points"
+          },
+          {
+            name: "getMaxima",
+            signature: "getMaxima(): Array<WasmCriticalPoint>",
+            description: "Get all maxima (index n)",
+            returns: "Array of maxima"
+          }
+        ]
+      },
+      {
+        name: "TopologyFunctions",
+        description: "Standalone functions for computational topology",
+        methods: [
+          {
+            name: "ripsFromDistances",
+            signature: "ripsFromDistances(distances: Float64Array, numPoints: number, maxDistance: number): WasmFiltration",
+            description: "Build a Vietoris-Rips filtration from a distance matrix",
+            isStatic: true,
+            parameters: [
+              { name: "distances", type: "Float64Array", description: "Flattened n×n distance matrix" },
+              { name: "numPoints", type: "number", description: "Number of points" },
+              { name: "maxDistance", type: "number", description: "Maximum filtration distance" }
+            ],
+            returns: "WasmFiltration containing the Rips complex",
+            example: `// 3 points with distances
+const distances = new Float64Array([0,1,1.5, 1,0,1, 1.5,1,0]);
+const filtration = ripsFromDistances(distances, 3, 2.0);`
+          },
+          {
+            name: "findCriticalPoints2D",
+            signature: "findCriticalPoints2D(values: Float64Array, width: number, height: number): Array<WasmCriticalPoint>",
+            description: "Find critical points of a 2D height function on a grid",
+            isStatic: true,
+            parameters: [
+              { name: "values", type: "Float64Array", description: "Height values on grid" },
+              { name: "width", type: "number", description: "Grid width" },
+              { name: "height", type: "number", description: "Grid height" }
+            ],
+            returns: "Array of critical points with type (min/max/saddle) and coordinates",
+            example: `// Find critical points of sin(x)sin(y)
+const gridSize = 32;
+const values = new Float64Array(gridSize * gridSize);
+for (let i = 0; i < gridSize; i++) {
+  for (let j = 0; j < gridSize; j++) {
+    values[i * gridSize + j] = Math.sin(Math.PI * i/gridSize) * Math.sin(Math.PI * j/gridSize);
+  }
+}
+const criticalPoints = findCriticalPoints2D(values, gridSize, gridSize);`
+          }
+        ]
+      }
+    ]
   }
 ];
 

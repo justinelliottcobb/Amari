@@ -13,6 +13,8 @@
 //! - Probability theory on geometric algebra (opt-in via `probabilistic` feature)
 //! - Probabilistic contracts and verification (opt-in via `flynn` feature)
 //! - Deterministic physics for networked applications (opt-in via `deterministic` feature)
+//! - Functional analysis on multivector spaces (opt-in via `functional` feature)
+//! - Algebraic topology: homology, persistent homology, Morse theory (opt-in via `topology` feature)
 //!
 //! Use `features = ["full"]` to enable all optional crates.
 
@@ -37,6 +39,12 @@ pub use amari_holographic as holographic;
 
 #[cfg(feature = "probabilistic")]
 pub use amari_probabilistic as probabilistic;
+
+#[cfg(feature = "functional")]
+pub use amari_functional as functional;
+
+#[cfg(feature = "topology")]
+pub use amari_topology as topology;
 
 #[cfg(feature = "flynn")]
 pub use amari_flynn as flynn;
@@ -107,6 +115,16 @@ pub enum AmariError {
     #[cfg(feature = "probabilistic")]
     #[error(transparent)]
     Probabilistic(#[from] amari_probabilistic::ProbabilisticError),
+
+    /// Functional analysis error
+    #[cfg(feature = "functional")]
+    #[error(transparent)]
+    Functional(#[from] amari_functional::FunctionalError),
+
+    /// Topology error
+    #[cfg(feature = "topology")]
+    #[error(transparent)]
+    Topology(#[from] amari_topology::TopologyError),
 }
 
 /// Result type for Amari operations

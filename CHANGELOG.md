@@ -5,6 +5,181 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.16.0] - 2025-12-31
+
+### **New Crate: amari-topology - Algebraic Topology for Geometric Structures**
+
+This release adds comprehensive topological tools including simplicial complexes, homology computation, persistent homology, Morse theory, and fiber bundles.
+
+#### **Added**
+
+##### amari-topology Core Modules
+
+- **Simplicial Complexes** (`simplex.rs`, `complex.rs`)
+  - Abstract simplicial complexes with automatic closure property
+  - Simplex operations: faces, boundary faces, orientation tracking
+  - Complex operations: add/remove simplices, k-skeleton extraction
+  - Connectivity analysis via union-find
+  - f-vector and Euler characteristic computation
+
+- **Chain Complexes** (`chain.rs`)
+  - Chain groups C_k with integer coefficients
+  - Sparse boundary map representation
+  - Chain arithmetic: addition, subtraction, scalar multiplication
+  - Gaussian elimination for rank computation
+
+- **Homology** (`homology.rs`)
+  - Betti number computation: β_k = dim(H_k)
+  - Homology group generators (placeholder for Smith normal form)
+  - Verification of ∂∂ = 0 property
+  - Euler-Poincaré formula validation
+
+- **Persistent Homology** (`persistence.rs`)
+  - Filtration: nested sequence of simplicial complexes
+  - Persistence diagrams: birth-death pairs
+  - Barcode intervals with lifetime computation
+  - Rips filtration construction from point clouds
+  - Essential vs finite features
+
+- **Morse Theory** (`morse.rs`)
+  - Critical point classification: minimum, saddle, maximum, degenerate
+  - Morse complex with incidence structure
+  - Morse inequality verification
+  - Grid-based critical point detection for 2D functions
+  - Hessian-based classification (Gershgorin approximation)
+
+- **Manifold Boundaries** (`boundary.rs`)
+  - Boundary component detection
+  - Oriented boundary representation
+  - Manifold validation (1 or 2 faces per codim-1 simplex)
+  - Orientability checking via consistent orientation propagation
+
+- **Fiber Bundles** (`bundle.rs`)
+  - Generic fiber bundles with local trivializations
+  - Vector bundles: tangent, cotangent, line bundles
+  - Principal bundles with structure groups
+  - Sections and flat connections
+  - First Chern number for line bundles
+
+##### Umbrella Crate Integration
+
+- Added `topology` feature flag to umbrella crate
+- Re-export `amari-topology` as `amari::topology`
+- Added `TopologyError` to `AmariError` enum
+
+##### Documentation
+
+- Comprehensive README with mathematical background
+- Quick start examples for all major features
+- Integration notes with other Amari crates
+
+#### **Fixed**
+
+- Fixed infinite loop in `Simplex::faces()` combination generation
+- Fixed Morse inequality test: corrected critical point index for 2-sphere
+
+---
+
+## [0.15.1] - 2025-12-30
+
+### **Optical Field Operations for Holographic Memory**
+
+This release adds GA-native optical field operations for Lee hologram encoding, enabling hardware implementation on DMD (Digital Micromirror Device) displays.
+
+#### **Added**
+
+##### amari-holographic Optical Module
+
+- **Optical Field Operations** (`optical/`)
+  - `OpticalFieldElement`: Complex field with GA encoding (e₁ = real, e₂ = imaginary)
+  - `LeeHologramEncoder`: Lee hologram encoding for DMD binarization
+  - `OpticalCodebook`: Symbol encoding for VSA optical operations
+  - `RotorField2D`: 2D rotor fields for beam steering
+  - `TropicalOptical`: Tropical algebra optical operations
+
+##### GPU Acceleration
+
+- **amari-gpu/holographic.rs**: GPU-accelerated optical field operations
+  - Parallel bind operations for optical codebooks
+  - Batch similarity computation
+  - Lee hologram encoding on GPU
+  - Memory-efficient field operations
+
+##### WASM Bindings
+
+- **amari-wasm/optical.rs**: JavaScript/TypeScript bindings for optical operations
+  - `WasmOpticalFieldElement`: Create and manipulate optical fields
+  - `WasmLeeEncoder`: Encode holograms for browser-based DMD control
+  - `WasmOpticalCodebook`: Symbol binding and retrieval
+
+##### Examples Suite
+
+- Added optical field operations to Holographic page
+- Lee hologram visualization with phase encoding
+- Interactive codebook demonstration
+
+---
+
+## [0.15.0] - 2025-12-29
+
+### **New Crate: amari-functional - Functional Analysis on Multivector Spaces**
+
+This release adds comprehensive functional analysis capabilities including Hilbert spaces, linear operators, spectral theory, and Sobolev spaces for Clifford algebras.
+
+#### **Added**
+
+##### amari-functional Core Modules
+
+- **Space Hierarchy** (`space/`)
+  - `VectorSpace`: Basic algebraic structure with addition and scalar multiplication
+  - `NormedSpace`: Vector space with norm function
+  - `BanachSpace`: Complete normed space
+  - `InnerProductSpace`: Vector space with inner product
+  - `HilbertSpace`: Complete inner product space
+  - `MultivectorHilbertSpace<P, Q, R>`: Cl(P,Q,R) as finite-dimensional Hilbert space
+  - L² function spaces for square-integrable multivector fields
+
+- **Linear Operators** (`operator/`)
+  - `LinearOperator`: Trait for linear maps between Hilbert spaces
+  - `BoundedOperator`: Operators with finite operator norm
+  - `MatrixOperator`: Explicit matrix representation with composition
+  - `CompactOperator`: Finite-rank and limit of finite-rank operators
+  - Self-adjoint, positive, and projection operators
+  - Phantom types for compile-time property verification
+
+- **Spectral Theory** (`spectral/`)
+  - Eigenvalue computation: power method, inverse iteration
+  - Jacobi algorithm for symmetric matrices
+  - Spectral decomposition with eigenvector basis
+  - Functional calculus for self-adjoint operators
+
+- **Sobolev Spaces** (`sobolev/`)
+  - H^k spaces with weak derivatives
+  - Poincaré inequality verification
+  - Boundary value problem support
+
+##### GPU Acceleration
+
+- **amari-gpu/functional.rs**: GPU-accelerated functional analysis
+  - Parallel spectral decomposition
+  - Batch operator application
+  - GPU-accelerated Gram-Schmidt orthonormalization
+
+##### WASM Bindings
+
+- **amari-wasm/functional.rs**: JavaScript/TypeScript bindings
+  - `WasmHilbertSpace`: Create Hilbert spaces in browser
+  - `WasmMatrixOperator`: Apply operators to vectors
+  - `WasmSpectralDecomposition`: Compute eigenvalues/eigenvectors
+
+##### Umbrella Crate Integration
+
+- Added `functional` feature flag
+- Re-export `amari-functional` as `amari::functional`
+- Added `FunctionalError` to `AmariError` enum
+
+---
+
 ## [0.14.0] - 2025-12-25
 
 ### **Examples Suite v0.14.0 - Complete MantineUI Migration & Interactive Documentation**

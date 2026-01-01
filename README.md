@@ -1,8 +1,8 @@
-# Amari v0.15.1
+# Amari v0.16.0
 
-**Comprehensive Mathematical Computing Platform with Geometric Algebra, Differential Calculus, Measure Theory, Probability Theory, Functional Analysis, and Vector Symbolic Architectures**
+**Comprehensive Mathematical Computing Platform with Geometric Algebra, Differential Calculus, Measure Theory, Probability Theory, Functional Analysis, Algebraic Topology, and Vector Symbolic Architectures**
 
-A unified mathematical computing library featuring geometric algebra, differential calculus, measure theory, probability theory on geometric spaces, functional analysis (Hilbert spaces, operators, spectral theory), relativistic physics, tropical algebra, automatic differentiation, holographic associative memory (Vector Symbolic Architectures), optical field operations for holographic displays, and information geometry. The library provides multi-GPU infrastructure with intelligent workload distribution and complete WebAssembly support for browser deployment.
+A unified mathematical computing library featuring geometric algebra, differential calculus, measure theory, probability theory on geometric spaces, functional analysis (Hilbert spaces, operators, spectral theory), algebraic topology (homology, persistent homology, Morse theory), relativistic physics, tropical algebra, automatic differentiation, holographic associative memory (Vector Symbolic Architectures), optical field operations for holographic displays, and information geometry. The library provides multi-GPU infrastructure with intelligent workload distribution and complete WebAssembly support for browser deployment.
 
 [![Rust](https://img.shields.io/badge/Rust-1.75+-orange.svg)](https://www.rust-lang.org/)
 [![WebAssembly](https://img.shields.io/badge/WebAssembly-Ready-blue.svg)](https://webassembly.org/)
@@ -20,6 +20,7 @@ A unified mathematical computing library featuring geometric algebra, differenti
 - **Measure Theory**: Sigma-algebras, measurable functions, integration on geometric spaces, and probability measures
 - **Probability Theory**: Distributions on multivector spaces, stochastic processes, MCMC sampling, and Bayesian inference
 - **Functional Analysis**: Hilbert spaces, bounded operators, spectral decomposition, eigenvalue algorithms, and Sobolev spaces
+- **Algebraic Topology**: Simplicial complexes, homology computation, persistent homology (TDA), Morse theory, and fiber bundles
 - **Vector Symbolic Architectures**: Holographic Reduced Representations (HRR), binding algebras, and associative memory
 - **Optical Field Operations**: GA-native Lee hologram encoding for DMD displays, rotor field algebra, and VSA on optical wavefronts
 - **Relativistic Physics**: Complete spacetime algebra (Cl(1,3)) with Minkowski signature for relativistic calculations
@@ -57,45 +58,48 @@ Add to your `Cargo.toml`:
 ```toml
 [dependencies]
 # Complete library with all features
-amari = "0.15.1"
+amari = "0.16.0"
 
 # Or individual crates:
 
 # Core geometric algebra and mathematical foundations
-amari-core = "0.15.1"
+amari-core = "0.16.0"
 
 # Differential calculus with geometric algebra
-amari-calculus = "0.15.1"
+amari-calculus = "0.16.0"
 
 # Measure theory and integration
-amari-measure = "0.15.1"
+amari-measure = "0.16.0"
 
 # Probability theory on geometric algebra spaces
-amari-probabilistic = "0.15.1"
+amari-probabilistic = "0.16.0"
 
 # Functional analysis: Hilbert spaces, operators, spectral theory
-amari-functional = "0.15.1"
+amari-functional = "0.16.0"
+
+# Algebraic topology: homology, persistent homology, Morse theory
+amari-topology = "0.16.0"
 
 # Vector Symbolic Architectures, holographic memory, and optical fields
-amari-holographic = "0.15.1"
+amari-holographic = "0.16.0"
 
 # High-precision relativistic physics
-amari-relativistic = { version = "0.15.1", features = ["high-precision"] }
+amari-relativistic = { version = "0.16.0", features = ["high-precision"] }
 
 # GPU acceleration (includes optical field GPU operations)
-amari-gpu = "0.15.1"
+amari-gpu = "0.16.0"
 
 # Optimization algorithms
-amari-optimization = "0.15.1"
+amari-optimization = "0.16.0"
 
 # Additional mathematical systems
-amari-tropical = "0.15.1"
-amari-dual = "0.15.1"
-amari-info-geom = "0.15.1"
-amari-automata = "0.15.1"
-amari-fusion = "0.15.1"
-amari-network = "0.15.1"
-amari-enumerative = "0.15.1"
+amari-tropical = "0.16.0"
+amari-dual = "0.16.0"
+amari-info-geom = "0.16.0"
+amari-automata = "0.16.0"
+amari-fusion = "0.16.0"
+amari-network = "0.16.0"
+amari-enumerative = "0.16.0"
 ```
 
 ### JavaScript/TypeScript (WebAssembly)
@@ -354,6 +358,41 @@ let beta = 0.5;
 let thermal = spectral.apply_function(|E| (-beta * E).exp(), &x);
 ```
 
+### Rust: Algebraic Topology (Homology & Persistent Homology)
+
+```rust
+use amari_topology::{SimplicialComplex, Simplex, Filtration, PersistentHomology};
+
+// Build a simplicial complex (hollow tetrahedron = 2-sphere)
+let mut sphere = SimplicialComplex::new();
+sphere.add_simplex(Simplex::new(vec![0, 1, 2]));
+sphere.add_simplex(Simplex::new(vec![0, 1, 3]));
+sphere.add_simplex(Simplex::new(vec![0, 2, 3]));
+sphere.add_simplex(Simplex::new(vec![1, 2, 3]));
+
+// Compute Betti numbers
+let betti = sphere.betti_numbers();
+assert_eq!(betti[0], 1); // 1 connected component
+assert_eq!(betti[1], 0); // No 1D holes
+assert_eq!(betti[2], 1); // 1 void (sphere encloses space)
+
+// Euler characteristic: χ = V - E + F = 4 - 6 + 4 = 2
+assert_eq!(sphere.euler_characteristic(), 2);
+
+// Persistent homology for topological data analysis
+let mut filt = Filtration::new();
+filt.add(0.0, Simplex::new(vec![0])); // Points born at t=0
+filt.add(0.0, Simplex::new(vec![1]));
+filt.add(0.0, Simplex::new(vec![2]));
+filt.add(1.0, Simplex::new(vec![0, 1])); // Edge connects 0-1 at t=1
+filt.add(2.0, Simplex::new(vec![1, 2])); // Edge connects 1-2 at t=2
+filt.add(3.0, Simplex::new(vec![0, 2])); // Closes loop at t=3
+
+let ph = PersistentHomology::compute(&mut filt).unwrap();
+let betti_t3 = ph.diagram().betti_at(3.5);
+// At t=3.5: 1 component (β₀=1), 1 loop (β₁=1)
+```
+
 ### Rust: Probability on Geometric Algebra
 
 ```rust
@@ -433,6 +472,7 @@ main();
 - `amari-calculus`: Differential calculus with geometric algebra
 - `amari-probabilistic`: Probability distributions on multivector spaces, stochastic processes, MCMC
 - `amari-functional`: Hilbert spaces, bounded operators, spectral decomposition, Sobolev spaces
+- `amari-topology`: Algebraic topology, simplicial complexes, persistent homology, Morse theory
 - `amari-holographic`: Vector Symbolic Architectures (VSA), binding algebras, holographic memory, optical field operations
 - `amari-tropical`: Tropical (max-plus) algebra for optimization
 - `amari-dual`: Dual numbers for automatic differentiation
@@ -568,7 +608,7 @@ The **[Amari Examples Suite](https://amari-math.netlify.app)** provides comprehe
 
 - **Interactive Playground**: Write and run JavaScript code with live WASM execution
 
-## GPU Module Status (v0.15.1)
+## GPU Module Status (v0.16.0)
 
 | Module | Status | Feature Flag |
 |--------|--------|--------------|
@@ -583,16 +623,28 @@ The **[Amari Examples Suite](https://amari-math.netlify.app)** provides comprehe
 | Automata | ✅ Enabled | `automata` |
 | Fusion | ✅ Enabled | `fusion` |
 | Holographic | ✅ Enabled | `holographic` |
-| **Optical Fields** | ✅ **New in v0.15.1** | `holographic` |
+| Optical Fields | ✅ Enabled | `holographic` |
 | Probabilistic | ✅ Enabled | `probabilistic` |
 | Functional | ✅ Enabled | `functional` |
+| **Topology** | ✅ **New in v0.16.0** | `topology` |
 | Tropical | ❌ Disabled | - |
 
 Note: Tropical GPU module temporarily disabled due to Rust orphan impl rules. Use CPU implementations from domain crates.
 
+### v0.16.0 GPU Additions
+
+The `topology` feature provides GPU-accelerated computational topology operations:
+
+- **GpuTopology**: GPU context for topology operations with adaptive dispatch
+- **TOPOLOGY_DISTANCE_MATRIX**: Parallel pairwise Euclidean distance computation (256-thread workgroups)
+- **TOPOLOGY_MORSE_CRITICAL**: Discrete Morse theory critical point detection (8-neighbor comparison)
+- **TOPOLOGY_BOUNDARY_MATRIX**: Sparse boundary operator construction for persistent homology
+- **TOPOLOGY_MATRIX_REDUCTION**: Column reduction algorithm for persistence computation
+- Automatic CPU fallback for < 100 points (distance matrix) or < 10,000 cells (Morse theory)
+
 ### v0.15.1 GPU Additions
 
-The `holographic` feature now includes GPU-accelerated optical field operations:
+The `holographic` feature includes GPU-accelerated optical field operations:
 
 - **GpuOpticalField**: GPU context for optical rotor field operations
 - **OPTICAL_BIND_SHADER**: Parallel rotor multiplication (256-thread workgroups)
