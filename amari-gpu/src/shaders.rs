@@ -62,6 +62,24 @@ impl ShaderLibrary {
             HOLOGRAPHIC_RESONATOR_STEP,
         );
 
+        // Topology shaders
+        shaders.insert(
+            "topology_distance_matrix".to_string(),
+            TOPOLOGY_DISTANCE_MATRIX,
+        );
+        shaders.insert(
+            "topology_morse_critical".to_string(),
+            TOPOLOGY_MORSE_CRITICAL,
+        );
+        shaders.insert(
+            "topology_boundary_matrix".to_string(),
+            TOPOLOGY_BOUNDARY_MATRIX,
+        );
+        shaders.insert(
+            "topology_matrix_reduction".to_string(),
+            TOPOLOGY_MATRIX_REDUCTION,
+        );
+
         Self { shaders }
     }
 
@@ -1374,6 +1392,252 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
     }
 
     littlewood_coeff[coeff_idx] = coefficient;
+}
+"#;
+
+// =====================================================================
+// TOPOLOGY SHADERS
+// =====================================================================
+
+/// Topology shader collection
+pub const TOPOLOGY_SHADERS: &[(&str, &str)] = &[
+    ("topology_distance_matrix", TOPOLOGY_DISTANCE_MATRIX),
+    ("topology_morse_critical", TOPOLOGY_MORSE_CRITICAL),
+    ("topology_boundary_matrix", TOPOLOGY_BOUNDARY_MATRIX),
+    ("topology_matrix_reduction", TOPOLOGY_MATRIX_REDUCTION),
+];
+
+/// Distance matrix computation for Rips filtration
+pub const TOPOLOGY_DISTANCE_MATRIX: &str = r#"
+struct Point {
+    x: f32,
+    y: f32,
+    z: f32,
+    w: f32,
+}
+
+@group(0) @binding(0)
+var<storage, read> points: array<Point>;
+
+@group(0) @binding(1)
+var<storage, read_write> distances: array<f32>;
+
+@compute @workgroup_size(8, 8)
+fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
+    let i = global_id.x;
+    let j = global_id.y;
+    let num_points = arrayLength(&points);
+
+    if (i >= num_points || j >= num_points) {
+        return;
+    }
+
+    let idx = i * num_points + j;
+
+    if (i == j) {
+        distances[idx] = 0.0;
+        return;
+    }
+
+    let pi = points[i];
+    let pj = points[j];
+
+    let dx = pi.x - pj.x;
+    let dy = pi.y - pj.y;
+    let dz = pi.z - pj.z;
+    let dw = pi.w - pj.w;
+
+    // Euclidean distance (supports up to 4D)
+    distances[idx] = sqrt(dx * dx + dy * dy + dz * dz + dw * dw);
+}
+"#;
+
+/// Morse critical point detection on 2D height function grid
+pub const TOPOLOGY_MORSE_CRITICAL: &str = r#"
+struct CriticalPoint {
+    x: u32,
+    y: u32,
+    critical_type: u32,  // 0=min, 1=saddle, 2=max
+    value: f32,
+}
+
+@group(0) @binding(0)
+var<storage, read> values: array<f32>;
+
+@group(0) @binding(1)
+var<uniform> dims: vec2<u32>;  // width, height
+
+@group(0) @binding(2)
+var<storage, read_write> critical_points: array<CriticalPoint>;
+
+@group(0) @binding(3)
+var<storage, read_write> counter: atomic<u32>;
+
+fn get_value(x: u32, y: u32) -> f32 {
+    return values[y * dims.x + x];
+}
+
+@compute @workgroup_size(16, 16)
+fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
+    // Interior points only (offset by 1)
+    let x = global_id.x + 1u;
+    let y = global_id.y + 1u;
+
+    if (x >= dims.x - 1u || y >= dims.y - 1u) {
+        return;
+    }
+
+    let v = get_value(x, y);
+
+    // Get 8-neighbors
+    let n0 = get_value(x - 1u, y - 1u);
+    let n1 = get_value(x, y - 1u);
+    let n2 = get_value(x + 1u, y - 1u);
+    let n3 = get_value(x - 1u, y);
+    let n4 = get_value(x + 1u, y);
+    let n5 = get_value(x - 1u, y + 1u);
+    let n6 = get_value(x, y + 1u);
+    let n7 = get_value(x + 1u, y + 1u);
+
+    // Count neighbors lower/higher than center
+    var lower_count = 0u;
+    var upper_count = 0u;
+
+    if (n0 < v) { lower_count += 1u; } else if (n0 > v) { upper_count += 1u; }
+    if (n1 < v) { lower_count += 1u; } else if (n1 > v) { upper_count += 1u; }
+    if (n2 < v) { lower_count += 1u; } else if (n2 > v) { upper_count += 1u; }
+    if (n3 < v) { lower_count += 1u; } else if (n3 > v) { upper_count += 1u; }
+    if (n4 < v) { lower_count += 1u; } else if (n4 > v) { upper_count += 1u; }
+    if (n5 < v) { lower_count += 1u; } else if (n5 > v) { upper_count += 1u; }
+    if (n6 < v) { lower_count += 1u; } else if (n6 > v) { upper_count += 1u; }
+    if (n7 < v) { lower_count += 1u; } else if (n7 > v) { upper_count += 1u; }
+
+    var critical_type = 3u;  // 3 = not critical
+
+    if (lower_count == 8u) {
+        critical_type = 2u;  // Maximum
+    } else if (upper_count == 8u) {
+        critical_type = 0u;  // Minimum
+    } else if (lower_count > 0u && upper_count > 0u) {
+        // Check for saddle by counting sign changes around boundary
+        var signs = array<bool, 8>(
+            n0 > v, n1 > v, n2 > v, n3 > v, n4 > v, n5 > v, n6 > v, n7 > v
+        );
+
+        var changes = 0u;
+        if (signs[0] != signs[1]) { changes += 1u; }
+        if (signs[1] != signs[2]) { changes += 1u; }
+        if (signs[2] != signs[4]) { changes += 1u; }
+        if (signs[4] != signs[7]) { changes += 1u; }
+        if (signs[7] != signs[6]) { changes += 1u; }
+        if (signs[6] != signs[5]) { changes += 1u; }
+        if (signs[5] != signs[3]) { changes += 1u; }
+        if (signs[3] != signs[0]) { changes += 1u; }
+
+        if (changes >= 4u) {
+            critical_type = 1u;  // Saddle
+        }
+    }
+
+    if (critical_type < 3u) {
+        let idx = atomicAdd(&counter, 1u);
+        critical_points[idx] = CriticalPoint(x, y, critical_type, v);
+    }
+}
+"#;
+
+/// Boundary matrix construction for simplicial complex (sparse format)
+pub const TOPOLOGY_BOUNDARY_MATRIX: &str = r#"
+struct Simplex {
+    vertices: array<u32, 8>,  // Max 7-simplex
+    dimension: u32,
+    filtration_time: f32,
+    padding: array<u32, 2>,
+}
+
+struct MatrixEntry {
+    row: u32,
+    col: u32,
+    value: i32,
+    padding: u32,
+}
+
+@group(0) @binding(0)
+var<storage, read> simplices: array<Simplex>;
+
+@group(0) @binding(1)
+var<storage, read_write> boundary_entries: array<MatrixEntry>;
+
+@group(0) @binding(2)
+var<storage, read_write> entry_counter: atomic<u32>;
+
+@compute @workgroup_size(256)
+fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
+    let simplex_idx = global_id.x;
+    if (simplex_idx >= arrayLength(&simplices)) {
+        return;
+    }
+
+    let s = simplices[simplex_idx];
+    if (s.dimension == 0u) {
+        return;  // 0-simplices have no boundary
+    }
+
+    // Generate boundary faces with alternating signs
+    let dim = s.dimension;
+    for (var i = 0u; i <= dim; i++) {
+        let sign = select(-1, 1, i % 2u == 0u);
+
+        // Allocate entry atomically
+        let entry_idx = atomicAdd(&entry_counter, 1u);
+
+        // Compute hash of face (for row index)
+        var face_hash = 0u;
+        for (var j = 0u; j <= dim; j++) {
+            if (j != i) {
+                face_hash = face_hash * 31u + s.vertices[j];
+            }
+        }
+
+        boundary_entries[entry_idx] = MatrixEntry(face_hash, simplex_idx, sign, 0u);
+    }
+}
+"#;
+
+/// Parallel matrix reduction for homology computation
+pub const TOPOLOGY_MATRIX_REDUCTION: &str = r#"
+// Parallel column reduction using GPU
+// Finds pivot rows for each column
+
+@group(0) @binding(0)
+var<storage, read_write> matrix: array<i32>;
+
+@group(0) @binding(1)
+var<uniform> dims: vec2<u32>;  // rows, cols
+
+@group(0) @binding(2)
+var<storage, read_write> pivots: array<u32>;
+
+@compute @workgroup_size(256)
+fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
+    let col = global_id.x;
+    let rows = dims.x;
+    let cols = dims.y;
+
+    if (col >= cols) {
+        return;
+    }
+
+    // Find lowest non-zero in column (pivot row)
+    var pivot_row = rows;  // rows means no pivot
+    for (var row = 0u; row < rows; row++) {
+        let idx = row * cols + col;
+        if (matrix[idx] != 0) {
+            pivot_row = row;
+        }
+    }
+
+    pivots[col] = pivot_row;
 }
 "#;
 

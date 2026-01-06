@@ -948,6 +948,277 @@ export function NetworkVisualization() {
 }
 
 // ============================================================================
+// Topology Visualization
+// ============================================================================
+
+interface SimplexData {
+  vertices: number[];
+  dimension: number;
+}
+
+export function TopologyVisualization() {
+  const [simplices, setSimplices] = useState<SimplexData[]>([]);
+  const [bettiNumbers, setBettiNumbers] = useState<number[]>([0, 0, 0]);
+  const [selectedPreset, setSelectedPreset] = useState<string>('triangle');
+  const [eulerChar, setEulerChar] = useState(0);
+
+  // Node positions for visualization (up to 6 nodes)
+  const nodePositions = [
+    { x: 100, y: 30 },   // 0 - top
+    { x: 170, y: 80 },   // 1 - right-top
+    { x: 170, y: 150 },  // 2 - right-bottom
+    { x: 100, y: 180 },  // 3 - bottom
+    { x: 30, y: 150 },   // 4 - left-bottom
+    { x: 30, y: 80 },    // 5 - left-top
+  ];
+
+  const presets: { [key: string]: { simplices: SimplexData[], betti: number[], euler: number, name: string } } = {
+    'triangle': {
+      name: 'Filled Triangle (2-simplex)',
+      simplices: [
+        { vertices: [0], dimension: 0 },
+        { vertices: [1], dimension: 0 },
+        { vertices: [2], dimension: 0 },
+        { vertices: [0, 1], dimension: 1 },
+        { vertices: [1, 2], dimension: 1 },
+        { vertices: [0, 2], dimension: 1 },
+        { vertices: [0, 1, 2], dimension: 2 },
+      ],
+      betti: [1, 0, 0],
+      euler: 1
+    },
+    'circle': {
+      name: 'Circle (3 edges, no fill)',
+      simplices: [
+        { vertices: [0], dimension: 0 },
+        { vertices: [1], dimension: 0 },
+        { vertices: [2], dimension: 0 },
+        { vertices: [0, 1], dimension: 1 },
+        { vertices: [1, 2], dimension: 1 },
+        { vertices: [0, 2], dimension: 1 },
+      ],
+      betti: [1, 1, 0],
+      euler: 0
+    },
+    'tetrahedron': {
+      name: 'Tetrahedron Surface (hollow)',
+      simplices: [
+        { vertices: [0], dimension: 0 },
+        { vertices: [1], dimension: 0 },
+        { vertices: [2], dimension: 0 },
+        { vertices: [3], dimension: 0 },
+        { vertices: [0, 1], dimension: 1 },
+        { vertices: [0, 2], dimension: 1 },
+        { vertices: [0, 3], dimension: 1 },
+        { vertices: [1, 2], dimension: 1 },
+        { vertices: [1, 3], dimension: 1 },
+        { vertices: [2, 3], dimension: 1 },
+        { vertices: [0, 1, 2], dimension: 2 },
+        { vertices: [0, 1, 3], dimension: 2 },
+        { vertices: [0, 2, 3], dimension: 2 },
+        { vertices: [1, 2, 3], dimension: 2 },
+      ],
+      betti: [1, 0, 1],
+      euler: 2
+    },
+    'torus-approx': {
+      name: 'Two Loops (β₁ = 2)',
+      simplices: [
+        { vertices: [0], dimension: 0 },
+        { vertices: [1], dimension: 0 },
+        { vertices: [2], dimension: 0 },
+        { vertices: [3], dimension: 0 },
+        { vertices: [4], dimension: 0 },
+        { vertices: [0, 1], dimension: 1 },
+        { vertices: [1, 2], dimension: 1 },
+        { vertices: [2, 0], dimension: 1 },
+        { vertices: [2, 3], dimension: 1 },
+        { vertices: [3, 4], dimension: 1 },
+        { vertices: [4, 2], dimension: 1 },
+      ],
+      betti: [1, 2, 0],
+      euler: -1
+    },
+    'disconnected': {
+      name: 'Two Components',
+      simplices: [
+        { vertices: [0], dimension: 0 },
+        { vertices: [1], dimension: 0 },
+        { vertices: [2], dimension: 0 },
+        { vertices: [3], dimension: 0 },
+        { vertices: [0, 1], dimension: 1 },
+        { vertices: [2, 3], dimension: 1 },
+      ],
+      betti: [2, 0, 0],
+      euler: 2
+    }
+  };
+
+  useEffect(() => {
+    const preset = presets[selectedPreset];
+    setSimplices(preset.simplices);
+    setBettiNumbers(preset.betti);
+    setEulerChar(preset.euler);
+  }, [selectedPreset]);
+
+  const getSimplexColor = (dim: number) => {
+    switch (dim) {
+      case 0: return 'var(--mantine-color-cyan-5)';
+      case 1: return 'var(--mantine-color-yellow-5)';
+      case 2: return 'var(--mantine-color-red-5)';
+      default: return 'var(--mantine-color-gray-5)';
+    }
+  };
+
+  const edges = simplices.filter(s => s.dimension === 1);
+  const triangles = simplices.filter(s => s.dimension === 2);
+  const vertices = simplices.filter(s => s.dimension === 0);
+
+  return (
+    <Card withBorder>
+      <Card.Section withBorder inheritPadding py="sm" bg="dark.6">
+        <Group justify="space-between">
+          <div>
+            <Title order={4}>Simplicial Complex</Title>
+            <Text size="xs" c="dimmed">Homology and Betti numbers visualization</Text>
+          </div>
+          <Select
+            size="xs"
+            value={selectedPreset}
+            onChange={(v) => v && setSelectedPreset(v)}
+            data={Object.entries(presets).map(([key, val]) => ({ value: key, label: val.name }))}
+            w={200}
+          />
+        </Group>
+      </Card.Section>
+      <Card.Section inheritPadding py="md">
+        <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
+          {/* Complex visualization */}
+          <Box>
+            <Text size="sm" fw={600} mb="xs">Complex Visualization</Text>
+            <svg viewBox="0 0 200 200" style={{ width: '100%', height: '200px', background: 'var(--mantine-color-dark-7)', borderRadius: 'var(--mantine-radius-sm)' }}>
+              {/* Draw 2-simplices (triangles) first */}
+              {triangles.map((tri, i) => {
+                const [v0, v1, v2] = tri.vertices;
+                const p0 = nodePositions[v0];
+                const p1 = nodePositions[v1];
+                const p2 = nodePositions[v2];
+                return (
+                  <polygon
+                    key={`tri-${i}`}
+                    points={`${p0.x},${p0.y} ${p1.x},${p1.y} ${p2.x},${p2.y}`}
+                    fill={getSimplexColor(2)}
+                    opacity={0.3}
+                    stroke={getSimplexColor(2)}
+                    strokeWidth="1"
+                  />
+                );
+              })}
+
+              {/* Draw 1-simplices (edges) */}
+              {edges.map((edge, i) => {
+                const [v0, v1] = edge.vertices;
+                const p0 = nodePositions[v0];
+                const p1 = nodePositions[v1];
+                return (
+                  <line
+                    key={`edge-${i}`}
+                    x1={p0.x}
+                    y1={p0.y}
+                    x2={p1.x}
+                    y2={p1.y}
+                    stroke={getSimplexColor(1)}
+                    strokeWidth="3"
+                  />
+                );
+              })}
+
+              {/* Draw 0-simplices (vertices) */}
+              {vertices.map((vert, i) => {
+                const p = nodePositions[vert.vertices[0]];
+                return (
+                  <g key={`vert-${i}`}>
+                    <circle
+                      cx={p.x}
+                      cy={p.y}
+                      r="8"
+                      fill={getSimplexColor(0)}
+                    />
+                    <text
+                      x={p.x}
+                      y={p.y + 4}
+                      fontSize="10"
+                      fill="white"
+                      textAnchor="middle"
+                    >
+                      {vert.vertices[0]}
+                    </text>
+                  </g>
+                );
+              })}
+
+              {/* Legend */}
+              <g transform="translate(5, 185)">
+                <circle cx="5" cy="0" r="4" fill={getSimplexColor(0)} />
+                <text x="12" y="3" fontSize="8" fill="var(--mantine-color-dimmed)">vertex</text>
+                <line x1="45" y1="0" x2="60" y2="0" stroke={getSimplexColor(1)} strokeWidth="2" />
+                <text x="65" y="3" fontSize="8" fill="var(--mantine-color-dimmed)">edge</text>
+                <rect x="100" y="-5" width="10" height="10" fill={getSimplexColor(2)} opacity="0.5" />
+                <text x="115" y="3" fontSize="8" fill="var(--mantine-color-dimmed)">face</text>
+              </g>
+            </svg>
+          </Box>
+
+          {/* Homology info */}
+          <Stack gap="md">
+            <Box p="sm" bg="dark.7" style={{ borderRadius: 'var(--mantine-radius-sm)' }}>
+              <Text size="xs" c="dimmed" mb="xs">Betti Numbers</Text>
+              <Group gap="md" justify="center">
+                {bettiNumbers.map((b, k) => (
+                  <Box key={k} style={{ textAlign: 'center' }}>
+                    <Text size="xl" fw={700} c={b > 0 ? 'cyan' : 'dimmed'}>β{k} = {b}</Text>
+                    <Text size="xs" c="dimmed">
+                      {k === 0 ? 'components' : k === 1 ? 'loops' : 'voids'}
+                    </Text>
+                  </Box>
+                ))}
+              </Group>
+            </Box>
+
+            <SimpleGrid cols={2} spacing="xs">
+              <Box p="sm" bg="dark.7" style={{ borderRadius: 'var(--mantine-radius-sm)' }}>
+                <Text size="xs" c="dimmed">Euler Characteristic</Text>
+                <Text size="lg" fw={700}>χ = {eulerChar}</Text>
+                <Text size="xs" ff="monospace" c="dimmed">V - E + F</Text>
+              </Box>
+              <Box p="sm" bg="dark.7" style={{ borderRadius: 'var(--mantine-radius-sm)' }}>
+                <Text size="xs" c="dimmed">Simplex Count</Text>
+                <Text size="sm" ff="monospace">
+                  {vertices.length} vertices, {edges.length} edges, {triangles.length} faces
+                </Text>
+              </Box>
+            </SimpleGrid>
+
+            <Box p="sm" bg="dark.7" style={{ borderRadius: 'var(--mantine-radius-sm)' }}>
+              <Text size="xs" c="dimmed" mb="xs">Homology Interpretation</Text>
+              <Text size="xs">
+                {bettiNumbers[0] === 1 ? '• Connected (1 component)' : `• ${bettiNumbers[0]} connected components`}
+              </Text>
+              <Text size="xs">
+                {bettiNumbers[1] === 0 ? '• No 1D holes (loops)' : `• ${bettiNumbers[1]} loop${bettiNumbers[1] > 1 ? 's' : ''}/tunnel${bettiNumbers[1] > 1 ? 's' : ''}`}
+              </Text>
+              <Text size="xs">
+                {bettiNumbers[2] === 0 ? '• No 2D voids' : `• ${bettiNumbers[2]} enclosed void${bettiNumbers[2] > 1 ? 's' : ''}`}
+              </Text>
+            </Box>
+          </Stack>
+        </SimpleGrid>
+      </Card.Section>
+    </Card>
+  );
+}
+
+// ============================================================================
 // Main Export: All Visualizations Section
 // ============================================================================
 
@@ -973,6 +1244,7 @@ export function LiveVisualizationSection() {
             <Tabs.Tab value="dual">Autodiff</Tabs.Tab>
             <Tabs.Tab value="rotor">Rotations</Tabs.Tab>
             <Tabs.Tab value="fisher">Info Geometry</Tabs.Tab>
+            <Tabs.Tab value="topology">Topology</Tabs.Tab>
             <Tabs.Tab value="mcmc">MCMC</Tabs.Tab>
             <Tabs.Tab value="network">Networks</Tabs.Tab>
           </Tabs.List>
@@ -995,6 +1267,10 @@ export function LiveVisualizationSection() {
 
           <Tabs.Panel value="fisher" p="md">
             <FisherVisualization />
+          </Tabs.Panel>
+
+          <Tabs.Panel value="topology" p="md">
+            <TopologyVisualization />
           </Tabs.Panel>
 
           <Tabs.Panel value="mcmc" p="md">

@@ -22,7 +22,7 @@ Integration Crates (consume APIs):
 
 **Dependency Rule**: Integration crates depend on domain crates, never the reverse.
 
-## Current Integrations (v0.15.1)
+## Current Integrations (v0.16.0)
 
 ### Implemented GPU Acceleration
 
@@ -41,6 +41,7 @@ Integration Crates (consume APIs):
 | **amari-holographic** | `holographic` | Holographic memory, batch binding, similarity matrices, **optical field operations** | ✅ Implemented (feature: `holographic`) |
 | **amari-probabilistic** | `probabilistic` | Gaussian sampling, batch statistics, Monte Carlo | ✅ Implemented (feature: `probabilistic`) |
 | **amari-functional** | `functional` | Matrix operators, spectral decomposition, Hilbert spaces | ✅ Implemented (feature: `functional`) |
+| **amari-topology** | `topology` | Distance matrices, Morse critical points, Rips filtrations | ✅ Implemented (feature: `topology`) |
 
 ### Temporarily Disabled Modules
 
@@ -66,6 +67,7 @@ automata = ["dep:amari-automata"]
 fusion = ["dep:amari-fusion"]
 holographic = ["dep:amari-holographic"]  # Holographic memory GPU acceleration
 probabilistic = ["dep:rand", "dep:rand_distr"]  # Probabilistic GPU acceleration
+topology = ["dep:amari-topology"]  # Computational topology GPU acceleration
 # tropical = ["dep:amari-tropical"]  # Disabled - orphan impl rules
 ```
 
@@ -240,6 +242,80 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
   - Each thread handles 32 pixels, packing results into u32
   - 64-thread workgroups for word-level parallelism
 
+### Topology GPU Acceleration *(v0.16.0)*
+
+```rust
+use amari_gpu::topology::{GpuTopology, AdaptiveTopologyCompute};
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Initialize GPU topology operations
+    let gpu_topology = GpuTopology::new().await?;
+
+    // Compute distance matrix for Rips filtration (uses GPU for > 100 points)
+    let points = vec![
+        vec![0.0, 0.0], vec![1.0, 0.0], vec![0.5, 0.866],
+        vec![2.0, 0.0], vec![2.5, 0.866], vec![3.0, 0.0],
+        // ... more points ...
+    ];
+    let distances = gpu_topology.compute_distance_matrix(&points).await?;
+    println!("Computed {}x{} distance matrix", distances.len(), distances[0].len());
+
+    // Find Morse critical points in 2D scalar field (uses GPU for > 10000 cells)
+    let grid_size = (128, 128);
+    let values: Vec<f64> = (0..grid_size.0 * grid_size.1)
+        .map(|i| {
+            let x = (i % grid_size.0) as f64 / grid_size.0 as f64;
+            let y = (i / grid_size.0) as f64 / grid_size.1 as f64;
+            (x * 6.28).sin() * (y * 6.28).cos()
+        })
+        .collect();
+
+    let critical_points = gpu_topology.find_critical_points_2d(&values, grid_size).await?;
+    println!("Found {} critical points", critical_points.len());
+
+    // Build Rips filtration from distance matrix
+    let max_radius = 2.0;
+    let max_dimension = 2;
+    let filtration = gpu_topology.build_rips_filtration(&distances, max_radius, max_dimension).await?;
+    println!("Built filtration with {} simplices", filtration.simplices().len());
+
+    // Use adaptive dispatcher (automatic CPU/GPU selection)
+    let adaptive = AdaptiveTopologyCompute::new().await;
+    let betti = adaptive.compute_betti_numbers(&distances, max_radius, max_dimension).await?;
+    println!("Betti numbers: β₀={}, β₁={}, β₂={}", betti[0], betti[1], betti[2]);
+
+    Ok(())
+}
+```
+
+#### Topology GPU Operations
+
+| Operation | Description | GPU Threshold |
+|-----------|-------------|---------------|
+| `compute_distance_matrix()` | Pairwise Euclidean distances | ≥ 100 points |
+| `find_critical_points_2d()` | Morse critical point detection | ≥ 10000 grid cells |
+| `build_rips_filtration()` | Vietoris-Rips complex construction | Uses distance matrix |
+| `compute_betti_numbers()` | Persistent homology computation | Adaptive |
+
+#### WGSL Shaders for Topology Operations
+
+- **`TOPOLOGY_DISTANCE_MATRIX`**: Parallel pairwise distance computation
+  - 256-thread workgroups computing `√Σ(xᵢ - yⱼ)²`
+  - Outputs upper triangular matrix to minimize memory
+
+- **`TOPOLOGY_MORSE_CRITICAL`**: Discrete Morse theory critical point detection
+  - Compares each cell with 8 neighbors (2D grid)
+  - Outputs: index (0=regular, 1=min, 2=saddle, 3=max)
+
+- **`TOPOLOGY_BOUNDARY_MATRIX`**: Boundary operator matrix construction
+  - Builds sparse representation for simplicial complex
+  - Used in persistent homology computation
+
+- **`TOPOLOGY_MATRIX_REDUCTION`**: Column reduction for persistence
+  - Implements standard algorithm for reduced boundary matrix
+  - Extracts persistence pairs from reduced matrix
+
 ### Probabilistic GPU Acceleration
 
 ```rust
@@ -303,6 +379,9 @@ let values = gpu_calculus.batch_eval_scalar_field(&field, &large_points).await?;
 | Lee hologram encoding | < 4096 pixels | ≥ 4096 pixels |
 | Gaussian sampling | < 1000 samples | ≥ 1000 samples |
 | Batch mean/variance | < 1000 elements | ≥ 1000 elements |
+| Distance matrix | < 100 points | ≥ 100 points |
+| Morse critical points | < 10000 cells | ≥ 10000 cells |
+| Rips filtration | N/A | Uses GPU distance matrix |
 
 ## Implementation Status
 
@@ -364,6 +443,31 @@ let values = gpu_calculus.batch_eval_scalar_field(&field, &large_points).await?;
 - Infrastructure and pipelines are in place
 - All operations currently use CPU implementations
 - Shaders can be added incrementally without API changes
+
+### Topology Module (v0.16.0)
+
+**GPU Implementations** (✅ Complete):
+- Distance matrix computation with parallel pairwise Euclidean distance
+- Morse critical point detection for 2D scalar fields
+- Boundary matrix construction for simplicial complexes
+- Column reduction for persistent homology
+
+**Types**:
+- `GpuTopology`: GPU context for topology operations
+- `GpuCriticalPoint`: Critical point with position, value, type, and index
+- `AdaptiveTopologyCompute`: Automatic CPU/GPU dispatch based on workload size
+- `GpuTopologyError` / `GpuTopologyResult`: Error handling types
+
+**Shaders**:
+- `TOPOLOGY_DISTANCE_MATRIX`: 256-thread workgroups for O(n²) distance computation
+- `TOPOLOGY_MORSE_CRITICAL`: 8-neighbor comparison for critical point classification
+- `TOPOLOGY_BOUNDARY_MATRIX`: Sparse boundary operator construction
+- `TOPOLOGY_MATRIX_REDUCTION`: Standard column reduction algorithm
+
+**Adaptive Thresholds**:
+- Distance matrix: GPU for ≥ 100 points (n² = 10,000 operations)
+- Morse critical points: GPU for ≥ 10,000 grid cells (100×100)
+- Falls back to CPU for smaller workloads to avoid transfer overhead
 
 ## Examples
 
