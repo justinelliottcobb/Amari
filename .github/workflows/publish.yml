@@ -95,10 +95,8 @@ jobs:
           # Publish in dependency order with delays for crates.io rate limiting
           # IMPORTANT: New crates should be added before amari-measure, amari-wasm, amari-gpu, and amari
           # See VERSION_MANAGEMENT.md for best practices
-          # Dependency order is critical! amari-gpu must come before amari-probabilistic
-          # because amari-probabilistic has an optional dep on amari-gpu.
-          # Similarly, amari-functional and amari-topology must come before amari-gpu
-          # because amari-gpu has optional deps on them.
+          # Dependency order is critical! amari-functional and amari-topology must come
+          # before amari-gpu because amari-gpu has optional deps on them.
           CRATES=(
             "amari-core"
             "amari-tropical"

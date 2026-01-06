@@ -32,14 +32,9 @@ criterion = "0.5"
 default = ["std"]
 std = ["amari-core/std"]
 parallel = ["dep:rayon"]
-gpu = ["dep:amari-gpu"]
 
 [dependencies.rayon]
 version = "1.8"
-optional = true
-
-[dependencies.amari-gpu]
-workspace = true
 optional = true
 
 # Benchmarks will be added later
