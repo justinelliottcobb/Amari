@@ -41,6 +41,7 @@ amari-measure = { path = "../amari-measure" }
 amari-calculus = { path = "../amari-calculus" }
 amari-probabilistic = { path = "../amari-probabilistic" }
 amari-functional = { path = "../amari-functional" }
+amari-topology = { path = "../amari-topology" }
 
 # Additional dependencies for v0.9.4 complete WASM coverage
 num-rational = "0.4"
