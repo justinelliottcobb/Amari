@@ -1,0 +1,46 @@
+[package]
+name = "amari-dynamics"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Dynamical systems analysis on geometric algebra spaces - stability, bifurcations, attractors, and Lyapunov exponents"
+repository = "https://github.com/justinelliottcobb/Amari"
+homepage = "https://github.com/justinelliottcobb/Amari"
+keywords = ["dynamical-systems", "stability", "bifurcation", "lyapunov", "geometric-algebra"]
+categories = ["mathematics", "science", "simulation"]
+
+[dependencies]
+amari-core = { workspace = true, features = ["std", "phantom-types"] }
+amari-calculus = { workspace = true }
+amari-functional = { workspace = true }
+amari-topology = { workspace = true }
+amari-probabilistic = { workspace = true, optional = true }
+thiserror = { workspace = true }
+num-traits = { workspace = true }
+nalgebra = { workspace = true }
+
+[dependencies.rayon]
+version = "1.8"
+optional = true
+
+[dependencies.creusot-contracts]
+version = "0.4"
+optional = true
+
+[dev-dependencies]
+approx = { workspace = true }
+rand = { workspace = true }
+proptest = "1.4"
+
+[features]
+default = ["std"]
+std = ["amari-core/std"]
+parallel = ["rayon", "amari-functional/parallel"]
+stochastic = ["amari-probabilistic"]
+contracts = ["creusot-contracts"]
+
+[[test]]
+name = "integration"
+path = "tests/integration.rs"

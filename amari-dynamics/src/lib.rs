@@ -1,0 +1,140 @@
+//! # amari-dynamics
+//!
+//! Dynamical systems analysis on geometric algebra spaces.
+//!
+//! This crate provides tools for analyzing dynamical systems whose states live
+//! in Clifford algebra spaces Cl(P,Q,R). It includes:
+//!
+//! - **ODE Solvers**: Runge-Kutta methods for numerical integration
+//! - **Stability Analysis**: Fixed point finding, linearization, eigenvalue classification
+//! - **Bifurcation Theory**: Parameter continuation, bifurcation detection
+//! - **Attractor Analysis**: Basin computation, limit cycle detection
+//! - **Lyapunov Exponents**: Chaos characterization via QR methods
+//! - **Phase Space Tools**: Trajectories, phase portraits, nullclines
+//!
+//! # Quick Start
+//!
+//! ```ignore
+//! use amari_dynamics::{
+//!     flow::{DynamicalSystem, HarmonicOscillator},
+//!     solver::{ODESolver, RungeKutta4, Trajectory},
+//! };
+//! use amari_core::Multivector;
+//!
+//! // Create a harmonic oscillator
+//! let system = HarmonicOscillator::new(1.0);
+//!
+//! // Set initial conditions: x=1, v=0
+//! let mut initial = Multivector::<2, 0, 0>::zero();
+//! initial.set(1, 1.0);
+//!
+//! // Integrate for one period
+//! let solver = RungeKutta4::new();
+//! let trajectory = solver.solve(&system, initial, 0.0, 6.28, 1000)?;
+//!
+//! // Analyze the trajectory
+//! println!("Final state: {:?}", trajectory.final_state());
+//! # Ok::<(), amari_dynamics::DynamicsError>(())
+//! ```
+//!
+//! # Geometric Algebra Integration
+//!
+//! States are represented as multivectors in Cl(P,Q,R), enabling:
+//!
+//! - **Rotation Dynamics**: Rotor evolution for attitude dynamics
+//! - **Geometric Constraints**: Natural encoding of manifold constraints
+//! - **Grade-Aware Evolution**: Separate evolution of scalar, vector, bivector components
+//!
+//! # Phantom Types
+//!
+//! The crate uses phantom types for compile-time verification of system properties:
+//!
+//! ```ignore
+//! use amari_dynamics::phantom::*;
+//!
+//! // A system verified to be stable and non-chaotic
+//! let verified: VerifiedStableSystem<MySystem> = analyze_and_verify(system)?;
+//!
+//! // Functions can require specific properties
+//! fn process_stable<S>(sys: &VerifiedStableSystem<S>) { ... }
+//! ```
+//!
+//! # Feature Flags
+//!
+//! - `std` (default): Standard library support
+//! - `parallel`: Rayon-based parallel algorithms
+//! - `stochastic`: Stochastic dynamics via amari-probabilistic
+//! - `contracts`: Creusot formal verification contracts
+//!
+//! # Module Overview
+//!
+//! | Module | Description |
+//! |--------|-------------|
+//! | [`flow`] | Dynamical system traits and definitions |
+//! | [`solver`] | ODE integration methods |
+//! | [`phantom`] | Compile-time type markers |
+//! | [`error`] | Error types |
+
+#![cfg_attr(not(feature = "std"), no_std)]
+#![warn(missing_docs)]
+#![warn(clippy::all)]
+
+#[cfg(not(feature = "std"))]
+extern crate alloc;
+
+#[cfg(not(feature = "std"))]
+use alloc::{string::String, vec, vec::Vec};
+
+// Re-export core types
+pub use amari_core::Multivector;
+
+// Modules
+pub mod error;
+pub mod flow;
+pub mod phantom;
+pub mod solver;
+
+// Re-export common types at crate root
+pub use error::{DynamicsError, Result};
+pub use flow::{DiscreteMap, DynamicalSystem, HarmonicOscillator, NonAutonomousSystem};
+pub use phantom::{
+    Autonomous, Chaotic, ContinuousTime, DiscreteTime, NonAutonomous, Regular, Stable, TypedSystem,
+    UnknownChaos, UnknownStability, Unstable,
+};
+pub use solver::{ODESolver, RungeKutta4, Trajectory};
+
+/// Crate version
+pub const VERSION: &str = env!("CARGO_PKG_VERSION");
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_version() {
+        assert!(!VERSION.is_empty());
+    }
+
+    #[test]
+    fn test_harmonic_oscillator_full_integration() {
+        let system = HarmonicOscillator::new(1.0);
+        let solver = RungeKutta4::new();
+
+        // Initial condition: x = 1, v = 0
+        let mut initial = Multivector::<2, 0, 0>::zero();
+        initial.set(1, 1.0);
+
+        // Integrate for half a period
+        let trajectory = solver
+            .solve(&system, initial, 0.0, core::f64::consts::PI, 1000)
+            .unwrap();
+
+        // After half period, x should be approximately -1
+        let final_state = trajectory.final_state().unwrap();
+        let x = final_state.get(1);
+        let v = final_state.get(2);
+
+        assert!((x - (-1.0)).abs() < 1e-4, "Expected x ≈ -1, got {}", x);
+        assert!(v.abs() < 1e-4, "Expected v ≈ 0, got {}", v);
+    }
+}
