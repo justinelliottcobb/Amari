@@ -73,6 +73,7 @@
 //! | [`flow`] | Dynamical system traits and definitions |
 //! | [`solver`] | ODE integration methods |
 //! | [`stability`] | Fixed points, linearization, eigenvalue analysis |
+//! | [`bifurcation`] | Bifurcation detection and continuation |
 //! | [`phantom`] | Compile-time type markers |
 //! | [`error`] | Error types |
 
@@ -90,6 +91,7 @@ use alloc::{string::String, vec, vec::Vec};
 pub use amari_core::Multivector;
 
 // Modules
+pub mod bifurcation;
 pub mod error;
 pub mod flow;
 pub mod phantom;
@@ -97,6 +99,10 @@ pub mod solver;
 pub mod stability;
 
 // Re-export common types at crate root
+pub use bifurcation::{
+    BifurcationConfig, BifurcationDiagram, BifurcationPoint, BifurcationType, NaturalContinuation,
+    ParameterContinuation,
+};
 pub use error::{DynamicsError, Result};
 pub use flow::{DiscreteMap, DynamicalSystem, HarmonicOscillator, NonAutonomousSystem};
 pub use phantom::{
