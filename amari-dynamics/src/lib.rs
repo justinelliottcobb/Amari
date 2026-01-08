@@ -72,6 +72,7 @@
 //! |--------|-------------|
 //! | [`flow`] | Dynamical system traits and definitions |
 //! | [`solver`] | ODE integration methods |
+//! | [`stability`] | Fixed points, linearization, eigenvalue analysis |
 //! | [`phantom`] | Compile-time type markers |
 //! | [`error`] | Error types |
 
@@ -93,6 +94,7 @@ pub mod error;
 pub mod flow;
 pub mod phantom;
 pub mod solver;
+pub mod stability;
 
 // Re-export common types at crate root
 pub use error::{DynamicsError, Result};
@@ -102,6 +104,10 @@ pub use phantom::{
     UnknownChaos, UnknownStability, Unstable,
 };
 pub use solver::{ODESolver, RungeKutta4, Trajectory};
+pub use stability::{
+    analyze_stability, find_and_analyze, find_fixed_point, stability_report, DifferentiationConfig,
+    EigenvalueAnalysis, FixedPointConfig, FixedPointResult, StabilityReport, StabilityType,
+};
 
 /// Crate version
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");

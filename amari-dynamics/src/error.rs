@@ -182,6 +182,13 @@ impl DynamicsError {
         Self::DimensionMismatch { expected, actual }
     }
 
+    /// Create a dimension error (generic dimension-related error)
+    pub fn dimension_error(reason: impl Into<String>) -> Self {
+        Self::InvalidParameter {
+            description: reason.into(),
+        }
+    }
+
     /// Create an invalid step size error
     pub fn invalid_step_size(step_size: f64) -> Self {
         Self::InvalidStepSize { step_size }
