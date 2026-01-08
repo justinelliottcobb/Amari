@@ -76,6 +76,8 @@
 //! | [`bifurcation`] | Bifurcation detection and continuation |
 //! | [`attractor`] | Attractor analysis, Poincaré sections, basins |
 //! | [`lyapunov`] | Lyapunov exponents and chaos characterization |
+//! | [`ergodic`] | Invariant measures, Birkhoff averages, ergodicity tests |
+//! | [`phase`] | Phase portraits, nullclines, trajectory analysis |
 //! | [`phantom`] | Compile-time type markers |
 //! | [`error`] | Error types |
 
@@ -95,10 +97,12 @@ pub use amari_core::Multivector;
 // Modules
 pub mod attractor;
 pub mod bifurcation;
+pub mod ergodic;
 pub mod error;
 pub mod flow;
 pub mod lyapunov;
 pub mod phantom;
+pub mod phase;
 pub mod solver;
 pub mod stability;
 
@@ -112,6 +116,11 @@ pub use bifurcation::{
     BifurcationConfig, BifurcationDiagram, BifurcationPoint, BifurcationType, NaturalContinuation,
     ParameterContinuation,
 };
+pub use ergodic::{
+    birkhoff_average, compute_histogram_measure, compute_invariant_measure, test_ergodicity,
+    BirkhoffConfig, BirkhoffResult, EmpiricalMeasure, ErgodicityTest, HistogramMeasure,
+    InvariantMeasure, MeasureConfig,
+};
 pub use error::{DynamicsError, Result};
 pub use flow::{DiscreteMap, DynamicalSystem, HarmonicOscillator, NonAutonomousSystem};
 pub use lyapunov::{
@@ -121,6 +130,11 @@ pub use lyapunov::{
 pub use phantom::{
     Autonomous, Chaotic, ContinuousTime, DiscreteTime, NonAutonomous, Regular, Stable, TypedSystem,
     UnknownChaos, UnknownStability, Unstable,
+};
+pub use phase::{
+    compute_nullclines, interpolate_trajectory, resample_trajectory, AnalyzedTrajectory,
+    BundleStatistics, ClassifiedFixedPoint, NullclineConfig, NullclineResult, PhasePortrait,
+    PortraitConfig, TrajectoryBundle, TrajectoryMetadata, TrajectoryType, VectorFieldPoint,
 };
 pub use solver::{ODESolver, RungeKutta4, Trajectory};
 pub use stability::{
