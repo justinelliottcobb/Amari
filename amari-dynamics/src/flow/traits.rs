@@ -390,7 +390,7 @@ where
 pub trait ParametricSystem<const P: usize, const Q: usize, const R: usize>:
     DynamicalSystem<P, Q, R>
 {
-    /// Type of the parameter (often f64 for single parameter, Vec<f64> for multiple)
+    /// Type of the parameter (often `f64` for single parameter, `Vec<f64>` for multiple)
     type Parameter: Clone;
 
     /// Get the current parameter value.

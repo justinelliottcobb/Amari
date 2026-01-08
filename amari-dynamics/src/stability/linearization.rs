@@ -214,7 +214,7 @@ where
 
 /// Compute the Hessian tensor (second derivatives) at a point
 ///
-/// Returns H[i,j,k] = ∂²f_i / (∂x_j ∂x_k)
+/// Returns H\[i,j,k\] = ∂²f_i / (∂x_j ∂x_k)
 ///
 /// # Arguments
 ///
@@ -224,7 +224,7 @@ where
 ///
 /// # Returns
 ///
-/// The Hessian as a flattened vector [H[0,0,0], H[0,0,1], ..., H[n-1,n-1,n-1]]
+/// The Hessian as a flattened vector \[H\[0,0,0\], H\[0,0,1\], ..., H\[n-1,n-1,n-1\]\]
 pub fn compute_hessian<S, const P: usize, const Q: usize, const R: usize>(
     system: &S,
     point: &Multivector<P, Q, R>,
