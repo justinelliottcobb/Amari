@@ -74,6 +74,8 @@
 //! | [`solver`] | ODE integration methods |
 //! | [`stability`] | Fixed points, linearization, eigenvalue analysis |
 //! | [`bifurcation`] | Bifurcation detection and continuation |
+//! | [`attractor`] | Attractor analysis, Poincaré sections, basins |
+//! | [`lyapunov`] | Lyapunov exponents and chaos characterization |
 //! | [`phantom`] | Compile-time type markers |
 //! | [`error`] | Error types |
 
@@ -91,20 +93,31 @@ use alloc::{string::String, vec, vec::Vec};
 pub use amari_core::Multivector;
 
 // Modules
+pub mod attractor;
 pub mod bifurcation;
 pub mod error;
 pub mod flow;
+pub mod lyapunov;
 pub mod phantom;
 pub mod solver;
 pub mod stability;
 
 // Re-export common types at crate root
+pub use attractor::{
+    Attractor, AttractorConfig, AttractorType, BasinConfig, BasinResult, FixedPointAttractor,
+    LimitCycleAttractor, MultiBasinResult, PoincareCrossing, PoincareResult, PoincareSection,
+    StrangeAttractor,
+};
 pub use bifurcation::{
     BifurcationConfig, BifurcationDiagram, BifurcationPoint, BifurcationType, NaturalContinuation,
     ParameterContinuation,
 };
 pub use error::{DynamicsError, Result};
 pub use flow::{DiscreteMap, DynamicalSystem, HarmonicOscillator, NonAutonomousSystem};
+pub use lyapunov::{
+    compute_largest_lyapunov, compute_lyapunov_spectrum, is_chaotic, kaplan_yorke_dimension,
+    ks_entropy, LyapunovClassification, LyapunovConfig, LyapunovSpectrum,
+};
 pub use phantom::{
     Autonomous, Chaotic, ContinuousTime, DiscreteTime, NonAutonomous, Regular, Stable, TypedSystem,
     UnknownChaos, UnknownStability, Unstable,
