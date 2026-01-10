@@ -23,6 +23,19 @@ nalgebra = { workspace = true }
 rand = { workspace = true, optional = true }
 rand_distr = { version = "0.4", optional = true }
 
+# GPU acceleration dependencies
+wgpu = { version = "0.19", optional = true }
+bytemuck = { version = "1.14", optional = true, features = ["derive"] }
+pollster = { version = "0.3", optional = true }
+futures = { version = "0.3", optional = true }
+tokio = { version = "1.0", optional = true, features = ["rt", "sync"] }
+
+# WASM dependencies
+wasm-bindgen = { version = "0.2", optional = true }
+js-sys = { version = "0.3", optional = true }
+serde = { version = "1.0", optional = true, features = ["derive"] }
+serde-wasm-bindgen = { version = "0.6", optional = true }
+
 [dependencies.rayon]
 version = "1.8"
 optional = true
@@ -42,6 +55,8 @@ std = ["amari-core/std"]
 parallel = ["rayon", "amari-functional/parallel"]
 stochastic = ["amari-probabilistic", "rand", "rand_distr"]
 contracts = ["creusot-contracts"]
+gpu = ["wgpu", "bytemuck", "pollster", "futures", "tokio"]
+wasm = ["wasm-bindgen", "js-sys", "serde", "serde-wasm-bindgen"]
 
 [[test]]
 name = "integration"

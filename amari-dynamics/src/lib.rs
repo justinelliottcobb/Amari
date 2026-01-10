@@ -80,6 +80,8 @@
 //! | [`phase`] | Phase portraits, nullclines, trajectory analysis |
 //! | [`systems`] | Built-in systems (Lorenz, Van der Pol, Hénon, etc.) |
 //! | [`stochastic`] | Stochastic dynamics (requires `stochastic` feature) |
+//! | [`gpu`] | GPU acceleration (requires `gpu` feature) |
+//! | [`wasm`] | WASM bindings (requires `wasm` feature) |
 //! | [`phantom`] | Compile-time type markers |
 //! | [`error`] | Error types |
 
@@ -110,6 +112,14 @@ pub mod stability;
 #[cfg(feature = "stochastic")]
 pub mod stochastic;
 pub mod systems;
+
+// GPU acceleration (feature-gated)
+#[cfg(feature = "gpu")]
+pub mod gpu;
+
+// WASM bindings (feature-gated)
+#[cfg(feature = "wasm")]
+pub mod wasm;
 
 // Re-export common types at crate root
 pub use attractor::{
@@ -159,6 +169,20 @@ pub use stochastic::{
     FirstPassageResult, FokkerPlanck1D, FokkerPlanck2D, FokkerPlanckConfig, LangevinConfig,
     LangevinSystem, LangevinTrajectory, Region, TransitionAnalyzer, TransitionConfig,
     TransitionCounts, UnderdampedLangevin,
+};
+
+// GPU acceleration (feature-gated)
+#[cfg(feature = "gpu")]
+pub use gpu::{
+    AdaptiveDynamics, BatchTrajectoryConfig, BatchTrajectoryResult, FlowFieldConfig,
+    FlowFieldResult, GpuDynamics, GpuSystemType,
+};
+
+// WASM bindings (feature-gated)
+#[cfg(feature = "wasm")]
+pub use wasm::{
+    compute_flow_field, WasmDuffing, WasmLorenz, WasmPendulum, WasmRossler, WasmTrajectory,
+    WasmVanDerPol,
 };
 
 /// Crate version
