@@ -15,6 +15,7 @@
 //! - Deterministic physics for networked applications (opt-in via `deterministic` feature)
 //! - Functional analysis on multivector spaces (opt-in via `functional` feature)
 //! - Algebraic topology: homology, persistent homology, Morse theory (opt-in via `topology` feature)
+//! - Dynamical systems: ODE solvers, stability, bifurcations, chaos (opt-in via `dynamics` feature)
 //!
 //! Use `features = ["full"]` to enable all optional crates.
 
@@ -45,6 +46,9 @@ pub use amari_functional as functional;
 
 #[cfg(feature = "topology")]
 pub use amari_topology as topology;
+
+#[cfg(feature = "dynamics")]
+pub use amari_dynamics as dynamics;
 
 #[cfg(feature = "flynn")]
 pub use amari_flynn as flynn;
@@ -125,6 +129,11 @@ pub enum AmariError {
     #[cfg(feature = "topology")]
     #[error(transparent)]
     Topology(#[from] amari_topology::TopologyError),
+
+    /// Dynamics error
+    #[cfg(feature = "dynamics")]
+    #[error(transparent)]
+    Dynamics(#[from] amari_dynamics::DynamicsError),
 }
 
 /// Result type for Amari operations
