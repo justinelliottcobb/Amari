@@ -78,6 +78,8 @@
 //! | [`lyapunov`] | Lyapunov exponents and chaos characterization |
 //! | [`ergodic`] | Invariant measures, Birkhoff averages, ergodicity tests |
 //! | [`phase`] | Phase portraits, nullclines, trajectory analysis |
+//! | [`systems`] | Built-in systems (Lorenz, Van der Pol, Hénon, etc.) |
+//! | [`stochastic`] | Stochastic dynamics (requires `stochastic` feature) |
 //! | [`phantom`] | Compile-time type markers |
 //! | [`error`] | Error types |
 
@@ -105,6 +107,9 @@ pub mod phantom;
 pub mod phase;
 pub mod solver;
 pub mod stability;
+#[cfg(feature = "stochastic")]
+pub mod stochastic;
+pub mod systems;
 
 // Re-export common types at crate root
 pub use attractor::{
@@ -140,6 +145,20 @@ pub use solver::{ODESolver, RungeKutta4, Trajectory};
 pub use stability::{
     analyze_stability, find_and_analyze, find_fixed_point, stability_report, DifferentiationConfig,
     EigenvalueAnalysis, FixedPointConfig, FixedPointResult, StabilityReport, StabilityType,
+};
+pub use systems::{
+    DoublePendulum, DrivenPendulum, DuffingOscillator, ForcedDuffing, ForcedVanDerPol,
+    GeneralizedHenon, HenonMap, LorenzSystem, LoziMap, RosslerSystem, SimplePendulum,
+    VanDerPolOscillator,
+};
+
+// Stochastic dynamics (feature-gated)
+#[cfg(feature = "stochastic")]
+pub use stochastic::{
+    kramers_escape_time, kramers_rate, noise_for_escape_time, residence_times, BoundaryCondition,
+    FirstPassageResult, FokkerPlanck1D, FokkerPlanck2D, FokkerPlanckConfig, LangevinConfig,
+    LangevinSystem, LangevinTrajectory, Region, TransitionAnalyzer, TransitionConfig,
+    TransitionCounts, UnderdampedLangevin,
 };
 
 /// Crate version
