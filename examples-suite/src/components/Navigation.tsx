@@ -55,6 +55,11 @@ const navigationSections: NavSection[] = [
         title: "Topology",
         href: "/topology",
         description: "Homology, persistence, and Morse theory"
+      },
+      {
+        title: "Dynamics",
+        href: "/dynamics",
+        description: "Chaos, attractors, and bifurcations"
       }
     ]
   },
