@@ -1,0 +1,9 @@
+{
+  "rust": {
+    "command": "/home/elliotthall/.cargo/bin/rust-analyzer",
+    "args": [],
+    "extensionToLanguage": {
+      ".rs": "rust"
+    }
+  }
+}

@@ -55,6 +55,11 @@ const navigationSections: NavSection[] = [
         title: "Topology",
         href: "/topology",
         description: "Homology, persistence, and Morse theory"
+      },
+      {
+        title: "Dynamics",
+        href: "/dynamics",
+        description: "Chaos, attractors, and bifurcations"
       }
     ]
   },
@@ -106,6 +111,11 @@ const navigationSections: NavSection[] = [
   {
     title: "Tools & Playground",
     items: [
+      {
+        title: "Visualizations",
+        href: "/visualizations",
+        description: "Interactive math demonstrations"
+      },
       {
         title: "Interactive Playground",
         href: "/playground",

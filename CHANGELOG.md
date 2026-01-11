@@ -5,6 +5,129 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.17.0] - 2026-01-11
+
+### **New Crate: amari-dynamics - Dynamical Systems Analysis**
+
+This release adds comprehensive tools for analyzing dynamical systems on geometric algebra spaces, including ODE solvers, stability analysis, bifurcation theory, chaos detection, and Lyapunov exponents.
+
+#### **Added**
+
+##### amari-dynamics Core Modules
+
+- **ODE Solvers** (`solver/`)
+  - `RungeKutta4`: Classic 4th order Runge-Kutta with fixed step size
+  - `RKF45`: Runge-Kutta-Fehlberg with adaptive step control
+  - `DormandPrince`: High-accuracy adaptive solver (RK45 variant)
+  - `BackwardEuler`: Implicit solver for stiff systems
+  - `Trajectory`: Time series with metadata and interpolation
+
+- **Flow Traits** (`flow/`)
+  - `DynamicalSystem<P, Q, R>`: Vector field on Cl(P,Q,R)
+  - `DiscreteMap<P, Q, R>`: Iterated maps
+  - Autonomous and non-autonomous system support
+
+- **Stability Analysis** (`stability/`)
+  - `find_fixed_point`: Newton's method with damping and line search
+  - `compute_jacobian`: Numerical Jacobian with configurable differentiation
+  - `StabilityType`: Nodes, spirals, saddles, centers classification
+  - Eigenvalue-based stability determination
+
+- **Bifurcation Theory** (`bifurcation/`)
+  - `BifurcationType`: Saddle-node, transcritical, pitchfork, Hopf
+  - Parameter continuation algorithms
+  - Bifurcation diagram generation
+
+- **Lyapunov Analysis** (`lyapunov/`)
+  - QR-based Lyapunov spectrum computation
+  - Largest Lyapunov exponent detection
+  - Kaplan-Yorke dimension
+  - FTLE (Finite-Time Lyapunov Exponent) fields
+
+- **Attractors** (`attractor/`)
+  - `AttractorType`: Fixed point, limit cycle, torus, strange
+  - Basin of attraction computation
+  - Poincare section analysis
+
+- **Ergodic Theory** (`ergodic/`)
+  - Birkhoff average computation
+  - Invariant measure estimation
+
+- **Phase Space** (`phase/`)
+  - Phase portrait generation
+  - Nullcline computation for 2D systems
+  - Flow field visualization
+
+##### Built-in Systems (`systems/`)
+
+- **LorenzSystem**: Classic chaotic attractor (sigma, rho, beta)
+- **VanDerPolOscillator**: Self-sustained relaxation oscillations
+- **DuffingOscillator**: Double-well potential, bistability
+- **RosslerSystem**: Simpler chaotic attractor
+- **SimplePendulum**: Oscillations and rotations
+- **DoublePendulum**: Coupled pendulum dynamics
+- **HenonMap**: Discrete chaotic map
+
+##### Stochastic Dynamics (`stochastic/`, requires `stochastic` feature)
+
+- **Langevin Dynamics**: Thermal noise-driven evolution
+- **Fokker-Planck Solver**: 1D and 2D probability density evolution
+- **Noise-Induced Transitions**: Barrier crossing and transition rates
+
+##### GPU Acceleration (`gpu/`, requires `gpu` feature)
+
+- Batch trajectory computation via WebGPU/wgpu
+- Flow field parallel evaluation
+- Bifurcation diagram computation
+- WGSL compute shaders for Lorenz, Van der Pol, Duffing, Rossler
+
+##### WASM Bindings (`wasm/`, requires `wasm` feature)
+
+- `WasmLorenz`, `WasmVanDerPol`, `WasmDuffing`, `WasmRossler`, `WasmPendulum`
+- `WasmTrajectory` with TypedArray interop
+- `compute_flow_field` for browser visualization
+
+##### Examples
+
+- `lorenz_attractor`: Chaos and butterfly effect demonstration
+- `phase_portrait`: Van der Pol, Duffing, pendulum phase portraits
+- `bifurcation_diagram`: Logistic map period-doubling
+- `stability_analysis`: Fixed point stability classification
+
+##### Examples Suite
+
+- **Dynamics.tsx**: Interactive web page with:
+  - Lorenz and Rossler strange attractors
+  - Van der Pol limit cycle visualization
+  - Duffing oscillator bistability
+  - Lyapunov exponent calculation
+  - Stability classification examples
+  - Period-doubling bifurcation
+
+- **19 Interactive Visualizations** (expanded from 7):
+  - Core dynamics: Lorenz, Van der Pol, Duffing, Rossler attractors
+  - Bifurcation diagram explorer with period-doubling route to chaos
+  - Nullcline and phase portrait analysis
+  - Poincaré section visualization for cross-sectional analysis
+  - Lyapunov exponent heatmaps across parameter space
+  - Ergodic measure evolution (histogram convergence to invariant density)
+  - Grade decomposition for Clifford algebra visualization
+  - Möbius transformations for conformal geometry
+  - Tropical shortest path (Bellman-Ford algorithm)
+  - Eigenvalue trajectory tracking as parameters vary
+  - Geodesic distance heatmaps under different metrics
+  - Holographic memory content-addressable retrieval
+
+##### Documentation Updates
+
+- **README.md files updated** for v0.17.0:
+  - Root README with dynamics crate, examples, and GPU status
+  - amari-gpu README with dynamics GPU operations and shaders
+  - amari-wasm README with dynamics TypeScript bindings
+  - amari-dynamics README with comprehensive API documentation
+
+---
+
 ## [0.16.0] - 2025-12-31
 
 ### **New Crate: amari-topology - Algebraic Topology for Geometric Structures**

@@ -27,6 +27,8 @@ import { Measure } from './pages/Measure'
 import { Holographic } from './pages/Holographic'
 import { Optimization } from './pages/Optimization'
 import { Topology } from './pages/Topology'
+import { Dynamics } from './pages/Dynamics'
+import { Visualizations } from './pages/Visualizations'
 
 // Scientific dark theme for mathematical computing
 const theme = createTheme({
@@ -144,6 +146,18 @@ const router = createBrowserRouter([
       {
         path: "topology",
         element: <Topology />,
+      },
+      {
+        path: "dynamics",
+        element: <Dynamics />,
+      },
+      {
+        path: "visualizations",
+        element: <Visualizations />,
+      },
+      {
+        path: "*",
+        element: <Home />,
       },
     ],
   },

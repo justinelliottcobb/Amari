@@ -1,0 +1,63 @@
+[package]
+name = "amari-dynamics"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Dynamical systems analysis on geometric algebra spaces - stability, bifurcations, attractors, and Lyapunov exponents"
+repository = "https://github.com/justinelliottcobb/Amari"
+homepage = "https://github.com/justinelliottcobb/Amari"
+keywords = ["dynamical-systems", "stability", "bifurcation", "lyapunov", "geometric-algebra"]
+categories = ["mathematics", "science", "simulation"]
+
+[dependencies]
+amari-core = { workspace = true, features = ["std", "phantom-types"] }
+amari-calculus = { workspace = true }
+amari-functional = { workspace = true }
+amari-topology = { workspace = true }
+amari-probabilistic = { workspace = true, optional = true }
+thiserror = { workspace = true }
+num-traits = { workspace = true }
+nalgebra = { workspace = true }
+rand = { workspace = true, optional = true }
+rand_distr = { version = "0.4", optional = true }
+
+# GPU acceleration dependencies
+wgpu = { version = "0.19", optional = true }
+bytemuck = { version = "1.14", optional = true, features = ["derive"] }
+pollster = { version = "0.3", optional = true }
+futures = { version = "0.3", optional = true }
+tokio = { version = "1.0", optional = true, features = ["rt", "sync"] }
+
+# WASM dependencies
+wasm-bindgen = { version = "0.2", optional = true }
+js-sys = { version = "0.3", optional = true }
+serde = { version = "1.0", optional = true, features = ["derive"] }
+serde-wasm-bindgen = { version = "0.6", optional = true }
+
+[dependencies.rayon]
+version = "1.8"
+optional = true
+
+[dependencies.creusot-contracts]
+version = "0.4"
+optional = true
+
+[dev-dependencies]
+approx = { workspace = true }
+rand = { workspace = true }
+proptest = "1.4"
+
+[features]
+default = ["std"]
+std = ["amari-core/std"]
+parallel = ["rayon", "amari-functional/parallel"]
+stochastic = ["amari-probabilistic", "rand", "rand_distr"]
+contracts = ["creusot-contracts"]
+gpu = ["wgpu", "bytemuck", "pollster", "futures", "tokio"]
+wasm = ["wasm-bindgen", "js-sys", "serde", "serde-wasm-bindgen"]
+
+[[test]]
+name = "integration"
+path = "tests/integration.rs"
