@@ -112,6 +112,11 @@ const navigationSections: NavSection[] = [
     title: "Tools & Playground",
     items: [
       {
+        title: "Visualizations",
+        href: "/visualizations",
+        description: "Interactive math demonstrations"
+      },
+      {
         title: "Interactive Playground",
         href: "/playground",
         description: "Live code examples and experimentation"
