@@ -1,6 +1,6 @@
 {
   "name": "@justinelliottcobb/amari-wasm",
-  "version": "0.16.0",
+  "version": "0.17.0",
   "description": "WebAssembly bindings for Amari mathematical computing library",
   "scripts": {
     "build": "wasm-pack build --target web --out-dir pkg --scope justinelliottcobb",
@@ -23,7 +23,10 @@
     "autodiff",
     "mathematics",
     "topology",
-    "persistent-homology"
+    "persistent-homology",
+    "dynamical-systems",
+    "chaos",
+    "bifurcation"
   ],
   "files": [
     "pkg/",

@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.17.0] - 2026-01-09
+## [0.17.0] - 2026-01-11
 
 ### **New Crate: amari-dynamics - Dynamical Systems Analysis**
 
@@ -103,6 +103,28 @@ This release adds comprehensive tools for analyzing dynamical systems on geometr
   - Lyapunov exponent calculation
   - Stability classification examples
   - Period-doubling bifurcation
+
+- **19 Interactive Visualizations** (expanded from 7):
+  - Core dynamics: Lorenz, Van der Pol, Duffing, Rossler attractors
+  - Bifurcation diagram explorer with period-doubling route to chaos
+  - Nullcline and phase portrait analysis
+  - Poincaré section visualization for cross-sectional analysis
+  - Lyapunov exponent heatmaps across parameter space
+  - Ergodic measure evolution (histogram convergence to invariant density)
+  - Grade decomposition for Clifford algebra visualization
+  - Möbius transformations for conformal geometry
+  - Tropical shortest path (Bellman-Ford algorithm)
+  - Eigenvalue trajectory tracking as parameters vary
+  - Geodesic distance heatmaps under different metrics
+  - Holographic memory content-addressable retrieval
+
+##### Documentation Updates
+
+- **README.md files updated** for v0.17.0:
+  - Root README with dynamics crate, examples, and GPU status
+  - amari-gpu README with dynamics GPU operations and shaders
+  - amari-wasm README with dynamics TypeScript bindings
+  - amari-dynamics README with comprehensive API documentation
 
 ---
 
