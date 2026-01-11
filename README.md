@@ -1,8 +1,8 @@
-# Amari v0.16.0
+# Amari v0.17.0
 
-**Comprehensive Mathematical Computing Platform with Geometric Algebra, Differential Calculus, Measure Theory, Probability Theory, Functional Analysis, Algebraic Topology, and Vector Symbolic Architectures**
+**Comprehensive Mathematical Computing Platform with Geometric Algebra, Differential Calculus, Measure Theory, Probability Theory, Functional Analysis, Algebraic Topology, Dynamical Systems, and Vector Symbolic Architectures**
 
-A unified mathematical computing library featuring geometric algebra, differential calculus, measure theory, probability theory on geometric spaces, functional analysis (Hilbert spaces, operators, spectral theory), algebraic topology (homology, persistent homology, Morse theory), relativistic physics, tropical algebra, automatic differentiation, holographic associative memory (Vector Symbolic Architectures), optical field operations for holographic displays, and information geometry. The library provides multi-GPU infrastructure with intelligent workload distribution and complete WebAssembly support for browser deployment.
+A unified mathematical computing library featuring geometric algebra, differential calculus, measure theory, probability theory on geometric spaces, functional analysis (Hilbert spaces, operators, spectral theory), algebraic topology (homology, persistent homology, Morse theory), dynamical systems analysis (ODE solvers, stability, bifurcations, chaos, Lyapunov exponents), relativistic physics, tropical algebra, automatic differentiation, holographic associative memory (Vector Symbolic Architectures), optical field operations for holographic displays, and information geometry. The library provides multi-GPU infrastructure with intelligent workload distribution and complete WebAssembly support for browser deployment.
 
 [![Rust](https://img.shields.io/badge/Rust-1.75+-orange.svg)](https://www.rust-lang.org/)
 [![WebAssembly](https://img.shields.io/badge/WebAssembly-Ready-blue.svg)](https://webassembly.org/)
@@ -21,6 +21,7 @@ A unified mathematical computing library featuring geometric algebra, differenti
 - **Probability Theory**: Distributions on multivector spaces, stochastic processes, MCMC sampling, and Bayesian inference
 - **Functional Analysis**: Hilbert spaces, bounded operators, spectral decomposition, eigenvalue algorithms, and Sobolev spaces
 - **Algebraic Topology**: Simplicial complexes, homology computation, persistent homology (TDA), Morse theory, and fiber bundles
+- **Dynamical Systems**: ODE solvers (RK4, RKF45, Dormand-Prince), stability analysis, bifurcation diagrams, Lyapunov exponents, phase portraits, and attractor characterization
 - **Vector Symbolic Architectures**: Holographic Reduced Representations (HRR), binding algebras, and associative memory
 - **Optical Field Operations**: GA-native Lee hologram encoding for DMD displays, rotor field algebra, and VSA on optical wavefronts
 - **Relativistic Physics**: Complete spacetime algebra (Cl(1,3)) with Minkowski signature for relativistic calculations
@@ -58,48 +59,51 @@ Add to your `Cargo.toml`:
 ```toml
 [dependencies]
 # Complete library with all features
-amari = "0.16.0"
+amari = "0.17.0"
 
 # Or individual crates:
 
 # Core geometric algebra and mathematical foundations
-amari-core = "0.16.0"
+amari-core = "0.17.0"
 
 # Differential calculus with geometric algebra
-amari-calculus = "0.16.0"
+amari-calculus = "0.17.0"
 
 # Measure theory and integration
-amari-measure = "0.16.0"
+amari-measure = "0.17.0"
 
 # Probability theory on geometric algebra spaces
-amari-probabilistic = "0.16.0"
+amari-probabilistic = "0.17.0"
 
 # Functional analysis: Hilbert spaces, operators, spectral theory
-amari-functional = "0.16.0"
+amari-functional = "0.17.0"
 
 # Algebraic topology: homology, persistent homology, Morse theory
-amari-topology = "0.16.0"
+amari-topology = "0.17.0"
+
+# Dynamical systems: ODE solvers, stability, bifurcations, Lyapunov exponents
+amari-dynamics = "0.17.0"
 
 # Vector Symbolic Architectures, holographic memory, and optical fields
-amari-holographic = "0.16.0"
+amari-holographic = "0.17.0"
 
 # High-precision relativistic physics
-amari-relativistic = { version = "0.16.0", features = ["high-precision"] }
+amari-relativistic = { version = "0.17.0", features = ["high-precision"] }
 
 # GPU acceleration (includes optical field GPU operations)
-amari-gpu = "0.16.0"
+amari-gpu = "0.17.0"
 
 # Optimization algorithms
-amari-optimization = "0.16.0"
+amari-optimization = "0.17.0"
 
 # Additional mathematical systems
-amari-tropical = "0.16.0"
-amari-dual = "0.16.0"
-amari-info-geom = "0.16.0"
-amari-automata = "0.16.0"
-amari-fusion = "0.16.0"
-amari-network = "0.16.0"
-amari-enumerative = "0.16.0"
+amari-tropical = "0.17.0"
+amari-dual = "0.17.0"
+amari-info-geom = "0.17.0"
+amari-automata = "0.17.0"
+amari-fusion = "0.17.0"
+amari-network = "0.17.0"
+amari-enumerative = "0.17.0"
 ```
 
 ### JavaScript/TypeScript (WebAssembly)
@@ -426,6 +430,69 @@ let samples = sampler.sample_n(&mut rng, 1000);
 println!("Drew {} MCMC samples", samples.len());
 ```
 
+### Rust: Dynamical Systems (Chaos & Bifurcations)
+
+```rust
+use amari_dynamics::{
+    LorenzSystem, VanDerPolOscillator, RungeKutta4, ODESolver,
+    stability::{find_fixed_point, analyze_stability},
+    lyapunov::compute_lyapunov_spectrum,
+    bifurcation::{BifurcationDiagram, ContinuationConfig},
+};
+use amari_core::Multivector;
+
+// Create classic Lorenz system (sigma=10, rho=28, beta=8/3)
+let lorenz = LorenzSystem::classic();
+
+// Initial condition as multivector
+let mut initial: Multivector<3, 0, 0> = Multivector::zero();
+initial.set(1, 1.0); // x
+initial.set(2, 1.0); // y
+initial.set(4, 1.0); // z
+
+// Integrate trajectory with RK4
+let solver = RungeKutta4::new();
+let trajectory = solver.solve(&lorenz, initial.clone(), 0.0, 50.0, 5000).unwrap();
+
+println!("Trajectory has {} points", trajectory.len());
+let (x, y, z) = (
+    trajectory.final_state().unwrap().get(1),
+    trajectory.final_state().unwrap().get(2),
+    trajectory.final_state().unwrap().get(4),
+);
+println!("Final state: ({:.3}, {:.3}, {:.3})", x, y, z);
+
+// Compute Lyapunov exponents for chaos detection
+let spectrum = compute_lyapunov_spectrum(&lorenz, &initial, 10000, 0.01).unwrap();
+println!("Lyapunov exponents: {:?}", spectrum.exponents);
+println!("Sum: {:.4} (negative = dissipative)", spectrum.sum());
+
+if spectrum.exponents[0] > 0.0 {
+    println!("System is chaotic!");
+}
+
+// Van der Pol stability analysis
+let vdp = VanDerPolOscillator::new(1.0);
+let mut guess: Multivector<2, 0, 0> = Multivector::zero();
+guess.set(1, 0.1);
+guess.set(2, 0.1);
+
+let fp = find_fixed_point(&vdp, &guess, 1e-10).unwrap();
+let stability = analyze_stability(&vdp, &fp.point).unwrap();
+println!("Fixed point stability: {:?}", stability.stability_type);
+
+// Bifurcation diagram for logistic map
+let config = ContinuationConfig {
+    parameter_range: (2.5, 4.0),
+    num_points: 1000,
+    transient: 500,
+    samples: 100,
+    ..Default::default()
+};
+let diagram = BifurcationDiagram::compute(|r| LogisticMap::new(r), &config).unwrap();
+println!("Bifurcation diagram: {} parameter values", diagram.branches().len());
+```
+
 ### JavaScript/TypeScript: Mathematical Computing
 
 ```typescript
@@ -473,6 +540,7 @@ main();
 - `amari-probabilistic`: Probability distributions on multivector spaces, stochastic processes, MCMC
 - `amari-functional`: Hilbert spaces, bounded operators, spectral decomposition, Sobolev spaces
 - `amari-topology`: Algebraic topology, simplicial complexes, persistent homology, Morse theory
+- `amari-dynamics`: Dynamical systems, ODE solvers, stability analysis, bifurcations, Lyapunov exponents, phase portraits
 - `amari-holographic`: Vector Symbolic Architectures (VSA), binding algebras, holographic memory, optical field operations
 - `amari-tropical`: Tropical (max-plus) algebra for optimization
 - `amari-dual`: Dual numbers for automatic differentiation
@@ -590,7 +658,7 @@ See [MIGRATION_v0.12.0.md](MIGRATION_v0.12.0.md) for complete migration guide.
 
 The **[Amari Examples Suite](https://amari-math.netlify.app)** provides comprehensive interactive documentation:
 
-- **Live Visualizations**: 7 interactive visualizations demonstrating mathematical concepts
+- **Live Visualizations**: 19 interactive visualizations demonstrating mathematical concepts
   - Multivector coefficient manipulation in Cl(3,0,0)
   - Tropical algebra operations with convergence animation
   - Dual numbers with real-time derivative curves
@@ -598,6 +666,18 @@ The **[Amari Examples Suite](https://amari-math.netlify.app)** provides comprehe
   - Fisher information on probability simplex
   - MCMC sampling visualization
   - Interactive geometric networks
+  - Lorenz, Van der Pol, Duffing, and Rossler attractors
+  - Bifurcation diagram explorer
+  - Nullcline and phase portrait analysis
+  - Poincaré section visualization
+  - Lyapunov exponent heatmaps
+  - Ergodic measure evolution
+  - Grade decomposition (Clifford algebra)
+  - Möbius transformations (conformal geometry)
+  - Tropical shortest path (Bellman-Ford)
+  - Eigenvalue trajectory tracking
+  - Geodesic distance heatmaps
+  - Holographic memory exploration
 
 - **Comprehensive API Reference**: 77 classes with 300+ methods fully documented
   - Geometric Algebra (Multivector, Rotor, Bivector)
@@ -608,7 +688,7 @@ The **[Amari Examples Suite](https://amari-math.netlify.app)** provides comprehe
 
 - **Interactive Playground**: Write and run JavaScript code with live WASM execution
 
-## GPU Module Status (v0.16.0)
+## GPU Module Status (v0.17.0)
 
 | Module | Status | Feature Flag |
 |--------|--------|--------------|
@@ -626,10 +706,22 @@ The **[Amari Examples Suite](https://amari-math.netlify.app)** provides comprehe
 | Optical Fields | ✅ Enabled | `holographic` |
 | Probabilistic | ✅ Enabled | `probabilistic` |
 | Functional | ✅ Enabled | `functional` |
-| **Topology** | ✅ **New in v0.16.0** | `topology` |
+| Topology | ✅ Enabled | `topology` |
+| **Dynamics** | ✅ **New in v0.17.0** | `dynamics` |
 | Tropical | ❌ Disabled | - |
 
 Note: Tropical GPU module temporarily disabled due to Rust orphan impl rules. Use CPU implementations from domain crates.
+
+### v0.17.0 GPU Additions
+
+The `dynamics` feature provides GPU-accelerated dynamical systems operations:
+
+- **GpuDynamics**: GPU context for dynamical systems operations with adaptive dispatch
+- **DYNAMICS_RK4_STEP**: Parallel RK4 integration (256-thread workgroups)
+- **DYNAMICS_LYAPUNOV_QR**: QR-based Lyapunov exponent computation
+- **DYNAMICS_BIFURCATION**: Parameter sweep with attractor sampling
+- **DYNAMICS_BASIN**: Grid-based basin of attraction computation
+- Automatic CPU fallback for < 100 trajectories or < 10,000 grid cells
 
 ### v0.16.0 GPU Additions
 
