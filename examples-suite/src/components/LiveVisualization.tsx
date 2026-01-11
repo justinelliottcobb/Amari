@@ -1219,6 +1219,362 @@ export function TopologyVisualization() {
 }
 
 // ============================================================================
+// Lorenz Attractor Visualization
+// ============================================================================
+
+export function LorenzVisualization() {
+  const [trajectory, setTrajectory] = useState<{x: number, y: number, z: number}[]>([]);
+  const [isRunning, setIsRunning] = useState(false);
+  const [sigma, setSigma] = useState(10);
+  const [rho, setRho] = useState(28);
+  const [beta, setBeta] = useState(8/3);
+  const [currentState, setCurrentState] = useState({ x: 1, y: 1, z: 1 });
+  const [showButterflyEffect, setShowButterflyEffect] = useState(false);
+  const [trajectory2, setTrajectory2] = useState<{x: number, y: number, z: number}[]>([]);
+  const [currentState2, setCurrentState2] = useState({ x: 1.001, y: 1, z: 1 });
+
+  const dt = 0.01;
+
+  const lorenzStep = (state: {x: number, y: number, z: number}) => {
+    const dx = sigma * (state.y - state.x);
+    const dy = state.x * (rho - state.z) - state.y;
+    const dz = state.x * state.y - beta * state.z;
+    return {
+      x: state.x + dx * dt,
+      y: state.y + dy * dt,
+      z: state.z + dz * dt
+    };
+  };
+
+  useEffect(() => {
+    if (!isRunning) return;
+    const interval = setInterval(() => {
+      // Main trajectory
+      const newState = lorenzStep(currentState);
+      setCurrentState(newState);
+      setTrajectory(prev => [...prev.slice(-500), newState]);
+
+      // Second trajectory for butterfly effect
+      if (showButterflyEffect) {
+        const newState2 = lorenzStep(currentState2);
+        setCurrentState2(newState2);
+        setTrajectory2(prev => [...prev.slice(-500), newState2]);
+      }
+    }, 16);
+    return () => clearInterval(interval);
+  }, [isRunning, currentState, currentState2, sigma, rho, beta, showButterflyEffect]);
+
+  const reset = () => {
+    setTrajectory([]);
+    setTrajectory2([]);
+    setCurrentState({ x: 1, y: 1, z: 1 });
+    setCurrentState2({ x: 1.001, y: 1, z: 1 });
+  };
+
+  // Project 3D to 2D (x-z plane view)
+  const projectXZ = (point: {x: number, y: number, z: number}) => ({
+    px: 150 + point.x * 4,
+    py: 180 - point.z * 3
+  });
+
+  // Calculate divergence for butterfly effect
+  const divergence = showButterflyEffect && trajectory.length > 0 && trajectory2.length > 0
+    ? Math.sqrt(
+        Math.pow(currentState.x - currentState2.x, 2) +
+        Math.pow(currentState.y - currentState2.y, 2) +
+        Math.pow(currentState.z - currentState2.z, 2)
+      )
+    : 0;
+
+  return (
+    <Card withBorder>
+      <Card.Section withBorder inheritPadding py="sm" bg="dark.6">
+        <Group justify="space-between">
+          <div>
+            <Title order={4}>Lorenz Attractor</Title>
+            <Text size="xs" c="dimmed">Chaotic strange attractor with butterfly effect</Text>
+          </div>
+          <Group gap="xs">
+            <Button size="xs" variant="outline" onClick={reset}>Reset</Button>
+            <Button
+              size="xs"
+              variant={showButterflyEffect ? 'filled' : 'light'}
+              color="orange"
+              onClick={() => setShowButterflyEffect(!showButterflyEffect)}
+            >
+              Butterfly Effect
+            </Button>
+            <Button size="xs" variant={isRunning ? 'filled' : 'outline'} onClick={() => setIsRunning(!isRunning)}>
+              {isRunning ? 'Pause' : 'Run'}
+            </Button>
+          </Group>
+        </Group>
+      </Card.Section>
+      <Card.Section inheritPadding py="md">
+        <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
+          {/* Attractor visualization */}
+          <svg viewBox="0 0 300 220" style={{ width: '100%', height: '220px', background: 'var(--mantine-color-dark-7)', borderRadius: 'var(--mantine-radius-sm)' }}>
+            {/* Trajectory */}
+            {trajectory.length > 1 && (
+              <polyline
+                points={trajectory.map(p => {
+                  const { px, py } = projectXZ(p);
+                  return `${px},${py}`;
+                }).join(' ')}
+                fill="none"
+                stroke="var(--mantine-color-cyan-5)"
+                strokeWidth="1"
+                opacity="0.8"
+              />
+            )}
+
+            {/* Second trajectory for butterfly effect */}
+            {showButterflyEffect && trajectory2.length > 1 && (
+              <polyline
+                points={trajectory2.map(p => {
+                  const { px, py } = projectXZ(p);
+                  return `${px},${py}`;
+                }).join(' ')}
+                fill="none"
+                stroke="var(--mantine-color-orange-5)"
+                strokeWidth="1"
+                opacity="0.8"
+              />
+            )}
+
+            {/* Current point */}
+            {trajectory.length > 0 && (
+              <circle
+                cx={projectXZ(currentState).px}
+                cy={projectXZ(currentState).py}
+                r="4"
+                fill="var(--mantine-color-cyan-5)"
+              />
+            )}
+
+            {/* Second point for butterfly effect */}
+            {showButterflyEffect && trajectory2.length > 0 && (
+              <circle
+                cx={projectXZ(currentState2).px}
+                cy={projectXZ(currentState2).py}
+                r="4"
+                fill="var(--mantine-color-orange-5)"
+              />
+            )}
+
+            {/* Axis labels */}
+            <text x="290" y="210" fontSize="10" fill="var(--mantine-color-dimmed)">x</text>
+            <text x="5" y="15" fontSize="10" fill="var(--mantine-color-dimmed)">z</text>
+          </svg>
+
+          {/* Controls */}
+          <Stack gap="md">
+            <Box>
+              <Text size="xs" mb="xs">σ (Prandtl): {sigma.toFixed(1)}</Text>
+              <Slider value={sigma} onChange={setSigma} min={1} max={20} step={0.5} disabled={isRunning} />
+            </Box>
+            <Box>
+              <Text size="xs" mb="xs">ρ (Rayleigh): {rho.toFixed(1)}</Text>
+              <Slider value={rho} onChange={setRho} min={1} max={50} step={0.5} disabled={isRunning} />
+            </Box>
+            <Box>
+              <Text size="xs" mb="xs">β: {beta.toFixed(2)}</Text>
+              <Slider value={beta} onChange={setBeta} min={0.5} max={5} step={0.1} disabled={isRunning} />
+            </Box>
+
+            <SimpleGrid cols={2} spacing="xs">
+              <Box p="sm" bg="dark.7" style={{ borderRadius: 'var(--mantine-radius-sm)' }}>
+                <Text size="xs" c="dimmed">Position</Text>
+                <Text size="xs" ff="monospace">
+                  ({currentState.x.toFixed(2)}, {currentState.y.toFixed(2)}, {currentState.z.toFixed(2)})
+                </Text>
+              </Box>
+              <Box p="sm" bg="dark.7" style={{ borderRadius: 'var(--mantine-radius-sm)' }}>
+                <Text size="xs" c="dimmed">Points</Text>
+                <Text size="lg" fw={700}>{trajectory.length}</Text>
+              </Box>
+            </SimpleGrid>
+
+            {showButterflyEffect && (
+              <Box p="sm" bg="orange.9" style={{ borderRadius: 'var(--mantine-radius-sm)' }}>
+                <Text size="xs" c="dimmed">Trajectory Divergence</Text>
+                <Text size="lg" fw={700} c={divergence > 10 ? 'red' : divergence > 1 ? 'yellow' : 'green'}>
+                  {divergence.toFixed(4)}
+                </Text>
+                <Text size="xs" c="dimmed">Initial separation: 0.001</Text>
+              </Box>
+            )}
+          </Stack>
+        </SimpleGrid>
+      </Card.Section>
+    </Card>
+  );
+}
+
+// ============================================================================
+// Bifurcation Diagram Visualization (Logistic Map)
+// ============================================================================
+
+export function BifurcationVisualization() {
+  const [diagramData, setDiagramData] = useState<{r: number, x: number}[]>([]);
+  const [isComputing, setIsComputing] = useState(false);
+  const [rMin, setRMin] = useState(2.5);
+  const [rMax, setRMax] = useState(4.0);
+  const [resolution, setResolution] = useState(500);
+
+  const computeDiagram = useCallback(() => {
+    setIsComputing(true);
+    const data: {r: number, x: number}[] = [];
+    const transient = 200;
+    const samples = 50;
+
+    for (let i = 0; i < resolution; i++) {
+      const r = rMin + (rMax - rMin) * i / resolution;
+      let x = 0.5; // Initial condition
+
+      // Skip transient
+      for (let j = 0; j < transient; j++) {
+        x = r * x * (1 - x);
+      }
+
+      // Collect samples
+      for (let j = 0; j < samples; j++) {
+        x = r * x * (1 - x);
+        data.push({ r, x });
+      }
+    }
+
+    setDiagramData(data);
+    setIsComputing(false);
+  }, [rMin, rMax, resolution]);
+
+  useEffect(() => {
+    computeDiagram();
+  }, []);
+
+  const toSvgX = (r: number) => ((r - rMin) / (rMax - rMin)) * 280 + 10;
+  const toSvgY = (x: number) => 190 - x * 180;
+
+  // Find period-doubling points (approximate)
+  const bifurcationPoints = [
+    { r: 3.0, label: 'Period 2' },
+    { r: 3.449, label: 'Period 4' },
+    { r: 3.544, label: 'Period 8' },
+    { r: 3.5699, label: 'Chaos onset' },
+  ];
+
+  return (
+    <Card withBorder>
+      <Card.Section withBorder inheritPadding py="sm" bg="dark.6">
+        <Group justify="space-between">
+          <div>
+            <Title order={4}>Bifurcation Diagram</Title>
+            <Text size="xs" c="dimmed">Logistic map: x_{'{n+1}'} = rx_n(1 - x_n)</Text>
+          </div>
+          <Button size="xs" variant="outline" onClick={computeDiagram} loading={isComputing}>
+            Recompute
+          </Button>
+        </Group>
+      </Card.Section>
+      <Card.Section inheritPadding py="md">
+        <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
+          {/* Bifurcation diagram */}
+          <svg viewBox="0 0 300 200" style={{ width: '100%', height: '200px', background: 'var(--mantine-color-dark-7)', borderRadius: 'var(--mantine-radius-sm)' }}>
+            {/* Points */}
+            {diagramData.map((point, i) => (
+              <circle
+                key={i}
+                cx={toSvgX(point.r)}
+                cy={toSvgY(point.x)}
+                r="0.5"
+                fill="var(--mantine-color-cyan-5)"
+                opacity="0.5"
+              />
+            ))}
+
+            {/* Bifurcation markers */}
+            {bifurcationPoints.filter(bp => bp.r >= rMin && bp.r <= rMax).map((bp, i) => (
+              <line
+                key={i}
+                x1={toSvgX(bp.r)}
+                y1="0"
+                x2={toSvgX(bp.r)}
+                y2="200"
+                stroke="var(--mantine-color-yellow-5)"
+                strokeWidth="0.5"
+                strokeDasharray="3,3"
+                opacity="0.5"
+              />
+            ))}
+
+            {/* Axes */}
+            <line x1="10" y1="190" x2="290" y2="190" stroke="var(--mantine-color-dark-3)" strokeWidth="1" />
+            <line x1="10" y1="10" x2="10" y2="190" stroke="var(--mantine-color-dark-3)" strokeWidth="1" />
+
+            {/* Labels */}
+            <text x="150" y="198" fontSize="9" fill="var(--mantine-color-dimmed)" textAnchor="middle">r</text>
+            <text x="5" y="100" fontSize="9" fill="var(--mantine-color-dimmed)" transform="rotate(-90, 5, 100)">x</text>
+            <text x="15" y="198" fontSize="8" fill="var(--mantine-color-dimmed)">{rMin}</text>
+            <text x="275" y="198" fontSize="8" fill="var(--mantine-color-dimmed)">{rMax}</text>
+          </svg>
+
+          {/* Controls and info */}
+          <Stack gap="md">
+            <Box>
+              <Text size="xs" mb="xs">Parameter Range: [{rMin.toFixed(1)}, {rMax.toFixed(1)}]</Text>
+              <Group gap="xs">
+                <NumberInput
+                  size="xs"
+                  value={rMin}
+                  onChange={(v) => typeof v === 'number' && setRMin(v)}
+                  min={0}
+                  max={3.5}
+                  step={0.1}
+                  w={70}
+                />
+                <Text size="xs">to</Text>
+                <NumberInput
+                  size="xs"
+                  value={rMax}
+                  onChange={(v) => typeof v === 'number' && setRMax(v)}
+                  min={3}
+                  max={4}
+                  step={0.1}
+                  w={70}
+                />
+              </Group>
+            </Box>
+
+            <Box p="sm" bg="dark.7" style={{ borderRadius: 'var(--mantine-radius-sm)' }}>
+              <Text size="xs" c="dimmed" mb="xs">Period-Doubling Cascade</Text>
+              <Stack gap={4}>
+                {bifurcationPoints.map((bp, i) => (
+                  <Group key={i} gap="xs">
+                    <Badge size="xs" variant="light">{bp.label}</Badge>
+                    <Text size="xs" ff="monospace">r ≈ {bp.r}</Text>
+                  </Group>
+                ))}
+              </Stack>
+            </Box>
+
+            <Box p="sm" bg="dark.7" style={{ borderRadius: 'var(--mantine-radius-sm)' }}>
+              <Text size="xs" c="dimmed" mb="xs">Feigenbaum Constant</Text>
+              <Text size="sm" ff="monospace">δ ≈ 4.669...</Text>
+              <Text size="xs" c="dimmed">Ratio of successive bifurcation intervals</Text>
+            </Box>
+
+            <Box p="sm" bg="dark.7" style={{ borderRadius: 'var(--mantine-radius-sm)' }}>
+              <Text size="xs" c="dimmed">Points computed</Text>
+              <Text size="lg" fw={700}>{diagramData.length.toLocaleString()}</Text>
+            </Box>
+          </Stack>
+        </SimpleGrid>
+      </Card.Section>
+    </Card>
+  );
+}
+
+// ============================================================================
 // Main Export: All Visualizations Section
 // ============================================================================
 
@@ -1245,6 +1601,8 @@ export function LiveVisualizationSection() {
             <Tabs.Tab value="rotor">Rotations</Tabs.Tab>
             <Tabs.Tab value="fisher">Info Geometry</Tabs.Tab>
             <Tabs.Tab value="topology">Topology</Tabs.Tab>
+            <Tabs.Tab value="lorenz">Lorenz</Tabs.Tab>
+            <Tabs.Tab value="bifurcation">Bifurcation</Tabs.Tab>
             <Tabs.Tab value="mcmc">MCMC</Tabs.Tab>
             <Tabs.Tab value="network">Networks</Tabs.Tab>
           </Tabs.List>
@@ -1271,6 +1629,14 @@ export function LiveVisualizationSection() {
 
           <Tabs.Panel value="topology" p="md">
             <TopologyVisualization />
+          </Tabs.Panel>
+
+          <Tabs.Panel value="lorenz" p="md">
+            <LorenzVisualization />
+          </Tabs.Panel>
+
+          <Tabs.Panel value="bifurcation" p="md">
+            <BifurcationVisualization />
           </Tabs.Panel>
 
           <Tabs.Panel value="mcmc" p="md">
