@@ -13,11 +13,10 @@ export default defineConfig(({ mode }) => {
       outDir: "dist",
     },
     server: {
-      hmr: true,
+      host: '0.0.0.0',
+      port: parseInt(env.VITE_PORT || '5173', 10),
+      strictPort: true,
       allowedHosts: env.VITE_ALLOWED_HOST ? [env.VITE_ALLOWED_HOST, 'localhost'] : undefined,
-      fs: {
-        allow: ['..', '.'],
-      },
     },
     assetsInclude: ['**/*.wasm'],
     optimizeDeps: {

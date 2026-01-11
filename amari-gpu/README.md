@@ -22,7 +22,7 @@ Integration Crates (consume APIs):
 
 **Dependency Rule**: Integration crates depend on domain crates, never the reverse.
 
-## Current Integrations (v0.16.0)
+## Current Integrations (v0.17.0)
 
 ### Implemented GPU Acceleration
 
@@ -42,6 +42,7 @@ Integration Crates (consume APIs):
 | **amari-probabilistic** | `probabilistic` | Gaussian sampling, batch statistics, Monte Carlo | ✅ Implemented (feature: `probabilistic`) |
 | **amari-functional** | `functional` | Matrix operators, spectral decomposition, Hilbert spaces | ✅ Implemented (feature: `functional`) |
 | **amari-topology** | `topology` | Distance matrices, Morse critical points, Rips filtrations | ✅ Implemented (feature: `topology`) |
+| **amari-dynamics** | `dynamics` | Batch trajectory integration, bifurcation diagrams, Lyapunov spectra, basin computation | ✅ **New in v0.17.0** (feature: `dynamics`) |
 
 ### Temporarily Disabled Modules
 
@@ -68,6 +69,7 @@ fusion = ["dep:amari-fusion"]
 holographic = ["dep:amari-holographic"]  # Holographic memory GPU acceleration
 probabilistic = ["dep:rand", "dep:rand_distr"]  # Probabilistic GPU acceleration
 topology = ["dep:amari-topology"]  # Computational topology GPU acceleration
+dynamics = ["dep:amari-dynamics"]  # Dynamical systems GPU acceleration
 # tropical = ["dep:amari-tropical"]  # Disabled - orphan impl rules
 ```
 
@@ -316,6 +318,94 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
   - Implements standard algorithm for reduced boundary matrix
   - Extracts persistence pairs from reduced matrix
 
+### Dynamics GPU Acceleration *(v0.17.0)*
+
+```rust
+use amari_gpu::dynamics::{GpuDynamics, BatchTrajectoryConfig, GpuSystemType};
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Initialize GPU dynamics context
+    let gpu = GpuDynamics::new().await?;
+
+    // Batch trajectory integration (1000 initial conditions in parallel)
+    let initial_conditions: Vec<[f64; 3]> = (0..1000)
+        .map(|i| [1.0 + i as f64 * 0.001, 1.0, 1.0])
+        .collect();
+
+    let config = BatchTrajectoryConfig {
+        dt: 0.01,
+        steps: 5000,
+        dim: 3,
+        system_type: GpuSystemType::Lorenz { sigma: 10.0, rho: 28.0, beta: 8.0/3.0 },
+    };
+
+    let trajectories = gpu.batch_trajectories(&initial_conditions, &config).await?;
+    println!("Computed {} trajectories on GPU", trajectories.len());
+
+    // GPU bifurcation diagram (parameter sweep)
+    let param_range = (2.5, 4.0);
+    let num_params = 1000;
+    let diagram = gpu.bifurcation_diagram(
+        GpuSystemType::LogisticMap,
+        param_range,
+        num_params,
+        500,  // transient
+        100,  // samples
+    ).await?;
+    println!("Bifurcation diagram: {} parameter values", diagram.len());
+
+    // GPU Lyapunov spectrum computation
+    let lyapunov = gpu.lyapunov_spectrum(
+        &[1.0, 1.0, 1.0],
+        GpuSystemType::Lorenz { sigma: 10.0, rho: 28.0, beta: 8.0/3.0 },
+        10000,  // steps
+        0.01,   // dt
+    ).await?;
+    println!("Lyapunov exponents: {:?}", lyapunov);
+
+    // GPU basin of attraction computation
+    let grid_resolution = (100, 100);
+    let basin = gpu.compute_basin(
+        GpuSystemType::Duffing { alpha: 1.0, beta: -1.0, delta: 0.2, gamma: 0.3, omega: 1.2 },
+        grid_resolution,
+        (-2.0, 2.0),  // x range
+        (-2.0, 2.0),  // y range
+        1000,         // max iterations
+    ).await?;
+    println!("Basin computed: {} x {} grid", grid_resolution.0, grid_resolution.1);
+
+    Ok(())
+}
+```
+
+#### Dynamics GPU Operations
+
+| Operation | Description | GPU Threshold |
+|-----------|-------------|---------------|
+| `batch_trajectories()` | Parallel ODE integration for many initial conditions | ≥ 100 trajectories |
+| `bifurcation_diagram()` | Parameter sweep with attractor sampling | ≥ 100 parameter values |
+| `lyapunov_spectrum()` | QR-based Lyapunov exponent computation | ≥ 1000 steps |
+| `compute_basin()` | Basin of attraction grid computation | ≥ 10000 grid cells |
+
+#### WGSL Shaders for Dynamics Operations
+
+- **`DYNAMICS_RK4_STEP`**: Fourth-order Runge-Kutta integration step
+  - 256-thread workgroups for parallel trajectory evolution
+  - Supports Lorenz, Van der Pol, Duffing, Rossler, Henon systems
+
+- **`DYNAMICS_LYAPUNOV_QR`**: QR decomposition for tangent space evolution
+  - Computes orthonormalization for Lyapunov exponent estimation
+  - Workgroup-shared memory for matrix operations
+
+- **`DYNAMICS_BIFURCATION`**: Parameter-dependent attractor sampling
+  - Parallel transient discard and attractor point collection
+  - Outputs (parameter, attractor_value) pairs
+
+- **`DYNAMICS_BASIN`**: Grid-based trajectory classification
+  - Classifies each grid point by attractor convergence
+  - 256-thread workgroups for spatial parallelism
+
 ### Probabilistic GPU Acceleration
 
 ```rust
@@ -382,6 +472,10 @@ let values = gpu_calculus.batch_eval_scalar_field(&field, &large_points).await?;
 | Distance matrix | < 100 points | ≥ 100 points |
 | Morse critical points | < 10000 cells | ≥ 10000 cells |
 | Rips filtration | N/A | Uses GPU distance matrix |
+| Batch trajectories | < 100 trajectories | ≥ 100 trajectories |
+| Bifurcation diagram | < 100 params | ≥ 100 parameter values |
+| Lyapunov spectrum | < 1000 steps | ≥ 1000 steps |
+| Basin of attraction | < 10000 cells | ≥ 10000 grid cells |
 
 ## Implementation Status
 
@@ -468,6 +562,32 @@ let values = gpu_calculus.batch_eval_scalar_field(&field, &large_points).await?;
 - Distance matrix: GPU for ≥ 100 points (n² = 10,000 operations)
 - Morse critical points: GPU for ≥ 10,000 grid cells (100×100)
 - Falls back to CPU for smaller workloads to avoid transfer overhead
+
+### Dynamics Module (v0.17.0)
+
+**GPU Implementations** (✅ Complete):
+- Batch trajectory integration with RK4 solver
+- Bifurcation diagram computation with parallel parameter sweeps
+- Lyapunov spectrum via QR-based tangent space evolution
+- Basin of attraction grid computation
+
+**Types**:
+- `GpuDynamics`: GPU context for dynamical systems operations
+- `BatchTrajectoryConfig`: Configuration for parallel trajectory integration
+- `GpuSystemType`: Enum for built-in systems (Lorenz, VanDerPol, Duffing, Rossler, Henon, LogisticMap)
+- `GpuDynamicsError` / `GpuDynamicsResult`: Error handling types
+
+**Shaders**:
+- `DYNAMICS_RK4_STEP`: 256-thread workgroups for RK4 integration
+- `DYNAMICS_LYAPUNOV_QR`: QR decomposition for Lyapunov exponents
+- `DYNAMICS_BIFURCATION`: Parameter sweep attractor sampling
+- `DYNAMICS_BASIN`: Grid-based trajectory classification
+
+**Adaptive Thresholds**:
+- Batch trajectories: GPU for ≥ 100 initial conditions
+- Bifurcation diagram: GPU for ≥ 100 parameter values
+- Lyapunov spectrum: GPU for ≥ 1000 integration steps
+- Basin computation: GPU for ≥ 10,000 grid cells
 
 ## Examples
 

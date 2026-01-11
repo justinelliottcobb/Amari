@@ -1,7 +1,6 @@
 import { Container, Stack, Card, Title, Text, Badge, SimpleGrid, Accordion, Group, Box, Tabs } from "@mantine/core";
 import { CodeHighlight } from "@mantine/code-highlight";
 import { useState } from "react";
-import { LiveVisualizationSection } from "../components/LiveVisualization";
 
 interface ApiMethod {
   name: string;
@@ -3017,6 +3016,408 @@ const criticalPoints = findCriticalPoints2D(values, gridSize, gridSize);`
         ]
       }
     ]
+  },
+  {
+    id: "dynamics",
+    title: "Dynamical Systems",
+    description: "ODE solvers, stability analysis, bifurcations, Lyapunov exponents, and chaos detection",
+    icon: "∿",
+    classes: [
+      {
+        name: "RungeKutta4",
+        description: "Classic 4th-order Runge-Kutta integrator for ODE systems. Fixed step size with O(h⁴) local error.",
+        methods: [
+          {
+            name: "constructor",
+            signature: "new RungeKutta4()",
+            description: "Create a new RK4 solver",
+            returns: "RungeKutta4",
+            example: `const solver = new RungeKutta4();`
+          },
+          {
+            name: "step",
+            signature: "step(system: DynamicalSystem, state: Multivector, t: number, dt: number): Multivector",
+            description: "Perform a single integration step",
+            parameters: [
+              { name: "system", type: "DynamicalSystem", description: "The dynamical system" },
+              { name: "state", type: "Multivector", description: "Current state" },
+              { name: "t", type: "number", description: "Current time" },
+              { name: "dt", type: "number", description: "Time step" }
+            ],
+            returns: "New state after dt"
+          },
+          {
+            name: "solve",
+            signature: "solve(system: DynamicalSystem, initial: Multivector, t0: number, t1: number, steps: number): Trajectory",
+            description: "Integrate from t0 to t1 with fixed number of steps",
+            parameters: [
+              { name: "system", type: "DynamicalSystem", description: "The dynamical system" },
+              { name: "initial", type: "Multivector", description: "Initial state" },
+              { name: "t0", type: "number", description: "Start time" },
+              { name: "t1", type: "number", description: "End time" },
+              { name: "steps", type: "number", description: "Number of steps" }
+            ],
+            returns: "Trajectory with time series data",
+            example: `const trajectory = solver.solve(lorenz, initial, 0.0, 50.0, 5000);
+for (const [t, state] of trajectory.iter()) {
+  console.log(\`t=\${t}: x=\${state.get(1)}\`);
+}`
+          }
+        ]
+      },
+      {
+        name: "RKF45",
+        description: "Runge-Kutta-Fehlberg adaptive step size integrator. Embedded 4th/5th order pair for error estimation.",
+        methods: [
+          {
+            name: "constructor",
+            signature: "new RKF45(tolerance?: number)",
+            description: "Create an adaptive RKF45 solver",
+            parameters: [{ name: "tolerance", type: "number", description: "Error tolerance (default: 1e-6)" }],
+            returns: "RKF45"
+          },
+          {
+            name: "solve",
+            signature: "solve(system: DynamicalSystem, initial: Multivector, t0: number, t1: number): Trajectory",
+            description: "Integrate with adaptive step size control",
+            parameters: [
+              { name: "system", type: "DynamicalSystem", description: "The dynamical system" },
+              { name: "initial", type: "Multivector", description: "Initial state" },
+              { name: "t0", type: "number", description: "Start time" },
+              { name: "t1", type: "number", description: "End time" }
+            ],
+            returns: "Trajectory with variable time steps"
+          }
+        ]
+      },
+      {
+        name: "DormandPrince",
+        description: "Dormand-Prince adaptive integrator (DOPRI5). Industry standard for non-stiff ODEs.",
+        methods: [
+          {
+            name: "constructor",
+            signature: "new DormandPrince(config?: DormandPrinceConfig)",
+            description: "Create a DOPRI5 solver with optional configuration",
+            parameters: [{ name: "config", type: "DormandPrinceConfig", description: "Tolerance and step bounds" }],
+            returns: "DormandPrince"
+          },
+          {
+            name: "solve",
+            signature: "solve(system: DynamicalSystem, initial: Multivector, t0: number, t1: number): Trajectory",
+            description: "Integrate with adaptive step control and dense output",
+            returns: "Trajectory with interpolation capability"
+          }
+        ]
+      },
+      {
+        name: "BackwardEuler",
+        description: "Implicit Euler method for stiff systems. A-stable but only first-order accurate.",
+        methods: [
+          {
+            name: "constructor",
+            signature: "new BackwardEuler(config?: ImplicitConfig)",
+            description: "Create a backward Euler solver",
+            parameters: [{ name: "config", type: "ImplicitConfig", description: "Newton iteration settings" }],
+            returns: "BackwardEuler"
+          },
+          {
+            name: "solve",
+            signature: "solve(system: DynamicalSystem, initial: Multivector, t0: number, t1: number, steps: number): Trajectory",
+            description: "Integrate stiff system with implicit method",
+            returns: "Trajectory"
+          }
+        ]
+      },
+      {
+        name: "LorenzSystem",
+        description: "The Lorenz attractor - a paradigmatic chaotic system with butterfly-shaped strange attractor.",
+        methods: [
+          {
+            name: "classic",
+            signature: "static classic(): LorenzSystem",
+            description: "Create Lorenz system with classic parameters (σ=10, ρ=28, β=8/3)",
+            isStatic: true,
+            returns: "LorenzSystem",
+            example: `const lorenz = LorenzSystem.classic();
+// Exhibits chaotic behavior with positive Lyapunov exponent`
+          },
+          {
+            name: "constructor",
+            signature: "new LorenzSystem(sigma: number, rho: number, beta: number)",
+            description: "Create Lorenz system with custom parameters",
+            parameters: [
+              { name: "sigma", type: "number", description: "Prandtl number (typically 10)" },
+              { name: "rho", type: "number", description: "Rayleigh number (chaos for ρ > 24.74)" },
+              { name: "beta", type: "number", description: "Geometric factor (typically 8/3)" }
+            ],
+            returns: "LorenzSystem"
+          },
+          {
+            name: "vectorField",
+            signature: "vectorField(state: Multivector): Multivector",
+            description: "Compute dx/dt = σ(y-x), dy/dt = x(ρ-z)-y, dz/dt = xy-βz",
+            parameters: [{ name: "state", type: "Multivector", description: "Current (x,y,z) state" }],
+            returns: "Time derivative"
+          }
+        ]
+      },
+      {
+        name: "VanDerPolOscillator",
+        description: "Self-sustained relaxation oscillator with limit cycle attractor.",
+        methods: [
+          {
+            name: "constructor",
+            signature: "new VanDerPolOscillator(mu: number)",
+            description: "Create Van der Pol oscillator with damping parameter",
+            parameters: [{ name: "mu", type: "number", description: "Nonlinear damping (μ=0: harmonic, μ>0: limit cycle)" }],
+            returns: "VanDerPolOscillator",
+            example: `const vdp = new VanDerPolOscillator(1.0);
+// All trajectories converge to stable limit cycle`
+          },
+          {
+            name: "vectorField",
+            signature: "vectorField(state: Multivector): Multivector",
+            description: "Compute dx/dt = y, dy/dt = μ(1-x²)y - x",
+            returns: "Time derivative"
+          }
+        ]
+      },
+      {
+        name: "DuffingOscillator",
+        description: "Double-well potential oscillator exhibiting bistability and chaos under forcing.",
+        methods: [
+          {
+            name: "constructor",
+            signature: "new DuffingOscillator(delta: number, alpha: number, beta: number)",
+            description: "Create Duffing oscillator",
+            parameters: [
+              { name: "delta", type: "number", description: "Damping coefficient" },
+              { name: "alpha", type: "number", description: "Linear stiffness" },
+              { name: "beta", type: "number", description: "Nonlinear stiffness" }
+            ],
+            returns: "DuffingOscillator"
+          }
+        ]
+      },
+      {
+        name: "RosslerSystem",
+        description: "Rössler attractor - simpler chaotic system with single-scroll structure.",
+        methods: [
+          {
+            name: "constructor",
+            signature: "new RosslerSystem(a: number, b: number, c: number)",
+            description: "Create Rössler system",
+            parameters: [
+              { name: "a", type: "number", description: "Parameter a (typically 0.2)" },
+              { name: "b", type: "number", description: "Parameter b (typically 0.2)" },
+              { name: "c", type: "number", description: "Parameter c (chaos for c ≈ 5.7)" }
+            ],
+            returns: "RosslerSystem"
+          }
+        ]
+      },
+      {
+        name: "HenonMap",
+        description: "Discrete-time chaotic map with fractal strange attractor.",
+        methods: [
+          {
+            name: "classic",
+            signature: "static classic(): HenonMap",
+            description: "Create Hénon map with classic parameters (a=1.4, b=0.3)",
+            isStatic: true,
+            returns: "HenonMap"
+          },
+          {
+            name: "iterate",
+            signature: "iterate(state: Multivector): Multivector",
+            description: "Apply one iteration: x_{n+1} = 1 - ax_n² + y_n, y_{n+1} = bx_n",
+            returns: "Next state"
+          }
+        ]
+      },
+      {
+        name: "StabilityAnalyzer",
+        description: "Tools for analyzing stability of fixed points via linearization and eigenvalues.",
+        methods: [
+          {
+            name: "findFixedPoint",
+            signature: "findFixedPoint(system: DynamicalSystem, guess: Multivector, config?: FixedPointConfig): FixedPointResult",
+            description: "Find fixed point using Newton's method with optional damping",
+            parameters: [
+              { name: "system", type: "DynamicalSystem", description: "The dynamical system" },
+              { name: "guess", type: "Multivector", description: "Initial guess" },
+              { name: "config", type: "FixedPointConfig", description: "Tolerance and iteration limits" }
+            ],
+            returns: "FixedPointResult with point and convergence info",
+            example: `const result = findFixedPoint(vdp, guess);
+if (result.converged) {
+  console.log("Fixed point:", result.point);
+}`
+          },
+          {
+            name: "computeJacobian",
+            signature: "computeJacobian(system: DynamicalSystem, point: Multivector, config?: DiffConfig): Matrix",
+            description: "Compute the Jacobian matrix at a point via finite differences",
+            parameters: [
+              { name: "system", type: "DynamicalSystem", description: "The dynamical system" },
+              { name: "point", type: "Multivector", description: "Point to linearize around" }
+            ],
+            returns: "Jacobian matrix"
+          },
+          {
+            name: "classifyStability",
+            signature: "classifyStability(eigenvalues: Array<Complex>): StabilityType",
+            description: "Classify fixed point stability from eigenvalues",
+            parameters: [{ name: "eigenvalues", type: "Array<Complex>", description: "Jacobian eigenvalues" }],
+            returns: "StabilityType (StableNode, UnstableSpiral, Saddle, Center, etc.)"
+          }
+        ]
+      },
+      {
+        name: "LyapunovSpectrum",
+        description: "Compute Lyapunov exponents to detect and quantify chaos.",
+        methods: [
+          {
+            name: "compute",
+            signature: "computeLyapunovSpectrum(system: DynamicalSystem, initial: Multivector, config?: LyapunovConfig): LyapunovResult",
+            description: "Compute full Lyapunov spectrum using QR method",
+            parameters: [
+              { name: "system", type: "DynamicalSystem", description: "The dynamical system" },
+              { name: "initial", type: "Multivector", description: "Initial condition on attractor" },
+              { name: "config", type: "LyapunovConfig", description: "Integration time and reorthogonalization interval" }
+            ],
+            returns: "LyapunovResult with exponents and convergence info",
+            example: `const result = computeLyapunovSpectrum(lorenz, initial);
+console.log("Exponents:", result.exponents);
+// [0.906, 0.0, -14.57] for classic Lorenz
+if (result.exponents[0] > 0) {
+  console.log("System is chaotic!");
+}`
+          },
+          {
+            name: "sum",
+            signature: "sum(): number",
+            description: "Sum of all Lyapunov exponents (negative for dissipative systems)",
+            returns: "Sum Σλᵢ"
+          },
+          {
+            name: "kaplanYorkeDimension",
+            signature: "kaplanYorkeDimension(): number",
+            description: "Compute Kaplan-Yorke (Lyapunov) dimension of the attractor",
+            returns: "Fractal dimension estimate"
+          }
+        ]
+      },
+      {
+        name: "BifurcationDiagram",
+        description: "Generate bifurcation diagrams showing how system behavior changes with parameters.",
+        methods: [
+          {
+            name: "compute",
+            signature: "compute(systemFactory: (param: number) => DynamicalSystem, config: ContinuationConfig): BifurcationDiagram",
+            description: "Compute bifurcation diagram by parameter continuation",
+            parameters: [
+              { name: "systemFactory", type: "Function", description: "Creates system for each parameter value" },
+              { name: "config", type: "ContinuationConfig", description: "Parameter range, resolution, transient" }
+            ],
+            returns: "BifurcationDiagram with branches",
+            example: `const config = {
+  parameterRange: [2.5, 4.0],
+  numPoints: 1000,
+  transient: 500,
+  samples: 100
+};
+const diagram = BifurcationDiagram.compute(
+  r => new LogisticMap(r),
+  config
+);`
+          },
+          {
+            name: "branches",
+            signature: "branches(): Array<[number, Array<number>]>",
+            description: "Get all branches as (parameter, values) pairs",
+            returns: "Array of parameter-value pairs"
+          },
+          {
+            name: "detectBifurcations",
+            signature: "detectBifurcations(): Array<Bifurcation>",
+            description: "Automatically detect bifurcation points",
+            returns: "Array of detected bifurcations with type and location"
+          }
+        ]
+      },
+      {
+        name: "Trajectory",
+        description: "Time series data from ODE integration with analysis methods.",
+        methods: [
+          {
+            name: "iter",
+            signature: "iter(): Iterator<[number, Multivector]>",
+            description: "Iterate over (time, state) pairs",
+            returns: "Iterator"
+          },
+          {
+            name: "finalState",
+            signature: "finalState(): Multivector | null",
+            description: "Get the final state of the trajectory",
+            returns: "Final state or null if empty"
+          },
+          {
+            name: "times",
+            signature: "times(): Float64Array",
+            description: "Get all time values",
+            returns: "Array of times"
+          },
+          {
+            name: "states",
+            signature: "states(): Array<Multivector>",
+            description: "Get all state vectors",
+            returns: "Array of states"
+          }
+        ]
+      },
+      {
+        name: "DynamicsFunctions",
+        description: "Standalone utility functions for dynamical systems analysis",
+        methods: [
+          {
+            name: "poincareSection",
+            signature: "poincareSection(trajectory: Trajectory, sectionFn: (state: Multivector) => number): Array<Multivector>",
+            description: "Compute Poincaré section crossings",
+            isStatic: true,
+            parameters: [
+              { name: "trajectory", type: "Trajectory", description: "Input trajectory" },
+              { name: "sectionFn", type: "Function", description: "Section surface g(x)=0" }
+            ],
+            returns: "States at section crossings"
+          },
+          {
+            name: "computeBasin",
+            signature: "computeBasin(system: DynamicalSystem, attractors: Array<Multivector>, gridBounds: Bounds, resolution: number): BasinResult",
+            description: "Compute basin of attraction on a grid",
+            isStatic: true,
+            parameters: [
+              { name: "system", type: "DynamicalSystem", description: "The dynamical system" },
+              { name: "attractors", type: "Array<Multivector>", description: "Known attractors" },
+              { name: "gridBounds", type: "Bounds", description: "Grid boundaries" },
+              { name: "resolution", type: "number", description: "Grid resolution" }
+            ],
+            returns: "Basin indices for each grid point"
+          },
+          {
+            name: "birkhoffAverage",
+            signature: "birkhoffAverage(trajectory: Trajectory, observable: (state: Multivector) => number): number",
+            description: "Compute Birkhoff (time) average of an observable",
+            isStatic: true,
+            parameters: [
+              { name: "trajectory", type: "Trajectory", description: "Input trajectory" },
+              { name: "observable", type: "Function", description: "Observable function f(x)" }
+            ],
+            returns: "Time-averaged value"
+          }
+        ]
+      }
+    ]
   }
 ];
 
@@ -3032,15 +3433,9 @@ export function APIReference() {
         <div>
           <Title order={1}>API Reference</Title>
           <Text size="lg" c="dimmed">
-            Complete documentation for 77+ classes and 300+ methods with interactive visualizations
+            Complete documentation for 77+ classes and 300+ methods
           </Text>
         </div>
-
-        {/* Live Visualization Section */}
-        <LiveVisualizationSection />
-
-        {/* API Documentation Section Header */}
-        <Title order={2} mt="xl">API Documentation</Title>
 
         <SimpleGrid cols={{ base: 2, sm: 3, md: 4, lg: 6 }} spacing="sm">
           {apiSections.map((section) => (

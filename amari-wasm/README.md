@@ -1,4 +1,4 @@
-# @justinelliottcobb/amari-wasm v0.16.0
+# @justinelliottcobb/amari-wasm v0.17.0
 
 **Unified Mathematical Computing Library with High-Precision WebAssembly Support**
 
@@ -20,6 +20,7 @@ Amari is a comprehensive mathematical computing library that brings advanced alg
 - **Functional Analysis** *(v0.15.0)*: Hilbert spaces, linear operators, spectral decomposition, and Sobolev spaces
 - **Optical Field Operations** *(v0.15.1)*: GA-native Lee hologram encoding for DMD displays and VSA-based optical processing
 - **Computational Topology** *(v0.16.0)*: Simplicial complexes, homology computation, persistent homology, and Morse theory
+- **Dynamical Systems** *(v0.17.0)*: ODE solvers, stability analysis, bifurcation diagrams, Lyapunov exponents, and phase portraits
 - **Probability Theory** *(v0.13.0)*: Distributions on multivector spaces, MCMC sampling, and Monte Carlo estimation
 - **Relativistic Physics**: Spacetime algebra (Cl(1,3)) with WebAssembly-compatible precision
 - **Spacecraft Orbital Mechanics**: Full-precision trajectory calculations in browsers
@@ -719,6 +720,212 @@ async function topologyDemo() {
 topologyDemo();
 ```
 
+### Dynamical Systems *(v0.17.0)*
+
+Analyze chaotic systems, compute bifurcation diagrams, and explore phase space:
+
+```typescript
+import init, {
+  WasmLorenzSystem,
+  WasmVanDerPolOscillator,
+  WasmDuffingOscillator,
+  WasmRungeKutta4,
+  WasmLyapunovSpectrum,
+  WasmBifurcationDiagram,
+  WasmPhasePortrait,
+  WasmStabilityAnalysis,
+  computeLyapunovExponents,
+  findFixedPoints
+} from '@justinelliottcobb/amari-wasm';
+
+async function dynamicsDemo() {
+  await init();
+
+  // ========================================
+  // Lorenz Attractor
+  // ========================================
+
+  // Create classic Lorenz system (sigma=10, rho=28, beta=8/3)
+  const lorenz = WasmLorenzSystem.classic();
+  console.log(`Lorenz parameters: σ=${lorenz.sigma}, ρ=${lorenz.rho}, β=${lorenz.beta}`);
+
+  // Create RK4 solver
+  const solver = new WasmRungeKutta4();
+
+  // Integrate trajectory from initial condition
+  const initial = [1.0, 1.0, 1.0];
+  const trajectory = solver.solve(lorenz, initial, 0.0, 50.0, 5000);
+
+  console.log(`Trajectory has ${trajectory.length} points`);
+
+  // Get final state
+  const finalState = trajectory[trajectory.length - 1];
+  console.log(`Final state: (${finalState[0].toFixed(3)}, ${finalState[1].toFixed(3)}, ${finalState[2].toFixed(3)})`);
+
+  // ========================================
+  // Van der Pol Limit Cycle
+  // ========================================
+
+  // Create Van der Pol oscillator with mu = 1.0
+  const vdp = WasmVanDerPolOscillator.new(1.0);
+
+  // Small initial displacement
+  const vdpTrajectory = solver.solve(vdp, [0.1, 0.0], 0.0, 50.0, 5000);
+
+  // Check limit cycle amplitude
+  const vdpFinal = vdpTrajectory[vdpTrajectory.length - 1];
+  console.log(`Van der Pol final amplitude: ${Math.abs(vdpFinal[0]).toFixed(3)}`);
+
+  // ========================================
+  // Lyapunov Exponents
+  // ========================================
+
+  // Compute Lyapunov spectrum for Lorenz system
+  const lyapunov = computeLyapunovExponents(lorenz, initial, 10000, 0.01);
+
+  console.log(`Lyapunov exponents: [${lyapunov.exponents.map(e => e.toFixed(4)).join(', ')}]`);
+  console.log(`Sum: ${lyapunov.sum().toFixed(4)} (negative = dissipative)`);
+
+  if (lyapunov.exponents[0] > 0) {
+    console.log('System is chaotic!');
+  }
+
+  // Kaplan-Yorke dimension
+  console.log(`Kaplan-Yorke dimension: ${lyapunov.kaplanYorkeDimension().toFixed(3)}`);
+
+  // ========================================
+  // Bifurcation Diagram
+  // ========================================
+
+  // Compute bifurcation diagram for logistic map
+  const bifurcation = WasmBifurcationDiagram.compute(
+    'logistic',
+    2.5,   // r_min
+    4.0,   // r_max
+    1000,  // num_parameters
+    500,   // transient iterations
+    100    // sample points per parameter
+  );
+
+  console.log(`Bifurcation diagram: ${bifurcation.parameterCount()} parameter values`);
+
+  // Get attractor points at specific parameter
+  const attractorAt3_5 = bifurcation.attractorPoints(3.5);
+  console.log(`Attractor at r=3.5: ${attractorAt3_5.length} points`);
+
+  // ========================================
+  // Stability Analysis
+  // ========================================
+
+  // Find fixed points of Van der Pol oscillator
+  const fixedPoints = findFixedPoints(vdp, [[0.0, 0.0]], 1e-10);
+
+  for (const fp of fixedPoints) {
+    console.log(`Fixed point: (${fp.point[0].toFixed(6)}, ${fp.point[1].toFixed(6)})`);
+
+    // Analyze stability
+    const stability = WasmStabilityAnalysis.analyze(vdp, fp.point);
+    console.log(`  Stability: ${stability.stabilityType}`);
+    console.log(`  Eigenvalues: ${stability.eigenvalues.map(e => `${e.real.toFixed(4)}+${e.imag.toFixed(4)}i`).join(', ')}`);
+  }
+
+  // ========================================
+  // Phase Portrait
+  // ========================================
+
+  // Generate phase portrait for Duffing oscillator
+  const duffing = WasmDuffingOscillator.new(1.0, -1.0, 0.2, 0.3, 1.2);
+  const portrait = WasmPhasePortrait.generate(
+    duffing,
+    [-2.0, 2.0],  // x range
+    [-2.0, 2.0],  // y range
+    20,           // grid resolution
+    5.0,          // integration time
+    0.01          // dt
+  );
+
+  console.log(`Phase portrait: ${portrait.trajectoryCount()} trajectories`);
+
+  // Get nullclines
+  const nullclines = portrait.nullclines();
+  console.log(`x-nullcline: ${nullclines.x.length} points`);
+  console.log(`y-nullcline: ${nullclines.y.length} points`);
+
+  // Clean up WASM memory
+  lorenz.free();
+  vdp.free();
+  duffing.free();
+  solver.free();
+  bifurcation.free();
+  portrait.free();
+  fixedPoints.forEach(fp => fp.free());
+}
+
+dynamicsDemo();
+```
+
+#### Dynamics API
+
+**WasmLorenzSystem:**
+- `classic()`: Create with σ=10, ρ=28, β=8/3
+- `new(sigma, rho, beta)`: Create with custom parameters
+- `sigma`, `rho`, `beta`: Parameter getters
+- `vectorField(state)`: Evaluate dx/dt at state
+
+**WasmVanDerPolOscillator:**
+- `new(mu)`: Create with damping parameter μ
+- `mu`: Parameter getter
+- `vectorField(state)`: Evaluate dx/dt at state
+
+**WasmDuffingOscillator:**
+- `new(alpha, beta, delta, gamma, omega)`: Create driven Duffing oscillator
+- `vectorField(state, t)`: Evaluate dx/dt at state and time t
+
+**WasmRosslerSystem:**
+- `new(a, b, c)`: Create Rossler attractor
+- `classic()`: Create with a=0.2, b=0.2, c=5.7
+
+**WasmHenonMap:**
+- `new(a, b)`: Create Henon map
+- `classic()`: Create with a=1.4, b=0.3
+- `iterate(state)`: Apply one map iteration
+
+**WasmRungeKutta4:**
+- `new()`: Create RK4 solver
+- `solve(system, initial, t0, t1, steps)`: Integrate trajectory
+- `step(system, state, t, dt)`: Single integration step
+
+**WasmAdaptiveSolver:**
+- `rkf45()`: Create RKF45 adaptive solver
+- `dormandPrince()`: Create Dormand-Prince solver
+- `solve(system, initial, t0, t1, tolerance)`: Adaptive integration
+
+**Lyapunov Functions:**
+- `computeLyapunovExponents(system, initial, steps, dt)`: Compute spectrum
+- Returns: `{ exponents, sum(), kaplanYorkeDimension(), isChaotic() }`
+
+**WasmBifurcationDiagram:**
+- `compute(systemType, paramMin, paramMax, numParams, transient, samples)`: Generate diagram
+- `parameterCount()`: Number of parameter values
+- `attractorPoints(param)`: Get attractor at specific parameter
+- `branches()`: Get all (parameter, points) pairs
+
+**WasmStabilityAnalysis:**
+- `analyze(system, point)`: Analyze stability at point
+- `stabilityType`: 'stable_node', 'stable_spiral', 'unstable_node', 'unstable_spiral', 'saddle', 'center'
+- `eigenvalues`: Array of {real, imag} pairs
+- `isStable()`: True if asymptotically stable
+
+**findFixedPoints:**
+- `findFixedPoints(system, initialGuesses, tolerance)`: Find fixed points via Newton's method
+- Returns array of `{ point, converged, iterations }`
+
+**WasmPhasePortrait:**
+- `generate(system, xRange, yRange, resolution, tMax, dt)`: Generate portrait
+- `trajectoryCount()`: Number of trajectories
+- `trajectories()`: Get all trajectory arrays
+- `nullclines()`: Get {x, y} nullcline point arrays
+
 #### Topology API
 
 **WasmSimplex:**
@@ -881,6 +1088,9 @@ topologyDemo();
 - **Topological Data Analysis**: Persistent homology for shape and feature detection
 - **Computational Biology**: Protein structure analysis via simplicial complexes
 - **Sensor Networks**: Coverage analysis using homology
+- **Chaos Theory**: Lorenz attractors, bifurcation diagrams, Lyapunov exponents
+- **Control Systems**: Stability analysis and phase portraits for dynamical systems
+- **Climate Modeling**: Sensitivity analysis via Lyapunov spectrum computation
 
 ## API Reference
 
@@ -973,6 +1183,21 @@ topologyDemo();
 - `WasmPersistentHomology.getDiagram()`: Get persistence diagram
 - `ripsFromDistances(n, dim, distances)`: Build Rips filtration
 - `findCriticalPoints2D(...)`: Find Morse critical points
+
+### Dynamics Operations
+
+- `WasmLorenzSystem.classic()`: Create classic Lorenz attractor
+- `WasmVanDerPolOscillator.new(mu)`: Create Van der Pol oscillator
+- `WasmDuffingOscillator.new(alpha, beta, delta, gamma, omega)`: Create Duffing oscillator
+- `WasmRosslerSystem.classic()`: Create Rossler attractor
+- `WasmHenonMap.classic()`: Create Henon map
+- `WasmRungeKutta4.solve(system, initial, t0, t1, steps)`: Integrate trajectory
+- `WasmAdaptiveSolver.rkf45()`: Create adaptive RKF45 solver
+- `computeLyapunovExponents(system, initial, steps, dt)`: Compute Lyapunov spectrum
+- `WasmBifurcationDiagram.compute(type, paramMin, paramMax, n, transient, samples)`: Generate bifurcation diagram
+- `WasmStabilityAnalysis.analyze(system, point)`: Analyze fixed point stability
+- `findFixedPoints(system, guesses, tolerance)`: Find fixed points
+- `WasmPhasePortrait.generate(system, xRange, yRange, res, tMax, dt)`: Generate phase portrait
 
 ## Examples
 
