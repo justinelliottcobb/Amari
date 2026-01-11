@@ -1219,22 +1219,41 @@ export function TopologyVisualization() {
 }
 
 // ============================================================================
-// Lorenz Attractor Visualization
+// Dynamical Systems Visualization (Combined)
 // ============================================================================
 
-export function LorenzVisualization() {
+type DynamicsSystem = 'lorenz' | 'vanderpol' | 'duffing' | 'rossler' | 'bifurcation';
+
+export function DynamicsVisualization() {
+  const [activeSystem, setActiveSystem] = useState<DynamicsSystem>('lorenz');
   const [trajectory, setTrajectory] = useState<{x: number, y: number, z: number}[]>([]);
   const [isRunning, setIsRunning] = useState(false);
+  const [currentState, setCurrentState] = useState({ x: 1, y: 1, z: 1 });
+
+  // Lorenz parameters
   const [sigma, setSigma] = useState(10);
   const [rho, setRho] = useState(28);
   const [beta, setBeta] = useState(8/3);
-  const [currentState, setCurrentState] = useState({ x: 1, y: 1, z: 1 });
-  const [showButterflyEffect, setShowButterflyEffect] = useState(false);
-  const [trajectory2, setTrajectory2] = useState<{x: number, y: number, z: number}[]>([]);
-  const [currentState2, setCurrentState2] = useState({ x: 1.001, y: 1, z: 1 });
+
+  // Van der Pol parameter
+  const [mu, setMu] = useState(1.5);
+
+  // Duffing parameters
+  const [delta, setDelta] = useState(0.1);
+  const [duffingAlpha, setDuffingAlpha] = useState(-1);
+  const [duffingBeta, setDuffingBeta] = useState(1);
+
+  // Rossler parameters
+  const [rosslerA, setRosslerA] = useState(0.2);
+  const [rosslerB, setRosslerB] = useState(0.2);
+  const [rosslerC, setRosslerC] = useState(5.7);
+
+  // Bifurcation diagram data
+  const [diagramData, setDiagramData] = useState<{r: number, x: number}[]>([]);
 
   const dt = 0.01;
 
+  // System step functions
   const lorenzStep = (state: {x: number, y: number, z: number}) => {
     const dx = sigma * (state.y - state.x);
     const dy = state.x * (rho - state.z) - state.y;
@@ -1246,327 +1265,344 @@ export function LorenzVisualization() {
     };
   };
 
-  useEffect(() => {
-    if (!isRunning) return;
-    const interval = setInterval(() => {
-      // Main trajectory
-      const newState = lorenzStep(currentState);
-      setCurrentState(newState);
-      setTrajectory(prev => [...prev.slice(-500), newState]);
-
-      // Second trajectory for butterfly effect
-      if (showButterflyEffect) {
-        const newState2 = lorenzStep(currentState2);
-        setCurrentState2(newState2);
-        setTrajectory2(prev => [...prev.slice(-500), newState2]);
-      }
-    }, 16);
-    return () => clearInterval(interval);
-  }, [isRunning, currentState, currentState2, sigma, rho, beta, showButterflyEffect]);
-
-  const reset = () => {
-    setTrajectory([]);
-    setTrajectory2([]);
-    setCurrentState({ x: 1, y: 1, z: 1 });
-    setCurrentState2({ x: 1.001, y: 1, z: 1 });
+  const vanDerPolStep = (state: {x: number, y: number, z: number}) => {
+    const dx = state.y;
+    const dy = mu * (1 - state.x * state.x) * state.y - state.x;
+    return {
+      x: state.x + dx * dt,
+      y: state.y + dy * dt,
+      z: 0
+    };
   };
 
-  // Project 3D to 2D (x-z plane view)
-  const projectXZ = (point: {x: number, y: number, z: number}) => ({
-    px: 150 + point.x * 4,
-    py: 180 - point.z * 3
-  });
+  const duffingStep = (state: {x: number, y: number, z: number}) => {
+    const dx = state.y;
+    const dy = -delta * state.y + duffingAlpha * state.x + duffingBeta * state.x * state.x * state.x;
+    return {
+      x: state.x + dx * dt,
+      y: state.y + dy * dt,
+      z: 0
+    };
+  };
 
-  // Calculate divergence for butterfly effect
-  const divergence = showButterflyEffect && trajectory.length > 0 && trajectory2.length > 0
-    ? Math.sqrt(
-        Math.pow(currentState.x - currentState2.x, 2) +
-        Math.pow(currentState.y - currentState2.y, 2) +
-        Math.pow(currentState.z - currentState2.z, 2)
-      )
-    : 0;
+  const rosslerStep = (state: {x: number, y: number, z: number}) => {
+    const dx = -state.y - state.z;
+    const dy = state.x + rosslerA * state.y;
+    const dz = rosslerB + state.z * (state.x - rosslerC);
+    return {
+      x: state.x + dx * dt,
+      y: state.y + dy * dt,
+      z: state.z + dz * dt
+    };
+  };
 
-  return (
-    <Card withBorder>
-      <Card.Section withBorder inheritPadding py="sm" bg="dark.6">
-        <Group justify="space-between">
-          <div>
-            <Title order={4}>Lorenz Attractor</Title>
-            <Text size="xs" c="dimmed">Chaotic strange attractor with butterfly effect</Text>
-          </div>
-          <Group gap="xs">
-            <Button size="xs" variant="outline" onClick={reset}>Reset</Button>
-            <Button
-              size="xs"
-              variant={showButterflyEffect ? 'filled' : 'light'}
-              color="orange"
-              onClick={() => setShowButterflyEffect(!showButterflyEffect)}
-            >
-              Butterfly Effect
-            </Button>
-            <Button size="xs" variant={isRunning ? 'filled' : 'outline'} onClick={() => setIsRunning(!isRunning)}>
-              {isRunning ? 'Pause' : 'Run'}
-            </Button>
-          </Group>
-        </Group>
-      </Card.Section>
-      <Card.Section inheritPadding py="md">
-        <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
-          {/* Attractor visualization */}
-          <svg viewBox="0 0 300 220" style={{ width: '100%', height: '220px', background: 'var(--mantine-color-dark-7)', borderRadius: 'var(--mantine-radius-sm)' }}>
-            {/* Trajectory */}
-            {trajectory.length > 1 && (
-              <polyline
-                points={trajectory.map(p => {
-                  const { px, py } = projectXZ(p);
-                  return `${px},${py}`;
-                }).join(' ')}
-                fill="none"
-                stroke="var(--mantine-color-cyan-5)"
-                strokeWidth="1"
-                opacity="0.8"
-              />
-            )}
+  const stepFunction = useCallback(() => {
+    switch (activeSystem) {
+      case 'lorenz': return lorenzStep;
+      case 'vanderpol': return vanDerPolStep;
+      case 'duffing': return duffingStep;
+      case 'rossler': return rosslerStep;
+      default: return lorenzStep;
+    }
+  }, [activeSystem, sigma, rho, beta, mu, delta, duffingAlpha, duffingBeta, rosslerA, rosslerB, rosslerC]);
 
-            {/* Second trajectory for butterfly effect */}
-            {showButterflyEffect && trajectory2.length > 1 && (
-              <polyline
-                points={trajectory2.map(p => {
-                  const { px, py } = projectXZ(p);
-                  return `${px},${py}`;
-                }).join(' ')}
-                fill="none"
-                stroke="var(--mantine-color-orange-5)"
-                strokeWidth="1"
-                opacity="0.8"
-              />
-            )}
+  useEffect(() => {
+    if (!isRunning || activeSystem === 'bifurcation') return;
+    const step = stepFunction();
+    const interval = setInterval(() => {
+      const newState = step(currentState);
+      setCurrentState(newState);
+      setTrajectory(prev => [...prev.slice(-800), newState]);
+    }, 16);
+    return () => clearInterval(interval);
+  }, [isRunning, currentState, stepFunction, activeSystem]);
 
-            {/* Current point */}
-            {trajectory.length > 0 && (
-              <circle
-                cx={projectXZ(currentState).px}
-                cy={projectXZ(currentState).py}
-                r="4"
-                fill="var(--mantine-color-cyan-5)"
-              />
-            )}
-
-            {/* Second point for butterfly effect */}
-            {showButterflyEffect && trajectory2.length > 0 && (
-              <circle
-                cx={projectXZ(currentState2).px}
-                cy={projectXZ(currentState2).py}
-                r="4"
-                fill="var(--mantine-color-orange-5)"
-              />
-            )}
-
-            {/* Axis labels */}
-            <text x="290" y="210" fontSize="10" fill="var(--mantine-color-dimmed)">x</text>
-            <text x="5" y="15" fontSize="10" fill="var(--mantine-color-dimmed)">z</text>
-          </svg>
-
-          {/* Controls */}
-          <Stack gap="md">
-            <Box>
-              <Text size="xs" mb="xs">σ (Prandtl): {sigma.toFixed(1)}</Text>
-              <Slider value={sigma} onChange={setSigma} min={1} max={20} step={0.5} disabled={isRunning} />
-            </Box>
-            <Box>
-              <Text size="xs" mb="xs">ρ (Rayleigh): {rho.toFixed(1)}</Text>
-              <Slider value={rho} onChange={setRho} min={1} max={50} step={0.5} disabled={isRunning} />
-            </Box>
-            <Box>
-              <Text size="xs" mb="xs">β: {beta.toFixed(2)}</Text>
-              <Slider value={beta} onChange={setBeta} min={0.5} max={5} step={0.1} disabled={isRunning} />
-            </Box>
-
-            <SimpleGrid cols={2} spacing="xs">
-              <Box p="sm" bg="dark.7" style={{ borderRadius: 'var(--mantine-radius-sm)' }}>
-                <Text size="xs" c="dimmed">Position</Text>
-                <Text size="xs" ff="monospace">
-                  ({currentState.x.toFixed(2)}, {currentState.y.toFixed(2)}, {currentState.z.toFixed(2)})
-                </Text>
-              </Box>
-              <Box p="sm" bg="dark.7" style={{ borderRadius: 'var(--mantine-radius-sm)' }}>
-                <Text size="xs" c="dimmed">Points</Text>
-                <Text size="lg" fw={700}>{trajectory.length}</Text>
-              </Box>
-            </SimpleGrid>
-
-            {showButterflyEffect && (
-              <Box p="sm" bg="orange.9" style={{ borderRadius: 'var(--mantine-radius-sm)' }}>
-                <Text size="xs" c="dimmed">Trajectory Divergence</Text>
-                <Text size="lg" fw={700} c={divergence > 10 ? 'red' : divergence > 1 ? 'yellow' : 'green'}>
-                  {divergence.toFixed(4)}
-                </Text>
-                <Text size="xs" c="dimmed">Initial separation: 0.001</Text>
-              </Box>
-            )}
-          </Stack>
-        </SimpleGrid>
-      </Card.Section>
-    </Card>
-  );
-}
-
-// ============================================================================
-// Bifurcation Diagram Visualization (Logistic Map)
-// ============================================================================
-
-export function BifurcationVisualization() {
-  const [diagramData, setDiagramData] = useState<{r: number, x: number}[]>([]);
-  const [isComputing, setIsComputing] = useState(false);
-  const [rMin, setRMin] = useState(2.5);
-  const [rMax, setRMax] = useState(4.0);
-  const [resolution, setResolution] = useState(500);
-
-  const computeDiagram = useCallback(() => {
-    setIsComputing(true);
+  // Compute bifurcation diagram
+  useEffect(() => {
+    if (activeSystem !== 'bifurcation') return;
     const data: {r: number, x: number}[] = [];
-    const transient = 200;
-    const samples = 50;
-
-    for (let i = 0; i < resolution; i++) {
-      const r = rMin + (rMax - rMin) * i / resolution;
-      let x = 0.5; // Initial condition
-
-      // Skip transient
-      for (let j = 0; j < transient; j++) {
-        x = r * x * (1 - x);
-      }
-
-      // Collect samples
-      for (let j = 0; j < samples; j++) {
+    const rMin = 2.5, rMax = 4.0;
+    for (let i = 0; i < 400; i++) {
+      const r = rMin + (rMax - rMin) * i / 400;
+      let x = 0.5;
+      for (let j = 0; j < 200; j++) x = r * x * (1 - x);
+      for (let j = 0; j < 50; j++) {
         x = r * x * (1 - x);
         data.push({ r, x });
       }
     }
-
     setDiagramData(data);
-    setIsComputing(false);
-  }, [rMin, rMax, resolution]);
+  }, [activeSystem]);
+
+  const reset = () => {
+    setTrajectory([]);
+    switch (activeSystem) {
+      case 'lorenz':
+        setCurrentState({ x: 1, y: 1, z: 1 });
+        break;
+      case 'vanderpol':
+        setCurrentState({ x: 0.1, y: 0, z: 0 });
+        break;
+      case 'duffing':
+        setCurrentState({ x: 0.5, y: 0, z: 0 });
+        break;
+      case 'rossler':
+        setCurrentState({ x: 1, y: 1, z: 1 });
+        break;
+    }
+  };
 
   useEffect(() => {
-    computeDiagram();
-  }, []);
+    reset();
+    setIsRunning(false);
+  }, [activeSystem]);
 
-  const toSvgX = (r: number) => ((r - rMin) / (rMax - rMin)) * 280 + 10;
-  const toSvgY = (x: number) => 190 - x * 180;
+  // Projection functions
+  const project2D = (point: {x: number, y: number, z: number}) => {
+    switch (activeSystem) {
+      case 'lorenz':
+        return { px: 150 + point.x * 4, py: 180 - point.z * 3 };
+      case 'vanderpol':
+        return { px: 150 + point.x * 40, py: 110 - point.y * 30 };
+      case 'duffing':
+        return { px: 150 + point.x * 50, py: 110 - point.y * 40 };
+      case 'rossler':
+        return { px: 150 + point.x * 6, py: 110 - point.y * 6 };
+      default:
+        return { px: 150, py: 110 };
+    }
+  };
 
-  // Find period-doubling points (approximate)
-  const bifurcationPoints = [
-    { r: 3.0, label: 'Period 2' },
-    { r: 3.449, label: 'Period 4' },
-    { r: 3.544, label: 'Period 8' },
-    { r: 3.5699, label: 'Chaos onset' },
-  ];
+  const systemInfo: Record<DynamicsSystem, { title: string, description: string, equations: string }> = {
+    lorenz: {
+      title: 'Lorenz Attractor',
+      description: 'Chaotic strange attractor - the "butterfly"',
+      equations: 'dx/dt = σ(y-x), dy/dt = x(ρ-z)-y, dz/dt = xy-βz'
+    },
+    vanderpol: {
+      title: 'Van der Pol Oscillator',
+      description: 'Self-sustained oscillations with limit cycle',
+      equations: 'dx/dt = y, dy/dt = μ(1-x²)y - x'
+    },
+    duffing: {
+      title: 'Duffing Oscillator',
+      description: 'Double-well potential with bistability',
+      equations: 'dx/dt = y, dy/dt = -δy + αx + βx³'
+    },
+    rossler: {
+      title: 'Rössler Attractor',
+      description: 'Simpler chaotic system with single scroll',
+      equations: 'dx/dt = -y-z, dy/dt = x+ay, dz/dt = b+z(x-c)'
+    },
+    bifurcation: {
+      title: 'Bifurcation Diagram',
+      description: 'Logistic map period-doubling cascade',
+      equations: 'x_{n+1} = rx_n(1 - x_n)'
+    }
+  };
+
+  const info = systemInfo[activeSystem];
 
   return (
     <Card withBorder>
       <Card.Section withBorder inheritPadding py="sm" bg="dark.6">
         <Group justify="space-between">
           <div>
-            <Title order={4}>Bifurcation Diagram</Title>
-            <Text size="xs" c="dimmed">Logistic map: x_{'{n+1}'} = rx_n(1 - x_n)</Text>
+            <Title order={4}>{info.title}</Title>
+            <Text size="xs" c="dimmed">{info.description}</Text>
           </div>
-          <Button size="xs" variant="outline" onClick={computeDiagram} loading={isComputing}>
-            Recompute
-          </Button>
+          <Group gap="xs">
+            {activeSystem !== 'bifurcation' && (
+              <>
+                <Button size="xs" variant="outline" onClick={reset}>Reset</Button>
+                <Button size="xs" variant={isRunning ? 'filled' : 'outline'} onClick={() => setIsRunning(!isRunning)}>
+                  {isRunning ? 'Pause' : 'Run'}
+                </Button>
+              </>
+            )}
+          </Group>
         </Group>
       </Card.Section>
       <Card.Section inheritPadding py="md">
+        {/* System selector */}
+        <SegmentedControl
+          fullWidth
+          size="xs"
+          mb="md"
+          value={activeSystem}
+          onChange={(v) => setActiveSystem(v as DynamicsSystem)}
+          data={[
+            { label: 'Lorenz', value: 'lorenz' },
+            { label: 'Van der Pol', value: 'vanderpol' },
+            { label: 'Duffing', value: 'duffing' },
+            { label: 'Rössler', value: 'rossler' },
+            { label: 'Bifurcation', value: 'bifurcation' },
+          ]}
+        />
+
         <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
-          {/* Bifurcation diagram */}
-          <svg viewBox="0 0 300 200" style={{ width: '100%', height: '200px', background: 'var(--mantine-color-dark-7)', borderRadius: 'var(--mantine-radius-sm)' }}>
-            {/* Points */}
-            {diagramData.map((point, i) => (
-              <circle
-                key={i}
-                cx={toSvgX(point.r)}
-                cy={toSvgY(point.x)}
-                r="0.5"
-                fill="var(--mantine-color-cyan-5)"
-                opacity="0.5"
-              />
-            ))}
+          {/* Phase space / diagram visualization */}
+          <Box>
+            <svg viewBox="0 0 300 220" style={{ width: '100%', height: '220px', background: 'var(--mantine-color-dark-7)', borderRadius: 'var(--mantine-radius-sm)' }}>
+              {activeSystem === 'bifurcation' ? (
+                <>
+                  {/* Bifurcation diagram */}
+                  {diagramData.map((point, i) => (
+                    <circle
+                      key={i}
+                      cx={10 + (point.r - 2.5) * 186}
+                      cy={200 - point.x * 180}
+                      r="0.5"
+                      fill="var(--mantine-color-cyan-5)"
+                      opacity="0.5"
+                    />
+                  ))}
+                  <line x1="10" y1="200" x2="290" y2="200" stroke="var(--mantine-color-dark-3)" strokeWidth="1" />
+                  <text x="150" y="215" fontSize="10" fill="var(--mantine-color-dimmed)" textAnchor="middle">r</text>
+                  <text x="15" y="215" fontSize="8" fill="var(--mantine-color-dimmed)">2.5</text>
+                  <text x="280" y="215" fontSize="8" fill="var(--mantine-color-dimmed)">4.0</text>
+                </>
+              ) : (
+                <>
+                  {/* Axes */}
+                  <line x1="10" y1="110" x2="290" y2="110" stroke="var(--mantine-color-dark-4)" strokeWidth="0.5" />
+                  <line x1="150" y1="10" x2="150" y2="210" stroke="var(--mantine-color-dark-4)" strokeWidth="0.5" />
 
-            {/* Bifurcation markers */}
-            {bifurcationPoints.filter(bp => bp.r >= rMin && bp.r <= rMax).map((bp, i) => (
-              <line
-                key={i}
-                x1={toSvgX(bp.r)}
-                y1="0"
-                x2={toSvgX(bp.r)}
-                y2="200"
-                stroke="var(--mantine-color-yellow-5)"
-                strokeWidth="0.5"
-                strokeDasharray="3,3"
-                opacity="0.5"
-              />
-            ))}
+                  {/* Trajectory */}
+                  {trajectory.length > 1 && (
+                    <polyline
+                      points={trajectory.map(p => {
+                        const { px, py } = project2D(p);
+                        return `${px},${py}`;
+                      }).join(' ')}
+                      fill="none"
+                      stroke="var(--mantine-color-cyan-5)"
+                      strokeWidth="1.5"
+                      opacity="0.8"
+                    />
+                  )}
 
-            {/* Axes */}
-            <line x1="10" y1="190" x2="290" y2="190" stroke="var(--mantine-color-dark-3)" strokeWidth="1" />
-            <line x1="10" y1="10" x2="10" y2="190" stroke="var(--mantine-color-dark-3)" strokeWidth="1" />
+                  {/* Current point */}
+                  {trajectory.length > 0 && (
+                    <circle
+                      cx={project2D(currentState).px}
+                      cy={project2D(currentState).py}
+                      r="5"
+                      fill="var(--mantine-color-red-5)"
+                    />
+                  )}
 
-            {/* Labels */}
-            <text x="150" y="198" fontSize="9" fill="var(--mantine-color-dimmed)" textAnchor="middle">r</text>
-            <text x="5" y="100" fontSize="9" fill="var(--mantine-color-dimmed)" transform="rotate(-90, 5, 100)">x</text>
-            <text x="15" y="198" fontSize="8" fill="var(--mantine-color-dimmed)">{rMin}</text>
-            <text x="275" y="198" fontSize="8" fill="var(--mantine-color-dimmed)">{rMax}</text>
-          </svg>
+                  {/* Fixed points for Duffing */}
+                  {activeSystem === 'duffing' && duffingAlpha < 0 && (
+                    <>
+                      <circle cx={150 + Math.sqrt(-duffingAlpha/duffingBeta) * 50} cy={110} r="4" fill="var(--mantine-color-green-5)" opacity="0.5" />
+                      <circle cx={150 - Math.sqrt(-duffingAlpha/duffingBeta) * 50} cy={110} r="4" fill="var(--mantine-color-green-5)" opacity="0.5" />
+                      <circle cx={150} cy={110} r="4" fill="var(--mantine-color-yellow-5)" opacity="0.5" />
+                    </>
+                  )}
 
-          {/* Controls and info */}
-          <Stack gap="md">
-            <Box>
-              <Text size="xs" mb="xs">Parameter Range: [{rMin.toFixed(1)}, {rMax.toFixed(1)}]</Text>
-              <Group gap="xs">
-                <NumberInput
-                  size="xs"
-                  value={rMin}
-                  onChange={(v) => typeof v === 'number' && setRMin(v)}
-                  min={0}
-                  max={3.5}
-                  step={0.1}
-                  w={70}
-                />
-                <Text size="xs">to</Text>
-                <NumberInput
-                  size="xs"
-                  value={rMax}
-                  onChange={(v) => typeof v === 'number' && setRMax(v)}
-                  min={3}
-                  max={4}
-                  step={0.1}
-                  w={70}
-                />
-              </Group>
+                  {/* Axis labels */}
+                  <text x="285" y="105" fontSize="10" fill="var(--mantine-color-dimmed)">x</text>
+                  <text x="155" y="20" fontSize="10" fill="var(--mantine-color-dimmed)">{activeSystem === 'lorenz' ? 'z' : 'y'}</text>
+                </>
+              )}
+            </svg>
+          </Box>
+
+          {/* Controls */}
+          <Stack gap="sm">
+            <Box p="xs" bg="dark.7" style={{ borderRadius: 'var(--mantine-radius-sm)' }}>
+              <Text size="xs" ff="monospace" c="dimmed">{info.equations}</Text>
             </Box>
 
-            <Box p="sm" bg="dark.7" style={{ borderRadius: 'var(--mantine-radius-sm)' }}>
-              <Text size="xs" c="dimmed" mb="xs">Period-Doubling Cascade</Text>
-              <Stack gap={4}>
-                {bifurcationPoints.map((bp, i) => (
-                  <Group key={i} gap="xs">
-                    <Badge size="xs" variant="light">{bp.label}</Badge>
-                    <Text size="xs" ff="monospace">r ≈ {bp.r}</Text>
-                  </Group>
-                ))}
-              </Stack>
-            </Box>
+            {activeSystem === 'lorenz' && (
+              <>
+                <Box>
+                  <Text size="xs" mb={4}>σ = {sigma.toFixed(1)}</Text>
+                  <Slider value={sigma} onChange={setSigma} min={1} max={20} step={0.5} size="sm" disabled={isRunning} />
+                </Box>
+                <Box>
+                  <Text size="xs" mb={4}>ρ = {rho.toFixed(1)}</Text>
+                  <Slider value={rho} onChange={setRho} min={1} max={50} step={0.5} size="sm" disabled={isRunning} />
+                </Box>
+                <Box>
+                  <Text size="xs" mb={4}>β = {beta.toFixed(2)}</Text>
+                  <Slider value={beta} onChange={setBeta} min={0.5} max={5} step={0.1} size="sm" disabled={isRunning} />
+                </Box>
+              </>
+            )}
 
-            <Box p="sm" bg="dark.7" style={{ borderRadius: 'var(--mantine-radius-sm)' }}>
-              <Text size="xs" c="dimmed" mb="xs">Feigenbaum Constant</Text>
-              <Text size="sm" ff="monospace">δ ≈ 4.669...</Text>
-              <Text size="xs" c="dimmed">Ratio of successive bifurcation intervals</Text>
-            </Box>
+            {activeSystem === 'vanderpol' && (
+              <Box>
+                <Text size="xs" mb={4}>μ = {mu.toFixed(2)} (nonlinearity)</Text>
+                <Slider value={mu} onChange={setMu} min={0.1} max={5} step={0.1} size="sm" disabled={isRunning} />
+                <Text size="xs" c="dimmed" mt="xs">μ = 0: harmonic oscillator</Text>
+                <Text size="xs" c="dimmed">μ {'>'} 0: limit cycle attractor</Text>
+              </Box>
+            )}
 
-            <Box p="sm" bg="dark.7" style={{ borderRadius: 'var(--mantine-radius-sm)' }}>
-              <Text size="xs" c="dimmed">Points computed</Text>
-              <Text size="lg" fw={700}>{diagramData.length.toLocaleString()}</Text>
-            </Box>
+            {activeSystem === 'duffing' && (
+              <>
+                <Box>
+                  <Text size="xs" mb={4}>δ = {delta.toFixed(2)} (damping)</Text>
+                  <Slider value={delta} onChange={setDelta} min={0} max={1} step={0.05} size="sm" disabled={isRunning} />
+                </Box>
+                <Box>
+                  <Text size="xs" mb={4}>α = {duffingAlpha} (linear stiffness)</Text>
+                  <Slider value={duffingAlpha} onChange={setDuffingAlpha} min={-2} max={2} step={0.1} size="sm" disabled={isRunning} />
+                </Box>
+                <Box>
+                  <Text size="xs" mb={4}>β = {duffingBeta} (cubic stiffness)</Text>
+                  <Slider value={duffingBeta} onChange={setDuffingBeta} min={-2} max={2} step={0.1} size="sm" disabled={isRunning} />
+                </Box>
+                <Text size="xs" c="dimmed">α {'<'} 0, β {'>'} 0: double-well potential</Text>
+              </>
+            )}
+
+            {activeSystem === 'rossler' && (
+              <>
+                <Box>
+                  <Text size="xs" mb={4}>a = {rosslerA.toFixed(2)}</Text>
+                  <Slider value={rosslerA} onChange={setRosslerA} min={0.1} max={0.5} step={0.01} size="sm" disabled={isRunning} />
+                </Box>
+                <Box>
+                  <Text size="xs" mb={4}>b = {rosslerB.toFixed(2)}</Text>
+                  <Slider value={rosslerB} onChange={setRosslerB} min={0.1} max={0.5} step={0.01} size="sm" disabled={isRunning} />
+                </Box>
+                <Box>
+                  <Text size="xs" mb={4}>c = {rosslerC.toFixed(1)}</Text>
+                  <Slider value={rosslerC} onChange={setRosslerC} min={2} max={10} step={0.1} size="sm" disabled={isRunning} />
+                </Box>
+              </>
+            )}
+
+            {activeSystem === 'bifurcation' && (
+              <Box p="sm" bg="dark.7" style={{ borderRadius: 'var(--mantine-radius-sm)' }}>
+                <Text size="xs" c="dimmed" mb="xs">Period-Doubling Cascade</Text>
+                <Stack gap={4}>
+                  <Group gap="xs"><Badge size="xs" variant="light">Period 2</Badge><Text size="xs" ff="monospace">r ≈ 3.0</Text></Group>
+                  <Group gap="xs"><Badge size="xs" variant="light">Period 4</Badge><Text size="xs" ff="monospace">r ≈ 3.449</Text></Group>
+                  <Group gap="xs"><Badge size="xs" variant="light">Period 8</Badge><Text size="xs" ff="monospace">r ≈ 3.544</Text></Group>
+                  <Group gap="xs"><Badge size="xs" variant="light" color="red">Chaos</Badge><Text size="xs" ff="monospace">r ≈ 3.57</Text></Group>
+                </Stack>
+                <Text size="xs" c="dimmed" mt="md">Feigenbaum constant: δ ≈ 4.669</Text>
+              </Box>
+            )}
+
+            {activeSystem !== 'bifurcation' && (
+              <SimpleGrid cols={2} spacing="xs">
+                <Box p="xs" bg="dark.7" style={{ borderRadius: 'var(--mantine-radius-sm)' }}>
+                  <Text size="xs" c="dimmed">State</Text>
+                  <Text size="xs" ff="monospace">
+                    ({currentState.x.toFixed(2)}, {currentState.y.toFixed(2)}{activeSystem !== 'vanderpol' && activeSystem !== 'duffing' ? `, ${currentState.z.toFixed(2)}` : ''})
+                  </Text>
+                </Box>
+                <Box p="xs" bg="dark.7" style={{ borderRadius: 'var(--mantine-radius-sm)' }}>
+                  <Text size="xs" c="dimmed">Points</Text>
+                  <Text size="lg" fw={700}>{trajectory.length}</Text>
+                </Box>
+              </SimpleGrid>
+            )}
           </Stack>
         </SimpleGrid>
       </Card.Section>
@@ -1601,8 +1637,7 @@ export function LiveVisualizationSection() {
             <Tabs.Tab value="rotor">Rotations</Tabs.Tab>
             <Tabs.Tab value="fisher">Info Geometry</Tabs.Tab>
             <Tabs.Tab value="topology">Topology</Tabs.Tab>
-            <Tabs.Tab value="lorenz">Lorenz</Tabs.Tab>
-            <Tabs.Tab value="bifurcation">Bifurcation</Tabs.Tab>
+            <Tabs.Tab value="dynamics">Dynamics</Tabs.Tab>
             <Tabs.Tab value="mcmc">MCMC</Tabs.Tab>
             <Tabs.Tab value="network">Networks</Tabs.Tab>
           </Tabs.List>
@@ -1631,12 +1666,8 @@ export function LiveVisualizationSection() {
             <TopologyVisualization />
           </Tabs.Panel>
 
-          <Tabs.Panel value="lorenz" p="md">
-            <LorenzVisualization />
-          </Tabs.Panel>
-
-          <Tabs.Panel value="bifurcation" p="md">
-            <BifurcationVisualization />
+          <Tabs.Panel value="dynamics" p="md">
+            <DynamicsVisualization />
           </Tabs.Panel>
 
           <Tabs.Panel value="mcmc" p="md">
