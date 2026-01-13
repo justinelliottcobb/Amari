@@ -1,4 +1,4 @@
-# Amari v0.17.0
+# Amari v0.17.1
 
 **Comprehensive Mathematical Computing Platform with Geometric Algebra, Differential Calculus, Measure Theory, Probability Theory, Functional Analysis, Algebraic Topology, Dynamical Systems, and Vector Symbolic Architectures**
 
@@ -59,51 +59,51 @@ Add to your `Cargo.toml`:
 ```toml
 [dependencies]
 # Complete library with all features
-amari = "0.17.0"
+amari = "0.17.1"
 
 # Or individual crates:
 
 # Core geometric algebra and mathematical foundations
-amari-core = "0.17.0"
+amari-core = "0.17.1"
 
 # Differential calculus with geometric algebra
-amari-calculus = "0.17.0"
+amari-calculus = "0.17.1"
 
 # Measure theory and integration
-amari-measure = "0.17.0"
+amari-measure = "0.17.1"
 
 # Probability theory on geometric algebra spaces
-amari-probabilistic = "0.17.0"
+amari-probabilistic = "0.17.1"
 
 # Functional analysis: Hilbert spaces, operators, spectral theory
-amari-functional = "0.17.0"
+amari-functional = "0.17.1"
 
 # Algebraic topology: homology, persistent homology, Morse theory
-amari-topology = "0.17.0"
+amari-topology = "0.17.1"
 
 # Dynamical systems: ODE solvers, stability, bifurcations, Lyapunov exponents
-amari-dynamics = "0.17.0"
+amari-dynamics = "0.17.1"
 
 # Vector Symbolic Architectures, holographic memory, and optical fields
-amari-holographic = "0.17.0"
+amari-holographic = "0.17.1"
 
 # High-precision relativistic physics
-amari-relativistic = { version = "0.17.0", features = ["high-precision"] }
+amari-relativistic = { version = "0.17.1", features = ["high-precision"] }
 
 # GPU acceleration (includes optical field GPU operations)
-amari-gpu = "0.17.0"
+amari-gpu = "0.17.1"
 
 # Optimization algorithms
-amari-optimization = "0.17.0"
+amari-optimization = "0.17.1"
 
 # Additional mathematical systems
-amari-tropical = "0.17.0"
-amari-dual = "0.17.0"
-amari-info-geom = "0.17.0"
-amari-automata = "0.17.0"
-amari-fusion = "0.17.0"
-amari-network = "0.17.0"
-amari-enumerative = "0.17.0"
+amari-tropical = "0.17.1"
+amari-dual = "0.17.1"
+amari-info-geom = "0.17.1"
+amari-automata = "0.17.1"
+amari-fusion = "0.17.1"
+amari-network = "0.17.1"
+amari-enumerative = "0.17.1"
 ```
 
 ### JavaScript/TypeScript (WebAssembly)
@@ -652,7 +652,7 @@ let value = x.value();
 let deriv = x.derivative();
 ```
 
-See [MIGRATION_v0.12.0.md](MIGRATION_v0.12.0.md) for complete migration guide.
+See [docs/archive/MIGRATION_v0.12.0.md](docs/archive/MIGRATION_v0.12.0.md) for complete migration guide.
 
 ## Interactive Examples Suite
 
@@ -688,7 +688,28 @@ The **[Amari Examples Suite](https://amari-math.netlify.app)** provides comprehe
 
 - **Interactive Playground**: Write and run JavaScript code with live WASM execution
 
-## GPU Module Status (v0.17.0)
+## Examples & Documentation (v0.17.1)
+
+The examples suite has been completely overhauled for v0.17.1 with comprehensive coverage of all new crates:
+
+### Rust Examples (`examples/rust/`)
+
+- **dynamical-systems/** (7 examples): Lorenz attractor, Van der Pol oscillator, bifurcation analysis, Lyapunov exponents, stability analysis, phase portraits, stochastic dynamics
+- **topology/** (4 examples): Simplicial complexes, persistent homology, Morse theory, topological data analysis
+- **functional-analysis/** (5 examples): Hilbert spaces, operators, spectral theory, Banach spaces, distributions
+- **physics-simulation/**: Rigid body dynamics, electromagnetic fields, fluid dynamics, quantum mechanics
+- **computer-graphics/**: 3D transformations, camera projection, mesh operations, ray tracing
+- **machine-learning/**: Automatic differentiation, neural networks, optimization, verified learning
+
+### Language Bindings
+
+- **TypeScript** (`examples/typescript/`): Node.js examples with `@justinelliottcobb/amari-wasm`
+- **PureScript** (`examples/purescript/`): Type-safe FFI bindings with Effect tracking
+- **Web Demos** (`examples/web/`): Interactive browser visualizations
+
+See [`examples/README.md`](examples/README.md) for complete documentation and [`examples/LEARNING_PATHS.md`](examples/LEARNING_PATHS.md) for structured learning curricula.
+
+## GPU Module Status (v0.17.1)
 
 | Module | Status | Feature Flag |
 |--------|--------|--------------|
@@ -707,12 +728,12 @@ The **[Amari Examples Suite](https://amari-math.netlify.app)** provides comprehe
 | Probabilistic | ✅ Enabled | `probabilistic` |
 | Functional | ✅ Enabled | `functional` |
 | Topology | ✅ Enabled | `topology` |
-| **Dynamics** | ✅ **New in v0.17.0** | `dynamics` |
+| **Dynamics** | ✅ **New in v0.17.x** | `dynamics` |
 | Tropical | ❌ Disabled | - |
 
 Note: Tropical GPU module temporarily disabled due to Rust orphan impl rules. Use CPU implementations from domain crates.
 
-### v0.17.0 GPU Additions
+### v0.17.x GPU Additions
 
 The `dynamics` feature provides GPU-accelerated dynamical systems operations:
 
@@ -784,9 +805,12 @@ The library is optimized for high-performance applications:
 
 ## Documentation
 
-- **[Migration Guide](MIGRATION_v0.12.0.md)**: Migrating from v0.11.x to v0.12.0+
+- **[Examples Suite](examples/README.md)**: Comprehensive examples for all crates
+- **[Learning Paths](examples/LEARNING_PATHS.md)**: Structured learning curricula
+- **[API Reference](examples/DOCUMENTATION.md)**: Detailed API documentation
+- **[Migration Guide](docs/archive/MIGRATION_v0.12.0.md)**: Migrating from v0.11.x to v0.12.0+
 - **[Changelog](CHANGELOG.md)**: Version history and changes
-- **[API Documentation](https://docs.rs/amari)**: Complete API reference
+- **[docs.rs](https://docs.rs/amari)**: Complete API reference
 
 ## Contributing
 
