@@ -1,20 +1,20 @@
-# 🎓 Amari Learning Paths
+# Amari Learning Paths v0.17.1
 
-Welcome to the Amari educational journey! This guide provides structured pathways for learning geometric algebra and dual numbers through our comprehensive example suite.
+Welcome to the Amari educational journey! This guide provides structured pathways for learning geometric algebra, dynamical systems, computational topology, and functional analysis through our comprehensive example suite.
 
-## FEATURED Overview
+## Overview
 
-Amari's example suite is designed with progressive learning in mind, taking you from basic concepts to advanced applications across multiple domains. Each path builds upon previous knowledge while providing practical, hands-on experience.
+Amari v0.17.1 provides learning tracks across multiple mathematical domains. Each path builds upon previous knowledge while providing practical, hands-on experience.
 
-## 📚 Learning Tracks
+## Core Tracks
 
-### 🌱 Beginner Track: "Foundations"
-*Duration: 2-3 weeks • Prerequisites: Basic linear algebra*
+### Beginner Track: Foundations
+*Prerequisites: Basic linear algebra, calculus*
 
 **Goal**: Understand fundamental concepts of geometric algebra and dual numbers
 
-#### Week 1: Geometric Algebra Basics
-1. **Start Here**: `examples/rust/basic-operations/`
+#### Module 1: Geometric Algebra Basics
+1. **Start Here**: `examples/rust/physics-simulation/`
    - Scalar, vector, bivector operations
    - Geometric product fundamentals
    - Basic rotations with rotors
@@ -23,12 +23,12 @@ Amari's example suite is designed with progressive learning in mind, taking you 
    - 3D Rotations with Rotors demo
    - Compare with traditional approaches
 
-3. **Practice**: `examples/rust/computer-graphics/src/transformations.rs`
+3. **Practice**: `examples/rust/computer-graphics/`
    - Implement basic transformations
    - Understand gimbal lock avoidance
 
-#### Week 2: Dual Numbers Introduction
-1. **Automatic Differentiation**: `examples/rust/machine-learning/src/autodiff.rs`
+#### Module 2: Dual Numbers Introduction
+1. **Automatic Differentiation**: `examples/rust/machine-learning/`
    - Single-variable derivatives
    - Compare with finite differences
    - Error analysis
@@ -37,149 +37,380 @@ Amari's example suite is designed with progressive learning in mind, taking you 
    - Automatic Differentiation demo
    - Real-time gradient visualization
 
-#### Week 3: First Applications
-1. **Simple Physics**: `examples/rust/physics-simulation/src/rigid_body_dynamics.rs`
+#### Module 3: First Applications
+1. **Simple Physics**: `examples/rust/physics-simulation/`
    - Basic rigid body motion
    - Rotor-based rotations
 
-2. **Basic Optimization**: `examples/rust/machine-learning/src/optimization.rs`
+2. **Basic Optimization**: `examples/rust/machine-learning/`
    - Gradient descent with exact gradients
    - Simple quadratic functions
 
-**Assessment**: Complete the beginner exercises and create a simple rotor-based animation.
+**Assessment**: Complete beginner exercises and create a simple rotor-based animation.
 
 ---
 
-### 🚀 Intermediate Track: "Applications"
-*Duration: 3-4 weeks • Prerequisites: Beginner track completed*
+### Intermediate Track: Applications
+*Prerequisites: Beginner track completed*
 
 **Goal**: Apply GA and dual numbers to real-world problems
 
-#### Week 1: Advanced Geometric Algebra
+#### Module 1: Advanced Geometric Algebra
 1. **Physics Applications**: `examples/rust/physics-simulation/`
    - Electromagnetic fields as multivectors
    - Fluid dynamics with bivector vorticity
-   - Interactive EM field demo
 
 2. **Computer Graphics**: `examples/rust/computer-graphics/`
    - Camera systems and projections
    - Mesh operations and normal calculations
    - Ray tracing with natural ray representation
 
-#### Week 2: Machine Learning Applications
-1. **Neural Networks**: `examples/rust/machine-learning/src/neural_networks.rs`
+#### Module 2: Machine Learning
+1. **Neural Networks**: `examples/rust/machine-learning/`
    - Verified backpropagation
    - XOR learning demonstration
    - Function approximation
 
-2. **Advanced Optimization**: `examples/rust/machine-learning/src/optimization.rs`
+2. **Advanced Optimization**
    - Adam optimizer with exact gradients
    - Newton's method with Hessian
-   - High-dimensional problems
 
-#### Week 3: Quantum Mechanics
-1. **Quantum GA**: `examples/rust/physics-simulation/src/quantum_mechanics.rs`
+#### Module 3: Quantum Mechanics
+1. **Quantum GA**: `examples/rust/physics-simulation/`
    - Pauli matrices as bivectors
    - Spin state evolution
    - Bell's inequality demonstration
 
-2. **Interactive Quantum**: `examples/web/interactive-demos/`
-   - Quantum spin visualization
-   - Bloch sphere representations
-
-#### Week 4: Integration Project
-Choose one domain and create a comprehensive application:
-- Graphics: Implement a complete 3D scene with GA transformations
-- Physics: Simulate electromagnetic wave propagation
-- ML: Build a neural network with verified gradients
-
-**Assessment**: Complete a multi-week project showcasing integrated GA/dual number concepts.
+**Assessment**: Complete a multi-module project showcasing integrated GA/dual number concepts.
 
 ---
 
-### TARGET Advanced Track: "Mastery"
-*Duration: 4-6 weeks • Prerequisites: Intermediate track + calculus, linear algebra*
+## Specialized Tracks
 
-**Goal**: Master advanced applications and contribute to the field
+### Dynamical Systems Track
+*Prerequisites: Calculus, ODEs, linear algebra*
 
-#### Weeks 1-2: Mathematical Foundations
-1. **Verified Mathematics**: `examples/rust/machine-learning/src/verified_learning.rs`
-   - Mathematical verification techniques
-   - Numerical stability analysis
-   - Convergence proofs
+**Goal**: Master analysis of nonlinear dynamical systems
 
-2. **Advanced Physics**: `examples/rust/physics-simulation/`
-   - Complete Maxwell equations in GA
-   - Relativistic transformations
-   - Quantum field representations
+#### Module 1: ODEs and Numerical Methods
+**Examples**: `examples/rust/dynamical-systems/`
 
-#### Weeks 3-4: Research Applications
-1. **Cutting-Edge Implementations**:
-   - Study latest research papers
-   - Implement novel algorithms
-   - Optimize for performance
+1. **Lorenz Attractor** (`lorenz_attractor.rs`)
+   - Chaotic dynamics fundamentals
+   - Numerical integration (RK4, Dormand-Prince)
+   - Phase space visualization
 
-2. **Cross-Domain Integration**:
-   - Combine multiple domains
-   - Create novel applications
-   - Benchmark against traditional methods
+2. **Van der Pol Oscillator** (`van_der_pol.rs`)
+   - Limit cycles
+   - Relaxation oscillations
+   - Parameter dependence
 
-#### Weeks 5-6: Contribution Project
-1. **Research Project**: Contribute to Amari codebase
-2. **Documentation**: Write tutorials for others
-3. **Innovation**: Develop new applications
+Key concepts:
+- State space representation
+- Numerical integration methods
+- Trajectory visualization
 
-**Assessment**: Publish a research paper or major open-source contribution.
+#### Module 2: Stability Analysis
+**Examples**: `examples/rust/dynamical-systems/`
+
+1. **Stability Analysis** (`stability_analysis.rs`)
+   - Fixed point computation
+   - Jacobian linearization
+   - Eigenvalue classification
+
+2. **Phase Portraits** (`phase_portraits.rs`)
+   - Vector field visualization
+   - Nullclines
+   - Separatrices and basins of attraction
+
+Key concepts:
+- Linear stability theory
+- Center manifold theorem
+- Hartman-Grobman theorem
+
+#### Module 3: Chaos and Bifurcations
+**Examples**: `examples/rust/dynamical-systems/`
+
+1. **Bifurcation Analysis** (`bifurcation_analysis.rs`)
+   - Saddle-node bifurcations
+   - Hopf bifurcations
+   - Period-doubling cascades
+   - Feigenbaum universality
+
+2. **Lyapunov Exponents** (`lyapunov_exponents.rs`)
+   - QR method computation
+   - Chaos quantification
+   - Kaplan-Yorke dimension
+
+Key concepts:
+- Sensitivity to initial conditions
+- Strange attractors
+- Routes to chaos
+
+#### Module 4: Stochastic Dynamics
+**Examples**: `examples/rust/dynamical-systems/stochastic_dynamics.rs`
+
+1. **Langevin Dynamics**
+   - Noise modeling
+   - Brownian motion
+
+2. **Fokker-Planck Equation**
+   - Probability density evolution
+   - Stationary distributions
+
+3. **Noise-Induced Transitions**
+   - Kramers escape rate
+   - Stochastic resonance
+
+**Capstone Project**: Analyze a real-world dynamical system (climate model, neural network dynamics, population dynamics).
 
 ---
 
-### SCIENTIFIC Research Track: "Innovation"
-*Duration: Ongoing • Prerequisites: Advanced track + domain expertise*
+### Computational Topology Track
+*Prerequisites: Linear algebra, basic topology helpful*
 
-**Goal**: Push the boundaries of GA and dual number applications
+**Goal**: Master topological data analysis and computational topology
+
+#### Module 1: Simplicial Complexes
+**Examples**: `examples/rust/topology/simplicial_complexes.rs`
+
+1. **Building Simplices**
+   - Vertices, edges, triangles, tetrahedra
+   - Faces and boundaries
+   - f-vectors
+
+2. **Simplicial Complexes**
+   - Complex construction
+   - Euler characteristic
+   - Skeleton and star operations
+
+Key concepts:
+- Combinatorial topology
+- Chain complexes
+- Boundary operator
+
+#### Module 2: Homology
+**Examples**: `examples/rust/topology/`
+
+1. **Chain Complexes**
+   - Boundary operator ∂
+   - ∂² = 0 property
+   - Cycles and boundaries
+
+2. **Betti Numbers**
+   - β₀: connected components
+   - β₁: loops
+   - β₂: voids
+
+Key concepts:
+- Kernel and image
+- Quotient groups
+- Rank-nullity
+
+#### Module 3: Persistent Homology
+**Examples**: `examples/rust/topology/persistent_homology.rs`
+
+1. **Filtrations**
+   - Nested complex sequences
+   - Birth and death times
+   - Persistence pairs
+
+2. **Persistence Diagrams**
+   - (birth, death) representation
+   - Persistence = lifetime
+   - Stability theorem
+
+Key concepts:
+- Multi-scale topology
+- Feature significance
+- Noise vs signal
+
+#### Module 4: Topological Data Analysis
+**Examples**: `examples/rust/topology/topological_data_analysis.rs`
+
+1. **Point Cloud Analysis**
+   - Vietoris-Rips complex
+   - Alpha complex
+   - Distance matrix input
+
+2. **Shape Detection**
+   - Clustering via H₀
+   - Loop detection via H₁
+   - Void detection via H₂
+
+3. **Feature Extraction**
+   - Persistence landscapes
+   - Persistence images
+   - Bottleneck distance
+
+**Capstone Project**: Apply TDA to real dataset (molecular structure, sensor network, image analysis).
+
+---
+
+### Functional Analysis Track
+*Prerequisites: Real analysis, linear algebra, basic topology*
+
+**Goal**: Master Hilbert and Banach space theory
+
+#### Module 1: Hilbert Spaces
+**Examples**: `examples/rust/functional-analysis/hilbert_spaces.rs`
+
+1. **Inner Product Spaces**
+   - Axioms and examples
+   - Cauchy-Schwarz inequality
+   - Orthogonality
+
+2. **Completeness**
+   - Cauchy sequences
+   - L² spaces
+   - Sequence spaces ℓ²
+
+3. **Orthonormal Bases**
+   - Gram-Schmidt process
+   - Fourier basis
+   - Parseval's identity
+
+Key concepts:
+- Projection theorem
+- Best approximation
+- Riesz representation
+
+#### Module 2: Operators
+**Examples**: `examples/rust/functional-analysis/operators.rs`
+
+1. **Bounded Linear Operators**
+   - Operator norm
+   - Continuity ↔ boundedness
+
+2. **Adjoint Operators**
+   - Definition and properties
+   - Self-adjoint operators
+
+3. **Special Operators**
+   - Compact operators
+   - Unitary operators
+   - Integral operators
+
+Key concepts:
+- Operator algebra
+- Commutativity
+- Spectrum preview
+
+#### Module 3: Spectral Theory
+**Examples**: `examples/rust/functional-analysis/spectral_theory.rs`
+
+1. **Eigenvalue Problems**
+   - Eigenvalues and eigenvectors
+   - Rayleigh quotient
+
+2. **Spectral Theorem**
+   - Self-adjoint decomposition
+   - Projection operators
+
+3. **Functional Calculus**
+   - f(A) for operators
+   - Square roots, exponentials
+   - Inverses
+
+Key concepts:
+- Point spectrum
+- Continuous spectrum
+- Spectral radius
+
+#### Module 4: Banach Spaces
+**Examples**: `examples/rust/functional-analysis/banach_spaces.rs`
+
+1. **Lᵖ Spaces**
+   - Norms for 1 ≤ p ≤ ∞
+   - Embeddings
+   - Hölder's inequality
+
+2. **Dual Spaces**
+   - Bounded linear functionals
+   - Reflexivity
+
+3. **Fixed Point Theory**
+   - Banach contraction principle
+   - Applications
+
+Key concepts:
+- Open mapping theorem
+- Closed graph theorem
+- Hahn-Banach theorem
+
+#### Module 5: Distributions
+**Examples**: `examples/rust/functional-analysis/distributions.rs`
+
+1. **Test Functions**
+   - Smooth compact support
+   - Bump functions
+
+2. **Distributions**
+   - Dirac delta
+   - Heaviside function
+   - Weak derivatives
+
+3. **Applications**
+   - PDEs
+   - Fourier transforms
+   - Signal processing
+
+**Capstone Project**: Implement a PDE solver using spectral methods and distribution theory.
+
+---
+
+## Cross-Domain Tracks
+
+### Research Track: Innovation
+*Prerequisites: At least one specialized track + domain expertise*
+
+**Goal**: Push the boundaries of mathematical computing
 
 #### Research Areas
-1. **Theoretical Foundations**:
-   - Extend GA to new algebras
-   - Develop novel dual number applications
-   - Prove mathematical properties
+1. **Theoretical Foundations**
+   - Novel algebraic structures
+   - Formal verification
+   - Proof assistants
 
-2. **High-Performance Computing**:
-   - SIMD optimization for GA operations
-   - GPU acceleration strategies
+2. **High-Performance Computing**
+   - GPU acceleration
+   - SIMD optimization
    - Parallel algorithms
 
-3. **Novel Applications**:
-   - Robotics and control systems
-   - Computer vision with GA
-   - Verified AI systems
+3. **Novel Applications**
+   - Topological machine learning
+   - Geometric deep learning
+   - Physics-informed networks
 
-4. **Educational Innovation**:
-   - New visualization techniques
+4. **Educational Innovation**
+   - Visualization techniques
    - Interactive learning tools
    - Curriculum development
 
-**Community Engagement**:
-- Present at conferences
-- Mentor other learners
-- Contribute to open source
-
 ---
 
-## 🛠️ Practical Learning Tips
+## Practical Learning Tips
 
 ### Setting Up Your Environment
 ```bash
 # Clone the repository
-git clone https://github.com/amari-project/amari.git
+git clone https://github.com/justinelliottcobb/amari.git
 cd amari
 
-# Run examples
-cargo run --example basic_operations
-cargo run --bin rigid_body_dynamics
+# Run dynamical systems examples
+cd examples/rust/dynamical-systems
+cargo run --bin lorenz_attractor
+
+# Run topology examples
+cd ../topology
+cargo run --bin persistent_homology
+
+# Run functional analysis examples
+cd ../functional-analysis
+cargo run --bin spectral_theory
 
 # Interactive demos
-cd examples/web/interactive-demos
+cd ../../web/interactive-demos
 npm install
 npm run dev
 ```
@@ -191,52 +422,47 @@ npm run dev
 4. **Implement**: Write your own versions
 5. **Apply**: Create novel applications
 
-### Getting Help
-- 📖 Documentation: `/docs/` directory
-- 💬 Discussions: GitHub issues and discussions
-- 🎥 Video tutorials: Coming soon
-- 👥 Community: Join our Discord/Slack
+### Progress Tracking
 
-## 📊 Progress Tracking
-
-### Beginner Milestones
+#### Beginner Milestones
 - [ ] Understand geometric product
 - [ ] Implement basic rotor rotation
 - [ ] Compute exact derivatives with dual numbers
 - [ ] Compare GA vs traditional methods
 
-### Intermediate Milestones
-- [ ] Build complete physics simulation
-- [ ] Implement verified neural network
-- [ ] Create interactive visualization
-- [ ] Solve real-world problem
+#### Dynamical Systems Milestones
+- [ ] Integrate Lorenz system
+- [ ] Compute Lyapunov exponents
+- [ ] Generate bifurcation diagram
+- [ ] Analyze stability of fixed points
 
-### Advanced Milestones
-- [ ] Contribute to Amari codebase
-- [ ] Publish research or tutorial
-- [ ] Mentor other learners
-- [ ] Innovate in chosen domain
+#### Topology Milestones
+- [ ] Build simplicial complex
+- [ ] Compute Betti numbers
+- [ ] Generate persistence diagram
+- [ ] Apply TDA to dataset
 
-## INTERACTIVE Extended Learning
-
-### Recommended Reading
-1. **Geometric Algebra**: Doran & Lasenby "Geometric Algebra for Physicists"
-2. **Dual Numbers**: Jeffrey & Rich "The Role of Dual Numbers in Kinematics"
-3. **Applications**: Domain-specific papers in our reference list
-
-### Online Resources
-- Interactive GA tutorials
-- Video lecture series
-- Research paper database
-- Community forums
-
-### Next Steps
-After completing your chosen track:
-1. **Specialize**: Deep-dive into your domain of interest
-2. **Contribute**: Help improve Amari
-3. **Teach**: Share knowledge with others
-4. **Research**: Push the boundaries further
+#### Functional Analysis Milestones
+- [ ] Implement L² inner product
+- [ ] Compute spectral decomposition
+- [ ] Apply functional calculus
+- [ ] Solve problem using distributions
 
 ---
 
-*Happy learning! The journey into geometric algebra and dual numbers opens up new ways of thinking about mathematics, physics, and computation. Take your time, experiment freely, and don't hesitate to ask questions.*
+## Recommended Reading
+
+### Core Texts
+- **Geometric Algebra**: Doran & Lasenby "Geometric Algebra for Physicists"
+- **Dynamical Systems**: Strogatz "Nonlinear Dynamics and Chaos"
+- **Topology**: Edelsbrunner & Harer "Computational Topology"
+- **Functional Analysis**: Kreyszig "Introductory Functional Analysis"
+
+### Specialized Topics
+- **TDA**: Carlsson "Topology and Data"
+- **Chaos**: Ott "Chaos in Dynamical Systems"
+- **Spectral Theory**: Reed & Simon "Methods of Modern Mathematical Physics"
+
+---
+
+*Happy learning! The journey into mathematical computing opens new ways of thinking about computation, physics, and data. Take your time, experiment freely, and don't hesitate to explore.*

@@ -1,236 +1,306 @@
-# TARGET Amari Examples Suite
+# Amari Examples Suite v0.17.1
 
-Welcome to the comprehensive Amari examples collection! This suite demonstrates the power and elegance of geometric algebra and dual numbers across multiple domains.
+Welcome to the comprehensive Amari examples collection! This suite demonstrates the power of geometric algebra, computational topology, dynamical systems, and functional analysis across multiple domains.
 
-## FEATURED What's Included
+## What's Included
 
-### SCIENTIFIC Physics Simulations (`rust/physics-simulation/`)
+### Rust Examples
+
+#### Physics Simulations (`rust/physics-simulation/`)
 Real-world physics demonstrations using geometric algebra's natural representations:
 
-- **🌀 Rigid Body Dynamics**: Singularity-free rotations using rotors
-- **ELECTROMAGNETIC Electromagnetic Fields**: Unified E+B field treatment with Maxwell's equations
-- **🌊 Fluid Dynamics**: Vorticity as bivectors, circulation theorems
-- **QUANTUM Quantum Mechanics**: Pauli matrices, spin states, Bell's inequality
+- **Rigid Body Dynamics**: Singularity-free rotations using rotors
+- **Electromagnetic Fields**: Unified E+B field treatment with Maxwell's equations
+- **Fluid Dynamics**: Vorticity as bivectors, circulation theorems
+- **Quantum Mechanics**: Pauli matrices, spin states, Bell's inequality
 
-### GRAPHICS Computer Graphics (`rust/computer-graphics/`)
+#### Computer Graphics (`rust/computer-graphics/`)
 Modern graphics applications showcasing GA's geometric intuition:
 
-- **🎭 3D Transformations**: Gimbal lock-free rotations and interpolation
-- **📷 Camera Systems**: Perspective projection and orbital controls
-- **🔺 Mesh Operations**: Normal calculations and geometric queries
-- **FEATURED Ray Tracing**: Natural ray representation and lighting
+- **3D Transformations**: Gimbal lock-free rotations and interpolation
+- **Camera Systems**: Perspective projection and orbital controls
+- **Mesh Operations**: Normal calculations and geometric queries
+- **Ray Tracing**: Natural ray representation and lighting
 
-### 🧠 Machine Learning (`rust/machine-learning/`)
+#### Machine Learning (`rust/machine-learning/`)
 Verified ML algorithms using dual number automatic differentiation:
 
-- **COMPUTATION Automatic Differentiation**: Exact gradients without approximation errors
-- **🤖 Neural Networks**: Verified backpropagation and training
-- **METRICS Optimization**: Gradient descent, Adam, Newton's method
-- **VERIFIED Verified Learning**: Mathematical guarantees and error analysis
+- **Automatic Differentiation**: Exact gradients without approximation errors
+- **Neural Networks**: Verified backpropagation and training
+- **Optimization**: Gradient descent, Adam, Newton's method
+- **Verified Learning**: Mathematical guarantees and error analysis
 
-### INTERACTIVE Interactive Demos (`web/interactive-demos/`)
-Real-time visualizations for hands-on learning:
+#### Dynamical Systems (`rust/dynamical-systems/`) *NEW in v0.17.1*
+Comprehensive dynamical systems analysis with `amari-dynamics`:
 
-- **🎮 3D Rotor Manipulator**: Interactive rotation exploration
-- **ELECTROMAGNETIC EM Field Visualizer**: Dynamic electromagnetic field lines
-- **📊 AutoDiff Grapher**: Real-time derivative computation
-- **TARGET Optimization Tracer**: Watch algorithms converge live
+- **Lorenz Attractor**: Chaotic dynamics, butterfly effect, strange attractors
+- **Van der Pol Oscillator**: Limit cycles, relaxation oscillations
+- **Bifurcation Analysis**: Period-doubling, Feigenbaum constants, Hopf bifurcations
+- **Lyapunov Exponents**: Chaos quantification, Kaplan-Yorke dimension
+- **Stability Analysis**: Fixed points, Jacobians, eigenvalue classification
+- **Phase Portraits**: Vector fields, nullclines, separatrices
+- **Stochastic Dynamics**: Langevin equations, Fokker-Planck, noise-induced transitions
 
-## 🚀 Quick Start
+#### Computational Topology (`rust/topology/`) *NEW in v0.17.1*
+Algebraic and computational topology with `amari-topology`:
+
+- **Simplicial Complexes**: Building blocks, chain complexes, Euler characteristic
+- **Persistent Homology**: Filtrations, persistence diagrams, Betti numbers
+- **Morse Theory**: Critical points, gradient flow, level set evolution
+- **Topological Data Analysis**: Shape detection, clustering, feature extraction
+
+#### Functional Analysis (`rust/functional-analysis/`) *NEW in v0.17.1*
+Hilbert and Banach space theory with `amari-functional`:
+
+- **Hilbert Spaces**: Inner products, orthonormal bases, projections, Parseval's identity
+- **Operators**: Bounded operators, adjoints, compact operators, spectral properties
+- **Spectral Theory**: Eigenvalue problems, functional calculus, perturbation theory
+- **Banach Spaces**: Lp spaces, duality, fixed point theorems
+- **Distributions**: Generalized functions, Dirac delta, weak derivatives
+
+### TypeScript Examples (`typescript/`)
+Node.js examples using `@justinelliottcobb/amari-wasm`:
+
+- Basic geometric algebra operations
+- Dual number computations
+- Integration patterns
+
+### PureScript Examples (`purescript/`) *NEW in v0.17.1*
+Comprehensive functional programming examples with amari-wasm FFI:
+
+- Type-safe WASM bindings
+- Monadic computations with GA
+- Effect system integration
+- Property-based testing
+
+### Web Demos (`web/interactive-demos/`)
+Browser-based interactive visualizations:
+
+- 3D Rotor Manipulator
+- Electromagnetic Field Visualizer
+- AutoDiff Grapher
+- Optimization Tracer
+
+## Quick Start
 
 ### Prerequisites
-- Rust 1.70+ with Cargo
-- Node.js 16+ (for web demos)
-- Basic linear algebra knowledge
+- Rust 1.75+ with Cargo
+- Node.js 18+ (for web/TypeScript demos)
+- PureScript 0.15+ (for PureScript examples)
 
-### Running Examples
+### Running Rust Examples
 
 ```bash
-# Clone the repository
-git clone https://github.com/amari-project/amari.git
-cd amari
+# Navigate to the examples directory
+cd examples
 
-# Physics simulations
+# Dynamical Systems
+cd rust/dynamical-systems
+cargo run --bin lorenz_attractor
+cargo run --bin van_der_pol
+cargo run --bin bifurcation_analysis
+cargo run --bin lyapunov_exponents
+cargo run --bin stability_analysis
+cargo run --bin phase_portraits
+cargo run --bin stochastic_dynamics
+
+# Computational Topology
+cd ../topology
+cargo run --bin simplicial_complexes
+cargo run --bin persistent_homology
+cargo run --bin morse_theory
+cargo run --bin topological_data_analysis
+
+# Functional Analysis
+cd ../functional-analysis
+cargo run --bin hilbert_spaces
+cargo run --bin operators
+cargo run --bin spectral_theory
+cargo run --bin banach_spaces
+cargo run --bin distributions
+
+# Physics Simulations
+cd ../physics-simulation
 cargo run --bin rigid_body_dynamics
 cargo run --bin electromagnetic_fields
 cargo run --bin fluid_dynamics
 cargo run --bin quantum_mechanics
 
-# Computer graphics
-cargo run --bin 3d_transformations
+# Computer Graphics
+cd ../computer-graphics
+cargo run --bin transformations_3d
 cargo run --bin camera_projection
 cargo run --bin mesh_operations
 cargo run --bin ray_tracing
 
-# Machine learning
+# Machine Learning
+cd ../machine-learning
 cargo run --bin automatic_differentiation
 cargo run --bin neural_networks
 cargo run --bin optimization_algorithms
 cargo run --bin verified_learning
+```
 
-# Interactive web demos
+### Running TypeScript Examples
+
+```bash
+cd examples/typescript
+npm install
+npx ts-node src/basic_operations.ts
+npx ts-node src/dual_numbers.ts
+```
+
+### Running Web Demos
+
+```bash
 cd examples/web/interactive-demos
 npm install
 npm run dev
-# Open http://localhost:3000
+# Open http://localhost:5173
 ```
 
-## 📚 Educational Pathways
+### Running PureScript Examples
+
+```bash
+cd examples/purescript
+spago build
+spago run
+```
+
+## Educational Pathways
 
 We've designed structured learning paths for different backgrounds:
 
-### 🌱 [Beginner Track](LEARNING_PATHS.md#beginner-track-foundations)
-- Start with basic GA concepts
-- Learn dual number fundamentals
-- Build first applications
-- *Duration: 2-3 weeks*
+### Beginner Track
+Start with core GA concepts and build fundamental understanding:
+1. Basic multivector operations
+2. Dual number automatic differentiation
+3. Simple physics simulations
 
-### 🚀 [Intermediate Track](LEARNING_PATHS.md#intermediate-track-applications)
-- Apply GA to real problems
-- Master advanced techniques
-- Create integration projects
-- *Duration: 3-4 weeks*
+### Intermediate Track
+Apply advanced techniques to real problems:
+1. Complex transformations and interpolation
+2. Machine learning with exact gradients
+3. Dynamical systems basics
 
-### TARGET [Advanced Track](LEARNING_PATHS.md#advanced-track-mastery)
-- Research-level applications
-- Mathematical verification
-- Contribute to the field
-- *Duration: 4-6 weeks*
+### Advanced Track
+Research-level applications:
+1. Persistent homology for data analysis
+2. Spectral theory and operators
+3. Stochastic dynamics and ergodic theory
 
-### SCIENTIFIC [Research Track](LEARNING_PATHS.md#research-track-innovation)
-- Push theoretical boundaries
-- Develop novel applications
-- Lead community efforts
-- *Duration: Ongoing*
+### Research Track
+Push theoretical boundaries:
+1. Novel topological invariants
+2. Information geometry applications
+3. Formal verification with Creusot
 
-[📖 **View Complete Learning Paths**](LEARNING_PATHS.md)
+See [LEARNING_PATHS.md](LEARNING_PATHS.md) for detailed curricula.
 
-## TARGET Example Highlights
+## Crate Overview
 
-### Physics: Electromagnetic Unity
+| Crate | Description | Example Directory |
+|-------|-------------|-------------------|
+| `amari-core` | Geometric algebra fundamentals | All examples |
+| `amari-dual` | Automatic differentiation | `machine-learning/` |
+| `amari-dynamics` | Dynamical systems | `dynamical-systems/` |
+| `amari-topology` | Computational topology | `topology/` |
+| `amari-functional` | Functional analysis | `functional-analysis/` |
+| `amari-calculus` | Geometric calculus | `physics-simulation/` |
+| `amari-gpu` | GPU acceleration | Performance benchmarks |
+| `amari-wasm` | WebAssembly bindings | `typescript/`, `web/`, `purescript/` |
+
+## Example Highlights
+
+### Dynamical Systems: Lorenz Attractor
 ```rust
-// Electric and magnetic fields as unified multivector
-let em_field = ElectromagneticField::new(
-    [1000.0, 0.0, 0.0],  // Electric field
-    [0.0, 0.001, 0.0]    // Magnetic field
-);
+use amari_dynamics::{
+    systems::LorenzSystem,
+    solver::{DormandPrince, ODESolver},
+    lyapunov::compute_lyapunov_spectrum,
+};
 
-// Maxwell's equations become: ∇F = J
-let field_multivector = em_field.field_multivector(); // F = E + I·B
+let lorenz = LorenzSystem::new(10.0, 28.0, 8.0/3.0);
+let solver = DormandPrince::new(1e-8);
+
+// Integrate trajectory
+let trajectory = solver.solve(&lorenz, initial_state, 0.0, 100.0, 10000)?;
+
+// Compute Lyapunov exponents
+let spectrum = compute_lyapunov_spectrum(&lorenz, 10000, 0.01)?;
+println!("Largest Lyapunov exponent: {:.4}", spectrum.exponents[0]);
 ```
 
-### Graphics: Gimbal Lock-Free Rotations
+### Topology: Persistent Homology
 ```rust
-// Smooth rotation interpolation without singularities
-let start_rotation = Transform3D::rotate(Vector::e1(), PI/2.0);
-let end_rotation = Transform3D::rotate(Vector::e3(), PI/2.0);
-let interpolated = start_rotation.interpolate(&end_rotation, 0.5);
-```
+use amari_topology::{
+    persistence::{Filtration, PersistentHomology},
+    tda::VietorisRips,
+};
 
-### Machine Learning: Exact Gradients
-```rust
-// Automatic differentiation with machine precision
-let x = Dual::variable(2.0);
-let y = x.cube().subtract(&x.square().scale(2.0)); // f(x) = x³ - 2x²
-let derivative = y.dual(); // f'(2) = 12 - 8 = 4, exactly
-```
+// Build Rips filtration from point cloud
+let rips = VietorisRips::new(&point_cloud, 2.0)?;
+let ph = PersistentHomology::compute(&rips.filtration())?;
 
-## 🛠️ Technical Details
-
-### Architecture
-- **Core Library**: `amari-core` - Fundamental GA operations
-- **Dual Numbers**: `amari-dual` - Automatic differentiation
-- **WASM Bindings**: `amari-wasm` - Web integration
-- **Examples**: Comprehensive demonstrations
-
-### Performance Features
-- SIMD optimization for geometric products
-- Memory-efficient multivector storage
-- Parallel computation support
-- WebAssembly compilation
-
-### Verification
-- Exact arithmetic where possible
-- Numerical stability analysis
-- Mathematical property verification
-- Comprehensive test coverage
-
-## 📊 Comparison with Traditional Methods
-
-| Aspect | Traditional | Amari GA/Dual |
-|--------|------------|---------------|
-| **3D Rotations** | Euler angles (gimbal lock) | Rotors (singularity-free) |
-| **Derivatives** | Finite differences | Exact computation |
-| **EM Fields** | Separate E, B vectors | Unified F multivector |
-| **Optimization** | Approximate gradients | Machine-precision gradients |
-| **Quantum States** | Complex matrices | Natural bivector representation |
-
-## 🎓 Educational Value
-
-### Mathematical Insights
-- **Geometric Clarity**: Operations have clear geometric meaning
-- **Unified Framework**: Single language for diverse applications
-- **Exact Computation**: Eliminate approximation errors
-- **Verified Algorithms**: Mathematical guarantees
-
-### Practical Benefits
-- **Reduced Bugs**: Type safety prevents geometric errors
-- **Better Performance**: Optimized operations
-- **Easier Debugging**: Clear mathematical structure
-- **Educational**: Learn through interactive exploration
-
-## INTERACTIVE Community & Support
-
-### Getting Help
-- 📚 **Documentation**: Comprehensive guides and API docs
-- 💬 **Discussions**: GitHub issues and community forums
-- 🎥 **Tutorials**: Video walkthroughs (coming soon)
-- 👥 **Community**: Join our Discord/Slack channels
-
-### Contributing
-We welcome contributions! Areas where you can help:
-- 🐛 **Bug Reports**: Find and report issues
-- 📝 **Documentation**: Improve explanations
-- 🚀 **Examples**: Add new demonstrations
-- SCIENTIFIC **Research**: Contribute novel applications
-
-### Citing Amari
-If you use Amari in research or education:
-```bibtex
-@software{amari2024,
-  title={Amari: Geometric Algebra and Dual Numbers for Verified Computing},
-  author={Amari Project Contributors},
-  year={2024},
-  url={https://github.com/amari-project/amari}
+// Analyze persistence diagram
+let h1_diagram = ph.diagram(1);  // Loops
+for (birth, death) in h1_diagram.pairs() {
+    println!("Loop: born at {:.3}, dies at {:.3}", birth, death);
 }
 ```
 
-## 🗺️ Roadmap
+### Functional Analysis: Spectral Decomposition
+```rust
+use amari_functional::{
+    spectral::SpectralDecomposition,
+    operator::MatrixOperator,
+    functional_calculus::FunctionalCalculus,
+};
 
-### Short Term (v0.7-0.8)
-- [ ] Additional physics simulations
-- [ ] Advanced optimization algorithms
-- [ ] Performance benchmarks
-- [ ] Mobile-friendly web demos
+let op = MatrixOperator::new(matrix)?;
+let decomp = SpectralDecomposition::compute(&op)?;
 
-### Medium Term (v0.9-1.0)
-- [ ] GPU acceleration
-- [ ] Distributed computing support
-- [ ] Advanced visualization tools
-- [ ] Educational platform integration
+// Apply function to operator: exp(A)
+let fc = FunctionalCalculus::new(&op)?;
+let exp_a = fc.apply(|x| x.exp())?;
+```
 
-### Long Term (v1.0+)
-- [ ] Production-ready applications
-- [ ] Industry partnerships
-- [ ] Academic course integration
-- [ ] Standard library inclusion
+## Technical Details
 
-## 📄 License
+### Performance Features
+- SIMD optimization for geometric products
+- GPU acceleration via `amari-gpu` with wgpu
+- Parallel computation with Rayon
+- WebAssembly compilation for browser deployment
 
-This project is licensed under the MIT License - see the [LICENSE](../LICENSE) file for details.
+### Formal Verification
+- Creusot contracts for mathematical properties
+- Type-level guarantees with phantom types
+- Comprehensive property-based testing
+
+### Numerical Stability
+- Adaptive step-size ODE solvers
+- Error-controlled computations
+- Condition number monitoring
+
+## Documentation
+
+- [DOCUMENTATION.md](DOCUMENTATION.md) - Comprehensive API reference
+- [LEARNING_PATHS.md](LEARNING_PATHS.md) - Structured learning curricula
+- [Main README](../README.md) - Project overview
+
+## Contributing
+
+We welcome contributions:
+- Bug reports and fixes
+- New example programs
+- Documentation improvements
+- Novel applications
+
+## License
+
+MIT License - see [LICENSE](../LICENSE) for details.
 
 ---
 
-**Ready to explore?** Start with our [🌱 Beginner Track](LEARNING_PATHS.md#beginner-track-foundations) or dive into [INTERACTIVE Interactive Demos](web/interactive-demos/index.html)!
-
-*Amari: Where mathematics meets intuition, and computation becomes art.* ✨
+**Ready to explore?** Start with [dynamical systems](rust/dynamical-systems/) or dive into [interactive web demos](web/interactive-demos/)!

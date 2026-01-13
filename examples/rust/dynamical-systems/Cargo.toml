@@ -1,0 +1,49 @@
+[package]
+name = "dynamical-systems"
+version = "0.17.1"
+edition = "2021"
+authors = ["Amari Project <amari@example.com>"]
+description = "Dynamical systems examples using amari-dynamics"
+license = "MIT"
+
+[[bin]]
+name = "lorenz_attractor"
+path = "src/lorenz_attractor.rs"
+
+[[bin]]
+name = "van_der_pol"
+path = "src/van_der_pol.rs"
+
+[[bin]]
+name = "bifurcation_analysis"
+path = "src/bifurcation_analysis.rs"
+
+[[bin]]
+name = "lyapunov_exponents"
+path = "src/lyapunov_exponents.rs"
+
+[[bin]]
+name = "stability_analysis"
+path = "src/stability_analysis.rs"
+
+[[bin]]
+name = "phase_portraits"
+path = "src/phase_portraits.rs"
+
+[[bin]]
+name = "stochastic_dynamics"
+path = "src/stochastic_dynamics.rs"
+
+[dependencies]
+amari = { workspace = true, features = ["dynamics"] }
+amari-core = { workspace = true }
+amari-dynamics = { workspace = true, features = ["stochastic"] }
+plotters = "0.3"
+rand = "0.8"
+rand_chacha = "0.3"
+nalgebra = "0.33"
+approx = "0.5"
+
+[features]
+default = ["visualizations"]
+visualizations = ["plotters"]

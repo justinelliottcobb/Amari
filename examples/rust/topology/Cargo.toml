@@ -1,0 +1,31 @@
+[package]
+name = "topology-examples"
+version = "0.17.1"
+edition = "2021"
+authors = ["Amari Project <amari@example.com>"]
+description = "Computational topology examples using amari-topology"
+license = "MIT"
+
+[[bin]]
+name = "simplicial_complexes"
+path = "src/simplicial_complexes.rs"
+
+[[bin]]
+name = "persistent_homology"
+path = "src/persistent_homology.rs"
+
+[[bin]]
+name = "morse_theory"
+path = "src/morse_theory.rs"
+
+[[bin]]
+name = "topological_data_analysis"
+path = "src/topological_data_analysis.rs"
+
+[dependencies]
+amari = { workspace = true, features = ["topology"] }
+amari-core = { workspace = true }
+amari-topology = { workspace = true }
+rand = "0.8"
+nalgebra = "0.33"
+approx = "0.5"
