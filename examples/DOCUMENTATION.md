@@ -1,394 +1,632 @@
-# 📚 Comprehensive Example Documentation
+# Comprehensive Example Documentation v0.17.0
 
 This document provides detailed explanations of all examples in the Amari suite, including mathematical foundations, implementation details, and educational insights.
 
-## SCIENTIFIC Physics Simulation Examples
+## Table of Contents
 
-### 🌀 Rigid Body Dynamics
+1. [Dynamical Systems](#dynamical-systems-examples)
+2. [Computational Topology](#computational-topology-examples)
+3. [Functional Analysis](#functional-analysis-examples)
+4. [Physics Simulations](#physics-simulation-examples)
+5. [Computer Graphics](#computer-graphics-examples)
+6. [Machine Learning](#machine-learning-examples)
+7. [Interactive Demos](#interactive-demo-documentation)
+8. [Technical Details](#technical-details)
 
-**Mathematical Foundation**: Rigid body dynamics using geometric algebra represents orientations as rotors (unit multivectors) instead of matrices or quaternions.
+---
+
+## Dynamical Systems Examples
+
+The `amari-dynamics` crate provides comprehensive tools for analyzing dynamical systems, from basic ODE solvers to chaos quantification.
+
+### Lorenz Attractor
+
+**Mathematical Foundation**: The Lorenz system is a paradigmatic example of deterministic chaos:
+
+```
+dx/dt = σ(y - x)
+dy/dt = x(ρ - z) - y
+dz/dt = xy - βz
+```
+
+With classic parameters σ = 10, ρ = 28, β = 8/3, the system exhibits a strange attractor.
 
 #### Key Concepts
-- **Rotor Representation**: `R = cos(θ/2) - sin(θ/2)(n̂ ∧ B)` where `n̂` is the rotation axis
-- **Angular Velocity**: Represented as bivector `ω = ωₓe₂₃ + ωᵧe₃₁ + ωᵧe₁₂`
-- **Torque**: Naturally computed as `τ = r ∧ F` (outer product)
+- **Strange Attractor**: Fractal structure with sensitive dependence on initial conditions
+- **Butterfly Effect**: Exponentially diverging trajectories from nearby initial conditions
+- **Lyapunov Exponents**: Positive largest exponent indicates chaos (λ₁ ≈ 0.906)
+- **Kaplan-Yorke Dimension**: Fractal dimension D_KY ≈ 2.06
 
 #### Implementation Highlights
 ```rust
-// Rotor-based orientation update
-let rotation_increment = self.angular_velocity.scale(dt / 2.0);
-let rotor_increment = Rotor::from_bivector(&rotation_increment, rotation_increment.magnitude());
-self.orientation = rotor_increment.compose(&self.orientation);
-```
-
-#### Educational Value
-- **No Gimbal Lock**: Rotors provide singularity-free rotation
-- **Geometric Intuition**: Operations have clear geometric meaning
-- **Smooth Interpolation**: Natural SLERP between orientations
-
-#### Running the Example
-```bash
-cargo run --bin rigid_body_dynamics
-```
-
-**Expected Output**: Simulation of spinning top with gyroscopic effects, collision between spheres, and gyroscope precession.
-
----
-
-### ELECTROMAGNETIC Electromagnetic Fields
-
-**Mathematical Foundation**: Electromagnetic fields unify into a single multivector `F = E + I·B` where `I` is the pseudoscalar.
-
-#### Key Concepts
-- **Field Multivector**: `F = E + I·B` combines electric and magnetic fields
-- **Maxwell's Equations**: Unified as `∇F = J` and `∇∧F = 0`
-- **Lorentz Transformations**: Natural relativistic field transformations
-
-#### Implementation Highlights
-```rust
-// Unified electromagnetic field
-pub fn field_multivector(&self) -> Cl3 {
-    self.electric_field.mv.add(&self.magnetic_field.mv)
-}
-
-// Poynting vector S = (1/μ₀) E × B
-pub fn poynting_vector(&self, mu_0: f64) -> Vector<3, 0, 0> {
-    let poynting_bivector = self.electric_field.outer_product(&self.magnetic_field.mv);
-    // Convert bivector to vector (dual operation)
-    Vector::from_components(
-        poynting_bivector.get(6) / mu_0,   // yz → x
-        -poynting_bivector.get(5) / mu_0,  // -xz → y
-        poynting_bivector.get(3) / mu_0,   // xy → z
-    )
-}
-```
-
-#### Educational Value
-- **Unified Treatment**: E and B fields as single entity
-- **Relativistic Insight**: Natural Lorentz transformations
-- **Geometric Clarity**: Field interactions become geometric operations
-
----
-
-### 🌊 Fluid Dynamics
-
-**Mathematical Foundation**: Vorticity becomes a natural bivector quantity `ω = ∇ ∧ v`.
-
-#### Key Concepts
-- **Vorticity Bivector**: `ω = ωₓe₂₃ + ωᵧe₃₁ + ωᵧe₁₂`
-- **Circulation**: `Γ = ∮ v·dl = ∬ ω·dA` (Stokes' theorem)
-- **Helicity**: `H = v·ω` measures flow topology
-
-#### Implementation Highlights
-```rust
-// Circulation using Stokes' theorem
-pub fn circulation(&self, area: f64, normal: Vector<3, 0, 0>) -> f64 {
-    let area_bivector = normal.outer_product(&Vector::e1()).scale(area);
-    self.vorticity.inner_product(&Bivector::from_multivector(&area_bivector)).get(0)
-}
-```
-
-#### Educational Value
-- **Geometric Fluid Mechanics**: Vorticity as fundamental geometric object
-- **Conservation Laws**: Natural representation of topological invariants
-- **Physical Insight**: Magnus effect and circulation coupling
-
----
-
-### QUANTUM Quantum Mechanics
-
-**Mathematical Foundation**: Pauli matrices as bivectors, spin states as multivectors.
-
-#### Key Concepts
-- **Pauli Matrices**: `σₓ = e₁₂`, `σᵧ = e₁₃`, `σᵧ = e₂₃`
-- **Spin States**: `|ψ⟩ = α + βI` using scalar and pseudoscalar parts
-- **Spin Rotations**: `R|ψ⟩R†` using rotor conjugation
-
-#### Implementation Highlights
-```rust
-// Pauli matrices as bivectors
-pub fn new() -> Self {
-    Self {
-        sigma_x: Bivector::from_components(0.0, 0.0, 1.0), // e₁₂
-        sigma_y: Bivector::from_components(0.0, 1.0, 0.0), // e₁₃
-        sigma_z: Bivector::from_components(1.0, 0.0, 0.0), // e₂₃
-    }
-}
-
-// Spin rotation using rotors
-pub fn rotate(&self, axis: Vector<3, 0, 0>, angle: f64) -> Self {
-    let rotor = create_rotor_from_axis_angle(axis, angle);
-    Self {
-        state: rotor.geometric_product(&self.state).geometric_product(&rotor.reverse()),
-    }
-}
-```
-
-#### Educational Value
-- **Geometric Quantum Mechanics**: Natural representation without complex numbers
-- **Spin Intuition**: Clear geometric interpretation of quantum states
-- **Measurement Theory**: Direct connection to geometric operations
-
----
-
-## GRAPHICS Computer Graphics Examples
-
-### 🎭 3D Transformations
-
-**Mathematical Foundation**: Transformations using rotors for rotation, vectors for translation.
-
-#### Key Concepts
-- **Rotor Composition**: `R_total = R₂ ∘ R₁` for sequential rotations
-- **SLERP Interpolation**: Smooth rotation interpolation
-- **Hierarchical Transforms**: Natural parent-child relationships
-
-#### Implementation Highlights
-```rust
-// Gimbal lock-free interpolation
-pub fn interpolate(&self, other: &Transform3D, t: f64) -> Self {
-    let interp_rotation = self.rotation.slerp(&other.rotation, t);
-    // ... linear interpolation for translation and scale
-}
-```
-
-#### Educational Value
-- **Singularity-Free**: No gimbal lock or quaternion normalization issues
-- **Geometric Clarity**: Transformations have clear geometric interpretation
-- **Smooth Animation**: Natural interpolation between orientations
-
----
-
-### 📷 Camera Systems
-
-**Mathematical Foundation**: Camera transformations using unified GA framework.
-
-#### Key Concepts
-- **View Transformation**: World-to-camera using rotor inverse
-- **Perspective Projection**: Natural division by depth
-- **Frustum Culling**: Geometric intersection tests
-
-#### Educational Value
-- **Unified Pipeline**: Single mathematical framework for all operations
-- **Geometric Insight**: Clear understanding of projection geometry
-- **Robust Implementation**: Natural handling of edge cases
-
----
-
-### 🔺 Mesh Operations
-
-**Mathematical Foundation**: Surface normals via cross products as outer products.
-
-#### Key Concepts
-- **Normal Calculation**: `n = (v₁ - v₀) ∧ (v₂ - v₀)`
-- **Area Computation**: `A = ½|(v₁ - v₀) ∧ (v₂ - v₀)|`
-- **Geometric Queries**: Point-in-triangle using barycentric coordinates
-
-#### Educational Value
-- **Geometric Mesh Processing**: Natural operations on surface geometry
-- **Area-Weighted Normals**: Mathematically correct normal averaging
-- **Robust Algorithms**: Stable geometric computations
-
----
-
-### FEATURED Ray Tracing
-
-**Mathematical Foundation**: Rays as geometric objects with natural intersection tests.
-
-#### Key Concepts
-- **Ray Representation**: Origin + direction vector
-- **Intersection Tests**: Geometric algebra intersection formulas
-- **Reflection/Refraction**: Vector reflection using GA operations
-
-#### Educational Value
-- **Geometric Ray Optics**: Natural representation of light behavior
-- **Robust Intersections**: Stable geometric intersection algorithms
-- **Physical Accuracy**: Correct reflection and refraction formulas
-
----
-
-## 🧠 Machine Learning Examples
-
-### COMPUTATION Automatic Differentiation
-
-**Mathematical Foundation**: Dual numbers `a + bε` where `ε² = 0` for exact derivatives.
-
-#### Key Concepts
-- **Forward Mode AD**: `f(a + bε) = f(a) + bf'(a)ε`
-- **Chain Rule**: Automatic application through arithmetic operations
-- **Exact Computation**: Machine-precision derivatives
-
-#### Implementation Highlights
-```rust
-// Dual number arithmetic preserves derivatives
-impl DualNumber for Dual<f64> {
-    fn add(&self, other: &Self) -> Self {
-        Dual {
-            real: self.real + other.real,
-            dual: self.dual + other.dual,  // Automatic chain rule
-        }
-    }
-}
-```
-
-#### Educational Value
-- **Exact Derivatives**: No finite difference approximation errors
-- **Mathematical Rigor**: Provably correct gradient computation
-- **Numerical Stability**: Eliminates cancellation errors
-
----
-
-### 🤖 Neural Networks
-
-**Mathematical Foundation**: Backpropagation with exact gradients from dual numbers.
-
-#### Key Concepts
-- **Verified Gradients**: Mathematical guarantee of correctness
-- **Stable Training**: No numerical instability from gradient approximation
-- **Error Analysis**: Precise understanding of computation errors
-
-#### Educational Value
-- **Verified Learning**: Mathematical guarantees in ML algorithms
-- **Educational Clarity**: Exact understanding of gradient flow
-- **Research Foundation**: Basis for provably correct AI systems
-
----
-
-### METRICS Optimization Algorithms
-
-**Mathematical Foundation**: Optimization with exact gradient information.
-
-#### Key Concepts
-- **Gradient Descent**: `x_{n+1} = x_n - α∇f(x_n)` with exact `∇f`
-- **Newton's Method**: `x_{n+1} = x_n - H⁻¹∇f(x_n)` with exact Hessian
-- **Convergence Analysis**: Mathematical verification of convergence properties
-
-#### Educational Value
-- **Optimization Theory**: Direct connection to mathematical foundations
-- **Convergence Guarantees**: Verifiable optimization properties
-- **Algorithm Comparison**: Fair comparison with exact gradients
-
----
-
-### VERIFIED Verified Learning
-
-**Mathematical Foundation**: Machine learning with mathematical verification.
-
-#### Key Concepts
-- **Gradient Verification**: Automatic checking against finite differences
-- **Convergence Verification**: Mathematical proof of algorithm convergence
-- **Error Bounds**: Quantitative analysis of computation errors
-
-#### Educational Value
-- **Trustworthy AI**: Foundation for safety-critical applications
-- **Mathematical Rigor**: Brings proof-based methods to ML
-- **Educational Value**: Understanding through verification
-
----
-
-## INTERACTIVE Interactive Demo Documentation
-
-### 🎮 Implementation Architecture
-
-The web demos use a modern stack:
-- **Frontend**: Vanilla JavaScript with Three.js for 3D graphics
-- **Mathematical Visualization**: Plotly.js for 2D plots
-- **Interactivity**: dat.GUI for parameter control
-- **Mathematics**: KaTeX for equation rendering
-
-### TARGET Educational Design Principles
-
-1. **Progressive Disclosure**: Start simple, add complexity gradually
-2. **Immediate Feedback**: Real-time response to parameter changes
-3. **Mathematical Connection**: Always show underlying equations
-4. **Comparative Analysis**: Traditional vs. GA/dual number approaches
-
-### 🛠️ Technical Implementation
-
-Each demo follows a consistent pattern:
-```javascript
-// 1. Mathematical setup
-const geometricOperation = (params) => {
-    // GA/dual number computation
+use amari_dynamics::{
+    systems::LorenzSystem,
+    solver::{DormandPrince, ODESolver},
+    lyapunov::compute_lyapunov_spectrum,
 };
 
-// 2. Visualization update
-const updateVisualization = (result) => {
-    // Update 3D scene or plot
+let lorenz = LorenzSystem::new(10.0, 28.0, 8.0/3.0);
+let solver = DormandPrince::with_tolerance(1e-8);
+
+// Compute trajectory
+let trajectory = solver.solve(&lorenz, initial, 0.0, 100.0, 10000)?;
+
+// Lyapunov spectrum quantifies chaos
+let spectrum = compute_lyapunov_spectrum(&lorenz, 10000, 0.01)?;
+```
+
+#### Educational Value
+- **Chaos Theory**: Understanding deterministic unpredictability
+- **Numerical Methods**: Adaptive step-size importance for chaotic systems
+- **Attractor Visualization**: 3D phase space structure
+
+---
+
+### Van der Pol Oscillator
+
+**Mathematical Foundation**: Self-sustaining oscillator with nonlinear damping:
+
+```
+d²x/dt² - μ(1 - x²)dx/dt + x = 0
+```
+
+#### Key Concepts
+- **Limit Cycle**: Stable periodic orbit regardless of initial conditions
+- **Relaxation Oscillations**: For large μ, characteristic fast-slow dynamics
+- **Hopf Bifurcation**: Transition from fixed point to limit cycle at μ = 0
+
+#### Implementation Highlights
+```rust
+use amari_dynamics::{
+    systems::VanDerPol,
+    stability::{find_fixed_points, analyze_stability},
+    attractor::detect_limit_cycle,
 };
 
-// 3. Interactive controls
-const gui = new dat.GUI();
-gui.add(params, 'parameter').onChange(updateVisualization);
+let vdp = VanDerPol::new(mu);
+let cycle = detect_limit_cycle(&vdp, 1000)?;
+println!("Period: {:.4}, Amplitude: {:.4}", cycle.period, cycle.amplitude);
+```
+
+#### Educational Value
+- **Nonlinear Dynamics**: Self-sustaining oscillations
+- **Stability Analysis**: Linearization near fixed points
+- **Historical Significance**: Radio circuit modeling
+
+---
+
+### Bifurcation Analysis
+
+**Mathematical Foundation**: Qualitative changes in dynamics as parameters vary.
+
+#### Key Concepts
+- **Saddle-Node Bifurcation**: Fixed points appear/disappear
+- **Pitchfork Bifurcation**: Symmetry-breaking
+- **Hopf Bifurcation**: Fixed point becomes limit cycle
+- **Period-Doubling**: Route to chaos
+- **Feigenbaum Constant**: δ ≈ 4.669... universal ratio
+
+#### Implementation Highlights
+```rust
+use amari_dynamics::bifurcation::{
+    BifurcationDiagram, ContinuationMethod, classify_bifurcation,
+};
+
+// Logistic map period-doubling cascade
+let diagram = BifurcationDiagram::compute_map(
+    |x, r| r * x * (1.0 - x),  // Logistic map
+    (2.5, 4.0),                 // Parameter range
+    1000,                       // Points
+)?;
 ```
 
 ---
 
-## 🎓 Pedagogical Notes
+### Lyapunov Exponents
 
-### Learning Sequence Design
+**Mathematical Foundation**: Lyapunov exponents measure the rate of separation of infinitesimally close trajectories:
 
-1. **Concrete Before Abstract**: Start with visual examples
-2. **Multiple Representations**: Show same concept multiple ways
-3. **Progressive Complexity**: Build complexity gradually
-4. **Active Learning**: Encourage experimentation and modification
+```
+λ = lim_{t→∞} (1/t) ln(|δx(t)|/|δx(0)|)
+```
 
-### Common Misconceptions Addressed
+#### Key Concepts
+- **Largest Exponent**: λ₁ > 0 indicates chaos
+- **Spectrum**: Complete set {λ₁ ≥ λ₂ ≥ ... ≥ λₙ}
+- **Sum Rule**: Σλᵢ = trace of Jacobian (dissipation)
+- **Kaplan-Yorke Dimension**: D_KY = k + Σᵢ₌₁ᵏ λᵢ / |λₖ₊₁|
 
-1. **"GA is just another notation"**: Demonstrate computational advantages
-2. **"Dual numbers are just for derivatives"**: Show broader applications
-3. **"Complex mathematics is impractical"**: Provide real-world examples
+#### Implementation Highlights
+```rust
+use amari_dynamics::lyapunov::{
+    LyapunovSpectrum, compute_spectrum_qr, kaplan_yorke_dimension,
+};
 
-### Assessment Strategies
-
-1. **Conceptual Understanding**: Can explain geometric meaning
-2. **Computational Skill**: Can implement basic operations
-3. **Application Ability**: Can apply to new problems
-4. **Creative Synthesis**: Can combine concepts creatively
+let spectrum = compute_spectrum_qr(&system, initial, 10000, 0.01)?;
+let d_ky = kaplan_yorke_dimension(&spectrum.exponents);
+```
 
 ---
 
-## 🔧 Implementation Details
+### Stability Analysis
 
-### Performance Considerations
+**Mathematical Foundation**: Linear stability analysis via eigenvalues of Jacobian.
 
-1. **SIMD Optimization**: Vectorized operations where possible
-2. **Memory Layout**: Cache-friendly data structures
-3. **Algorithmic Efficiency**: O(n) operations for basic GA
-4. **Compilation**: Optimized release builds
+#### Key Concepts
+- **Fixed Points**: Solutions where dx/dt = 0
+- **Jacobian Matrix**: J_ij = ∂fᵢ/∂xⱼ
+- **Stability Classification**:
+  - All Re(λ) < 0: Asymptotically stable
+  - Any Re(λ) > 0: Unstable
+  - Re(λ) = 0: Center (requires nonlinear analysis)
+
+#### Implementation Highlights
+```rust
+use amari_dynamics::stability::{
+    find_fixed_points, compute_jacobian, classify_stability, StabilityType,
+};
+
+let fps = find_fixed_points(&system, initial_guesses)?;
+for fp in &fps {
+    let jacobian = compute_jacobian(&system, fp)?;
+    let stability = classify_stability(&jacobian)?;
+    match stability {
+        StabilityType::AsymptoticallyStable => println!("Stable node"),
+        StabilityType::Saddle => println!("Saddle point"),
+        StabilityType::StableSpiral => println!("Stable spiral"),
+        // ...
+    }
+}
+```
+
+---
+
+### Phase Portraits
+
+**Mathematical Foundation**: Visualization of vector fields and flow structure.
+
+#### Key Concepts
+- **Vector Field**: Arrows showing dx/dt direction
+- **Nullclines**: Curves where dxᵢ/dt = 0
+- **Separatrices**: Boundaries between basins of attraction
+- **Phase Space**: Full state space of the system
+
+---
+
+### Stochastic Dynamics
+
+**Mathematical Foundation**: Dynamics with random perturbations.
+
+#### Key Concepts
+- **Langevin Equation**: dx = f(x)dt + σdW
+- **Fokker-Planck Equation**: Evolution of probability density
+- **Noise-Induced Transitions**: Escape over potential barriers
+- **Kramers Rate**: k = (ω_a ω_b)/(2πγ) exp(-ΔU/k_B T)
+
+---
+
+## Computational Topology Examples
+
+The `amari-topology` crate provides tools for algebraic and computational topology.
+
+### Simplicial Complexes
+
+**Mathematical Foundation**: Building blocks of algebraic topology.
+
+#### Key Concepts
+- **k-Simplex**: Convex hull of k+1 affinely independent points
+- **Simplicial Complex**: Collection closed under taking faces
+- **Face**: Subset of a simplex (boundary component)
+- **f-vector**: (f₀, f₁, ..., fₙ) counting k-simplices
+
+#### Implementation Highlights
+```rust
+use amari_topology::{
+    simplex::Simplex,
+    complex::SimplicialComplex,
+    chain::ChainComplex,
+};
+
+let triangle = Simplex::triangle(0, 1, 2);
+let mut complex = SimplicialComplex::new();
+complex.add_simplex(triangle)?;  // Automatically adds faces
+
+println!("f-vector: {:?}", complex.f_vector());
+println!("Euler characteristic: {}", complex.euler_characteristic());
+```
+
+#### Educational Value
+- **Discrete Geometry**: Combinatorial representation of spaces
+- **Homology Foundation**: Building blocks for algebraic invariants
+- **Computational Efficiency**: Finite representation of continuous spaces
+
+---
+
+### Persistent Homology
+
+**Mathematical Foundation**: Tracking topological features across a filtration.
+
+#### Key Concepts
+- **Filtration**: Nested sequence K₀ ⊆ K₁ ⊆ ... ⊆ Kₙ
+- **Birth/Death**: When features appear and disappear
+- **Persistence**: death - birth (lifetime of feature)
+- **Persistence Diagram**: Multiset of (birth, death) pairs
+- **Betti Numbers**: βₖ = # of k-dimensional holes
+
+#### Implementation Highlights
+```rust
+use amari_topology::persistence::{
+    Filtration, PersistentHomology, PersistenceDiagram,
+};
+
+let mut filtration = Filtration::new();
+filtration.add(Simplex::vertex(0), 0.0)?;
+filtration.add(Simplex::edge(0, 1), 1.0)?;
+// ...
+
+let ph = PersistentHomology::compute(&filtration)?;
+let h1_diagram = ph.diagram(1);  // 1-dimensional holes (loops)
+
+for (birth, death) in h1_diagram.pairs() {
+    println!("Loop: born {:.2}, dies {:.2}, persistence {:.2}",
+             birth, death, death - birth);
+}
+```
+
+#### Educational Value
+- **Topological Data Analysis**: Extract shape from data
+- **Noise Robustness**: Long-lived features are significant
+- **Multi-Scale Analysis**: Features at different scales
+
+---
+
+### Morse Theory
+
+**Mathematical Foundation**: Relating critical points to topology.
+
+#### Key Concepts
+- **Critical Points**: Where ∇f = 0
+- **Morse Index**: # of negative eigenvalues of Hessian
+- **Morse Inequalities**: mₖ ≥ βₖ
+- **Level Sets**: f⁻¹(t) and how they change at critical values
+- **Gradient Flow**: Trajectories following -∇f
+
+#### Implementation Highlights
+```rust
+use amari_topology::morse::{
+    find_critical_points_2d, MorseComplex, CriticalPointType,
+};
+
+let critical = find_critical_points_2d(
+    |x, y| (x*x - 1.0).powi(2) + y*y,  // Double-well
+    (-2.0, 2.0),
+    (-2.0, 2.0),
+    100,
+)?;
+
+for cp in &critical {
+    match cp.point_type {
+        CriticalPointType::Minimum => println!("Min at {:?}", cp.position),
+        CriticalPointType::Saddle => println!("Saddle at {:?}", cp.position),
+        CriticalPointType::Maximum => println!("Max at {:?}", cp.position),
+    }
+}
+```
+
+---
+
+### Topological Data Analysis
+
+**Mathematical Foundation**: Extracting topological features from data.
+
+#### Key Concepts
+- **Point Cloud**: Input data as points in metric space
+- **Vietoris-Rips Complex**: Add simplex when all pairwise distances ≤ ε
+- **Alpha Complex**: Based on Delaunay triangulation (more efficient)
+- **Persistence Landscape**: Vectorization of persistence diagrams
+- **Bottleneck Distance**: Stability metric for diagrams
+
+#### Implementation Highlights
+```rust
+use amari_topology::tda::{
+    PointCloud, VietorisRips, AlphaComplex,
+    bottleneck_distance, PersistenceLandscape,
+};
+
+let cloud = PointCloud::new(points)?;
+let rips = VietorisRips::new(&cloud, 2.0)?;
+let ph = PersistentHomology::compute(&rips.filtration())?;
+
+// Vectorize for machine learning
+let landscape = PersistenceLandscape::from_diagram(&ph.diagram(1), 100)?;
+let features = landscape.to_vector(50)?;
+```
+
+---
+
+## Functional Analysis Examples
+
+The `amari-functional` crate provides Hilbert and Banach space theory.
+
+### Hilbert Spaces
+
+**Mathematical Foundation**: Complete inner product spaces.
+
+#### Key Concepts
+- **Inner Product**: ⟨x, y⟩ satisfying linearity, conjugate symmetry, positive definiteness
+- **Norm**: ‖x‖ = √⟨x, x⟩
+- **Orthogonality**: ⟨x, y⟩ = 0
+- **Orthonormal Basis**: {eₙ} with ⟨eₘ, eₙ⟩ = δₘₙ
+- **Parseval's Identity**: ‖f‖² = Σₙ |⟨f, eₙ⟩|²
+
+#### Implementation Highlights
+```rust
+use amari_functional::{
+    hilbert::{RealHilbert, L2Space},
+    basis::{FourierBasis, OrthonormalBasis},
+};
+
+let l2 = L2Space::new(0.0, 2.0 * PI)?;
+let fourier = FourierBasis::new(0.0, 2.0 * PI, 20)?;
+
+// Expand function in Fourier basis
+let coeffs: Vec<f64> = (0..20)
+    .map(|n| l2.inner_product(&f, &fourier.basis_function(n)?))
+    .collect::<Result<_, _>>()?;
+```
+
+---
+
+### Operators
+
+**Mathematical Foundation**: Bounded linear maps between spaces.
+
+#### Key Concepts
+- **Operator Norm**: ‖T‖ = sup{‖Tx‖ : ‖x‖ = 1}
+- **Adjoint**: ⟨Tx, y⟩ = ⟨x, T*y⟩
+- **Self-Adjoint**: T = T*
+- **Compact Operator**: Maps bounded sets to precompact sets
+- **Unitary**: U*U = UU* = I
+
+#### Implementation Highlights
+```rust
+use amari_functional::operator::{
+    MatrixOperator, LinearOperator, AdjointOperator,
+};
+
+let op = MatrixOperator::new(matrix)?;
+let adjoint = op.adjoint()?;
+
+// Verify ⟨Tx, y⟩ = ⟨x, T*y⟩
+let lhs = hilbert.inner_product(&op.apply(&x)?, &y)?;
+let rhs = hilbert.inner_product(&x, &adjoint.apply(&y)?)?;
+assert!((lhs - rhs).abs() < 1e-10);
+```
+
+---
+
+### Spectral Theory
+
+**Mathematical Foundation**: Eigenvalue problems and spectral decomposition.
+
+#### Key Concepts
+- **Spectrum**: σ(T) = {λ : (T - λI) not invertible}
+- **Point Spectrum**: Eigenvalues
+- **Spectral Theorem**: Self-adjoint T = Σ λₙ Pₙ
+- **Functional Calculus**: f(T) = Σ f(λₙ) Pₙ
+- **Spectral Radius**: ρ(T) = max|λ| = lim ‖Tⁿ‖^(1/n)
+
+#### Implementation Highlights
+```rust
+use amari_functional::{
+    spectral::{SpectralDecomposition, FunctionalCalculus},
+    operator::SelfAdjoint,
+};
+
+let decomp = SpectralDecomposition::compute(&op)?;
+let fc = FunctionalCalculus::new(&op)?;
+
+// Compute exp(A) via spectral theorem
+let exp_a = fc.apply(|x| x.exp())?;
+```
+
+---
+
+### Banach Spaces
+
+**Mathematical Foundation**: Complete normed vector spaces.
+
+#### Key Concepts
+- **Lᵖ Spaces**: ‖f‖_p = (∫|f|ᵖ)^(1/p)
+- **Dual Space**: X* = bounded linear functionals on X
+- **Reflexivity**: X = X** (isometrically)
+- **Fixed Point Theorem**: Contraction maps have unique fixed points
+
+#### Implementation Highlights
+```rust
+use amari_functional::banach::{LpSpace, SequenceLp, BanachFixedPoint};
+
+let l2 = LpSpace::new(0.0, 1.0, 2.0)?;
+let l_inf = LpSpace::l_infinity(0.0, 1.0)?;
+
+// Compare norms
+println!("‖f‖_2 = {:.4}", l2.norm(&f)?);
+println!("‖f‖_∞ = {:.4}", l_inf.norm(&f)?);
+```
+
+---
+
+### Distributions
+
+**Mathematical Foundation**: Generalized functions (Schwartz distributions).
+
+#### Key Concepts
+- **Test Functions**: Smooth with compact support
+- **Distribution**: Continuous linear functional on test functions
+- **Dirac Delta**: ⟨δ, φ⟩ = φ(0)
+- **Weak Derivative**: ⟨T', φ⟩ = -⟨T, φ'⟩
+- **Heaviside**: H' = δ
+
+#### Implementation Highlights
+```rust
+use amari_functional::distributions::{
+    DiracDelta, HeavisideStep, TestFunction,
+};
+
+let delta = DiracDelta::at(0.0)?;
+let bump = TestFunction::bump(-1.0, 1.0)?;
+
+// ⟨δ, φ⟩ = φ(0)
+let result = delta.apply(&bump)?;
+assert!((result - bump.evaluate(0.0)).abs() < 1e-10);
+```
+
+---
+
+## Physics Simulation Examples
+
+### Rigid Body Dynamics
+
+**Mathematical Foundation**: Rotations using rotors instead of matrices or quaternions.
+
+#### Key Concepts
+- **Rotor**: R = cos(θ/2) - sin(θ/2)(n̂ ∧ B)
+- **Angular Velocity**: Bivector ω = ωₓe₂₃ + ωᵧe₃₁ + ωᵧe₁₂
+- **Torque**: τ = r ∧ F (outer product)
+
+---
+
+### Electromagnetic Fields
+
+**Mathematical Foundation**: Unified field multivector F = E + I·B.
+
+#### Key Concepts
+- **Maxwell's Equations**: ∇F = J unified form
+- **Lorentz Force**: F = q(E + v × B)
+- **Poynting Vector**: S = E × B / μ₀
+
+---
+
+### Fluid Dynamics
+
+**Mathematical Foundation**: Vorticity as bivector ω = ∇ ∧ v.
+
+#### Key Concepts
+- **Circulation**: Γ = ∮ v·dl = ∬ ω·dA
+- **Helicity**: H = v·ω (topological invariant)
+
+---
+
+### Quantum Mechanics
+
+**Mathematical Foundation**: Pauli matrices as bivectors.
+
+#### Key Concepts
+- **Pauli Algebra**: σₓ = e₁₂, σᵧ = e₁₃, σᵧ = e₂₃
+- **Spin States**: Multivector representation
+- **Rotations**: R|ψ⟩R† using rotors
+
+---
+
+## Computer Graphics Examples
+
+### 3D Transformations
+- Gimbal lock-free rotations
+- SLERP interpolation
+- Hierarchical transforms
+
+### Camera Systems
+- View transformations
+- Perspective projection
+- Orbital controls
+
+### Mesh Operations
+- Normal calculation
+- Area computation
+- Geometric queries
+
+### Ray Tracing
+- Ray-surface intersection
+- Reflection/refraction
+- Lighting calculations
+
+---
+
+## Machine Learning Examples
+
+### Automatic Differentiation
+- Dual numbers for exact gradients
+- Chain rule automation
+- Higher-order derivatives
+
+### Neural Networks
+- Verified backpropagation
+- Gradient checking
+- Error analysis
+
+### Optimization
+- Gradient descent variants
+- Newton's method
+- Convergence analysis
+
+---
+
+## Interactive Demo Documentation
+
+### Architecture
+- Frontend: Modern JavaScript with Three.js
+- Visualization: Plotly.js for 2D plots
+- Controls: Interactive parameter adjustment
+- Mathematics: KaTeX equation rendering
+
+### Design Principles
+1. Progressive disclosure
+2. Immediate feedback
+3. Mathematical connection
+4. Comparative analysis
+
+---
+
+## Technical Details
+
+### Performance
+- SIMD optimization for geometric products
+- GPU acceleration via wgpu
+- Parallel computation with Rayon
+- WebAssembly for browser deployment
 
 ### Numerical Stability
+- Adaptive step-size solvers
+- Error-controlled computations
+- Condition number monitoring
 
-1. **Exact Arithmetic**: Use exact operations where possible
-2. **Error Analysis**: Quantify and bound numerical errors
-3. **Robust Algorithms**: Handle edge cases gracefully
-4. **Verification**: Cross-check critical computations
+### Testing
+- Unit tests for individual functions
+- Integration tests for workflows
+- Property-based testing for invariants
+- Performance benchmarks
 
-### Testing Strategy
-
-1. **Unit Tests**: Test individual functions
-2. **Integration Tests**: Test complete workflows
-3. **Property Tests**: Verify mathematical properties
-4. **Performance Tests**: Ensure computational efficiency
+### Formal Verification
+- Creusot contracts for critical properties
+- Phantom types for compile-time guarantees
+- Mathematical property verification
 
 ---
 
-## 📚 Further Reading
+## Further Reading
 
 ### Books
-1. **Geometric Algebra**: "Geometric Algebra for Physicists" by Doran & Lasenby
-2. **Dual Numbers**: "Dual Number Methods in Kinematics" by Jeffrey & Rich
-3. **Computer Graphics**: "Real-Time Rendering" by Akenine-Möller et al.
+- **Dynamical Systems**: Strogatz "Nonlinear Dynamics and Chaos"
+- **Topology**: Edelsbrunner & Harer "Computational Topology"
+- **Functional Analysis**: Kreyszig "Introductory Functional Analysis"
+- **Geometric Algebra**: Doran & Lasenby "Geometric Algebra for Physicists"
 
 ### Papers
-1. **GA in Graphics**: Recent computer graphics applications
-2. **Dual Number AD**: Automatic differentiation literature
-3. **Verified Computing**: Formal methods in numerical computation
-
-### Online Resources
-1. **Video Lectures**: GA introduction series
-2. **Interactive Tutorials**: Step-by-step learning modules
-3. **Community Forums**: Discussion and Q&A
+- Persistent homology and TDA applications
+- Lyapunov exponent computation methods
+- Spectral theory in operator algebras
+- Geometric algebra in physics and graphics
 
 ---
 
-*This documentation serves as both a reference and a learning guide. Each example is designed to be self-contained while building toward a comprehensive understanding of geometric algebra and dual numbers in computational applications.*
+*This documentation serves as both a reference and learning guide. Each example is designed to be self-contained while building toward comprehensive understanding.*

@@ -652,7 +652,7 @@ let value = x.value();
 let deriv = x.derivative();
 ```
 
-See [MIGRATION_v0.12.0.md](MIGRATION_v0.12.0.md) for complete migration guide.
+See [docs/archive/MIGRATION_v0.12.0.md](docs/archive/MIGRATION_v0.12.0.md) for complete migration guide.
 
 ## Interactive Examples Suite
 
@@ -688,6 +688,27 @@ The **[Amari Examples Suite](https://amari-math.netlify.app)** provides comprehe
 
 - **Interactive Playground**: Write and run JavaScript code with live WASM execution
 
+## Examples & Documentation (v0.17.0)
+
+The examples suite has been completely overhauled for v0.17.0 with comprehensive coverage of all new crates:
+
+### Rust Examples (`examples/rust/`)
+
+- **dynamical-systems/** (7 examples): Lorenz attractor, Van der Pol oscillator, bifurcation analysis, Lyapunov exponents, stability analysis, phase portraits, stochastic dynamics
+- **topology/** (4 examples): Simplicial complexes, persistent homology, Morse theory, topological data analysis
+- **functional-analysis/** (5 examples): Hilbert spaces, operators, spectral theory, Banach spaces, distributions
+- **physics-simulation/**: Rigid body dynamics, electromagnetic fields, fluid dynamics, quantum mechanics
+- **computer-graphics/**: 3D transformations, camera projection, mesh operations, ray tracing
+- **machine-learning/**: Automatic differentiation, neural networks, optimization, verified learning
+
+### Language Bindings
+
+- **TypeScript** (`examples/typescript/`): Node.js examples with `@justinelliottcobb/amari-wasm`
+- **PureScript** (`examples/purescript/`): Type-safe FFI bindings with Effect tracking
+- **Web Demos** (`examples/web/`): Interactive browser visualizations
+
+See [`examples/README.md`](examples/README.md) for complete documentation and [`examples/LEARNING_PATHS.md`](examples/LEARNING_PATHS.md) for structured learning curricula.
+
 ## GPU Module Status (v0.17.0)
 
 | Module | Status | Feature Flag |
@@ -707,12 +728,12 @@ The **[Amari Examples Suite](https://amari-math.netlify.app)** provides comprehe
 | Probabilistic | ✅ Enabled | `probabilistic` |
 | Functional | ✅ Enabled | `functional` |
 | Topology | ✅ Enabled | `topology` |
-| **Dynamics** | ✅ **New in v0.17.0** | `dynamics` |
+| **Dynamics** | ✅ **New in v0.17.x** | `dynamics` |
 | Tropical | ❌ Disabled | - |
 
 Note: Tropical GPU module temporarily disabled due to Rust orphan impl rules. Use CPU implementations from domain crates.
 
-### v0.17.0 GPU Additions
+### v0.17.x GPU Additions
 
 The `dynamics` feature provides GPU-accelerated dynamical systems operations:
 
@@ -784,9 +805,12 @@ The library is optimized for high-performance applications:
 
 ## Documentation
 
-- **[Migration Guide](MIGRATION_v0.12.0.md)**: Migrating from v0.11.x to v0.12.0+
+- **[Examples Suite](examples/README.md)**: Comprehensive examples for all crates
+- **[Learning Paths](examples/LEARNING_PATHS.md)**: Structured learning curricula
+- **[API Reference](examples/DOCUMENTATION.md)**: Detailed API documentation
+- **[Migration Guide](docs/archive/MIGRATION_v0.12.0.md)**: Migrating from v0.11.x to v0.12.0+
 - **[Changelog](CHANGELOG.md)**: Version history and changes
-- **[API Documentation](https://docs.rs/amari)**: Complete API reference
+- **[docs.rs](https://docs.rs/amari)**: Complete API reference
 
 ## Contributing
 

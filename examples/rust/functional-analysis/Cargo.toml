@@ -1,0 +1,34 @@
+[package]
+name = "functional-analysis-examples"
+version = "0.17.0"
+edition = "2021"
+authors = ["Amari Project <amari@example.com>"]
+description = "Functional analysis examples using amari-functional"
+license = "MIT"
+
+[[bin]]
+name = "hilbert_spaces"
+path = "src/hilbert_spaces.rs"
+
+[[bin]]
+name = "operators"
+path = "src/operators.rs"
+
+[[bin]]
+name = "spectral_theory"
+path = "src/spectral_theory.rs"
+
+[[bin]]
+name = "banach_spaces"
+path = "src/banach_spaces.rs"
+
+[[bin]]
+name = "distributions"
+path = "src/distributions.rs"
+
+[dependencies]
+amari = { workspace = true, features = ["functional"] }
+amari-core = { workspace = true }
+amari-functional = { workspace = true }
+nalgebra = "0.33"
+approx = "0.5"
