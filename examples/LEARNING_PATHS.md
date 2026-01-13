@@ -1,10 +1,10 @@
-# Amari Learning Paths v0.17.1
+# Amari Learning Paths v0.17.0
 
 Welcome to the Amari educational journey! This guide provides structured pathways for learning geometric algebra, dynamical systems, computational topology, and functional analysis through our comprehensive example suite.
 
 ## Overview
 
-Amari v0.17.1 provides learning tracks across multiple mathematical domains. Each path builds upon previous knowledge while providing practical, hands-on experience.
+Amari v0.17.0 provides learning tracks across multiple mathematical domains. Each path builds upon previous knowledge while providing practical, hands-on experience.
 
 ## Core Tracks
 

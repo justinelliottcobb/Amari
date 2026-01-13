@@ -1,4 +1,4 @@
-# Comprehensive Example Documentation v0.17.1
+# Comprehensive Example Documentation v0.17.0
 
 This document provides detailed explanations of all examples in the Amari suite, including mathematical foundations, implementation details, and educational insights.
 

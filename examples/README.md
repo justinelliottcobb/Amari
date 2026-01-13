@@ -1,4 +1,4 @@
-# Amari Examples Suite v0.17.1
+# Amari Examples Suite v0.17.0
 
 Welcome to the comprehensive Amari examples collection! This suite demonstrates the power of geometric algebra, computational topology, dynamical systems, and functional analysis across multiple domains.
 
@@ -30,7 +30,7 @@ Verified ML algorithms using dual number automatic differentiation:
 - **Optimization**: Gradient descent, Adam, Newton's method
 - **Verified Learning**: Mathematical guarantees and error analysis
 
-#### Dynamical Systems (`rust/dynamical-systems/`) *NEW in v0.17.1*
+#### Dynamical Systems (`rust/dynamical-systems/`) *NEW in v0.17.0*
 Comprehensive dynamical systems analysis with `amari-dynamics`:
 
 - **Lorenz Attractor**: Chaotic dynamics, butterfly effect, strange attractors
@@ -41,7 +41,7 @@ Comprehensive dynamical systems analysis with `amari-dynamics`:
 - **Phase Portraits**: Vector fields, nullclines, separatrices
 - **Stochastic Dynamics**: Langevin equations, Fokker-Planck, noise-induced transitions
 
-#### Computational Topology (`rust/topology/`) *NEW in v0.17.1*
+#### Computational Topology (`rust/topology/`) *NEW in v0.17.0*
 Algebraic and computational topology with `amari-topology`:
 
 - **Simplicial Complexes**: Building blocks, chain complexes, Euler characteristic
@@ -49,7 +49,7 @@ Algebraic and computational topology with `amari-topology`:
 - **Morse Theory**: Critical points, gradient flow, level set evolution
 - **Topological Data Analysis**: Shape detection, clustering, feature extraction
 
-#### Functional Analysis (`rust/functional-analysis/`) *NEW in v0.17.1*
+#### Functional Analysis (`rust/functional-analysis/`) *NEW in v0.17.0*
 Hilbert and Banach space theory with `amari-functional`:
 
 - **Hilbert Spaces**: Inner products, orthonormal bases, projections, Parseval's identity
@@ -65,7 +65,7 @@ Node.js examples using `@justinelliottcobb/amari-wasm`:
 - Dual number computations
 - Integration patterns
 
-### PureScript Examples (`purescript/`) *NEW in v0.17.1*
+### PureScript Examples (`purescript/`) *NEW in v0.17.0*
 Comprehensive functional programming examples with amari-wasm FFI:
 
 - Type-safe WASM bindings
