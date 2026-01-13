@@ -1,7 +1,7 @@
 {
   "name": "amari-interactive-demos",
-  "version": "0.12.1",
-  "description": "Interactive web demonstrations of Amari geometric algebra and dual numbers",
+  "version": "0.17.0",
+  "description": "Interactive web demonstrations of Amari mathematical computing library",
   "main": "index.js",
   "scripts": {
     "dev": "vite",
@@ -10,13 +10,14 @@
     "wasm-pack": "wasm-pack build --target web --out-dir pkg ../../../amari-wasm"
   },
   "dependencies": {
+    "@justinelliottcobb/amari-wasm": "^0.17.0",
     "three": "^0.158.0",
     "dat.gui": "^0.7.9",
     "katex": "^0.16.8",
     "plotly.js-dist": "^2.26.0"
   },
   "devDependencies": {
-    "vite": "^4.5.0",
+    "vite": "^5.0.0",
     "wasm-pack": "^0.12.0"
   },
   "type": "module"
