@@ -22,6 +22,10 @@ approx = { workspace = true }
 proptest = "1.4"
 criterion = "0.5"
 
+[[bench]]
+name = "topology_benchmarks"
+harness = false
+
 [features]
 default = ["std"]
 std = ["amari-core/std"]
