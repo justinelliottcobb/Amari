@@ -297,10 +297,15 @@ impl<T: Float> AttentionHead<T> {
 /// Analysis results for attention patterns
 #[derive(Clone, Debug)]
 pub struct AttentionAnalysis<T: Float> {
+    /// Shannon entropy of attention distribution
     pub entropy: T,
+    /// Sparsity measure (fraction of near-zero weights)
     pub sparsity: T,
+    /// Coherence with geometric structure
     pub geometric_coherence: T,
+    /// Maximum attention weight
     pub peak_attention: T,
+    /// Effective range of attention window
     pub effective_range: T,
 }
 
@@ -339,9 +344,13 @@ impl<T: Float> AttentionAnalysis<T> {
 /// Multi-head attention using Tropical-Dual-Clifford algebra
 #[derive(Clone, Debug)]
 pub struct MultiHeadAttention<T: Float> {
+    /// Individual attention heads
     pub heads: Vec<AttentionHead<T>>,
+    /// Number of parallel attention heads
     pub num_heads: usize,
+    /// Model embedding dimension
     pub d_model: usize,
+    /// Per-head embedding dimension
     pub d_head: usize,
 }
 

@@ -44,19 +44,28 @@ pub struct CARule<const P: usize, const Q: usize, const R: usize> {
 /// Types of CA rules
 #[derive(Clone, Debug)]
 pub enum RuleType {
+    /// Geometric algebra-based evolution rule
     Geometric,
+    /// Conway's Game of Life-style rule
     GameOfLife,
+    /// Reversible CA rule with invertible dynamics
     Reversible,
+    /// Rotor-based CA rule using spinor transformations
     RotorCA,
+    /// Rule that preserves grade structure
     GradePreserving,
+    /// Conservative rule preserving total multivector
     Conservative,
 }
 
 /// Boundary conditions for CA
 #[derive(Clone, Debug)]
 pub enum BoundaryCondition {
+    /// Wrap around (torus topology)
     Periodic,
+    /// Fixed boundary values
     Fixed,
+    /// Reflect at boundaries
     Reflecting,
 }
 
