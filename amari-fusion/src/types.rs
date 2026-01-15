@@ -922,7 +922,12 @@ pub struct EvaluationResult<T: Float> {
 #[derive(Debug, Clone)]
 pub enum EvaluationError {
     /// Dimension mismatch between predictions and targets
-    DimensionMismatch { expected: usize, actual: usize },
+    DimensionMismatch {
+        /// Expected dimension
+        expected: usize,
+        /// Actual dimension found
+        actual: usize,
+    },
     /// Invalid input (NaN, Inf, etc.)
     InvalidInput(String),
     /// Numerical instability detected

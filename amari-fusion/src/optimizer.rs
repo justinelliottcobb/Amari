@@ -1,4 +1,5 @@
 //! Optimization using combined tropical-dual-clifford algebra
+#![allow(missing_docs)]
 
 use crate::TropicalDualClifford;
 use alloc::vec::Vec;

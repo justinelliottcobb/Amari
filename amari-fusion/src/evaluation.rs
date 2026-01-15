@@ -1,4 +1,5 @@
 //! LLM evaluation metrics using Tropical-Dual-Clifford algebra
+#![allow(missing_docs)]
 
 use crate::TropicalDualClifford;
 use alloc::vec::Vec;
@@ -66,15 +67,22 @@ impl<T: Float> EvaluationMetrics<T> {
 /// BLEU score components for translation evaluation
 #[derive(Clone, Debug)]
 pub struct BleuComponents<T: Float> {
+    /// Unigram precision
     pub precision_1gram: T,
+    /// Bigram precision
     pub precision_2gram: T,
+    /// Trigram precision
     pub precision_3gram: T,
+    /// 4-gram precision
     pub precision_4gram: T,
+    /// Brevity penalty for short translations
     pub brevity_penalty: T,
+    /// Ratio of candidate to reference length
     pub length_ratio: T,
 }
 
 impl<T: Float> BleuComponents<T> {
+    /// Create zero-initialized BLEU components
     pub fn zero() -> Self {
         Self {
             precision_1gram: T::zero(),
@@ -86,6 +94,7 @@ impl<T: Float> BleuComponents<T> {
         }
     }
 
+    /// Compute overall BLEU score from components
     pub fn overall_score(&self) -> T {
         let geometric_mean = (self.precision_1gram
             * self.precision_2gram
@@ -99,14 +108,20 @@ impl<T: Float> BleuComponents<T> {
 /// Computational efficiency tracking
 #[derive(Clone, Debug)]
 pub struct EfficiencyMetrics<T: Float> {
+    /// Speedup from tropical algebra optimizations
     pub tropical_speedup: T,
+    /// Overhead from dual number computations
     pub dual_overhead: T,
+    /// Complexity factor from Clifford algebra operations
     pub clifford_complexity: T,
+    /// Memory usage in normalized units
     pub memory_usage: T,
+    /// Cache hit ratio
     pub cache_efficiency: T,
 }
 
 impl<T: Float> EfficiencyMetrics<T> {
+    /// Create unit-initialized efficiency metrics
     pub fn zero() -> Self {
         Self {
             tropical_speedup: T::one(),

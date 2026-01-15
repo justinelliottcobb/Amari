@@ -1186,6 +1186,119 @@ mod tests {
         assert!(GpuCliffordAlgebra::should_use_gpu(1000));
     }
 
+    #[test]
+    fn test_should_use_gpu_threshold() {
+        // Test boundary conditions around the threshold
+        assert!(!GpuCliffordAlgebra::should_use_gpu(99));
+        assert!(GpuCliffordAlgebra::should_use_gpu(100));
+        assert!(GpuCliffordAlgebra::should_use_gpu(101));
+    }
+
+    #[test]
+    fn test_should_use_gpu_zero_batch() {
+        assert!(!GpuCliffordAlgebra::should_use_gpu(0));
+    }
+
+    #[test]
+    fn test_should_use_gpu_single_element() {
+        assert!(!GpuCliffordAlgebra::should_use_gpu(1));
+    }
+
+    #[test]
+    fn test_gpu_error_display() {
+        let init_err = GpuError::InitializationError("No GPU found".to_string());
+        assert!(init_err.to_string().contains("Failed to initialize GPU"));
+
+        let buffer_err = GpuError::BufferError("Buffer too small".to_string());
+        assert!(buffer_err.to_string().contains("buffer error"));
+
+        let shader_err = GpuError::ShaderError("Invalid syntax".to_string());
+        assert!(shader_err.to_string().contains("Shader compilation"));
+    }
+
+    #[test]
+    fn test_gpu_error_debug() {
+        let err = GpuError::InitializationError("test".to_string());
+        let debug_str = format!("{:?}", err);
+        assert!(debug_str.contains("InitializationError"));
+    }
+
+    #[test]
+    fn test_gpu_error_variants() {
+        // Test all error variants can be created and display correctly
+        let errors = vec![
+            GpuError::InitializationError("init failed".to_string()),
+            GpuError::BufferError("buffer failed".to_string()),
+            GpuError::ShaderError("shader failed".to_string()),
+        ];
+
+        for err in errors {
+            // Ensure Display trait works
+            let _ = err.to_string();
+            // Ensure Debug trait works
+            let _ = format!("{:?}", err);
+        }
+    }
+
+    #[tokio::test]
+    #[ignore = "GPU hardware required, may fail in CI/CD environments"]
+    async fn test_adaptive_compute_geometric_product() {
+        // Test AdaptiveCompute which has CPU fallback
+        let adaptive = AdaptiveCompute::new::<3, 0, 0>().await;
+
+        let e1 = Multivector::<3, 0, 0>::basis_vector(0);
+        let e2 = Multivector::<3, 0, 0>::basis_vector(1);
+
+        // Single product - always uses CPU, returns Multivector directly
+        let result = adaptive.geometric_product(&e1, &e2).await;
+        // e1 * e2 = e12 (bivector)
+        assert!(result.magnitude() > 0.0);
+    }
+
+    #[tokio::test]
+    #[ignore = "GPU hardware required, may fail in CI/CD environments"]
+    async fn test_adaptive_compute_batch_small() {
+        // Test AdaptiveCompute with small batch (should use CPU)
+        // Skip if GPU initialization fails (expected in CI)
+        let adaptive = AdaptiveCompute::new::<3, 0, 0>().await;
+
+        // Create flat coefficient arrays (8 elements per Cl(3,0,0) multivector)
+        let e1_coeffs = vec![0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]; // e1
+        let e2_coeffs = vec![0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0]; // e2
+
+        // 2 multivectors in batch
+        let mut a_batch = Vec::new();
+        let mut b_batch = Vec::new();
+        a_batch.extend_from_slice(&e1_coeffs);
+        a_batch.extend_from_slice(&e1_coeffs);
+        b_batch.extend_from_slice(&e2_coeffs);
+        b_batch.extend_from_slice(&e2_coeffs);
+
+        let result = adaptive.batch_geometric_product(&a_batch, &b_batch).await;
+        assert!(result.is_ok());
+        // 2 multivectors * 8 coefficients = 16
+        assert_eq!(result.unwrap().len(), 16);
+    }
+
+    #[test]
+    fn test_gpu_device_info_methods() {
+        let info = GpuDeviceInfo::new(true, "Test GPU");
+
+        assert!(info.is_gpu());
+        // supports_webgpu returns is_gpu
+        assert!(info.supports_webgpu());
+        assert!(info.is_initialized());
+    }
+
+    #[test]
+    fn test_gpu_device_info_cpu() {
+        let info = GpuDeviceInfo::new(false, "CPU Fallback");
+
+        assert!(!info.is_gpu());
+        assert!(!info.supports_webgpu());
+        assert!(info.is_initialized());
+    }
+
     #[tokio::test]
     async fn test_gpu_info_geometry_creation() {
         // Skip GPU tests in CI environments where GPU is not available
@@ -1209,5 +1322,188 @@ mod tests {
             }
             Err(e) => panic!("Unexpected error: {:?}", e),
         }
+    }
+
+    #[tokio::test]
+    async fn test_gpu_fisher_matrix_eigenvalues() {
+        let matrix = GpuFisherMatrix::new(vec![
+            vec![1.0, 0.0, 0.0],
+            vec![0.0, 2.0, 0.0],
+            vec![0.0, 0.0, 3.0],
+        ]);
+        let eigenvalues = matrix.eigenvalues().await.unwrap();
+        assert_eq!(eigenvalues.len(), 3);
+        assert_eq!(eigenvalues[0], 1.0);
+        assert_eq!(eigenvalues[1], 2.0);
+        assert_eq!(eigenvalues[2], 3.0);
+    }
+
+    #[tokio::test]
+    async fn test_gpu_fisher_matrix_empty() {
+        let matrix = GpuFisherMatrix::new(vec![]);
+        let eigenvalues = matrix.eigenvalues().await.unwrap();
+        assert!(eigenvalues.is_empty());
+    }
+
+    #[tokio::test]
+    async fn test_gpu_fisher_matrix_single_element() {
+        let matrix = GpuFisherMatrix::new(vec![vec![5.0]]);
+        let eigenvalues = matrix.eigenvalues().await.unwrap();
+        assert_eq!(eigenvalues.len(), 1);
+        assert_eq!(eigenvalues[0], 5.0);
+    }
+
+    #[test]
+    fn test_cayley_entry_struct() {
+        // Test that CayleyEntry can be created and is Pod-compatible
+        let entry = CayleyEntry {
+            sign: 1.0,
+            index: 5,
+        };
+        assert_eq!(entry.sign, 1.0);
+        assert_eq!(entry.index, 5);
+
+        // Test bytemuck cast works (verifies Pod + Zeroable traits)
+        let entries = vec![
+            entry,
+            CayleyEntry {
+                sign: -1.0,
+                index: 3,
+            },
+        ];
+        let bytes: &[u8] = bytemuck::cast_slice(&entries);
+        assert_eq!(bytes.len(), 16); // 2 entries * 8 bytes each (f32 + u32)
+    }
+
+    #[test]
+    fn test_cayley_entry_zero() {
+        // Test that CayleyEntry implements Zeroable
+        let zeroed: CayleyEntry = bytemuck::Zeroable::zeroed();
+        assert_eq!(zeroed.sign, 0.0);
+        assert_eq!(zeroed.index, 0);
+    }
+
+    #[test]
+    fn test_geometric_product_shader_not_empty() {
+        // Verify shader constant is properly defined
+        assert!(!GEOMETRIC_PRODUCT_SHADER.is_empty());
+        assert!(GEOMETRIC_PRODUCT_SHADER.contains("@compute"));
+        assert!(GEOMETRIC_PRODUCT_SHADER.contains("@workgroup_size"));
+        assert!(GEOMETRIC_PRODUCT_SHADER.contains("CayleyEntry"));
+    }
+
+    #[test]
+    fn test_tensor_compute_shader_not_empty() {
+        // Verify tensor shader constant is properly defined
+        assert!(!TENSOR_COMPUTE_SHADER.is_empty());
+        assert!(TENSOR_COMPUTE_SHADER.contains("@compute"));
+        assert!(TENSOR_COMPUTE_SHADER.contains("@workgroup_size"));
+        assert!(TENSOR_COMPUTE_SHADER.contains("cross"));
+        assert!(TENSOR_COMPUTE_SHADER.contains("dot"));
+    }
+
+    #[test]
+    fn test_gpu_error_from_string() {
+        // Test error messages contain the original message
+        let msg = "Custom error message";
+        let err = GpuError::InitializationError(msg.to_string());
+        assert!(err.to_string().contains(msg));
+
+        let err = GpuError::BufferError(msg.to_string());
+        assert!(err.to_string().contains(msg));
+
+        let err = GpuError::ShaderError(msg.to_string());
+        assert!(err.to_string().contains(msg));
+    }
+
+    #[test]
+    fn test_should_use_gpu_large_batch() {
+        // Test with large batch sizes
+        assert!(GpuCliffordAlgebra::should_use_gpu(1000));
+        assert!(GpuCliffordAlgebra::should_use_gpu(10000));
+        assert!(GpuCliffordAlgebra::should_use_gpu(100000));
+    }
+
+    #[test]
+    fn test_should_use_gpu_near_threshold() {
+        // Test values near the threshold
+        for i in 0..100 {
+            assert!(!GpuCliffordAlgebra::should_use_gpu(i));
+        }
+        for i in 100..200 {
+            assert!(GpuCliffordAlgebra::should_use_gpu(i));
+        }
+    }
+
+    #[test]
+    fn test_gpu_device_info_initialized_always_true() {
+        // is_initialized always returns true
+        let gpu_info = GpuDeviceInfo::new(true, "GPU");
+        let cpu_info = GpuDeviceInfo::new(false, "CPU");
+        assert!(gpu_info.is_initialized());
+        assert!(cpu_info.is_initialized());
+    }
+
+    #[tokio::test]
+    async fn test_adaptive_compute_cpu_fallback_small_batch() {
+        // Test that small batches use CPU (doesn't require GPU)
+        let adaptive = AdaptiveCompute { gpu: None };
+
+        let e1_coeffs = vec![0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
+        let e2_coeffs = vec![0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0];
+
+        let result = adaptive
+            .batch_geometric_product(&e1_coeffs, &e2_coeffs)
+            .await;
+        assert!(result.is_ok());
+        let coeffs = result.unwrap();
+        assert_eq!(coeffs.len(), 8);
+        // e1 * e2 = e12 (bivector) - verify a non-zero coefficient exists
+        let has_nonzero = coeffs.iter().any(|&c| c.abs() > 0.5);
+        assert!(has_nonzero, "Product should have non-zero coefficients");
+    }
+
+    #[tokio::test]
+    async fn test_adaptive_compute_cpu_fallback_multiple_elements() {
+        // Test CPU fallback with multiple multivectors
+        let adaptive = AdaptiveCompute { gpu: None };
+
+        let mut a_batch = Vec::new();
+        let mut b_batch = Vec::new();
+
+        // 5 multivectors
+        for _ in 0..5 {
+            a_batch.extend_from_slice(&[0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
+            b_batch.extend_from_slice(&[0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
+        }
+
+        let result = adaptive.batch_geometric_product(&a_batch, &b_batch).await;
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap().len(), 40); // 5 * 8
+    }
+
+    #[tokio::test]
+    async fn test_adaptive_compute_geometric_product_cpu() {
+        // Test single geometric product (always uses CPU)
+        let adaptive = AdaptiveCompute { gpu: None };
+
+        let a = Multivector::<3, 0, 0>::scalar(2.0);
+        let b = Multivector::<3, 0, 0>::scalar(3.0);
+
+        let result = adaptive.geometric_product(&a, &b).await;
+        assert!((result.scalar_part() - 6.0).abs() < 1e-10);
+    }
+
+    #[tokio::test]
+    async fn test_adaptive_compute_geometric_product_basis_vectors() {
+        // Test basis vector products
+        let adaptive = AdaptiveCompute { gpu: None };
+
+        let e1 = Multivector::<3, 0, 0>::basis_vector(0);
+        let e1_clone = Multivector::<3, 0, 0>::basis_vector(0);
+
+        // e1 * e1 = 1 in Cl(3,0,0)
+        let result = adaptive.geometric_product(&e1, &e1_clone).await;
+        assert!((result.scalar_part() - 1.0).abs() < 1e-10);
     }
 }

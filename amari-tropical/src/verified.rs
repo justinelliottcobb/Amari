@@ -55,10 +55,12 @@ impl<T: Float + Clone + Copy, S> VerifiedTropicalNumber<T, S> {
 
 /// Tropical zero (additive identity) for max-plus semiring
 impl<T: Float + Clone + Copy> VerifiedTropicalNumber<T, MaxPlus> {
+    /// Create the tropical additive identity (negative infinity)
     pub fn tropical_zero() -> Self {
         Self::new(T::neg_infinity())
     }
 
+    /// Create the tropical multiplicative identity (zero)
     pub fn tropical_one() -> Self {
         Self::new(T::zero())
     }
@@ -76,10 +78,12 @@ impl<T: Float + Clone + Copy> VerifiedTropicalNumber<T, MaxPlus> {
 
 /// Tropical zero (additive identity) for min-plus semiring
 impl<T: Float + Clone + Copy> VerifiedTropicalNumber<T, MinPlus> {
+    /// Create the tropical additive identity (positive infinity)
     pub fn tropical_zero() -> Self {
         Self::new(T::infinity())
     }
 
+    /// Create the tropical multiplicative identity (zero)
     pub fn tropical_one() -> Self {
         Self::new(T::zero())
     }
@@ -111,8 +115,11 @@ pub struct VerifiedTropicalMultivector<
 impl<T: Float + Clone + Copy, const P: usize, const Q: usize, const R: usize, S>
     VerifiedTropicalMultivector<T, P, Q, R, S>
 {
+    /// Total dimension of the underlying vector space (P + Q + R)
     pub const DIM: usize = P + Q + R;
+    /// Number of basis elements in the Clifford algebra (2^DIM)
     pub const BASIS_SIZE: usize = 1 << Self::DIM;
+    /// Metric signature as (positive, negative, zero) counts
     pub const SIGNATURE: (usize, usize, usize) = (P, Q, R);
 
     /// Validate coefficient array size at compile time

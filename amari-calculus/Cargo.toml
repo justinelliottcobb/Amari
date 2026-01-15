@@ -24,7 +24,6 @@ criterion = "0.5"
 default = ["std"]
 std = ["amari-core/std", "amari-measure/std"]
 
-# Benchmarks will be added in future versions
-# [[bench]]
-# name = "calculus_bench"
-# harness = false
+[[bench]]
+name = "calculus_benchmarks"
+harness = false

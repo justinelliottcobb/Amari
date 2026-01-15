@@ -8,6 +8,7 @@
 //! - Variable dependencies in automatic differentiation
 //! - Tropical semiring operation validity
 //! - Geometric algebra signature preservation
+#![allow(missing_docs)]
 
 use crate::TropicalDualClifford;
 use alloc::vec::Vec;

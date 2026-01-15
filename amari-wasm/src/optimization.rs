@@ -325,7 +325,7 @@ impl WasmGpuOptimizer {
 
     /// Initialize GPU context for optimization
     #[wasm_bindgen(js_name = initializeGpu)]
-    pub async fn initialize_gpu(&mut self) -> Result<bool, JsValue> {
+    pub async fn initialize_gpu(&self) -> Result<bool, JsValue> {
         // In a full implementation, this would initialize the GPU optimizer
         // For now, we'll just indicate GPU is not available in WASM context
         Ok(false)

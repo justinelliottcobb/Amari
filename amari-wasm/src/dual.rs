@@ -242,7 +242,8 @@ impl WasmMultiDualNumber {
     #[wasm_bindgen(js_name = variable)]
     pub fn variable(value: f64, num_vars: usize, var_index: usize) -> Self {
         Self {
-            inner: MultiDualNumber::variable(value, num_vars, var_index),
+            // Note: MultiDualNumber::variable takes (value, var_index, n_vars)
+            inner: MultiDualNumber::variable(value, var_index, num_vars),
         }
     }
 
@@ -645,53 +646,248 @@ impl BatchOps {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use wasm_bindgen_test::*;
 
-    #[allow(dead_code)]
-    #[wasm_bindgen_test]
-    fn test_dual_basic() {
+    // ========================================================================
+    // WasmDualNumber Tests
+    // ========================================================================
+
+    #[test]
+    fn test_dual_new() {
+        let d = WasmDualNumber::new(3.0, 4.0);
+        assert_eq!(d.get_real(), 3.0);
+        assert_eq!(d.get_dual(), 4.0);
+    }
+
+    #[test]
+    fn test_dual_variable() {
+        let x = WasmDualNumber::variable(5.0);
+        assert_eq!(x.get_real(), 5.0);
+        assert_eq!(x.get_dual(), 1.0); // derivative seed = 1
+    }
+
+    #[test]
+    fn test_dual_constant() {
+        let c = WasmDualNumber::constant(7.0);
+        assert_eq!(c.get_real(), 7.0);
+        assert_eq!(c.get_dual(), 0.0); // derivative = 0
+    }
+
+    #[test]
+    fn test_dual_addition() {
         let x = WasmDualNumber::variable(3.0);
         let y = WasmDualNumber::constant(2.0);
 
-        // Test x + y
         let sum = x.add(&y);
         assert_eq!(sum.get_real(), 5.0);
         assert_eq!(sum.get_dual(), 1.0); // d/dx(x + 2) = 1
+    }
 
-        // Test x * y
+    #[test]
+    fn test_dual_subtraction() {
+        let x = WasmDualNumber::variable(5.0);
+        let y = WasmDualNumber::constant(3.0);
+
+        let diff = x.sub(&y);
+        assert_eq!(diff.get_real(), 2.0);
+        assert_eq!(diff.get_dual(), 1.0); // d/dx(x - 3) = 1
+    }
+
+    #[test]
+    fn test_dual_multiplication() {
+        let x = WasmDualNumber::variable(3.0);
+        let y = WasmDualNumber::constant(4.0);
+
         let prod = x.mul(&y);
-        assert_eq!(prod.get_real(), 6.0);
-        assert_eq!(prod.get_dual(), 2.0); // d/dx(x * 2) = 2
+        assert_eq!(prod.get_real(), 12.0);
+        assert_eq!(prod.get_dual(), 4.0); // d/dx(4x) = 4
     }
 
-    #[allow(dead_code)]
-    #[wasm_bindgen_test]
-    fn test_dual_functions() {
-        let x = WasmDualNumber::variable(1.0);
+    #[test]
+    fn test_dual_multiplication_two_vars() {
+        // f(x) = x * x = x^2
+        let x = WasmDualNumber::variable(3.0);
+        let x_squared = x.mul(&x);
+        assert_eq!(x_squared.get_real(), 9.0);
+        assert_eq!(x_squared.get_dual(), 6.0); // d/dx(x^2) = 2x = 6
+    }
 
-        // Test exp(x)
+    #[test]
+    fn test_dual_division() {
+        let x = WasmDualNumber::variable(6.0);
+        let y = WasmDualNumber::constant(2.0);
+
+        let quot = x.div(&y).unwrap();
+        assert_eq!(quot.get_real(), 3.0);
+        assert_eq!(quot.get_dual(), 0.5); // d/dx(x/2) = 1/2
+    }
+
+    #[test]
+    fn test_dual_exp() {
+        let x = WasmDualNumber::variable(0.0);
         let exp_x = x.exp();
-        assert!((exp_x.get_real() - std::f64::consts::E).abs() < 1e-10);
-        assert!((exp_x.get_dual() - std::f64::consts::E).abs() < 1e-10); // d/dx(exp(x)) = exp(x)
 
-        // Test x^2
-        let x_squared = x.pow(2.0);
-        assert_eq!(x_squared.get_real(), 1.0);
-        assert_eq!(x_squared.get_dual(), 2.0); // d/dx(x^2) = 2x at x=1
+        assert!((exp_x.get_real() - 1.0).abs() < 1e-10); // exp(0) = 1
+        assert!((exp_x.get_dual() - 1.0).abs() < 1e-10); // d/dx(exp(x)) = exp(x) = 1
     }
 
-    #[allow(dead_code)]
-    #[wasm_bindgen_test]
-    fn test_multi_dual() {
-        // Test f(x,y) = x*y at (2,3)
-        let x = WasmMultiDualNumber::variable(2.0, 2, 0); // variable 0
-        let y = WasmMultiDualNumber::variable(3.0, 2, 1); // variable 1
+    #[test]
+    fn test_dual_sin() {
+        let x = WasmDualNumber::variable(0.0);
+        let sin_x = x.sin();
 
-        let product = x.mul(&y).unwrap();
-        assert_eq!(product.get_real(), 6.0);
+        assert!(sin_x.get_real().abs() < 1e-10); // sin(0) = 0
+        assert!((sin_x.get_dual() - 1.0).abs() < 1e-10); // d/dx(sin(x)) = cos(x) = cos(0) = 1
+    }
 
-        let grad = product.get_gradient();
-        assert_eq!(grad[0], 3.0); // ∂/∂x(x*y) = y = 3
-        assert_eq!(grad[1], 2.0); // ∂/∂y(x*y) = x = 2
+    #[test]
+    fn test_dual_cos() {
+        let x = WasmDualNumber::variable(0.0);
+        let cos_x = x.cos();
+
+        assert!((cos_x.get_real() - 1.0).abs() < 1e-10); // cos(0) = 1
+        assert!(cos_x.get_dual().abs() < 1e-10); // d/dx(cos(x)) = -sin(x) = -sin(0) = 0
+    }
+
+    #[test]
+    fn test_dual_pow() {
+        let x = WasmDualNumber::variable(2.0);
+        let x_cubed = x.pow(3.0);
+
+        assert!((x_cubed.get_real() - 8.0).abs() < 1e-10); // 2^3 = 8
+        assert!((x_cubed.get_dual() - 12.0).abs() < 1e-10); // d/dx(x^3) = 3x^2 = 3*4 = 12
+    }
+
+    #[test]
+    fn test_dual_sqrt() {
+        let x = WasmDualNumber::variable(4.0);
+        let sqrt_x = x.sqrt().unwrap();
+
+        assert!((sqrt_x.get_real() - 2.0).abs() < 1e-10); // sqrt(4) = 2
+        assert!((sqrt_x.get_dual() - 0.25).abs() < 1e-10); // d/dx(sqrt(x)) = 1/(2*sqrt(x)) = 1/4
+    }
+
+    #[test]
+    fn test_dual_tanh() {
+        let x = WasmDualNumber::variable(0.0);
+        let tanh_x = x.tanh();
+
+        assert!(tanh_x.get_real().abs() < 1e-10); // tanh(0) = 0
+        assert!((tanh_x.get_dual() - 1.0).abs() < 1e-10); // d/dx(tanh(x)) at x=0 = sech^2(0) = 1
+    }
+
+    #[test]
+    fn test_dual_sigmoid() {
+        let x = WasmDualNumber::variable(0.0);
+        let sig_x = x.sigmoid();
+
+        assert!((sig_x.get_real() - 0.5).abs() < 1e-10); // sigmoid(0) = 0.5
+        assert!((sig_x.get_dual() - 0.25).abs() < 1e-10); // sigmoid'(0) = 0.25
+    }
+
+    #[test]
+    fn test_dual_relu() {
+        let pos = WasmDualNumber::variable(2.0);
+        let relu_pos = pos.relu();
+        assert_eq!(relu_pos.get_real(), 2.0);
+        assert_eq!(relu_pos.get_dual(), 1.0);
+
+        let neg = WasmDualNumber::variable(-2.0);
+        let relu_neg = neg.relu();
+        assert_eq!(relu_neg.get_real(), 0.0);
+        assert_eq!(relu_neg.get_dual(), 0.0);
+    }
+
+    #[test]
+    fn test_dual_chain_rule() {
+        // f(x) = sin(x^2) at x = sqrt(pi/2)
+        // f'(x) = 2x * cos(x^2)
+        let x = WasmDualNumber::variable(1.0);
+        let x_sq = x.mul(&x); // x^2
+        let result = x_sq.sin(); // sin(x^2)
+
+        // At x=1: sin(1) and derivative = 2*1*cos(1)
+        assert!((result.get_real() - 1.0_f64.sin()).abs() < 1e-10);
+        assert!((result.get_dual() - 2.0 * 1.0_f64.cos()).abs() < 1e-10);
+    }
+
+    // ========================================================================
+    // WasmMultiDualNumber Tests
+    // ========================================================================
+
+    #[test]
+    fn test_multi_dual_variable() {
+        let x = WasmMultiDualNumber::variable(3.0, 2, 0);
+        assert_eq!(x.get_real(), 3.0);
+        let grad = x.get_gradient();
+        assert_eq!(grad[0], 1.0);
+        assert_eq!(grad[1], 0.0);
+    }
+
+    #[test]
+    fn test_multi_dual_constant() {
+        let c = WasmMultiDualNumber::constant(5.0, 3);
+        assert_eq!(c.get_real(), 5.0);
+        let grad = c.get_gradient();
+        assert_eq!(grad, vec![0.0, 0.0, 0.0]);
+    }
+
+    #[test]
+    fn test_multi_dual_add() {
+        let x = WasmMultiDualNumber::variable(2.0, 2, 0);
+        let y = WasmMultiDualNumber::variable(3.0, 2, 1);
+
+        let sum = x.add(&y).unwrap();
+        assert_eq!(sum.get_real(), 5.0);
+        let grad = sum.get_gradient();
+        assert_eq!(grad[0], 1.0); // ∂/∂x(x+y) = 1
+        assert_eq!(grad[1], 1.0); // ∂/∂y(x+y) = 1
+    }
+
+    #[test]
+    fn test_multi_dual_mul() {
+        let x = WasmMultiDualNumber::variable(2.0, 2, 0);
+        let y = WasmMultiDualNumber::variable(3.0, 2, 1);
+
+        let prod = x.mul(&y).unwrap();
+        assert_eq!(prod.get_real(), 6.0);
+        let grad = prod.get_gradient();
+        assert_eq!(grad[0], 3.0); // ∂/∂x(xy) = y = 3
+        assert_eq!(grad[1], 2.0); // ∂/∂y(xy) = x = 2
+    }
+
+    // ========================================================================
+    // AutoDiff Tests
+    // ========================================================================
+
+    #[test]
+    fn test_autodiff_polynomial() {
+        // f(x) = 1 + 2x + 3x^2 at x = 2
+        // f(2) = 1 + 4 + 12 = 17
+        // f'(x) = 2 + 6x, f'(2) = 14
+        let result = AutoDiff::evaluate_polynomial(2.0, &[1.0, 2.0, 3.0]);
+        assert_eq!(result.get_real(), 17.0);
+        assert_eq!(result.get_dual(), 14.0);
+    }
+
+    #[test]
+    fn test_autodiff_polynomial_constant() {
+        // f(x) = 5 (constant polynomial)
+        let result = AutoDiff::evaluate_polynomial(10.0, &[5.0]);
+        assert_eq!(result.get_real(), 5.0);
+        assert_eq!(result.get_dual(), 0.0);
+    }
+
+    #[test]
+    fn test_autodiff_mean_squared_error() {
+        // MSE between [1, 2, 3] and [1, 2, 3] should be 0
+        let result = AutoDiff::mean_squared_error(&[1.0, 2.0, 3.0], &[1.0, 2.0, 3.0]).unwrap();
+        assert!(result.get_real().abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_autodiff_mse_with_difference() {
+        // MSE between [2, 3] and [1, 2] should be ((2-1)^2 + (3-2)^2) / 2 = 1
+        let result = AutoDiff::mean_squared_error(&[2.0, 3.0], &[1.0, 2.0]).unwrap();
+        assert!((result.get_real() - 1.0).abs() < 1e-10);
     }
 }

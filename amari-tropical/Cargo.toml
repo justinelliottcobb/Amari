@@ -25,6 +25,10 @@ approx = { workspace = true }
 criterion = "0.5"
 tokio = { version = "1.0", features = ["rt", "rt-multi-thread", "macros"] }
 
+[[bench]]
+name = "tropical_benchmarks"
+harness = false
+
 [features]
 default = ["std", "high-precision", "phantom-types"]
 std = []

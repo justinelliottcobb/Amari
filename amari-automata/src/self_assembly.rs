@@ -3,6 +3,7 @@
 //! Polyomino tiling and self-assembly where components are geometric entities
 //! with affinities determined by geometric algebra operations. Components can
 //! represent UI elements that automatically arrange themselves.
+#![allow(missing_docs)]
 
 use crate::{AutomataError, AutomataResult, SelfAssembling};
 use alloc::string::{String, ToString};
@@ -14,6 +15,7 @@ use amari_core::{Bivector, Multivector, Vector};
 /// Polyomino shape for tiling
 #[derive(Clone, Debug)]
 pub struct Polyomino {
+    /// Grid positions occupied by this polyomino
     pub cells: Vec<(usize, usize)>,
 }
 

@@ -21,6 +21,7 @@ pub struct TargetPattern {
 }
 
 impl TargetPattern {
+    /// Create a target pattern from a slice of multivectors
     pub fn from_multivectors(data: &[Multivector<3, 0, 0>]) -> Self {
         Self {
             data: data.to_vec(),
@@ -36,6 +37,7 @@ pub struct TropicalConstraint {
 }
 
 impl TropicalConstraint {
+    /// Create a new tropical constraint with the given value
     pub fn new(value: f64) -> Self {
         Self { value }
     }
@@ -49,6 +51,7 @@ pub struct Objective {
 }
 
 impl Objective {
+    /// Create an objective that minimizes distance to target
     pub fn minimize_distance() -> Self {
         Self { target: 0.0 }
     }
@@ -67,6 +70,7 @@ impl Default for InverseCADesigner {
 }
 
 impl InverseCADesigner {
+    /// Create a new inverse CA designer with default tolerance
     pub fn new() -> Self {
         Self { tolerance: 1e-6 }
     }
@@ -99,9 +103,13 @@ pub struct Configuration<const P: usize, const Q: usize, const R: usize> {
 /// Rule parameters that can be optimized using dual numbers
 #[derive(Clone)]
 pub struct OptimizableRule {
+    /// Activation threshold for cell state transitions
     pub threshold: f64,
+    /// Weight for geometric product contribution
     pub geo_weight: f64,
+    /// Weight for outer product contribution
     pub outer_weight: f64,
+    /// Weight for inner product contribution
     pub inner_weight: f64,
 }
 

@@ -80,4 +80,10 @@ pub use ui_assembly::{Layout, LayoutConstraint, UIAssembler, UIAssemblyConfig, U
 pub use error::{AutomataError, AutomataResult};
 pub use traits::{Evolvable, InverseDesignable, SelfAssembling};
 
+// Test modules
+#[cfg(test)]
+mod comprehensive_tests_simple;
+#[cfg(test)]
+mod verified_contracts_simple;
+
 // GPU acceleration exports

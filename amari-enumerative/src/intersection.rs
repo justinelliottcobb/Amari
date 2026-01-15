@@ -287,15 +287,19 @@ impl Grassmannian {
 /// Quantum product result
 #[derive(Debug)]
 pub struct QuantumProduct {
+    /// Whether the product has a classical (non-quantum) component
     pub classical_part: bool,
+    /// Whether the product has quantum corrections
     pub quantum_correction: bool,
 }
 
 impl QuantumProduct {
+    /// Check if product has classical component
     pub fn has_classical_part(&self) -> bool {
         self.classical_part
     }
 
+    /// Check if product has quantum correction
     pub fn has_quantum_correction(&self) -> bool {
         self.quantum_correction
     }
@@ -370,6 +374,7 @@ pub struct IntersectionPoint {
 pub struct MockMultivector;
 
 impl MockMultivector {
+    /// Create a mock multivector from polynomial string
     pub fn from_polynomial(_poly: &str) -> Self {
         Self
     }

@@ -12,10 +12,15 @@ pub enum TropicalError {
     /// Invalid matrix dimensions for operation
     #[error("Invalid matrix dimensions for {operation}: ({rows1}x{cols1}) and ({rows2}x{cols2})")]
     InvalidMatrixOperation {
+        /// The matrix operation that failed
         operation: String,
+        /// Number of rows in the first matrix
         rows1: usize,
+        /// Number of columns in the first matrix
         cols1: usize,
+        /// Number of rows in the second matrix
         rows2: usize,
+        /// Number of columns in the second matrix
         cols2: usize,
     },
 

@@ -183,8 +183,11 @@ impl<T: Float> Mul for TropicalNumber<T> {
 /// - Matrix multiplication: tropical matrix product
 #[derive(Debug, Clone, PartialEq)]
 pub struct TropicalMatrix<T: Float> {
+    /// Number of rows in the matrix
     pub rows: usize,
+    /// Number of columns in the matrix
     pub cols: usize,
+    /// Matrix data stored as row-major nested vectors
     pub data: Vec<Vec<TropicalNumber<T>>>,
 }
 
