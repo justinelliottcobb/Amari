@@ -81,7 +81,9 @@ pub struct WasmTropicalNetwork {
 /// Path result for WASM
 #[derive(Serialize, Deserialize)]
 pub struct PathResult {
+    /// Sequence of node indices forming the shortest path
     pub path: Vec<usize>,
+    /// Total distance (cost) of the path
     pub distance: f64,
 }
 

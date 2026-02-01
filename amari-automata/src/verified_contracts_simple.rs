@@ -9,6 +9,7 @@ use core::marker::PhantomData;
 
 /// Verification marker for automata theory contracts
 #[derive(Debug, Clone, Copy)]
+#[allow(dead_code)]
 pub struct AutomataVerified;
 
 /// Verification marker for cellular automata contracts
@@ -66,7 +67,7 @@ impl<const P: usize, const Q: usize, const R: usize> VerifiedContractGeometricCA
 
         // Verify geometric algebra closure is maintained
         if !self.verify_geometric_closure() {
-            return Err(AutomataError::AssemblyConstraintViolation);
+            return Err(AutomataError::AssemblyFailed("Constraint violation".into()));
         }
 
         Ok(())
@@ -122,13 +123,14 @@ impl<const P: usize, const Q: usize, const R: usize> VerifiedContractGeometricCA
         }
 
         if !multivector.magnitude().is_finite() {
-            return Err(AutomataError::AssemblyConstraintViolation);
+            return Err(AutomataError::AssemblyFailed("Constraint violation".into()));
         }
 
         self.inner.set_cell_2d(x, y, multivector)
     }
 
     /// Get cell with verification
+    #[allow(dead_code)]
     pub fn get_cell_2d(&self, x: usize, y: usize) -> AutomataResult<Multivector<P, Q, R>> {
         self.inner.get_cell_2d(x, y)
     }

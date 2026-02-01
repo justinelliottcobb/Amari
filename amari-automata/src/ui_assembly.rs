@@ -3,6 +3,7 @@
 //! Specialized self-assembly system for user interface components. Extends the
 //! general self-assembly framework with UI-specific constraints, layout rules,
 //! and component types.
+#![allow(missing_docs)]
 
 use crate::self_assembly::{
     Assembly, AssemblyConfig, Component, ComponentType, SelfAssembler, UIComponentType,

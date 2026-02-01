@@ -179,11 +179,14 @@ pub mod moduli_space {
     /// Curve class for moduli of stable maps
     #[derive(Debug, Clone, PartialEq)]
     pub struct CurveClass {
+        /// Name of the target space
         pub target: String,
+        /// Degree of the curve class
         pub degree: i64,
     }
 
     impl CurveClass {
+        /// Create a new curve class with given target and degree
         pub fn new(target: String, degree: i64) -> Self {
             Self { target, degree }
         }
@@ -192,12 +195,16 @@ pub mod moduli_space {
     /// Moduli space of stable maps
     #[derive(Debug, Clone)]
     pub struct ModuliOfStableMaps {
+        /// Domain moduli space
         pub domain: ModuliSpace,
+        /// Target space name
         pub target: String,
+        /// Curve class for the stable maps
         pub curve_class: CurveClass,
     }
 
     impl ModuliOfStableMaps {
+        /// Create a new moduli space of stable maps
         pub fn new(domain: ModuliSpace, target: String, curve_class: CurveClass) -> Self {
             Self {
                 domain,
