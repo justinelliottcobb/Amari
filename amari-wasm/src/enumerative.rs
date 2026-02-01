@@ -401,6 +401,546 @@ pub fn init_enumerative() {
     web_sys::console::log_1(&"Amari Enumerative WASM module initialized: Intersection theory, Schubert calculus, and Gromov-Witten theory ready".into());
 }
 
+// =============================================================================
+// NEW WASM BINDINGS FOR AMARI-ENUMERATIVE EXTENSIONS
+// =============================================================================
+
+use amari_enumerative::{
+    Capability, CapabilityId, IntersectionResult, Namespace, NamespaceIntersection, Partition,
+    SchubertCalculus, SchubertClass,
+};
+
+/// WASM wrapper for partitions used in Schubert calculus and LR coefficients
+#[wasm_bindgen]
+pub struct WasmPartition {
+    inner: Partition,
+}
+
+#[wasm_bindgen]
+impl WasmPartition {
+    /// Create a new partition from an array of parts
+    #[wasm_bindgen(constructor)]
+    pub fn new(parts: &[usize]) -> Self {
+        Self {
+            inner: Partition::new(parts.to_vec()),
+        }
+    }
+
+    /// Get the parts of this partition
+    #[wasm_bindgen(js_name = getParts)]
+    pub fn get_parts(&self) -> Vec<usize> {
+        self.inner.parts.clone()
+    }
+
+    /// Get the size (sum of parts) of this partition
+    #[wasm_bindgen(js_name = getSize)]
+    pub fn get_size(&self) -> usize {
+        self.inner.size()
+    }
+
+    /// Get the length (number of non-zero parts) of this partition
+    #[wasm_bindgen(js_name = getLength)]
+    pub fn get_length(&self) -> usize {
+        self.inner.length()
+    }
+
+    /// Check if this partition contains another (for skew shapes)
+    #[wasm_bindgen(js_name = contains)]
+    pub fn contains(&self, other: &WasmPartition) -> bool {
+        self.inner.contains(&other.inner)
+    }
+
+    /// Check if this partition is valid (weakly decreasing, positive parts)
+    #[wasm_bindgen(js_name = isValid)]
+    pub fn is_valid(&self) -> bool {
+        self.inner.is_valid()
+    }
+
+    /// Check if this partition fits in a k × (n-k) box (for Grassmannian)
+    #[wasm_bindgen(js_name = fitsInBox)]
+    pub fn fits_in_box(&self, k: usize, n: usize) -> bool {
+        self.inner.parts.len() <= k && self.inner.parts.iter().all(|&p| p <= n - k)
+    }
+}
+
+/// WASM wrapper for Schubert classes on Grassmannians
+#[wasm_bindgen]
+pub struct WasmSchubertClass {
+    inner: SchubertClass,
+}
+
+#[wasm_bindgen]
+impl WasmSchubertClass {
+    /// Create a new Schubert class from a partition on Gr(k, n)
+    #[wasm_bindgen(constructor)]
+    pub fn new(partition: &[usize], k: usize, n: usize) -> Result<WasmSchubertClass, JsValue> {
+        match SchubertClass::new(partition.to_vec(), (k, n)) {
+            Ok(class) => Ok(WasmSchubertClass { inner: class }),
+            Err(e) => Err(JsValue::from_str(&format!("Schubert class error: {:?}", e))),
+        }
+    }
+
+    /// Get the partition defining this Schubert class
+    #[wasm_bindgen(js_name = getPartition)]
+    pub fn get_partition(&self) -> Vec<usize> {
+        self.inner.partition.clone()
+    }
+
+    /// Get the Grassmannian parameters (k, n)
+    #[wasm_bindgen(js_name = getGrassmannianDim)]
+    pub fn get_grassmannian_dim(&self) -> Vec<usize> {
+        vec![self.inner.grassmannian_dim.0, self.inner.grassmannian_dim.1]
+    }
+
+    /// Get the codimension of this Schubert class
+    #[wasm_bindgen(js_name = getCodimension)]
+    pub fn get_codimension(&self) -> usize {
+        self.inner.codimension()
+    }
+
+    /// Create the special Schubert class σ_1 (single box)
+    #[wasm_bindgen(js_name = sigma1)]
+    pub fn sigma_1(k: usize, n: usize) -> Result<WasmSchubertClass, JsValue> {
+        WasmSchubertClass::new(&[1], k, n)
+    }
+}
+
+/// WASM wrapper for Schubert calculus computations
+#[wasm_bindgen]
+pub struct WasmSchubertCalculus {
+    inner: SchubertCalculus,
+}
+
+#[wasm_bindgen]
+impl WasmSchubertCalculus {
+    /// Create a new Schubert calculus context for Gr(k, n)
+    #[wasm_bindgen(constructor)]
+    pub fn new(k: usize, n: usize) -> Self {
+        Self {
+            inner: SchubertCalculus::new((k, n)),
+        }
+    }
+
+    /// Compute the intersection of two Schubert classes
+    #[wasm_bindgen(js_name = intersect)]
+    pub fn intersect(
+        &mut self,
+        class1: &WasmSchubertClass,
+        class2: &WasmSchubertClass,
+    ) -> WasmIntersectionResult {
+        let result = self
+            .inner
+            .multi_intersect(&[class1.inner.clone(), class2.inner.clone()]);
+        WasmIntersectionResult { inner: result }
+    }
+
+    /// Compute the intersection of multiple Schubert classes
+    #[wasm_bindgen(js_name = multiIntersect)]
+    pub fn multi_intersect(&mut self, classes: Vec<WasmSchubertClass>) -> WasmIntersectionResult {
+        let inner_classes: Vec<SchubertClass> = classes.into_iter().map(|c| c.inner).collect();
+        let result = self.inner.multi_intersect(&inner_classes);
+        WasmIntersectionResult { inner: result }
+    }
+
+    /// Get the Grassmannian dimension k*(n-k)
+    #[wasm_bindgen(js_name = getGrassmannianDimension)]
+    pub fn get_grassmannian_dimension(&self) -> usize {
+        let (k, n) = self.inner.grassmannian_dim;
+        k * (n - k)
+    }
+}
+
+/// WASM wrapper for intersection results
+#[wasm_bindgen]
+pub struct WasmIntersectionResult {
+    inner: IntersectionResult,
+}
+
+#[wasm_bindgen]
+impl WasmIntersectionResult {
+    /// Check if the intersection is finite (a number)
+    #[wasm_bindgen(js_name = isFinite)]
+    pub fn is_finite(&self) -> bool {
+        matches!(self.inner, IntersectionResult::Finite(_))
+    }
+
+    /// Check if the intersection is empty
+    #[wasm_bindgen(js_name = isEmpty)]
+    pub fn is_empty(&self) -> bool {
+        matches!(self.inner, IntersectionResult::Empty)
+    }
+
+    /// Check if the intersection has positive dimension
+    #[wasm_bindgen(js_name = isPositiveDimensional)]
+    pub fn is_positive_dimensional(&self) -> bool {
+        matches!(self.inner, IntersectionResult::PositiveDimensional { .. })
+    }
+
+    /// Get the finite count (or 0 if not finite)
+    #[wasm_bindgen(js_name = getCount)]
+    pub fn get_count(&self) -> u64 {
+        match &self.inner {
+            IntersectionResult::Finite(n) => *n,
+            _ => 0,
+        }
+    }
+
+    /// Get the dimension (for positive dimensional, -1 otherwise)
+    #[wasm_bindgen(js_name = getDimension)]
+    pub fn get_dimension(&self) -> i32 {
+        match &self.inner {
+            IntersectionResult::PositiveDimensional { dimension, .. } => *dimension as i32,
+            IntersectionResult::Empty => -1,
+            IntersectionResult::Finite(_) => 0,
+        }
+    }
+
+    /// Get a string representation
+    #[wasm_bindgen(js_name = asString)]
+    pub fn as_string(&self) -> String {
+        format!("{:?}", self.inner)
+    }
+}
+
+/// Compute Littlewood-Richardson coefficient c^ν_{λμ}
+#[wasm_bindgen(js_name = lrCoefficient)]
+pub fn lr_coefficient(lambda: &WasmPartition, mu: &WasmPartition, nu: &WasmPartition) -> u64 {
+    amari_enumerative::lr_coefficient(&lambda.inner, &mu.inner, &nu.inner)
+}
+
+/// Compute LR coefficients for multiple triples in batch
+#[wasm_bindgen(js_name = lrCoefficientsBatch)]
+pub fn lr_coefficients_batch(
+    lambdas: Vec<WasmPartition>,
+    mus: Vec<WasmPartition>,
+    nus: Vec<WasmPartition>,
+) -> Result<Vec<u64>, JsValue> {
+    if lambdas.len() != mus.len() || mus.len() != nus.len() {
+        return Err(JsValue::from_str("All arrays must have the same length"));
+    }
+
+    let results: Vec<u64> = lambdas
+        .iter()
+        .zip(mus.iter())
+        .zip(nus.iter())
+        .map(|((l, m), n)| amari_enumerative::lr_coefficient(&l.inner, &m.inner, &n.inner))
+        .collect();
+
+    Ok(results)
+}
+
+/// Expand a Schubert product σ_λ · σ_μ into a sum of Schubert classes
+#[wasm_bindgen(js_name = schubertProduct)]
+pub fn schubert_product(
+    lambda: &WasmPartition,
+    mu: &WasmPartition,
+    k: usize,
+    n: usize,
+) -> Vec<JsValue> {
+    let products = amari_enumerative::schubert_product(&lambda.inner, &mu.inner, (k, n));
+    products
+        .into_iter()
+        .map(|(partition, coeff)| {
+            let obj = js_sys::Object::new();
+            let parts_array = js_sys::Array::new();
+            for part in partition.parts {
+                parts_array.push(&JsValue::from(part as u32));
+            }
+            js_sys::Reflect::set(&obj, &"partition".into(), &parts_array).unwrap();
+            js_sys::Reflect::set(&obj, &"coefficient".into(), &JsValue::from(coeff as u32))
+                .unwrap();
+            obj.into()
+        })
+        .collect()
+}
+
+/// WASM wrapper for capabilities (access control conditions)
+#[wasm_bindgen]
+pub struct WasmCapability {
+    inner: Capability,
+}
+
+#[wasm_bindgen]
+impl WasmCapability {
+    /// Create a new capability with given ID, name, and Schubert condition
+    #[wasm_bindgen(constructor)]
+    pub fn new(
+        id: &str,
+        name: &str,
+        partition: &[usize],
+        k: usize,
+        n: usize,
+    ) -> Result<WasmCapability, JsValue> {
+        match Capability::new(id, name, partition.to_vec(), (k, n)) {
+            Ok(cap) => Ok(WasmCapability { inner: cap }),
+            Err(e) => Err(JsValue::from_str(&format!("Capability error: {:?}", e))),
+        }
+    }
+
+    /// Get the capability ID
+    #[wasm_bindgen(js_name = getId)]
+    pub fn get_id(&self) -> String {
+        self.inner.id.0.to_string()
+    }
+
+    /// Get the capability name
+    #[wasm_bindgen(js_name = getName)]
+    pub fn get_name(&self) -> String {
+        self.inner.name.clone()
+    }
+
+    /// Get the codimension of this capability's Schubert condition
+    #[wasm_bindgen(js_name = getCodimension)]
+    pub fn get_codimension(&self) -> usize {
+        self.inner.schubert_class.codimension()
+    }
+
+    /// Add a dependency on another capability
+    #[wasm_bindgen(js_name = requires)]
+    pub fn requires(mut self, required_id: &str) -> WasmCapability {
+        self.inner = self.inner.requires(CapabilityId::new(required_id));
+        self
+    }
+}
+
+/// WASM wrapper for namespaces (geometric access control)
+#[wasm_bindgen]
+pub struct WasmNamespace {
+    inner: Namespace,
+}
+
+#[wasm_bindgen]
+impl WasmNamespace {
+    /// Create a full namespace (identity position) on Gr(k, n)
+    #[wasm_bindgen(js_name = full)]
+    pub fn full(name: &str, k: usize, n: usize) -> Result<WasmNamespace, JsValue> {
+        match Namespace::full(name, k, n) {
+            Ok(ns) => Ok(WasmNamespace { inner: ns }),
+            Err(e) => Err(JsValue::from_str(&format!("Namespace error: {:?}", e))),
+        }
+    }
+
+    /// Get the namespace name
+    #[wasm_bindgen(js_name = getName)]
+    pub fn get_name(&self) -> String {
+        self.inner.name.clone()
+    }
+
+    /// Get the Grassmannian parameters
+    #[wasm_bindgen(js_name = getGrassmannian)]
+    pub fn get_grassmannian(&self) -> Vec<usize> {
+        vec![self.inner.grassmannian.0, self.inner.grassmannian.1]
+    }
+
+    /// Get the number of capabilities
+    #[wasm_bindgen(js_name = getCapabilityCount)]
+    pub fn get_capability_count(&self) -> usize {
+        self.inner.capabilities.len()
+    }
+
+    /// Grant a capability to this namespace
+    #[wasm_bindgen(js_name = grant)]
+    pub fn grant(&mut self, capability: WasmCapability) -> Result<(), JsValue> {
+        self.inner
+            .grant(capability.inner)
+            .map_err(|e| JsValue::from_str(&format!("Grant error: {:?}", e)))
+    }
+
+    /// Count valid configurations (intersection number)
+    #[wasm_bindgen(js_name = countConfigurations)]
+    pub fn count_configurations(&self) -> WasmIntersectionResult {
+        WasmIntersectionResult {
+            inner: self.inner.count_configurations(),
+        }
+    }
+
+    /// Get the total codimension from all capabilities
+    #[wasm_bindgen(js_name = getTotalCodimension)]
+    pub fn get_total_codimension(&self) -> usize {
+        self.inner
+            .capabilities
+            .iter()
+            .map(|c| c.schubert_class.codimension())
+            .sum()
+    }
+
+    /// Get the remaining dimension after capabilities
+    #[wasm_bindgen(js_name = getRemainingDimension)]
+    pub fn get_remaining_dimension(&self) -> i32 {
+        let (k, n) = self.inner.grassmannian;
+        let total_codim = self.get_total_codimension();
+        (k * (n - k)) as i32 - total_codim as i32
+    }
+}
+
+/// Check if a capability is accessible in a namespace
+#[wasm_bindgen(js_name = capabilityAccessible)]
+pub fn capability_accessible(
+    namespace: &WasmNamespace,
+    capability: &WasmCapability,
+) -> Result<bool, JsValue> {
+    amari_enumerative::capability_accessible(&namespace.inner, &capability.inner)
+        .map_err(|e| JsValue::from_str(&format!("Accessibility check error: {:?}", e)))
+}
+
+/// Compute the intersection of two namespaces
+#[wasm_bindgen(js_name = namespaceIntersection)]
+pub fn namespace_intersection(
+    ns1: &WasmNamespace,
+    ns2: &WasmNamespace,
+) -> Result<WasmNamespaceIntersection, JsValue> {
+    match amari_enumerative::namespace_intersection(&ns1.inner, &ns2.inner) {
+        Ok(intersection) => Ok(WasmNamespaceIntersection {
+            inner: intersection,
+        }),
+        Err(e) => Err(JsValue::from_str(&format!(
+            "Namespace intersection error: {:?}",
+            e
+        ))),
+    }
+}
+
+/// WASM wrapper for namespace intersection results
+#[wasm_bindgen]
+pub struct WasmNamespaceIntersection {
+    inner: NamespaceIntersection,
+}
+
+#[wasm_bindgen]
+impl WasmNamespaceIntersection {
+    /// Check if the namespaces are incompatible (different Grassmannians)
+    #[wasm_bindgen(js_name = isIncompatible)]
+    pub fn is_incompatible(&self) -> bool {
+        matches!(self.inner, NamespaceIntersection::Incompatible)
+    }
+
+    /// Check if the intersection is disjoint (empty)
+    #[wasm_bindgen(js_name = isDisjoint)]
+    pub fn is_disjoint(&self) -> bool {
+        matches!(self.inner, NamespaceIntersection::Disjoint)
+    }
+
+    /// Check if the intersection is a single point
+    #[wasm_bindgen(js_name = isSinglePoint)]
+    pub fn is_single_point(&self) -> bool {
+        matches!(self.inner, NamespaceIntersection::SinglePoint)
+    }
+
+    /// Check if the intersection is finite (multiple points)
+    #[wasm_bindgen(js_name = isFinitePoints)]
+    pub fn is_finite_points(&self) -> bool {
+        matches!(self.inner, NamespaceIntersection::FinitePoints(_))
+    }
+
+    /// Check if the intersection is a subspace
+    #[wasm_bindgen(js_name = isSubspace)]
+    pub fn is_subspace(&self) -> bool {
+        matches!(self.inner, NamespaceIntersection::Subspace { .. })
+    }
+
+    /// Get the count of intersection points (0 if not finite)
+    #[wasm_bindgen(js_name = getCount)]
+    pub fn get_count(&self) -> u64 {
+        match &self.inner {
+            NamespaceIntersection::SinglePoint => 1,
+            NamespaceIntersection::FinitePoints(n) => *n,
+            _ => 0,
+        }
+    }
+
+    /// Get the dimension (-1 if not a subspace)
+    #[wasm_bindgen(js_name = getDimension)]
+    pub fn get_dimension(&self) -> i32 {
+        match &self.inner {
+            NamespaceIntersection::Subspace { dimension } => *dimension as i32,
+            _ => -1,
+        }
+    }
+
+    /// Get a string representation
+    #[wasm_bindgen(js_name = asString)]
+    pub fn as_string(&self) -> String {
+        match &self.inner {
+            NamespaceIntersection::Incompatible => "Incompatible".to_string(),
+            NamespaceIntersection::Disjoint => "Disjoint".to_string(),
+            NamespaceIntersection::SinglePoint => "SinglePoint".to_string(),
+            NamespaceIntersection::FinitePoints(n) => format!("FinitePoints({})", n),
+            NamespaceIntersection::Subspace { dimension } => format!("Subspace(dim={})", dimension),
+        }
+    }
+}
+
+/// Batch operations for Schubert calculus
+#[wasm_bindgen]
+pub struct SchubertBatch;
+
+#[wasm_bindgen]
+impl SchubertBatch {
+    /// Compute multiple Schubert multi-intersections in batch
+    #[wasm_bindgen(js_name = multiIntersectBatch)]
+    pub fn multi_intersect_batch(
+        class_batches: Vec<JsValue>,
+        k: usize,
+        n: usize,
+    ) -> Result<Vec<WasmIntersectionResult>, JsValue> {
+        let mut results = Vec::new();
+
+        for batch_js in class_batches {
+            let batch_array: js_sys::Array = batch_js.into();
+            let mut classes = Vec::new();
+
+            for i in 0..batch_array.length() {
+                let partition_array: js_sys::Array = batch_array.get(i).into();
+                let partition: Vec<usize> = partition_array
+                    .iter()
+                    .map(|v| v.as_f64().unwrap_or(0.0) as usize)
+                    .collect();
+
+                if let Ok(class) = SchubertClass::new(partition, (k, n)) {
+                    classes.push(class);
+                }
+            }
+
+            let mut calc = SchubertCalculus::new((k, n));
+            let result = calc.multi_intersect(&classes);
+            results.push(WasmIntersectionResult { inner: result });
+        }
+
+        Ok(results)
+    }
+
+    /// Compute the famous "lines meeting 4 lines" problem
+    #[wasm_bindgen(js_name = linesMeeting4Lines)]
+    pub fn lines_meeting_4_lines() -> WasmIntersectionResult {
+        // σ_1^4 in Gr(2, 4) = 2
+        let mut calc = SchubertCalculus::new((2, 4));
+        let sigma_1 = SchubertClass::new(vec![1], (2, 4)).unwrap();
+        let classes = vec![sigma_1.clone(), sigma_1.clone(), sigma_1.clone(), sigma_1];
+        WasmIntersectionResult {
+            inner: calc.multi_intersect(&classes),
+        }
+    }
+}
+
+/// Namespace batch operations
+#[wasm_bindgen]
+pub struct NamespaceBatch;
+
+#[wasm_bindgen]
+impl NamespaceBatch {
+    /// Count configurations for multiple namespaces in batch
+    #[wasm_bindgen(js_name = countConfigurationsBatch)]
+    pub fn count_configurations_batch(
+        namespaces: Vec<WasmNamespace>,
+    ) -> Vec<WasmIntersectionResult> {
+        namespaces
+            .iter()
+            .map(|ns| WasmIntersectionResult {
+                inner: ns.inner.count_configurations(),
+            })
+            .collect()
+    }
+}
 #[cfg(test)]
 #[allow(dead_code)]
 mod tests {
@@ -485,5 +1025,93 @@ mod tests {
         assert_eq!(results[0], 6.0); // 2*3=6
         assert_eq!(results[1], 12.0); // 3*4=12
         assert_eq!(results[2], 20.0); // 4*5=20
+    }
+
+    #[wasm_bindgen_test]
+    fn test_partition() {
+        let partition = WasmPartition::new(&[3, 2, 1]);
+        assert_eq!(partition.get_parts(), vec![3, 2, 1]);
+        assert_eq!(partition.get_size(), 6);
+        assert_eq!(partition.get_length(), 3);
+        assert!(partition.is_valid());
+        assert!(partition.fits_in_box(3, 6)); // 3 parts, max value 3 <= 6-3=3
+    }
+
+    #[wasm_bindgen_test]
+    fn test_schubert_class() {
+        let class = WasmSchubertClass::new(&[2, 1], 2, 5);
+        assert!(class.is_ok());
+        let class = class.unwrap();
+        assert_eq!(class.get_partition(), vec![2, 1]);
+        assert_eq!(class.get_grassmannian_dim(), vec![2, 5]);
+        assert_eq!(class.get_codimension(), 3); // 2 + 1 = 3
+    }
+
+    #[wasm_bindgen_test]
+    fn test_schubert_calculus() {
+        let calc = WasmSchubertCalculus::new(2, 4);
+        assert_eq!(calc.get_grassmannian_dimension(), 4); // 2*(4-2) = 4
+
+        // Test σ_1 classes
+        let sigma_1 = WasmSchubertClass::sigma_1(2, 4).unwrap();
+        assert_eq!(sigma_1.get_codimension(), 1);
+    }
+
+    #[wasm_bindgen_test]
+    fn test_lr_coefficient() {
+        let lambda = WasmPartition::new(&[2, 1]);
+        let mu = WasmPartition::new(&[1, 1]);
+        let nu = WasmPartition::new(&[3, 2]);
+
+        let _coeff = lr_coefficient(&lambda, &mu, &nu);
+        // This should give a valid LR coefficient
+        // coeff is u64, always >= 0
+    }
+
+    #[wasm_bindgen_test]
+    fn test_intersection_result() {
+        // Test the classic "lines meeting 4 lines" problem
+        let result = SchubertBatch::lines_meeting_4_lines();
+        assert!(result.is_finite());
+        assert_eq!(result.get_count(), 2); // Famous result: 2 lines
+    }
+
+    #[wasm_bindgen_test]
+    fn test_capability_creation() {
+        let cap = WasmCapability::new("read", "Read Access", &[1], 2, 4);
+        assert!(cap.is_ok());
+        let cap = cap.unwrap();
+        assert_eq!(cap.get_id(), "read");
+        assert_eq!(cap.get_name(), "Read Access");
+        assert_eq!(cap.get_codimension(), 1);
+    }
+
+    #[wasm_bindgen_test]
+    fn test_namespace() {
+        let ns = WasmNamespace::full("agent", 2, 4);
+        assert!(ns.is_ok());
+        let mut ns = ns.unwrap();
+        assert_eq!(ns.get_name(), "agent");
+        assert_eq!(ns.get_grassmannian(), vec![2, 4]);
+        assert_eq!(ns.get_capability_count(), 0);
+
+        // Grant a capability
+        let cap = WasmCapability::new("read", "Read", &[1], 2, 4).unwrap();
+        assert!(ns.grant(cap).is_ok());
+        assert_eq!(ns.get_capability_count(), 1);
+        assert_eq!(ns.get_total_codimension(), 1);
+        assert_eq!(ns.get_remaining_dimension(), 3); // 4 - 1 = 3
+    }
+
+    #[wasm_bindgen_test]
+    fn test_namespace_intersection_result() {
+        let ns1 = WasmNamespace::full("ns1", 2, 4).unwrap();
+        let ns2 = WasmNamespace::full("ns2", 2, 4).unwrap();
+
+        let result = namespace_intersection(&ns1, &ns2);
+        assert!(result.is_ok());
+        let result = result.unwrap();
+        // Two full namespaces should have a subspace intersection
+        assert!(result.is_subspace());
     }
 }
