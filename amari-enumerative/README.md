@@ -26,7 +26,7 @@ Add to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-amari-enumerative = "0.17"
+amari-enumerative = "0.18"
 ```
 
 ### Feature Flags
@@ -34,25 +34,25 @@ amari-enumerative = "0.17"
 ```toml
 [dependencies]
 # Default features
-amari-enumerative = "0.17"
+amari-enumerative = "0.18"
 
 # With serialization
-amari-enumerative = { version = "0.17", features = ["serde"] }
+amari-enumerative = { version = "0.18", features = ["serde"] }
 
 # With GPU acceleration
-amari-enumerative = { version = "0.17", features = ["gpu"] }
+amari-enumerative = { version = "0.18", features = ["gpu"] }
 
 # With parallel computation (Rayon)
-amari-enumerative = { version = "0.17", features = ["parallel"] }
+amari-enumerative = { version = "0.18", features = ["parallel"] }
 
 # With tropical Schubert calculus
-amari-enumerative = { version = "0.17", features = ["tropical-schubert"] }
+amari-enumerative = { version = "0.18", features = ["tropical-schubert"] }
 
 # For WASM targets
-amari-enumerative = { version = "0.17", features = ["wasm"] }
+amari-enumerative = { version = "0.18", features = ["wasm"] }
 
 # All performance features
-amari-enumerative = { version = "0.17", features = ["parallel", "tropical-schubert"] }
+amari-enumerative = { version = "0.18", features = ["parallel", "tropical-schubert"] }
 ```
 
 ## Quick Start

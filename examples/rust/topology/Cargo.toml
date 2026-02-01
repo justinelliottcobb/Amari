@@ -1,6 +1,6 @@
 [package]
 name = "topology-examples"
-version = "0.17.0"
+version = "0.18.0"
 edition = "2021"
 authors = ["Amari Project <amari@example.com>"]
 description = "Computational topology examples using amari-topology"
