@@ -15,16 +15,19 @@ use amari_core::{CayleyTable, Multivector};
 /// Group element in Cayley graph
 #[derive(Clone, Debug, PartialEq)]
 pub struct GroupElement {
+    /// Multivector representation of the group element
     pub representation: Multivector<3, 0, 0>,
 }
 
 impl GroupElement {
+    /// Create the identity group element
     pub fn identity() -> Self {
         Self {
             representation: Multivector::scalar(1.0),
         }
     }
 
+    /// Convert the group element to its multivector representation
     pub fn to_multivector(&self) -> Multivector<3, 0, 0> {
         self.representation.clone()
     }
@@ -33,10 +36,12 @@ impl GroupElement {
 /// Generator for group operations
 #[derive(Clone, Debug)]
 pub struct Generator {
+    /// Multivector representing the generator operation
     pub operation: Multivector<3, 0, 0>,
 }
 
 impl Generator {
+    /// Create a rotation generator
     pub fn rotation() -> Self {
         Self {
             operation: Multivector::basis_vector(0),
@@ -47,6 +52,7 @@ impl Generator {
 /// Graph-based Cayley navigator
 #[derive(Clone, Debug)]
 pub struct CayleyGraphNavigator {
+    /// Adjacency list representation of the Cayley graph
     pub graph: BTreeMap<String, Vec<String>>,
 }
 
@@ -57,6 +63,7 @@ impl Default for CayleyGraphNavigator {
 }
 
 impl CayleyGraphNavigator {
+    /// Create an empty Cayley graph navigator
     pub fn new() -> Self {
         Self {
             graph: BTreeMap::new(),

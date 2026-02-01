@@ -53,7 +53,7 @@ Add to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-amari-dynamics = "0.17"
+amari-dynamics = "0.18"
 ```
 
 ### Feature Flags
@@ -61,19 +61,19 @@ amari-dynamics = "0.17"
 ```toml
 [dependencies]
 # Default features (std)
-amari-dynamics = "0.17"
+amari-dynamics = "0.18"
 
 # With stochastic dynamics (Langevin, Fokker-Planck)
-amari-dynamics = { version = "0.17", features = ["stochastic"] }
+amari-dynamics = { version = "0.18", features = ["stochastic"] }
 
 # With GPU acceleration
-amari-dynamics = { version = "0.17", features = ["gpu"] }
+amari-dynamics = { version = "0.18", features = ["gpu"] }
 
 # With WASM bindings
-amari-dynamics = { version = "0.17", features = ["wasm"] }
+amari-dynamics = { version = "0.18", features = ["wasm"] }
 
 # All features
-amari-dynamics = { version = "0.17", features = ["stochastic", "gpu", "parallel"] }
+amari-dynamics = { version = "0.18", features = ["stochastic", "gpu", "parallel"] }
 ```
 
 ## Quick Start

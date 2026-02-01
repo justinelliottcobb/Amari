@@ -3,6 +3,7 @@
 //! This module provides high-performance implementations optimized for WebAssembly
 //! execution, GPU acceleration via WGPU, and modern web deployment. It includes
 //! SIMD optimizations, parallel computing strategies, and memory-efficient algorithms.
+#![allow(missing_docs)]
 
 use crate::{EnumerativeError, EnumerativeResult};
 use num_rational::Rational64;
@@ -460,9 +461,13 @@ impl WasmCurveCounting {
 /// Curve counting request
 #[derive(Debug, Clone)]
 pub struct CurveCountRequest {
+    /// Name of the target space
     pub target_space: String,
+    /// Degree of curves to count
     pub degree: i64,
+    /// Genus of curves to count
     pub genus: usize,
+    /// Number of incidence constraints
     pub constraint_count: usize,
 }
 

@@ -619,15 +619,462 @@ pub fn init() {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use wasm_bindgen_test::*;
 
-    #[wasm_bindgen_test]
-    #[allow(dead_code)]
-    fn test_basic_operations() {
+    // ========================================================================
+    // WasmMultivector Tests
+    // ========================================================================
+
+    #[test]
+    fn test_multivector_new() {
+        let mv = WasmMultivector::new();
+        for i in 0..8 {
+            assert_eq!(mv.get_coefficient(i), 0.0);
+        }
+    }
+
+    #[test]
+    fn test_multivector_scalar() {
+        let mv = WasmMultivector::scalar(5.0);
+        assert_eq!(mv.get_coefficient(0), 5.0);
+        for i in 1..8 {
+            assert_eq!(mv.get_coefficient(i), 0.0);
+        }
+    }
+
+    #[test]
+    fn test_multivector_basis_vector() {
+        let e1 = WasmMultivector::basis_vector(0).unwrap();
+        assert_eq!(e1.get_coefficient(1), 1.0);
+
+        let e2 = WasmMultivector::basis_vector(1).unwrap();
+        assert_eq!(e2.get_coefficient(2), 1.0);
+
+        let e3 = WasmMultivector::basis_vector(2).unwrap();
+        assert_eq!(e3.get_coefficient(4), 1.0);
+    }
+
+    #[test]
+    fn test_multivector_all_basis_vectors_valid() {
+        // All indices 0, 1, 2 should be valid for 3D
+        for i in 0..3 {
+            let result = WasmMultivector::basis_vector(i);
+            assert!(result.is_ok());
+        }
+    }
+
+    #[test]
+    fn test_multivector_from_coefficients() {
+        let coeffs = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0];
+        let mv = WasmMultivector::from_coefficients(&coeffs).unwrap();
+        for i in 0..8 {
+            assert_eq!(mv.get_coefficient(i), (i + 1) as f64);
+        }
+    }
+
+    #[test]
+    fn test_multivector_from_coefficients_correct_size() {
+        // Test that exactly 8 coefficients works
+        let coeffs = vec![0.0; 8];
+        let result = WasmMultivector::from_coefficients(&coeffs);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_multivector_get_coefficients() {
+        let coeffs = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0];
+        let mv = WasmMultivector::from_coefficients(&coeffs).unwrap();
+        let retrieved = mv.get_coefficients();
+        assert_eq!(retrieved, coeffs);
+    }
+
+    #[test]
+    fn test_multivector_set_coefficient() {
+        let mut mv = WasmMultivector::new();
+        mv.set_coefficient(3, 42.0);
+        assert_eq!(mv.get_coefficient(3), 42.0);
+    }
+
+    #[test]
+    fn test_multivector_geometric_product_basis() {
+        let e1 = WasmMultivector::basis_vector(0).unwrap();
+        let e2 = WasmMultivector::basis_vector(1).unwrap();
+
+        // e1 * e2 = e12 (bivector at index 3)
+        let e12 = e1.geometric_product(&e2);
+        assert_eq!(e12.get_coefficient(3), 1.0);
+    }
+
+    #[test]
+    fn test_multivector_geometric_product_self() {
+        let e1 = WasmMultivector::basis_vector(0).unwrap();
+
+        // e1 * e1 = 1 (scalar)
+        let result = e1.geometric_product(&e1);
+        assert_eq!(result.get_coefficient(0), 1.0);
+    }
+
+    #[test]
+    fn test_multivector_outer_product() {
         let e1 = WasmMultivector::basis_vector(0).unwrap();
         let e2 = WasmMultivector::basis_vector(1).unwrap();
 
         let e12 = e1.outer_product(&e2);
         assert_eq!(e12.get_coefficient(3), 1.0);
+
+        // Outer product is antisymmetric
+        let e21 = e2.outer_product(&e1);
+        assert_eq!(e21.get_coefficient(3), -1.0);
+    }
+
+    #[test]
+    fn test_multivector_inner_product() {
+        let e1 = WasmMultivector::basis_vector(0).unwrap();
+        let e2 = WasmMultivector::basis_vector(1).unwrap();
+
+        // Inner product of orthogonal vectors is 0
+        let result = e1.inner_product(&e2);
+        assert_eq!(result.get_coefficient(0), 0.0);
+
+        // Inner product of vector with itself is 1
+        let self_inner = e1.inner_product(&e1);
+        assert_eq!(self_inner.get_coefficient(0), 1.0);
+    }
+
+    #[test]
+    fn test_multivector_scalar_product() {
+        let e1 = WasmMultivector::basis_vector(0).unwrap();
+        let e2 = WasmMultivector::basis_vector(1).unwrap();
+
+        // Scalar product of orthogonal vectors is 0
+        assert_eq!(e1.scalar_product(&e2), 0.0);
+
+        // Scalar product of vector with itself is 1
+        assert_eq!(e1.scalar_product(&e1), 1.0);
+    }
+
+    #[test]
+    fn test_multivector_reverse() {
+        let e1 = WasmMultivector::basis_vector(0).unwrap();
+        let e2 = WasmMultivector::basis_vector(1).unwrap();
+        let e12 = e1.outer_product(&e2);
+
+        // Reverse of bivector changes sign
+        let rev = e12.reverse();
+        assert_eq!(rev.get_coefficient(3), -1.0);
+
+        // Reverse of vector is unchanged
+        let e1_rev = e1.reverse();
+        assert_eq!(e1_rev.get_coefficient(1), 1.0);
+    }
+
+    #[test]
+    fn test_multivector_grade_projection() {
+        let coeffs = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0];
+        let mv = WasmMultivector::from_coefficients(&coeffs).unwrap();
+
+        // Grade 0 projection (scalar)
+        let scalar = mv.grade_projection(0);
+        assert_eq!(scalar.get_coefficient(0), 1.0);
+        assert_eq!(scalar.get_coefficient(1), 0.0);
+
+        // Grade 1 projection (vectors)
+        let vector = mv.grade_projection(1);
+        assert_eq!(vector.get_coefficient(0), 0.0);
+        assert_eq!(vector.get_coefficient(1), 2.0);
+        assert_eq!(vector.get_coefficient(2), 3.0);
+        assert_eq!(vector.get_coefficient(4), 5.0);
+    }
+
+    #[test]
+    fn test_multivector_magnitude() {
+        let scalar = WasmMultivector::scalar(3.0);
+        assert!((scalar.magnitude() - 3.0).abs() < 1e-10);
+
+        let e1 = WasmMultivector::basis_vector(0).unwrap();
+        assert!((e1.magnitude() - 1.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_multivector_normalize() {
+        let coeffs = vec![0.0, 3.0, 4.0, 0.0, 0.0, 0.0, 0.0, 0.0];
+        let mv = WasmMultivector::from_coefficients(&coeffs).unwrap();
+
+        let normalized = mv.normalize().unwrap();
+        let mag = normalized.magnitude();
+        assert!((mag - 1.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_multivector_exp_zero() {
+        // exp(0) = 1
+        let zero = WasmMultivector::new();
+        let exp_zero = zero.exp();
+        assert!((exp_zero.get_coefficient(0) - 1.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_multivector_exp_scalar() {
+        // exp(scalar) should work
+        let scalar = WasmMultivector::scalar(1.0);
+        let exp_scalar = scalar.exp();
+        // exp(1) ≈ 2.718
+        assert!((exp_scalar.get_coefficient(0) - std::f64::consts::E).abs() < 1e-10);
+    }
+
+    // ========================================================================
+    // WasmRotor Tests
+    // ========================================================================
+
+    #[test]
+    fn test_rotor_creation() {
+        let e1 = WasmMultivector::basis_vector(0).unwrap();
+        let e2 = WasmMultivector::basis_vector(1).unwrap();
+        let e12 = e1.outer_product(&e2);
+
+        let rotor = WasmRotor::from_bivector(&e12, std::f64::consts::PI / 2.0);
+        // Just verify it doesn't panic
+        let _ = rotor;
+    }
+
+    #[test]
+    fn test_rotor_apply() {
+        let e1 = WasmMultivector::basis_vector(0).unwrap();
+        let e2 = WasmMultivector::basis_vector(1).unwrap();
+        let e12 = e1.outer_product(&e2);
+
+        // 90 degree rotation in e12 plane: e1 -> e2
+        let rotor = WasmRotor::from_bivector(&e12, std::f64::consts::PI / 2.0);
+        let rotated = rotor.apply(&e1);
+
+        // After 90 deg rotation, e1 should become approximately e2
+        assert!(rotated.get_coefficient(2).abs() > 0.9);
+    }
+
+    #[test]
+    fn test_rotor_compose() {
+        let e1 = WasmMultivector::basis_vector(0).unwrap();
+        let e2 = WasmMultivector::basis_vector(1).unwrap();
+        let e12 = e1.outer_product(&e2);
+
+        let rotor45 = WasmRotor::from_bivector(&e12, std::f64::consts::PI / 4.0);
+        let rotor90 = rotor45.compose(&rotor45);
+
+        let rotated = rotor90.apply(&e1);
+        // After 90 deg rotation, e1 should become approximately e2
+        assert!(rotated.get_coefficient(2).abs() > 0.9);
+    }
+
+    #[test]
+    fn test_rotor_inverse() {
+        let e1 = WasmMultivector::basis_vector(0).unwrap();
+        let e2 = WasmMultivector::basis_vector(1).unwrap();
+        let e12 = e1.outer_product(&e2);
+
+        let rotor = WasmRotor::from_bivector(&e12, std::f64::consts::PI / 3.0);
+        let inv = rotor.inverse();
+
+        // Rotor * inverse should give identity
+        let identity = rotor.compose(&inv);
+        let result = identity.apply(&e1);
+
+        // Should return to original e1
+        assert!((result.get_coefficient(1) - 1.0).abs() < 1e-10);
+    }
+
+    // ========================================================================
+    // BatchOperations Tests
+    // ========================================================================
+
+    #[test]
+    fn test_batch_add() {
+        let a = vec![1.0, 2.0, 3.0, 4.0];
+        let b = vec![5.0, 6.0, 7.0, 8.0];
+
+        let result = BatchOperations::batch_add(&a, &b).unwrap();
+        assert_eq!(result, vec![6.0, 8.0, 10.0, 12.0]);
+    }
+
+    #[test]
+    fn test_batch_add_same_length() {
+        // Test that same-length arrays work correctly
+        let a = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0];
+        let b = vec![8.0, 7.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0];
+
+        let result = BatchOperations::batch_add(&a, &b).unwrap();
+        assert_eq!(result, vec![9.0; 8]);
+    }
+
+    #[test]
+    fn test_batch_geometric_product() {
+        let e1_coeffs = vec![0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
+        let e2_coeffs = vec![0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0];
+
+        let mut result = vec![0.0; 8];
+        BatchOperations::geometric_product_hot_path(&e1_coeffs, &e2_coeffs, &mut result);
+
+        // e1 * e2 = e12
+        assert_eq!(result[3], 1.0);
+    }
+
+    // ========================================================================
+    // PerformanceOperations Tests
+    // ========================================================================
+
+    #[test]
+    fn test_fast_geometric_product() {
+        let e1_coeffs = vec![0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
+        let e2_coeffs = vec![0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0];
+
+        let result = PerformanceOperations::fast_geometric_product(&e1_coeffs, &e2_coeffs);
+        assert_eq!(result[3], 1.0);
+    }
+
+    #[test]
+    fn test_fast_geometric_product_wrong_size() {
+        let a = vec![1.0, 2.0, 3.0];
+        let b = vec![1.0, 2.0, 3.0];
+
+        let result = PerformanceOperations::fast_geometric_product(&a, &b);
+        // Returns zeros for invalid input
+        assert_eq!(result, vec![0.0; 8]);
+    }
+
+    #[test]
+    fn test_vector_cross_product() {
+        let v1 = vec![1.0, 0.0, 0.0]; // x-axis
+        let v2 = vec![0.0, 1.0, 0.0]; // y-axis
+
+        let cross = PerformanceOperations::vector_cross_product(&v1, &v2);
+        // x × y = z
+        assert_eq!(cross, vec![0.0, 0.0, 1.0]);
+    }
+
+    #[test]
+    fn test_vector_cross_product_anticommutative() {
+        let v1 = vec![1.0, 2.0, 3.0];
+        let v2 = vec![4.0, 5.0, 6.0];
+
+        let cross_12 = PerformanceOperations::vector_cross_product(&v1, &v2);
+        let cross_21 = PerformanceOperations::vector_cross_product(&v2, &v1);
+
+        for i in 0..3 {
+            assert!((cross_12[i] + cross_21[i]).abs() < 1e-10);
+        }
+    }
+
+    #[test]
+    fn test_vector_dot_product() {
+        let v1 = vec![1.0, 2.0, 3.0];
+        let v2 = vec![4.0, 5.0, 6.0];
+
+        let dot = PerformanceOperations::vector_dot_product(&v1, &v2);
+        // 1*4 + 2*5 + 3*6 = 4 + 10 + 18 = 32
+        assert_eq!(dot, 32.0);
+    }
+
+    #[test]
+    fn test_vector_dot_product_orthogonal() {
+        let v1 = vec![1.0, 0.0, 0.0];
+        let v2 = vec![0.0, 1.0, 0.0];
+
+        let dot = PerformanceOperations::vector_dot_product(&v1, &v2);
+        assert_eq!(dot, 0.0);
+    }
+
+    #[test]
+    fn test_batch_normalize() {
+        let vectors = vec![3.0, 4.0, 0.0, 0.0, 0.0, 5.0];
+
+        let result = PerformanceOperations::batch_normalize(&vectors, 3);
+
+        // First vector [3, 4, 0] has magnitude 5, normalized to [0.6, 0.8, 0]
+        assert!((result[0] - 0.6).abs() < 1e-10);
+        assert!((result[1] - 0.8).abs() < 1e-10);
+        assert_eq!(result[2], 0.0);
+
+        // Second vector [0, 0, 5] normalized to [0, 0, 1]
+        assert_eq!(result[3], 0.0);
+        assert_eq!(result[4], 0.0);
+        assert!((result[5] - 1.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_batch_normalize_zero_vector() {
+        let vectors = vec![0.0, 0.0, 0.0];
+
+        let result = PerformanceOperations::batch_normalize(&vectors, 3);
+        assert_eq!(result, vec![0.0, 0.0, 0.0]);
+    }
+
+    // ========================================================================
+    // Integration Tests
+    // ========================================================================
+
+    #[test]
+    fn test_full_rotation_chain() {
+        let e1 = WasmMultivector::basis_vector(0).unwrap();
+        let e2 = WasmMultivector::basis_vector(1).unwrap();
+        let e3 = WasmMultivector::basis_vector(2).unwrap();
+
+        // Create rotation in xy-plane
+        let e12 = e1.outer_product(&e2);
+        let rotor_xy = WasmRotor::from_bivector(&e12, std::f64::consts::PI / 2.0);
+
+        // Create rotation in xz-plane
+        let e13 = e1.outer_product(&e3);
+        let rotor_xz = WasmRotor::from_bivector(&e13, std::f64::consts::PI / 2.0);
+
+        // Compose rotations
+        let combined = rotor_xy.compose(&rotor_xz);
+
+        // Apply to e1 and verify it moved
+        let result = combined.apply(&e1);
+        let original_e1_component = result.get_coefficient(1);
+        assert!(original_e1_component.abs() < 0.5); // Should have moved away from e1
+    }
+
+    #[test]
+    fn test_clifford_algebra_identity() {
+        // e1 * e1 = 1
+        let e1 = WasmMultivector::basis_vector(0).unwrap();
+        let e1_sq = e1.geometric_product(&e1);
+        assert!((e1_sq.get_coefficient(0) - 1.0).abs() < 1e-10);
+
+        // e12 * e12 = -1
+        let e2 = WasmMultivector::basis_vector(1).unwrap();
+        let e12 = e1.outer_product(&e2);
+        let e12_sq = e12.geometric_product(&e12);
+        assert!((e12_sq.get_coefficient(0) + 1.0).abs() < 1e-10);
+
+        // e123 * e123 = -1
+        let e3 = WasmMultivector::basis_vector(2).unwrap();
+        let e123 = e12.outer_product(&e3);
+        let e123_sq = e123.geometric_product(&e123);
+        assert!((e123_sq.get_coefficient(0) + 1.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_grade_decomposition_sums_to_original() {
+        let coeffs = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0];
+        let mv = WasmMultivector::from_coefficients(&coeffs).unwrap();
+
+        let grade0 = mv.grade_projection(0);
+        let grade1 = mv.grade_projection(1);
+        let grade2 = mv.grade_projection(2);
+        let grade3 = mv.grade_projection(3);
+
+        // Sum all grades
+        let sum_coeffs = grade0
+            .get_coefficients()
+            .iter()
+            .zip(grade1.get_coefficients().iter())
+            .zip(grade2.get_coefficients().iter())
+            .zip(grade3.get_coefficients().iter())
+            .map(|(((a, b), c), d)| a + b + c + d)
+            .collect::<Vec<_>>();
+
+        for (i, &c) in sum_coeffs.iter().enumerate() {
+            assert!((c - coeffs[i]).abs() < 1e-10);
+        }
     }
 }

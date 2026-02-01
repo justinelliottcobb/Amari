@@ -4,16 +4,21 @@ Enumerative geometry for counting geometric configurations.
 
 ## Overview
 
-`amari-enumerative` provides tools for enumerative geometry, the mathematical discipline concerned with counting geometric objects satisfying given conditions. The crate implements intersection theory, Schubert calculus, Gromov-Witten invariants, and tropical curve counting.
+`amari-enumerative` provides tools for enumerative geometry, the mathematical discipline concerned with counting geometric objects satisfying given conditions. The crate implements intersection theory, Schubert calculus, Littlewood-Richardson coefficients, Gromov-Witten invariants, and tropical curve counting.
 
 ## Features
 
 - **Intersection Theory**: Chow rings, intersection multiplicities, Bézout's theorem
 - **Schubert Calculus**: Computations on Grassmannians and flag varieties
+- **Littlewood-Richardson Coefficients**: Complete LR coefficient computation via Young tableaux
 - **Gromov-Witten Theory**: Curve counting and quantum cohomology
 - **Tropical Geometry**: Tropical curve counting via correspondence theorems
+- **Tropical Schubert Calculus**: Fast intersection counting using tropical methods
 - **Moduli Spaces**: Computations on moduli spaces of curves
+- **Namespace/Capabilities**: ShaperOS integration via geometric access control
+- **Phantom Types**: Compile-time verification of mathematical properties
 - **GPU Acceleration**: Optional GPU support for large computations
+- **Parallel Computation**: Rayon-based parallelization for batch operations
 
 ## Installation
 
@@ -21,7 +26,7 @@ Add to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-amari-enumerative = "0.12"
+amari-enumerative = "0.18"
 ```
 
 ### Feature Flags
@@ -29,19 +34,25 @@ amari-enumerative = "0.12"
 ```toml
 [dependencies]
 # Default features
-amari-enumerative = "0.12"
+amari-enumerative = "0.18"
 
 # With serialization
-amari-enumerative = { version = "0.12", features = ["serde"] }
+amari-enumerative = { version = "0.18", features = ["serde"] }
 
 # With GPU acceleration
-amari-enumerative = { version = "0.12", features = ["gpu"] }
+amari-enumerative = { version = "0.18", features = ["gpu"] }
 
-# With parallel computation
-amari-enumerative = { version = "0.12", features = ["parallel"] }
+# With parallel computation (Rayon)
+amari-enumerative = { version = "0.18", features = ["parallel"] }
+
+# With tropical Schubert calculus
+amari-enumerative = { version = "0.18", features = ["tropical-schubert"] }
 
 # For WASM targets
-amari-enumerative = { version = "0.12", features = ["wasm"] }
+amari-enumerative = { version = "0.18", features = ["wasm"] }
+
+# All performance features
+amari-enumerative = { version = "0.18", features = ["parallel", "tropical-schubert"] }
 ```
 
 ## Quick Start
@@ -63,36 +74,141 @@ assert_eq!(intersection.multiplicity(), 12); // 3 × 4 = 12 points
 
 ## Key Concepts
 
-### Bézout's Theorem
-
-Two plane curves of degrees d and e intersect in d·e points (counting multiplicity):
-
-```rust
-use amari_enumerative::{ProjectiveSpace, ChowClass};
-
-let p2 = ProjectiveSpace::new(2);
-let line = ChowClass::hypersurface(1);
-let conic = ChowClass::hypersurface(2);
-
-// Line meets conic in 1 × 2 = 2 points
-let points = p2.intersect(&line, &conic).multiplicity();
-assert_eq!(points, 2);
-```
-
 ### Schubert Calculus
 
 Count linear subspaces satisfying incidence conditions:
 
 ```rust
-use amari_enumerative::{Grassmannian, SchubertClass};
+use amari_enumerative::{SchubertCalculus, SchubertClass, IntersectionResult};
 
-// Grassmannian Gr(2,4): lines in P³
-let gr = Grassmannian::new(2, 4);
+// How many lines meet 4 general lines in projective 3-space?
+// This is computed in Gr(2, 4) with 4 copies of σ_1
+let mut calc = SchubertCalculus::new((2, 4)); // Gr(2,4)
+let sigma_1 = SchubertClass::new(vec![1], (2, 4)).unwrap();
 
-// How many lines meet 4 general lines in P³?
-let sigma_1 = SchubertClass::sigma(&[1]); // Lines meeting a line
-let count = gr.intersect(&[sigma_1; 4]);
-assert_eq!(count, 2); // Answer: 2 lines
+let classes = vec![sigma_1.clone(), sigma_1.clone(), sigma_1.clone(), sigma_1.clone()];
+let result = calc.multi_intersect(&classes);
+
+assert_eq!(result, IntersectionResult::Finite(2)); // Answer: 2 lines!
+```
+
+### Littlewood-Richardson Coefficients
+
+Compute structure constants for Schubert calculus:
+
+```rust
+use amari_enumerative::{lr_coefficient, schubert_product, Partition};
+
+// Compute c^ν_{λμ} - the LR coefficient
+let lambda = Partition::new(vec![2, 1]);
+let mu = Partition::new(vec![1, 1]);
+let nu = Partition::new(vec![3, 2]);
+
+let coeff = lr_coefficient(&lambda, &mu, &nu);
+
+// Expand a Schubert product: σ_λ · σ_μ = Σ c^ν_{λμ} σ_ν
+let products = schubert_product(&lambda, &mu, (3, 6));
+for (partition, coefficient) in products {
+    println!("σ_{:?} with coefficient {}", partition.parts, coefficient);
+}
+```
+
+### Namespace and Capabilities (ShaperOS Integration)
+
+Use enumerative geometry for access control:
+
+```rust
+use amari_enumerative::{
+    Namespace, Capability, CapabilityId, IntersectionResult,
+    namespace_intersection, capability_accessible,
+};
+
+// Create a namespace in Gr(2, 4)
+let mut ns = Namespace::full("agent", 2, 4).unwrap();
+
+// Grant capabilities (each is a Schubert condition)
+let read = Capability::new("read", "Read Access", vec![1], (2, 4)).unwrap();
+let write = Capability::new("write", "Write Access", vec![1], (2, 4))
+    .unwrap()
+    .requires(CapabilityId::new("read")); // Dependency
+
+ns.grant(read).unwrap();
+ns.grant(write).unwrap();
+
+// Count valid configurations
+let count = ns.count_configurations();
+// With 2 capabilities of codimension 1 each, we have dimension 2
+```
+
+### Phantom Types for Compile-Time Verification
+
+Zero-cost type markers for mathematical properties:
+
+```rust
+use amari_enumerative::{
+    ValidPartition, UnvalidatedPartition,
+    Semistandard, LatticeWord,
+    Transverse, Excess,
+    FitsInBox,
+};
+
+// These types encode mathematical properties at the type level:
+// - ValidPartition: Partition has been validated (weakly decreasing, positive parts)
+// - Semistandard: Tableau satisfies semistandard conditions
+// - LatticeWord: Tableau satisfies lattice word (Yamanouchi) condition
+// - Transverse: Intersection is transverse (codimensions sum to dimension)
+// - FitsInBox: Partition fits in k × (n-k) Grassmannian box
+```
+
+### Parallel Batch Operations
+
+When the `parallel` feature is enabled:
+
+```rust
+use amari_enumerative::{
+    lr_coefficients_batch, multi_intersect_batch,
+    count_configurations_batch, Partition, SchubertClass,
+};
+
+// Compute many LR coefficients in parallel
+let triples = vec![
+    (Partition::new(vec![2, 1]), Partition::new(vec![1]), Partition::new(vec![3, 1])),
+    (Partition::new(vec![1]), Partition::new(vec![1]), Partition::new(vec![2])),
+    // ... many more
+];
+let coefficients = lr_coefficients_batch(&triples);
+
+// Compute multiple Schubert intersections in parallel
+let sigma_1 = SchubertClass::new(vec![1], (2, 4)).unwrap();
+let batches = vec![
+    (vec![sigma_1.clone(); 4], (2, 4)), // σ_1^4 in Gr(2,4)
+    (vec![sigma_1.clone(); 6], (2, 5)), // σ_1^6 in Gr(2,5)
+];
+let results = multi_intersect_batch(&batches);
+```
+
+### Tropical Schubert Calculus
+
+Fast intersection counting using tropical methods (requires `tropical-schubert` feature):
+
+```rust
+use amari_enumerative::{
+    tropical_intersection_count, tropical_convexity_check,
+    TropicalSchubertClass, TropicalResult, SchubertClass,
+};
+
+let sigma_1 = SchubertClass::new(vec![1], (2, 4)).unwrap();
+let classes = vec![sigma_1.clone(); 4];
+
+// Tropical methods give exact answers for many practical cases
+let result = tropical_intersection_count(&classes, (2, 4));
+assert_eq!(result, TropicalResult::Finite(2));
+
+// Check if conditions are satisfiable
+let tropical_classes: Vec<_> = classes.iter()
+    .map(TropicalSchubertClass::from_classical)
+    .collect();
+assert!(tropical_convexity_check(&tropical_classes, 2, 4));
 ```
 
 ### Gromov-Witten Invariants
@@ -124,14 +240,26 @@ let count = curve.tropical_count()?;
 |--------|-------------|
 | `intersection` | Chow rings, intersection products, Bézout |
 | `schubert` | Schubert calculus on Grassmannians |
+| `littlewood_richardson` | LR coefficients, partitions, Young tableaux |
+| `namespace` | Namespace/Capability types for ShaperOS |
+| `phantom` | Compile-time verification phantom types |
 | `gromov_witten` | Curve counting, quantum cohomology |
 | `tropical_curves` | Tropical geometry methods |
+| `tropical_schubert` | Tropical Schubert calculus (feature-gated) |
 | `moduli_space` | Moduli spaces of curves |
 | `higher_genus` | Higher genus curve counting, DT/PT invariants |
 | `geometric_algebra` | Integration with geometric algebra |
 | `performance` | Optimized computation utilities |
 
 ## Mathematical Background
+
+### Littlewood-Richardson Rule
+
+The LR coefficient c^ν_{λμ} counts semistandard Young tableaux of skew shape ν/λ with content μ satisfying the lattice word condition:
+
+```
+σ_λ · σ_μ = Σ_ν c^ν_{λμ} σ_ν
+```
 
 ### Chow Rings
 
@@ -173,10 +301,29 @@ GW invariants count curves via:
 
 ## Performance
 
-- **Parallel Computation**: Rayon-based parallelization
+- **Parallel Computation**: Rayon-based parallelization for batch operations
+- **Tropical Acceleration**: Fast counting via tropical correspondence
 - **GPU Acceleration**: WebGPU for large intersection computations
 - **Sparse Matrices**: Efficient representation of Schubert classes
-- **Batch Processing**: Process multiple curves simultaneously
+- **Batch Processing**: Process multiple computations simultaneously
+- **Caching**: LR coefficients and intersection numbers are cached
+
+## Contracts and Verification
+
+The crate uses Creusot-style contracts documented in function signatures:
+
+```rust
+/// Compute LR coefficient c^ν_{λμ}
+///
+/// # Contract
+/// ```text
+/// requires: lambda, mu, nu are valid partitions
+/// ensures: result >= 0
+/// ensures: |nu| != |lambda| + |mu| => result == 0
+/// ensures: !nu.contains(lambda) => result == 0
+/// ```
+pub fn lr_coefficient(lambda: &Partition, mu: &Partition, nu: &Partition) -> u64
+```
 
 ## License
 

@@ -215,6 +215,7 @@ pub struct ModuliStackData {
 }
 
 impl ModuliStackData {
+    /// Create moduli stack data for given genus
     pub fn new(genus: usize) -> Self {
         let dimension = if genus == 0 {
             -3 // M₀ is empty (needs marked points)
@@ -290,6 +291,7 @@ pub struct JacobianData {
 }
 
 impl JacobianData {
+    /// Create Jacobian data for a curve of given genus
     pub fn new(genus: usize) -> Self {
         Self {
             dimension: genus,
@@ -339,6 +341,7 @@ pub struct ThetaDivisor {
 }
 
 impl ThetaDivisor {
+    /// Create theta divisor for given genus
     pub fn new(genus: usize) -> Self {
         Self {
             ambient_dimension: genus,
@@ -373,6 +376,7 @@ pub struct TorelliMapData {
 }
 
 impl TorelliMapData {
+    /// Create Torelli map data for given genus
     pub fn new(genus: usize) -> Self {
         let siegel_dimension = genus * (genus + 1) / 2;
         let jacobian_locus_dimension = if genus >= 1 { 3 * genus - 3 } else { 0 };
@@ -472,6 +476,7 @@ impl Default for ReducedInvariantData {
 }
 
 impl ReducedInvariantData {
+    /// Create default reduced invariant data
     pub fn new() -> Self {
         Self {
             virtual_cycle: VirtualCycleData::new(),
@@ -499,6 +504,7 @@ impl Default for VirtualCycleData {
 }
 
 impl VirtualCycleData {
+    /// Create default virtual cycle data
     pub fn new() -> Self {
         Self {
             expected_dimension: 0,
@@ -520,6 +526,7 @@ pub struct DTInvariant {
 }
 
 impl DTInvariant {
+    /// Create a DT invariant with given Chern character
     pub fn new(chern_character: BTreeMap<usize, Rational64>) -> Self {
         Self {
             chern_character,
@@ -592,6 +599,7 @@ impl Default for HilbertSchemeData {
 }
 
 impl HilbertSchemeData {
+    /// Create default Hilbert scheme data
     pub fn new() -> Self {
         Self {
             expected_dimension: 0,
@@ -616,6 +624,7 @@ pub struct AdvancedCurveCounting {
 }
 
 impl AdvancedCurveCounting {
+    /// Create advanced curve counting for target space
     pub fn new(target: String, max_genus: usize) -> Self {
         Self {
             target,
