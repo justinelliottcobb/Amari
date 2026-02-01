@@ -342,7 +342,7 @@ impl SkewTableau {
                 .map(|(idx, &(_, col))| (col, self.filling[idx]))
                 .collect();
 
-            row_cells.sort_unstable_by(|a, b| b.0.cmp(&a.0));
+            row_cells.sort_unstable_by_key(|x| std::cmp::Reverse(x.0));
             word.extend(row_cells.into_iter().map(|(_, label)| label));
         }
 
