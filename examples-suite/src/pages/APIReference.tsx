@@ -2608,7 +2608,7 @@ console.log(\`Self-similarity: \${algebra.similarity(f, f)}\`); // 1.0`
   {
     id: "enumerative",
     title: "Enumerative Geometry",
-    description: "Intersection theory, Chow classes, and curve counting",
+    description: "Intersection theory, Schubert calculus, LR coefficients, namespaces, and curve counting",
     icon: "∩",
     classes: [
       {
@@ -2747,6 +2747,359 @@ console.log(\`Self-similarity: \${algebra.similarity(f, f)}\`); // 1.0`
             signature: "static expectedRationalCurves(degree: number, points: number): number",
             description: "Expected number of rational curves through points",
             isStatic: true
+          }
+        ]
+      },
+      {
+        name: "WasmPartition",
+        description: "A partition (weakly decreasing sequence of positive integers) used in Schubert calculus and Littlewood-Richardson coefficient computation",
+        methods: [
+          {
+            name: "constructor",
+            signature: "new WasmPartition(parts: number[])",
+            description: "Create a partition from an array of parts",
+            parameters: [{ name: "parts", type: "number[]", description: "Weakly decreasing array of positive integers" }],
+            example: `const partition = new WasmPartition([3, 2, 1]);
+console.log(partition.getSize()); // 6`
+          },
+          {
+            name: "getParts",
+            signature: "getParts(): number[]",
+            description: "Get the parts of this partition"
+          },
+          {
+            name: "getSize",
+            signature: "getSize(): number",
+            description: "Get the size (sum of parts)"
+          },
+          {
+            name: "getLength",
+            signature: "getLength(): number",
+            description: "Get the length (number of non-zero parts)"
+          },
+          {
+            name: "contains",
+            signature: "contains(other: WasmPartition): boolean",
+            description: "Check if this partition contains another (for skew shapes)"
+          },
+          {
+            name: "isValid",
+            signature: "isValid(): boolean",
+            description: "Check if partition is valid (weakly decreasing, positive parts)"
+          },
+          {
+            name: "fitsInBox",
+            signature: "fitsInBox(k: number, n: number): boolean",
+            description: "Check if partition fits in k × (n-k) box for Grassmannian Gr(k,n)"
+          }
+        ]
+      },
+      {
+        name: "WasmSchubertClass",
+        description: "A Schubert class on a Grassmannian Gr(k,n), represented by a partition fitting in a k × (n-k) box",
+        methods: [
+          {
+            name: "constructor",
+            signature: "new WasmSchubertClass(partition: number[], k: number, n: number)",
+            description: "Create a Schubert class from a partition on Gr(k,n)",
+            parameters: [
+              { name: "partition", type: "number[]", description: "Partition defining the Schubert variety" },
+              { name: "k", type: "number", description: "k-planes in n-space" },
+              { name: "n", type: "number", description: "Ambient dimension" }
+            ],
+            example: `// σ_{2,1} on Gr(2,5)
+const class = new WasmSchubertClass([2, 1], 2, 5);`
+          },
+          {
+            name: "getPartition",
+            signature: "getPartition(): number[]",
+            description: "Get the partition defining this Schubert class"
+          },
+          {
+            name: "getGrassmannianDim",
+            signature: "getGrassmannianDim(): number[]",
+            description: "Get [k, n] parameters of the Grassmannian"
+          },
+          {
+            name: "getCodimension",
+            signature: "getCodimension(): number",
+            description: "Get the codimension (sum of partition parts)"
+          },
+          {
+            name: "sigma1",
+            signature: "static sigma1(k: number, n: number): WasmSchubertClass",
+            description: "Create the special Schubert class σ_1 (single box)",
+            isStatic: true
+          }
+        ]
+      },
+      {
+        name: "WasmSchubertCalculus",
+        description: "Schubert calculus computations on Grassmannians. Computes intersection numbers of Schubert cycles.",
+        methods: [
+          {
+            name: "constructor",
+            signature: "new WasmSchubertCalculus(k: number, n: number)",
+            description: "Create a Schubert calculus context for Gr(k,n)",
+            example: `// Lines in P^3 = Gr(2,4)
+const calc = new WasmSchubertCalculus(2, 4);`
+          },
+          {
+            name: "intersect",
+            signature: "intersect(class1: WasmSchubertClass, class2: WasmSchubertClass): WasmIntersectionResult",
+            description: "Compute intersection of two Schubert classes"
+          },
+          {
+            name: "multiIntersect",
+            signature: "multiIntersect(classes: WasmSchubertClass[]): WasmIntersectionResult",
+            description: "Compute intersection of multiple Schubert classes",
+            example: `// How many lines meet 4 general lines in P^3?
+const calc = new WasmSchubertCalculus(2, 4);
+const sigma1 = WasmSchubertClass.sigma1(2, 4);
+const result = calc.multiIntersect([sigma1, sigma1, sigma1, sigma1]);
+console.log(result.getCount()); // 2`
+          },
+          {
+            name: "getGrassmannianDimension",
+            signature: "getGrassmannianDimension(): number",
+            description: "Get dimension k*(n-k) of the Grassmannian"
+          }
+        ]
+      },
+      {
+        name: "WasmIntersectionResult",
+        description: "Result of a Schubert intersection computation. Can be finite (a number), empty, or positive-dimensional.",
+        methods: [
+          {
+            name: "isFinite",
+            signature: "isFinite(): boolean",
+            description: "Check if intersection is finite (0-dimensional)"
+          },
+          {
+            name: "isEmpty",
+            signature: "isEmpty(): boolean",
+            description: "Check if intersection is empty"
+          },
+          {
+            name: "isPositiveDimensional",
+            signature: "isPositiveDimensional(): boolean",
+            description: "Check if intersection has positive dimension"
+          },
+          {
+            name: "getCount",
+            signature: "getCount(): number",
+            description: "Get finite intersection count (0 if not finite)"
+          },
+          {
+            name: "getDimension",
+            signature: "getDimension(): number",
+            description: "Get dimension (-1 if empty, 0 if finite)"
+          },
+          {
+            name: "asString",
+            signature: "asString(): string",
+            description: "Get string representation"
+          }
+        ]
+      },
+      {
+        name: "WasmCapability",
+        description: "A capability (access condition) represented as a Schubert class. Used for geometric access control in ShaperOS.",
+        methods: [
+          {
+            name: "constructor",
+            signature: "new WasmCapability(id: string, name: string, partition: number[], k: number, n: number)",
+            description: "Create a capability with Schubert condition",
+            parameters: [
+              { name: "id", type: "string", description: "Unique capability identifier" },
+              { name: "name", type: "string", description: "Human-readable name" },
+              { name: "partition", type: "number[]", description: "Schubert condition as partition" },
+              { name: "k", type: "number", description: "Grassmannian k parameter" },
+              { name: "n", type: "number", description: "Grassmannian n parameter" }
+            ],
+            example: `const readCap = new WasmCapability("read", "Read Access", [1], 2, 4);`
+          },
+          {
+            name: "getId",
+            signature: "getId(): string",
+            description: "Get capability ID"
+          },
+          {
+            name: "getName",
+            signature: "getName(): string",
+            description: "Get capability name"
+          },
+          {
+            name: "getCodimension",
+            signature: "getCodimension(): number",
+            description: "Get codimension of capability's Schubert condition"
+          },
+          {
+            name: "requires",
+            signature: "requires(requiredId: string): WasmCapability",
+            description: "Add a dependency on another capability"
+          }
+        ]
+      },
+      {
+        name: "WasmNamespace",
+        description: "A namespace for geometric access control. Represents a position in a Grassmannian restricted by granted capabilities.",
+        methods: [
+          {
+            name: "full",
+            signature: "static full(name: string, k: number, n: number): WasmNamespace",
+            description: "Create a full namespace (identity position) on Gr(k,n)",
+            isStatic: true,
+            example: `const ns = WasmNamespace.full("agent", 2, 4);
+console.log(ns.getRemainingDimension()); // 4`
+          },
+          {
+            name: "getName",
+            signature: "getName(): string",
+            description: "Get namespace name"
+          },
+          {
+            name: "getGrassmannian",
+            signature: "getGrassmannian(): number[]",
+            description: "Get [k, n] Grassmannian parameters"
+          },
+          {
+            name: "getCapabilityCount",
+            signature: "getCapabilityCount(): number",
+            description: "Get number of granted capabilities"
+          },
+          {
+            name: "grant",
+            signature: "grant(capability: WasmCapability): void",
+            description: "Grant a capability to this namespace"
+          },
+          {
+            name: "countConfigurations",
+            signature: "countConfigurations(): WasmIntersectionResult",
+            description: "Count valid configurations (Schubert intersection number)"
+          },
+          {
+            name: "getTotalCodimension",
+            signature: "getTotalCodimension(): number",
+            description: "Get total codimension from all capabilities"
+          },
+          {
+            name: "getRemainingDimension",
+            signature: "getRemainingDimension(): number",
+            description: "Get remaining dimension after capabilities"
+          }
+        ]
+      },
+      {
+        name: "WasmNamespaceIntersection",
+        description: "Result of intersecting two namespaces. Can be incompatible, disjoint, single point, finite points, or a subspace.",
+        methods: [
+          {
+            name: "isIncompatible",
+            signature: "isIncompatible(): boolean",
+            description: "Check if namespaces are on different Grassmannians"
+          },
+          {
+            name: "isDisjoint",
+            signature: "isDisjoint(): boolean",
+            description: "Check if intersection is empty"
+          },
+          {
+            name: "isSinglePoint",
+            signature: "isSinglePoint(): boolean",
+            description: "Check if intersection is exactly one point"
+          },
+          {
+            name: "isFinitePoints",
+            signature: "isFinitePoints(): boolean",
+            description: "Check if intersection is finite (multiple points)"
+          },
+          {
+            name: "isSubspace",
+            signature: "isSubspace(): boolean",
+            description: "Check if intersection is a positive-dimensional subspace"
+          },
+          {
+            name: "getCount",
+            signature: "getCount(): number",
+            description: "Get intersection point count"
+          },
+          {
+            name: "getDimension",
+            signature: "getDimension(): number",
+            description: "Get dimension (-1 if not a subspace)"
+          },
+          {
+            name: "asString",
+            signature: "asString(): string",
+            description: "Get string representation"
+          }
+        ]
+      },
+      {
+        name: "SchubertBatch",
+        description: "Batch operations for high-performance Schubert calculus computations",
+        methods: [
+          {
+            name: "multiIntersectBatch",
+            signature: "static multiIntersectBatch(classBatches: number[][][], k: number, n: number): WasmIntersectionResult[]",
+            description: "Compute multiple Schubert multi-intersections in batch",
+            isStatic: true
+          },
+          {
+            name: "linesMeeting4Lines",
+            signature: "static linesMeeting4Lines(): WasmIntersectionResult",
+            description: "Compute the classic 'lines meeting 4 lines' problem (σ_1^4 in Gr(2,4) = 2)",
+            isStatic: true,
+            example: `const result = SchubertBatch.linesMeeting4Lines();
+console.log(result.getCount()); // 2`
+          }
+        ]
+      },
+      {
+        name: "NamespaceBatch",
+        description: "Batch operations for namespace computations",
+        methods: [
+          {
+            name: "countConfigurationsBatch",
+            signature: "static countConfigurationsBatch(namespaces: WasmNamespace[]): WasmIntersectionResult[]",
+            description: "Count configurations for multiple namespaces in batch",
+            isStatic: true
+          }
+        ]
+      },
+      {
+        name: "LR Functions",
+        description: "Standalone functions for Littlewood-Richardson coefficient computation",
+        methods: [
+          {
+            name: "lrCoefficient",
+            signature: "lrCoefficient(lambda: WasmPartition, mu: WasmPartition, nu: WasmPartition): number",
+            description: "Compute Littlewood-Richardson coefficient c^ν_{λμ}",
+            example: `const lambda = new WasmPartition([2, 1]);
+const mu = new WasmPartition([1, 1]);
+const nu = new WasmPartition([3, 2]);
+const coeff = lrCoefficient(lambda, mu, nu);`
+          },
+          {
+            name: "lrCoefficientsBatch",
+            signature: "lrCoefficientsBatch(lambdas: WasmPartition[], mus: WasmPartition[], nus: WasmPartition[]): number[]",
+            description: "Compute multiple LR coefficients in batch"
+          },
+          {
+            name: "schubertProduct",
+            signature: "schubertProduct(lambda: WasmPartition, mu: WasmPartition, k: number, n: number): Array<{partition: number[], coefficient: number}>",
+            description: "Expand Schubert product σ_λ · σ_μ into sum of Schubert classes"
+          },
+          {
+            name: "capabilityAccessible",
+            signature: "capabilityAccessible(namespace: WasmNamespace, capability: WasmCapability): boolean",
+            description: "Check if a capability is accessible in a namespace"
+          },
+          {
+            name: "namespaceIntersection",
+            signature: "namespaceIntersection(ns1: WasmNamespace, ns2: WasmNamespace): WasmNamespaceIntersection",
+            description: "Compute the intersection of two namespaces"
           }
         ]
       }
