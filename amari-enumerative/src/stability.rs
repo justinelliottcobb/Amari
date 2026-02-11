@@ -111,6 +111,13 @@ impl StabilityCondition {
     }
 
     /// Find all stable capabilities in a namespace at this trust level.
+    ///
+    /// # Contract
+    ///
+    /// ```text
+    /// ensures: forall cap in result. self.is_stable(cap) == true
+    /// ensures: result.len() <= namespace.capabilities.len()
+    /// ```
     #[must_use]
     pub fn stable_capabilities<'a>(&self, namespace: &'a Namespace) -> Vec<&'a Capability> {
         namespace
@@ -121,6 +128,12 @@ impl StabilityCondition {
     }
 
     /// Count stable capabilities.
+    ///
+    /// # Contract
+    ///
+    /// ```text
+    /// ensures: result == self.stable_capabilities(namespace).len()
+    /// ```
     #[must_use]
     pub fn stable_count(&self, namespace: &Namespace) -> usize {
         self.stable_capabilities(namespace).len()
@@ -241,6 +254,12 @@ impl WallCrossingEngine {
     }
 
     /// Compute the number of stable capabilities at a given trust level.
+    ///
+    /// # Contract
+    ///
+    /// ```text
+    /// ensures: result <= namespace.capabilities.len()
+    /// ```
     #[must_use]
     pub fn stable_count_at(&self, namespace: &Namespace, trust_level: f64) -> usize {
         let condition = StabilityCondition::standard(self.grassmannian, trust_level);
@@ -251,6 +270,14 @@ impl WallCrossingEngine {
     /// trust_level → count of stable capabilities.
     ///
     /// Returns sorted (trust_level, count) breakpoints.
+    ///
+    /// # Contract
+    ///
+    /// ```text
+    /// ensures: result is sorted by trust_level (first component)
+    /// ensures: result.len() >= 1
+    /// ```
+    #[must_use]
     pub fn phase_diagram(&self, namespace: &Namespace) -> Vec<(f64, usize)> {
         let walls = self.compute_walls(namespace);
 
@@ -288,6 +315,39 @@ impl WallCrossingEngine {
 
         breakpoints
     }
+}
+
+/// Batch compute stable capability counts at multiple trust levels in parallel.
+#[cfg(feature = "parallel")]
+#[must_use]
+pub fn stable_count_batch(
+    grassmannian: (usize, usize),
+    namespace: &Namespace,
+    trust_levels: &[f64],
+) -> Vec<usize> {
+    use rayon::prelude::*;
+    trust_levels
+        .par_iter()
+        .map(|&t| {
+            let cond = StabilityCondition::standard(grassmannian, t);
+            cond.stable_count(namespace)
+        })
+        .collect()
+}
+
+/// Batch compute walls for multiple namespaces in parallel.
+#[cfg(feature = "parallel")]
+#[must_use]
+pub fn compute_walls_batch(
+    grassmannian: (usize, usize),
+    namespaces: &[Namespace],
+) -> Vec<Vec<Wall>> {
+    use rayon::prelude::*;
+    let engine = WallCrossingEngine::new(grassmannian);
+    namespaces
+        .par_iter()
+        .map(|ns| engine.compute_walls(ns))
+        .collect()
 }
 
 #[cfg(test)]
@@ -424,5 +484,27 @@ mod tests {
         // Point class has dim=0, so Z = (-4, 0) → phase = 1 → not stable (boundary)
         let stable = cond.stable_count(&ns);
         assert_eq!(stable, 0);
+    }
+
+    #[cfg(feature = "parallel")]
+    #[test]
+    fn test_stable_count_batch() {
+        let ns = make_test_namespace();
+        let trust_levels = vec![0.01, 0.5, 1.0, 10.0, 100.0];
+        let results = super::stable_count_batch((2, 4), &ns, &trust_levels);
+        assert_eq!(results.len(), 5);
+        // Higher trust should have >= lower trust stable count
+        assert!(results[4] >= results[0]);
+    }
+
+    #[cfg(feature = "parallel")]
+    #[test]
+    fn test_compute_walls_batch() {
+        let ns1 = make_test_namespace();
+        let ns2 = make_test_namespace();
+        let results = super::compute_walls_batch((2, 4), &[ns1, ns2]);
+        assert_eq!(results.len(), 2);
+        // Both should have the same walls
+        assert_eq!(results[0].len(), results[1].len());
     }
 }

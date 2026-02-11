@@ -131,6 +131,12 @@ impl ComposableNamespace {
     }
 
     /// Get output interfaces.
+    ///
+    /// # Contract
+    ///
+    /// ```text
+    /// ensures: forall i in result. i.direction == Output
+    /// ```
     #[must_use]
     pub fn outputs(&self) -> Vec<&Interface> {
         self.interfaces
@@ -140,6 +146,12 @@ impl ComposableNamespace {
     }
 
     /// Get input interfaces.
+    ///
+    /// # Contract
+    ///
+    /// ```text
+    /// ensures: forall i in result. i.direction == Input
+    /// ```
     #[must_use]
     pub fn inputs(&self) -> Vec<&Interface> {
         self.interfaces
@@ -149,6 +161,13 @@ impl ComposableNamespace {
     }
 
     /// Effective capability count: total capabilities minus glued interfaces.
+    ///
+    /// # Contract
+    ///
+    /// ```text
+    /// ensures: result == self.namespace.capabilities.len() - self.interfaces.len()
+    ///          (saturating at 0)
+    /// ```
     #[must_use]
     pub fn effective_capability_count(&self) -> usize {
         let glued = self.interfaces.len();

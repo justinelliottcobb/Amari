@@ -33,7 +33,7 @@ pub struct Matroid {
 }
 
 impl Matroid {
-    /// Create the uniform matroid U_{k,n}: all k-subsets of [n] are bases.
+    /// Create the uniform matroid U\_{k,n}: all k-subsets of \[n\] are bases.
     ///
     /// # Contract
     ///
@@ -178,6 +178,13 @@ impl Matroid {
     /// Compute all circuits (minimal dependent sets).
     ///
     /// A circuit is a minimal subset C such that rank(C) < |C|.
+    ///
+    /// # Contract
+    ///
+    /// ```text
+    /// ensures: forall C in result. rank_of(C) < |C|
+    /// ensures: forall C in result. forall e in C. rank_of(C \ {e}) == |C| - 1
+    /// ```
     #[must_use]
     pub fn circuits(&self) -> BTreeSet<BTreeSet<usize>> {
         let mut circuits = BTreeSet::new();
@@ -262,11 +269,19 @@ impl Matroid {
         }
     }
 
-    /// Matroid union: bases are maximal sets in B₁ ∪ B₂.
+    /// Matroid union: bases are maximal sets in B₁ ∨ B₂.
     ///
     /// This is NOT the same as the direct sum — it uses the same ground set.
     /// A set I is independent in M₁ ∨ M₂ iff I = I₁ ∪ I₂ where I_j is
     /// independent in M_j. The rank is min(|E|, r₁ + r₂).
+    ///
+    /// # Contract
+    ///
+    /// ```text
+    /// requires: self.ground_set_size == other.ground_set_size
+    /// ensures: result.rank <= self.rank + other.rank
+    /// ensures: result.ground_set_size == self.ground_set_size
+    /// ```
     #[must_use]
     pub fn matroid_union(&self, other: &Matroid) -> Self {
         assert_eq!(
@@ -337,18 +352,37 @@ impl Matroid {
     }
 
     /// Check if an element is a loop (in no basis).
+    ///
+    /// # Contract
+    ///
+    /// ```text
+    /// ensures: result == !exists B in bases. e in B
+    /// ```
     #[must_use]
     pub fn is_loop(&self, e: usize) -> bool {
         !self.bases.iter().any(|b| b.contains(&e))
     }
 
     /// Check if an element is a coloop (in every basis).
+    ///
+    /// # Contract
+    ///
+    /// ```text
+    /// ensures: result == forall B in bases. e in B
+    /// ```
     #[must_use]
     pub fn is_coloop(&self, e: usize) -> bool {
         self.bases.iter().all(|b| b.contains(&e))
     }
 
     /// Delete element e: restrict to ground set \ {e}.
+    ///
+    /// # Contract
+    ///
+    /// ```text
+    /// requires: e < self.ground_set_size
+    /// ensures: result.ground_set_size == self.ground_set_size - 1
+    /// ```
     #[must_use]
     pub fn delete(&self, e: usize) -> Self {
         let bases: BTreeSet<BTreeSet<usize>> = self
@@ -372,6 +406,14 @@ impl Matroid {
     }
 
     /// Contract element e: bases containing e, with e removed.
+    ///
+    /// # Contract
+    ///
+    /// ```text
+    /// requires: e < self.ground_set_size
+    /// ensures: result.ground_set_size == self.ground_set_size - 1
+    /// ensures: result.rank == self.rank - 1 (when e is not a loop)
+    /// ```
     #[must_use]
     pub fn contract(&self, e: usize) -> Self {
         let bases: BTreeSet<BTreeSet<usize>> = self
@@ -638,6 +680,13 @@ impl Namespace {
     ///
     /// Capabilities are elements; a set is independent if the corresponding
     /// Schubert classes have a transverse intersection.
+    ///
+    /// # Contract
+    ///
+    /// ```text
+    /// ensures: result.is_some() implies result.ground_set_size == self.capabilities.len()
+    /// ensures: result.is_none() implies self.capabilities.is_empty()
+    /// ```
     #[must_use]
     pub fn capability_matroid(&self) -> Option<Matroid> {
         let n = self.capabilities.len();
@@ -687,7 +736,13 @@ impl Namespace {
     /// Find redundant capabilities: those that don't affect the matroid rank.
     ///
     /// A capability is redundant if removing it doesn't change the rank
-    /// of the capability matroid.
+    /// of the capability matroid (i.e., it is a loop).
+    ///
+    /// # Contract
+    ///
+    /// ```text
+    /// ensures: forall id in result. removing id does not change matroid rank
+    /// ```
     #[must_use]
     pub fn redundant_capabilities(&self) -> Vec<CapabilityId> {
         let Some(matroid) = self.capability_matroid() else {
@@ -706,6 +761,12 @@ impl Namespace {
     /// Maximum number of capabilities that can be shared between two namespaces.
     ///
     /// Uses matroid intersection to find the largest common independent set.
+    ///
+    /// # Contract
+    ///
+    /// ```text
+    /// ensures: result <= min(self.capabilities.len(), other.capabilities.len())
+    /// ```
     #[must_use]
     pub fn max_shared_capabilities(&self, other: &Namespace) -> usize {
         let m1 = self.capability_matroid();
@@ -905,6 +966,33 @@ fn subsets_of_size(n: usize, k: usize) -> Vec<BTreeSet<usize>> {
         .collect()
 }
 
+/// Batch compute matroid circuits for multiple matroids in parallel.
+#[cfg(feature = "parallel")]
+#[must_use]
+pub fn circuits_batch(matroids: &[Matroid]) -> Vec<BTreeSet<BTreeSet<usize>>> {
+    use rayon::prelude::*;
+    matroids.par_iter().map(|m| m.circuits()).collect()
+}
+
+/// Batch compute Tutte polynomials for multiple matroids in parallel.
+#[cfg(feature = "parallel")]
+#[must_use]
+pub fn tutte_polynomial_batch(matroids: &[Matroid]) -> Vec<BTreeMap<(usize, usize), i64>> {
+    use rayon::prelude::*;
+    matroids.par_iter().map(|m| m.tutte_polynomial()).collect()
+}
+
+/// Batch compute matroid intersection cardinalities in parallel.
+#[cfg(feature = "parallel")]
+#[must_use]
+pub fn intersection_cardinality_batch(pairs: &[(Matroid, Matroid)]) -> Vec<usize> {
+    use rayon::prelude::*;
+    pairs
+        .par_iter()
+        .map(|(m1, m2)| m1.intersection_cardinality(m2))
+        .collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1041,5 +1129,36 @@ mod tests {
         let vm = ValuatedMatroid::from_tropical_plucker(2, 4, &coords).unwrap();
         assert_eq!(vm.matroid.rank, 2);
         assert!(vm.satisfies_tropical_plucker());
+    }
+
+    #[cfg(feature = "parallel")]
+    #[test]
+    fn test_circuits_batch() {
+        let matroids = vec![Matroid::uniform(2, 4), Matroid::uniform(1, 3)];
+        let results = super::circuits_batch(&matroids);
+        assert_eq!(results[0].len(), 4); // C(4,3) circuits for U_{2,4}
+        assert_eq!(results[1].len(), 3); // C(3,2) circuits for U_{1,3}
+    }
+
+    #[cfg(feature = "parallel")]
+    #[test]
+    fn test_tutte_polynomial_batch() {
+        let matroids = vec![Matroid::uniform(1, 2), Matroid::uniform(1, 3)];
+        let results = super::tutte_polynomial_batch(&matroids);
+        assert_eq!(results.len(), 2);
+        // U_{1,2}: T = x + y
+        assert_eq!(results[0].get(&(1, 0)).copied().unwrap_or(0), 1);
+        assert_eq!(results[0].get(&(0, 1)).copied().unwrap_or(0), 1);
+    }
+
+    #[cfg(feature = "parallel")]
+    #[test]
+    fn test_intersection_cardinality_batch() {
+        let pairs = vec![
+            (Matroid::uniform(2, 4), Matroid::uniform(2, 4)),
+            (Matroid::uniform(1, 3), Matroid::uniform(1, 3)),
+        ];
+        let results = super::intersection_cardinality_batch(&pairs);
+        assert_eq!(results, vec![2, 1]);
     }
 }

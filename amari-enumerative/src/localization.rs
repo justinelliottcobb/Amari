@@ -198,6 +198,13 @@ impl EquivariantLocalizer {
     }
 
     /// Create a localizer with custom weights.
+    ///
+    /// # Contract
+    ///
+    /// ```text
+    /// requires: k <= n
+    /// requires: weights.len() == n
+    /// ```
     pub fn with_weights(
         grassmannian: (usize, usize),
         weights: TorusWeights,
@@ -275,6 +282,14 @@ impl EquivariantLocalizer {
     ///
     /// Handles the three cases: overdetermined (Empty),
     /// transverse (Finite), and underdetermined (PositiveDimensional).
+    ///
+    /// # Contract
+    ///
+    /// ```text
+    /// ensures: result == Empty when sum(codim) > dim(Gr)
+    /// ensures: result == Finite(n) when sum(codim) == dim(Gr)
+    /// ensures: result == PositiveDimensional when sum(codim) < dim(Gr)
+    /// ```
     pub fn intersection_result(&mut self, classes: &[SchubertClass]) -> IntersectionResult {
         self.schubert_engine.multi_intersect(classes)
     }
@@ -282,6 +297,13 @@ impl EquivariantLocalizer {
     /// Analyze the fixed-point contributions for a transverse intersection.
     ///
     /// Returns (fixed_point, euler_class) pairs for geometric analysis.
+    ///
+    /// # Contract
+    ///
+    /// ```text
+    /// ensures: result.len() == C(n, k)
+    /// ensures: forall (_, euler) in result. euler != 0 (for distinct weights)
+    /// ```
     pub fn fixed_point_analysis(&mut self) -> Vec<(&FixedPoint, Rational64)> {
         self.ensure_fixed_points();
         let weights = &self.weights;

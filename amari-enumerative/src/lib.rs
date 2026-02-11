@@ -230,4 +230,14 @@ pub use operad::{
 // Wall-crossing / stability
 pub use stability::{StabilityCondition, Wall, WallCrossingEngine};
 
+// Parallel batch operations for new modules
+#[cfg(feature = "parallel")]
+pub use csm::{csm_of_cells_batch, euler_characteristic_batch};
+#[cfg(feature = "parallel")]
+pub use matroid::{circuits_batch, intersection_cardinality_batch, tutte_polynomial_batch};
+#[cfg(feature = "parallel")]
+pub use stability::{compute_walls_batch, stable_count_batch};
+#[cfg(feature = "parallel")]
+pub use wdvv::rational_curve_count_batch;
+
 // GPU acceleration exports

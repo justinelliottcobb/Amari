@@ -6,7 +6,7 @@
 //!
 //! # Key Ideas
 //!
-//! - For a smooth variety X, c_SM(X) = c(TX) ∩ [X] (the usual total Chern class)
+//! - For a smooth variety X, c\_SM(X) = c(TX) ∩ \[X\] (the usual total Chern class)
 //! - For singular X, CSM classes are defined via a natural transformation from
 //!   constructible functions to homology
 //! - On Grassmannians, CSM classes of Schubert cells expand in the Schubert basis
@@ -46,7 +46,7 @@ impl CSMClass {
     /// c_SM(Ω°_λ) = Σ_{μ ≤ λ} (-1)^{|μ|-|λ|} c_SM(Ω_μ)
     /// ```
     ///
-    /// For the top cell (empty partition), c_SM = σ_∅ = [Gr].
+    /// For the top cell (empty partition), c\_SM = σ\_∅ = \[Gr\].
     ///
     /// # Contract
     ///
@@ -101,6 +101,13 @@ impl CSMClass {
     /// ```
     ///
     /// where the sum is over all partitions μ in the Bruhat order above λ.
+    ///
+    /// # Contract
+    ///
+    /// ```text
+    /// requires: partition fits in k × (n-k) box
+    /// ensures: result.coefficients is nonempty
+    /// ```
     pub fn of_schubert_variety(partition: &[usize], grassmannian: (usize, usize)) -> Self {
         let (k, n) = grassmannian;
         let m = n - k;
@@ -193,6 +200,13 @@ impl CSMClass {
     ///
     /// Uses Littlewood-Richardson coefficients to expand the product
     /// in the Schubert basis.
+    ///
+    /// # Contract
+    ///
+    /// ```text
+    /// requires: self.grassmannian == other.grassmannian
+    /// ensures: result is the product in the Schubert basis ring
+    /// ```
     #[must_use]
     pub fn csm_intersection(&self, other: &CSMClass) -> CSMClass {
         assert_eq!(
@@ -242,6 +256,12 @@ impl SegreClass {
     /// Compute Segre class from a CSM (Chern) class by formal inversion.
     ///
     /// s = c^{-1} in the ring of Schubert classes.
+    ///
+    /// # Contract
+    ///
+    /// ```text
+    /// ensures: s · c == identity (in the Schubert ring, up to truncation)
+    /// ```
     #[must_use]
     pub fn from_chern(csm: &CSMClass) -> Self {
         let (k, n) = csm.grassmannian;
@@ -299,6 +319,12 @@ impl SegreClass {
     /// ```text
     /// corrected = ∫ s_excess(N) ∩ [X ∩ Y]
     /// ```
+    ///
+    /// # Contract
+    ///
+    /// ```text
+    /// ensures: result == sum of Segre coefficients at codimension excess_dim
+    /// ```
     #[must_use]
     pub fn excess_intersection(&self, excess_dim: usize) -> i64 {
         // Extract the Segre class component of the excess dimension
@@ -316,6 +342,12 @@ impl Namespace {
     ///
     /// A namespace is degenerate if the CSM class of its position
     /// has unexpected Euler characteristic.
+    ///
+    /// # Contract
+    ///
+    /// ```text
+    /// ensures: result == (euler_characteristic(c_SM(position)) != 1)
+    /// ```
     #[must_use]
     pub fn is_degenerate(&self) -> bool {
         let csm = CSMClass::of_schubert_cell(&self.position.partition, self.grassmannian);
@@ -328,6 +360,14 @@ impl Namespace {
     ///
     /// When the intersection is potentially singular, use CSM classes
     /// to get the corrected count.
+    ///
+    /// # Contract
+    ///
+    /// ```text
+    /// ensures: result >= 0 when intersection is transverse
+    /// ensures: result == 1 when self.capabilities.is_empty()
+    /// ```
+    #[must_use]
     pub fn csm_count_configurations(&self) -> i64 {
         if self.capabilities.is_empty() {
             return 1;
@@ -446,6 +486,31 @@ fn gen_partitions(
     }
 }
 
+/// Batch compute CSM classes of Schubert cells in parallel.
+#[cfg(feature = "parallel")]
+#[must_use]
+pub fn csm_of_cells_batch(
+    partitions: &[Vec<usize>],
+    grassmannian: (usize, usize),
+) -> Vec<CSMClass> {
+    use rayon::prelude::*;
+    partitions
+        .par_iter()
+        .map(|part| CSMClass::of_schubert_cell(part, grassmannian))
+        .collect()
+}
+
+/// Batch compute Euler characteristics of CSM classes in parallel.
+#[cfg(feature = "parallel")]
+#[must_use]
+pub fn euler_characteristic_batch(classes: &[CSMClass]) -> Vec<i64> {
+    use rayon::prelude::*;
+    classes
+        .par_iter()
+        .map(|csm| csm.euler_characteristic())
+        .collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -537,5 +602,28 @@ mod tests {
         let d = dual.unwrap();
         // Dual of (2,1) in 2×2 box: (2-1, 2-2) = (1, 0) → (1)
         assert_eq!(d, Partition::new(vec![1]));
+    }
+
+    #[cfg(feature = "parallel")]
+    #[test]
+    fn test_csm_of_cells_batch() {
+        let partitions = vec![vec![], vec![1], vec![2, 1]];
+        let results = super::csm_of_cells_batch(&partitions, (2, 4));
+        assert_eq!(results.len(), 3);
+        // Top cell should have identity coefficient
+        assert_eq!(results[0].coefficients.get(&Partition::empty()), Some(&1));
+    }
+
+    #[cfg(feature = "parallel")]
+    #[test]
+    fn test_euler_characteristic_batch() {
+        let classes = vec![
+            CSMClass::of_schubert_cell(&[], (2, 4)),
+            CSMClass::of_schubert_cell(&[1], (2, 4)),
+        ];
+        let results = super::euler_characteristic_batch(&classes);
+        assert_eq!(results.len(), 2);
+        // Top cell Euler characteristic = 1
+        assert_eq!(results[0], 1);
     }
 }

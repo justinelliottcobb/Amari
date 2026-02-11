@@ -79,6 +79,7 @@ impl WDVVEngine {
     /// requires: degree >= 1
     /// ensures: result >= 1
     /// ```
+    #[must_use = "curve count is computed but not used"]
     pub fn rational_curve_count(&mut self, degree: u64) -> u128 {
         if let Some(&cached) = self.curve_cache.get(&degree) {
             return cached;
@@ -119,6 +120,7 @@ impl WDVVEngine {
     /// requires: k <= n
     /// ensures: result == n! / (k! * (n-k)!)
     /// ```
+    #[must_use = "binomial coefficient is computed but not used"]
     pub fn binomial(&mut self, n: u64, k: u64) -> u128 {
         if k > n {
             return 0;
@@ -169,6 +171,7 @@ impl WDVVEngine {
     /// requires: degree >= 1
     /// ensures: result == rational_curve_count(degree) (truncated to u64)
     /// ```
+    #[must_use = "GW invariant is computed but not used"]
     pub fn gw_invariant_rational(&mut self, degree: u64) -> u64 {
         self.rational_curve_count(degree) as u64
     }
@@ -240,6 +243,22 @@ pub mod targets {
     }
 }
 
+/// Batch compute rational curve counts for multiple degrees in parallel.
+///
+/// Each degree is computed independently with its own `WDVVEngine`.
+#[cfg(feature = "parallel")]
+#[must_use]
+pub fn rational_curve_count_batch(degrees: &[u64]) -> Vec<u128> {
+    use rayon::prelude::*;
+    degrees
+        .par_iter()
+        .map(|&d| {
+            let mut engine = WDVVEngine::new();
+            engine.rational_curve_count(d)
+        })
+        .collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -273,7 +292,7 @@ mod tests {
         let mut engine = WDVVEngine::new();
         // Compute up to degree 5
         for d in 1..=5 {
-            engine.rational_curve_count(d);
+            let _ = engine.rational_curve_count(d);
         }
 
         let table = engine.table();
@@ -351,5 +370,13 @@ mod tests {
     fn test_engine_default() {
         let engine = WDVVEngine::default();
         assert_eq!(engine.curve_cache.len(), 2); // base cases seeded
+    }
+
+    #[cfg(feature = "parallel")]
+    #[test]
+    fn test_rational_curve_count_batch() {
+        let degrees = vec![1, 2, 3, 4, 5];
+        let results = super::rational_curve_count_batch(&degrees);
+        assert_eq!(results, vec![1, 1, 12, 620, 87304]);
     }
 }
