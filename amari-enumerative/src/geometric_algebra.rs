@@ -12,6 +12,9 @@ use amari_core::{Multivector, Rotor};
 use num_rational::Rational64;
 use std::collections::HashMap;
 
+#[cfg(feature = "parallel")]
+use rayon::prelude::*;
+
 /// Common geometric algebra signatures for enumerative geometry
 pub mod signatures {
     use amari_core::Multivector;
@@ -261,6 +264,7 @@ impl<const P: usize, const Q: usize, const R: usize> GeometricSchubertClass<P, Q
     }
 
     /// Convert to standard Schubert class
+    #[must_use]
     pub fn to_schubert_class(&self) -> &SchubertClass {
         &self.schubert_class
     }
@@ -468,6 +472,13 @@ pub mod quantum_k_theory {
         }
 
         /// Quantum K-theory product incorporating Gromov-Witten corrections
+        ///
+        /// # Contract
+        ///
+        /// ```text
+        /// ensures: result.k_degree == self.k_degree + other.k_degree
+        /// ensures: result.q_power >= self.q_power + other.q_power
+        /// ```
         pub fn quantum_product(&self, other: &Self) -> EnumerativeResult<Self> {
             // Classical K-theory tensor product
             let classical_mv = self.multivector.geometric_product(&other.multivector);
@@ -527,11 +538,25 @@ pub mod quantum_k_theory {
         }
 
         /// Compute the Chern character in cohomology
+        ///
+        /// # Contract
+        ///
+        /// ```text
+        /// ensures: result == sum of all chern_character values
+        /// ```
+        #[must_use]
         pub fn chern_character_total(&self) -> Rational64 {
             self.chern_character.values().sum()
         }
 
         /// Euler characteristic χ(E) = ∫ ch(E) * td(T_X)
+        ///
+        /// # Contract
+        ///
+        /// ```text
+        /// ensures: result == chern_character_total() * todd_class_value(ambient_dimension)
+        /// ```
+        #[must_use]
         pub fn euler_characteristic(&self, ambient_dimension: usize) -> Rational64 {
             let ch_total = self.chern_character_total();
             let todd_correction = self.todd_class_value(ambient_dimension);
@@ -551,6 +576,15 @@ pub mod quantum_k_theory {
         }
 
         /// Dual in quantum K-theory
+        ///
+        /// # Contract
+        ///
+        /// ```text
+        /// ensures: result.k_degree == -self.k_degree
+        /// ensures: result.q_power == -self.q_power
+        /// ensures: forall deg. result.chern_character[deg] == -self.chern_character[deg]
+        /// ```
+        #[must_use]
         pub fn dual(&self) -> Self {
             let dual_mv = self.multivector.reverse(); // Use reverse as dual in GA
             let mut dual_class = Self::new(dual_mv, -self.k_degree, -self.q_power);
@@ -564,6 +598,15 @@ pub mod quantum_k_theory {
         }
 
         /// Apply Adams operations ψᵏ
+        ///
+        /// # Contract
+        ///
+        /// ```text
+        /// ensures: result.k_degree == self.k_degree * k
+        /// ensures: result.q_power == self.q_power * k
+        /// ensures: forall deg. result.chern_character[deg] == k^deg * self.chern_character[deg]
+        /// ```
+        #[must_use]
         pub fn adams_operation(&self, k: i32) -> Self {
             let powered_mv = if k >= 0 {
                 // For positive k, we take a kind of "power" via geometric product
@@ -591,6 +634,13 @@ pub mod quantum_k_theory {
         }
 
         /// Riemann-Roch theorem computation: χ(E) = ∫ ch(E) * td(X)
+        ///
+        /// # Contract
+        ///
+        /// ```text
+        /// ensures: result == sum_{deg} chern_character[deg] * ambient_todd[deg]
+        /// ```
+        #[must_use]
         pub fn riemann_roch_euler(&self, ambient_todd: &[Rational64]) -> Rational64 {
             let mut result = Rational64::from(0);
 
@@ -950,5 +1000,152 @@ mod tests {
 
         let total = bundle.chern_character_total();
         assert_eq!(total, Rational64::from(6)); // 1 + 3 + 2 = 6
+    }
+
+    #[test]
+    fn test_plucker_embedding_error_case() {
+        // Partition [3,2] in Gr(2,4): index 0→3, index 1→3.
+        // Both are within bounds (< 4), so this should succeed.
+        // But partition [3,3] in Gr(2,4): index 0→3, index 1→4 → exceeds n=4
+        let result = GeometricSchubertClass::<4, 0, 0>::new(vec![3, 3], (2, 4));
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_geometric_intersection_mismatched_grassmannians() {
+        let s1 = GeometricSchubertClass::<4, 0, 0>::new(vec![1], (2, 4)).unwrap();
+        // Create a class for Gr(2,3) — different Grassmannian
+        let s2 = GeometricSchubertClass::<4, 0, 0>::new(vec![1], (2, 3)).unwrap();
+        let result = s1.geometric_intersection(&s2);
+        assert!(result.is_err());
+    }
+
+    #[cfg(feature = "tropical-schubert")]
+    #[test]
+    fn test_tropicalize_multivector_standalone() {
+        let mv = Multivector::<4, 0, 0>::scalar(1.0);
+        let tropical = tropicalize_multivector(&mv);
+        // Scalar 1.0 → val(1) = -ln(1) = 0 for the nonzero coeff
+        assert!(!tropical.is_empty());
+    }
+
+    #[test]
+    fn test_tangent_bundle_projective() {
+        use super::quantum_k_theory::QuantumKClass;
+
+        let tangent = QuantumKClass::<3, 0, 0>::tangent_bundle_projective(2);
+        assert_eq!(tangent.k_degree, 2);
+        // Tangent bundle of P^2 should have Chern chars at degrees 1 and 2
+        assert!(tangent.chern_character.contains_key(&1));
+        assert!(tangent.chern_character.contains_key(&2));
+    }
+
+    #[test]
+    fn test_dual_involution() {
+        use super::quantum_k_theory::QuantumKClass;
+
+        let bundle = QuantumKClass::<3, 0, 0>::line_bundle(3);
+        let dual = bundle.dual();
+
+        // Dual negates k_degree and Chern characters
+        assert_eq!(dual.k_degree, -bundle.k_degree);
+        assert_eq!(*dual.chern_character.get(&1).unwrap(), Rational64::from(-3));
+
+        // Double dual should restore signs
+        let double_dual = dual.dual();
+        assert_eq!(double_dual.k_degree, bundle.k_degree);
+        assert_eq!(
+            *double_dual.chern_character.get(&1).unwrap(),
+            Rational64::from(3)
+        );
+    }
+
+    #[test]
+    fn test_geometric_variety_point_dimension_check() {
+        let p1 = GeometricVariety::<3, 0, 0>::point(&[1.0, 0.0, 0.0]).unwrap();
+        let line = GeometricVariety::<3, 0, 0>::point(&[0.0, 1.0, 0.0]).unwrap();
+        let plane = GeometricVariety::line_through_points(&p1, &line).unwrap();
+
+        // contains_point only works for dimension-0 varieties as input
+        assert!(!plane.contains_point(&plane));
+    }
+
+    #[test]
+    fn test_localized_integral_empty() {
+        use super::quantum_k_theory::QuantumKClass;
+
+        let bundle = QuantumKClass::<3, 0, 0>::line_bundle(1);
+        let result = bundle.localized_integral(&[]).unwrap();
+        assert_eq!(result, Rational64::from(0));
+    }
+}
+
+// ============================================================================
+// Parallel Batch Operations
+// ============================================================================
+
+/// Tropicalize multiple multivectors in parallel
+///
+/// # Contract
+///
+/// ```text
+/// ensures: result.len() == multivectors.len()
+/// ```
+#[cfg(all(feature = "tropical-schubert", feature = "parallel"))]
+pub fn tropicalize_multivector_batch<const P: usize, const Q: usize, const R: usize>(
+    multivectors: &[Multivector<P, Q, R>],
+) -> Vec<Vec<i64>> {
+    multivectors
+        .par_iter()
+        .map(tropicalize_multivector)
+        .collect()
+}
+
+/// Compute geometric intersections for multiple Schubert class pairs in parallel
+///
+/// # Contract
+///
+/// ```text
+/// ensures: result.len() == pairs.len()
+/// ```
+#[cfg(feature = "parallel")]
+pub fn geometric_intersection_batch<const P: usize, const Q: usize, const R: usize>(
+    pairs: &[(
+        GeometricSchubertClass<P, Q, R>,
+        GeometricSchubertClass<P, Q, R>,
+    )],
+) -> Vec<EnumerativeResult<GeometricSchubertClass<P, Q, R>>> {
+    pairs
+        .par_iter()
+        .map(|(a, b)| a.geometric_intersection(b))
+        .collect()
+}
+
+// ============================================================================
+// Parallel Batch Operation Tests
+// ============================================================================
+
+#[cfg(all(test, feature = "parallel"))]
+mod parallel_tests {
+    use super::*;
+
+    #[test]
+    fn test_geometric_intersection_batch() {
+        let s1 = GeometricSchubertClass::<4, 0, 0>::new(vec![1], (2, 4)).unwrap();
+        let pairs = vec![(s1.clone(), s1.clone())];
+        let results = geometric_intersection_batch(&pairs);
+        assert_eq!(results.len(), 1);
+        assert!(results[0].is_ok());
+    }
+
+    #[cfg(feature = "tropical-schubert")]
+    #[test]
+    fn test_tropicalize_multivector_batch() {
+        let mvs = vec![
+            Multivector::<4, 0, 0>::scalar(1.0),
+            Multivector::<4, 0, 0>::scalar(2.0),
+        ];
+        let results = tropicalize_multivector_batch(&mvs);
+        assert_eq!(results.len(), 2);
     }
 }

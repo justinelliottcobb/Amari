@@ -696,6 +696,12 @@ impl<const P: usize, const Q: usize, const R: usize> QuantumCapability<P, Q, R> 
     ///
     /// While the classical `count_configurations` gives the intersection number,
     /// this gives chi(E) = integral ch(E) * td(X), which accounts for higher cohomology.
+    ///
+    /// # Contract
+    ///
+    /// ```text
+    /// ensures: result == self.k_class.euler_characteristic(ambient_dimension)
+    /// ```
     #[must_use]
     pub fn euler_characteristic(&self, ambient_dimension: usize) -> Rational64 {
         self.k_class.euler_characteristic(ambient_dimension)
@@ -706,6 +712,13 @@ impl<const P: usize, const Q: usize, const R: usize> QuantumCapability<P, Q, R> 
     /// Models "k-fold amplification" of the access right.
     /// psi^k preserves the underlying Schubert class but modifies
     /// the K-theoretic refinement.
+    ///
+    /// # Contract
+    ///
+    /// ```text
+    /// ensures: result.capability == self.capability  (Schubert class unchanged)
+    /// ensures: result.k_class == psi^k(self.k_class)
+    /// ```
     #[must_use]
     pub fn amplify(&self, k: i32) -> Self {
         Self {
@@ -986,6 +999,55 @@ mod tests {
         let (classical, _euler) = ns.quantum_count_configurations(&quantum_caps);
         // Classical count should still be 2
         assert_eq!(classical, IntersectionResult::Finite(2));
+    }
+
+    #[test]
+    fn test_quantum_count_empty_caps() {
+        let ns = Namespace::full("agent", 2, 4).unwrap();
+        let empty_caps: Vec<QuantumCapability<4, 0, 0>> = vec![];
+        let (classical, euler) = ns.quantum_count_configurations(&empty_caps);
+        // No capabilities → positive-dimensional (full Grassmannian)
+        assert!(matches!(
+            classical,
+            IntersectionResult::PositiveDimensional { .. }
+        ));
+        // Empty product of Euler chars → identity = 1
+        assert_eq!(euler, Rational64::from(1));
+    }
+
+    #[test]
+    fn test_amplify_preserves_capability() {
+        let cap = Capability::new("read", "Read", vec![1], (2, 4)).unwrap();
+        let mut qcap = QuantumCapability::<4, 0, 0>::from_classical(cap);
+        qcap.k_class = QuantumKClass::line_bundle(1);
+
+        let amplified = qcap.amplify(3);
+        // Amplification preserves the underlying classical capability
+        assert_eq!(amplified.capability.id, qcap.capability.id);
+        assert_eq!(
+            amplified.capability.codimension(),
+            qcap.capability.codimension()
+        );
+        // psi^3 on O(1): c_1 → 3^1 * 1 = 3
+        assert_eq!(
+            *amplified.k_class.chern_character.get(&1).unwrap(),
+            Rational64::from(3)
+        );
+    }
+
+    #[test]
+    fn test_quantum_capability_with_explicit_k_class() {
+        use crate::geometric_algebra::quantum_k_theory::QuantumKClass;
+
+        let cap = Capability::new("exec", "Execute", vec![1, 1], (2, 4)).unwrap();
+        let k_class = QuantumKClass::<4, 0, 0>::line_bundle(2);
+        let qcap = QuantumCapability::new(cap, k_class);
+
+        assert_eq!(qcap.capability.codimension(), 2);
+        assert_eq!(
+            *qcap.k_class.chern_character.get(&1).unwrap(),
+            Rational64::from(2)
+        );
     }
 }
 

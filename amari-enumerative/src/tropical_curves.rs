@@ -6,6 +6,9 @@
 use crate::EnumerativeResult;
 use std::collections::HashMap;
 
+#[cfg(feature = "parallel")]
+use rayon::prelude::*;
+
 /// Tropical curve in tropical projective space
 #[derive(Debug, Clone)]
 pub struct TropicalCurve {
@@ -100,6 +103,14 @@ impl TropicalCurve {
     }
 
     /// Compute the number of tropical curves of given degree through given points
+    ///
+    /// # Contract
+    ///
+    /// ```text
+    /// requires: degree >= 1
+    /// ensures: result >= 0
+    /// ```
+    #[must_use]
     pub fn count_through_points(points: &[TropicalPoint], degree: i64) -> i64 {
         // Simplified tropical curve counting
         // Real implementation requires sophisticated tropical geometry
@@ -136,6 +147,15 @@ impl TropicalPoint {
     }
 
     /// Tropical distance to another point
+    ///
+    /// # Contract
+    ///
+    /// ```text
+    /// requires: self.coordinates.len() == other.coordinates.len()
+    /// ensures: result >= 0.0
+    /// ensures: self == other => result == 0.0
+    /// ```
+    #[must_use]
     pub fn tropical_distance(&self, other: &Self) -> f64 {
         // Tropical metric is essentially max metric after appropriate scaling
         self.coordinates
@@ -214,6 +234,14 @@ impl TropicalIntersection {
     }
 
     /// Compute tropical Bézout bound
+    ///
+    /// # Contract
+    ///
+    /// ```text
+    /// requires: degree1 >= 1, degree2 >= 1, dimension >= 1
+    /// ensures: result == degree1 * degree2 * dimension
+    /// ```
+    #[must_use]
     pub fn tropical_bezout_bound(degree1: i64, degree2: i64, dimension: usize) -> i64 {
         // In tropical projective space, the bound is degree1 * degree2 * dimension
         degree1 * degree2 * (dimension as i64)
@@ -294,7 +322,7 @@ impl TropicalIntersection {
 }
 
 /// Result of Mikhalkin correspondence verification
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct MikhalkinResult {
     /// Weighted count of tropical curves
     pub tropical_count: Option<u64>,
@@ -343,6 +371,15 @@ impl TropicalModuliSpace {
     }
 
     /// Compute the dimension of the tropical moduli space
+    ///
+    /// # Contract
+    ///
+    /// ```text
+    /// ensures: genus == 0 && marked_points <= 3 => result == 0
+    /// ensures: genus >= 1 => result == 3*genus - 3 + marked_points
+    /// ensures: genus == 0 && marked_points > 3 => result == marked_points - 3
+    /// ```
+    #[must_use]
     pub fn dimension(&self) -> usize {
         // Formula: 3g - 3 + n for genus g and n marked points
         if self.genus == 0 && self.marked_points <= 3 {
@@ -356,6 +393,13 @@ impl TropicalModuliSpace {
     }
 
     /// Sample a random tropical curve from the moduli space
+    ///
+    /// # Contract
+    ///
+    /// ```text
+    /// ensures: result.genus == self.genus
+    /// ```
+    #[must_use]
     pub fn sample_curve(&self) -> TropicalCurve {
         TropicalCurve::new(1, self.genus)
     }
@@ -428,5 +472,163 @@ mod tests {
         curve.add_edge(TropicalEdge::new(0, 3, 1, vec![-1.0, -2.0]));
 
         assert_eq!(curve.multiplicity(), 3);
+    }
+
+    #[test]
+    fn test_tropical_curve_empty_multiplicity() {
+        // An empty curve (no vertices) should have multiplicity 1
+        let curve = TropicalCurve::new(1, 0);
+        assert_eq!(curve.multiplicity(), 1);
+    }
+
+    #[test]
+    fn test_is_balanced() {
+        // Balanced curve: weights cancel at each vertex
+        let mut curve = TropicalCurve::new(1, 0);
+        curve.add_vertex(TropicalPoint::new(0, vec![0.0, 0.0]));
+        curve.add_edge(TropicalEdge::new(0, 1, 1, vec![1.0, 0.0]));
+        curve.add_edge(TropicalEdge::new(2, 0, 1, vec![0.0, 1.0]));
+        // Weights: start=0 contributes +1, end=0 contributes -1 → net 0
+        assert!(curve.is_balanced());
+    }
+
+    #[test]
+    fn test_moduli_space_dimension() {
+        // M_{0,3}: genus 0, 3 marked points → dim 0
+        assert_eq!(TropicalModuliSpace::new(0, 3).dimension(), 0);
+        // M_{0,4}: genus 0, 4 marked points → dim 1
+        assert_eq!(TropicalModuliSpace::new(0, 4).dimension(), 1);
+        // M_{0,5}: genus 0, 5 marked points → dim 2
+        assert_eq!(TropicalModuliSpace::new(0, 5).dimension(), 2);
+        // M_{1,1}: genus 1, 1 marked point → dim 1
+        assert_eq!(TropicalModuliSpace::new(1, 1).dimension(), 1);
+        // M_{2,0}: genus 2, 0 marked points → dim 3
+        assert_eq!(TropicalModuliSpace::new(2, 0).dimension(), 3);
+    }
+
+    #[test]
+    fn test_mikhalkin_unverified_range() {
+        // Degree 6, genus 0: not in lookup table → unverified result
+        let num_points = 3 * 6 - 1; // 3d + g - 1 with d=6, g=0
+        let result =
+            TropicalIntersection::mikhalkin_correspondence_verify(6, 0, num_points).unwrap();
+        assert!(!result.verified);
+        assert_eq!(result.tropical_count, None);
+        assert_eq!(result.classical_count, None);
+    }
+
+    #[test]
+    fn test_tropical_bezout_bound() {
+        // degree 2 × degree 3 in dimension 2 = 12
+        assert_eq!(TropicalIntersection::tropical_bezout_bound(2, 3, 2), 12);
+        // degree 1 × degree 1 in dimension 3 = 3
+        assert_eq!(TropicalIntersection::tropical_bezout_bound(1, 1, 3), 3);
+    }
+
+    #[test]
+    fn test_tropical_distance() {
+        let p1 = TropicalPoint::new(0, vec![1.0, 2.0, 3.0]);
+        let p2 = TropicalPoint::new(1, vec![4.0, 2.0, 1.0]);
+        // Max of |1-4|, |2-2|, |3-1| = max(3, 0, 2) = 3
+        assert!((p1.tropical_distance(&p2) - 3.0).abs() < 1e-10);
+        // Distance to self is 0
+        assert!((p1.tropical_distance(&p1) - 0.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_mikhalkin_result_equality() {
+        let r1 = MikhalkinResult {
+            tropical_count: Some(12),
+            classical_count: Some(12),
+            verified: true,
+        };
+        let r2 = MikhalkinResult {
+            tropical_count: Some(12),
+            classical_count: Some(12),
+            verified: true,
+        };
+        assert_eq!(r1, r2);
+    }
+
+    #[test]
+    fn test_sample_curve() {
+        let moduli = TropicalModuliSpace::new(2, 5);
+        let curve = moduli.sample_curve();
+        assert_eq!(curve.genus, 2);
+    }
+}
+
+// ============================================================================
+// Parallel Batch Operations
+// ============================================================================
+
+/// Verify Mikhalkin correspondence for multiple (degree, genus) pairs in parallel
+///
+/// # Contract
+///
+/// ```text
+/// ensures: result.len() == pairs.len()
+/// ```
+#[cfg(feature = "parallel")]
+pub fn verify_mikhalkin_gw_batch(pairs: &[(i64, usize)]) -> Vec<EnumerativeResult<bool>> {
+    pairs
+        .par_iter()
+        .map(|&(degree, genus)| verify_mikhalkin_gw(degree, genus))
+        .collect()
+}
+
+/// Compute Mikhalkin correspondence for multiple inputs in parallel
+///
+/// # Contract
+///
+/// ```text
+/// ensures: result.len() == inputs.len()
+/// ```
+#[cfg(feature = "parallel")]
+pub fn mikhalkin_correspondence_verify_batch(
+    inputs: &[(i64, usize, usize)],
+) -> Vec<EnumerativeResult<MikhalkinResult>> {
+    inputs
+        .par_iter()
+        .map(|&(degree, genus, num_points)| {
+            TropicalIntersection::mikhalkin_correspondence_verify(degree, genus, num_points)
+        })
+        .collect()
+}
+
+// ============================================================================
+// Parallel Batch Operation Tests
+// ============================================================================
+
+#[cfg(all(test, feature = "parallel"))]
+mod parallel_tests {
+    use super::*;
+
+    #[test]
+    fn test_verify_mikhalkin_gw_batch() {
+        let pairs = vec![(1, 0), (2, 0), (3, 0), (4, 0)];
+        let results = verify_mikhalkin_gw_batch(&pairs);
+
+        assert_eq!(results.len(), 4);
+        for result in &results {
+            assert!(result.as_ref().unwrap());
+        }
+    }
+
+    #[test]
+    fn test_mikhalkin_correspondence_verify_batch() {
+        let inputs = vec![
+            (1, 0, 2),  // N_{1,0} = 1
+            (2, 0, 5),  // N_{2,0} = 1
+            (3, 0, 8),  // N_{3,0} = 12
+            (4, 0, 11), // N_{4,0} = 620
+        ];
+        let results = mikhalkin_correspondence_verify_batch(&inputs);
+
+        assert_eq!(results.len(), 4);
+        assert_eq!(results[0].as_ref().unwrap().classical_count, Some(1));
+        assert_eq!(results[1].as_ref().unwrap().classical_count, Some(1));
+        assert_eq!(results[2].as_ref().unwrap().classical_count, Some(12));
+        assert_eq!(results[3].as_ref().unwrap().classical_count, Some(620));
     }
 }

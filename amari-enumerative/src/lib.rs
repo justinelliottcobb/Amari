@@ -107,6 +107,8 @@ pub use littlewood_richardson::{
 
 // Parallel batch operations (when parallel feature is enabled)
 #[cfg(feature = "parallel")]
+pub use geometric_algebra::geometric_intersection_batch;
+#[cfg(feature = "parallel")]
 pub use littlewood_richardson::lr_coefficients_batch;
 #[cfg(feature = "parallel")]
 pub use namespace::{
@@ -114,6 +116,8 @@ pub use namespace::{
 };
 #[cfg(feature = "parallel")]
 pub use schubert::multi_intersect_batch;
+#[cfg(feature = "parallel")]
+pub use tropical_curves::{mikhalkin_correspondence_verify_batch, verify_mikhalkin_gw_batch};
 
 // Namespace exports for ShaperOS
 pub use namespace::{
@@ -128,6 +132,8 @@ pub use tropical_curves::{
 };
 
 // Optional tropical Schubert exports
+#[cfg(all(feature = "tropical-schubert", feature = "parallel"))]
+pub use geometric_algebra::tropicalize_multivector_batch;
 #[cfg(all(feature = "tropical-schubert", feature = "parallel"))]
 pub use tropical_schubert::{tropical_convexity_batch, tropical_intersection_batch};
 #[cfg(feature = "tropical-schubert")]
