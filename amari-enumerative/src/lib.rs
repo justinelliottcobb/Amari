@@ -77,6 +77,8 @@ pub mod tropical_curves;
 pub mod tropical_schubert;
 
 // Re-export core types
+#[cfg(feature = "tropical-schubert")]
+pub use geometric_algebra::tropicalize_multivector;
 pub use geometric_algebra::{
     quantum_k_theory, signatures, GeometricProjectiveSpace, GeometricSchubertClass,
     GeometricVariety,
@@ -116,12 +118,13 @@ pub use schubert::multi_intersect_batch;
 // Namespace exports for ShaperOS
 pub use namespace::{
     capability_accessible, namespace_intersection, Capability, CapabilityId, Namespace,
-    NamespaceBuilder, NamespaceError, NamespaceIntersection,
+    NamespaceBuilder, NamespaceError, NamespaceIntersection, QuantumCapability,
 };
 
 // Tropical curves
 pub use tropical_curves::{
-    TropicalCurve, TropicalEdge, TropicalIntersection, TropicalModuliSpace, TropicalPoint,
+    verify_mikhalkin_gw, MikhalkinResult, TropicalCurve, TropicalEdge, TropicalIntersection,
+    TropicalModuliSpace, TropicalPoint,
 };
 
 // Optional tropical Schubert exports
