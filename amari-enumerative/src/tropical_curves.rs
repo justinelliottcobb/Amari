@@ -290,32 +290,23 @@ impl TropicalIntersection {
             )));
         }
 
-        // Known classical values (genus 0, P^2):
-        // N_{1,0} = 1 (one line through 2 points)
-        // N_{2,0} = 1 (one conic through 5 points)
-        // N_{3,0} = 12 (Kontsevich's formula)
-        // N_{4,0} = 620
-        // N_{5,0} = 87304
-        let classical_count = match (degree, genus) {
-            (1, 0) => 1,
-            (2, 0) => 1,
-            (3, 0) => 12,
-            (4, 0) => 620,
-            (5, 0) => 87304,
-            _ => {
-                // For genus 0 beyond known range, or higher genus,
-                // return unverified result
-                return Ok(MikhalkinResult {
-                    tropical_count: None,
-                    classical_count: None,
-                    verified: false,
-                });
-            }
+        // For genus 0, use WDVV/Kontsevich recursion to compute N_d exactly.
+        // For higher genus, we don't yet have a recursive formula.
+        let classical_count = if genus == 0 {
+            let mut engine = crate::wdvv::WDVVEngine::new();
+            engine.rational_curve_count(degree as u64) as u64
+        } else {
+            // Higher genus: return unverified result
+            return Ok(MikhalkinResult {
+                tropical_count: None,
+                classical_count: None,
+                verified: false,
+            });
         };
 
         Ok(MikhalkinResult {
-            tropical_count: Some(classical_count as u64),
-            classical_count: Some(classical_count as u64),
+            tropical_count: Some(classical_count),
+            classical_count: Some(classical_count),
             verified: true,
         })
     }
@@ -508,13 +499,23 @@ mod tests {
 
     #[test]
     fn test_mikhalkin_unverified_range() {
-        // Degree 6, genus 0: not in lookup table → unverified result
-        let num_points = 3 * 6 - 1; // 3d + g - 1 with d=6, g=0
+        // Genus > 0 is still unverified (WDVV only handles genus 0)
+        let num_points = 3 * 3 + 1 - 1; // 3d + g - 1 with d=3, g=1
         let result =
-            TropicalIntersection::mikhalkin_correspondence_verify(6, 0, num_points).unwrap();
+            TropicalIntersection::mikhalkin_correspondence_verify(3, 1, num_points).unwrap();
         assert!(!result.verified);
         assert_eq!(result.tropical_count, None);
         assert_eq!(result.classical_count, None);
+    }
+
+    #[test]
+    fn test_mikhalkin_degree6_now_verified() {
+        // Degree 6, genus 0: now verified via WDVV recursion
+        let num_points = 3 * 6 - 1; // 3d + g - 1 with d=6, g=0
+        let result =
+            TropicalIntersection::mikhalkin_correspondence_verify(6, 0, num_points).unwrap();
+        assert!(result.verified);
+        assert_eq!(result.classical_count, Some(26312976));
     }
 
     #[test]

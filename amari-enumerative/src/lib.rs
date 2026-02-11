@@ -61,17 +61,23 @@
 pub mod comprehensive_tests;
 pub mod verified_contracts;
 
+pub mod csm;
 pub mod geometric_algebra;
 pub mod gromov_witten;
 pub mod higher_genus;
 pub mod intersection;
 pub mod littlewood_richardson;
+pub mod localization;
+pub mod matroid;
 pub mod moduli_space;
 pub mod namespace;
+pub mod operad;
 pub mod performance;
 pub mod phantom;
 pub mod schubert;
+pub mod stability;
 pub mod tropical_curves;
+pub mod wdvv;
 
 #[cfg(feature = "tropical-schubert")]
 pub mod tropical_schubert;
@@ -202,5 +208,26 @@ pub enum EnumerativeError {
 
 /// Result type for enumerative geometry computations
 pub type EnumerativeResult<T> = Result<T, EnumerativeError>;
+
+// WDVV recursion
+pub use wdvv::WDVVEngine;
+
+// Equivariant localization
+pub use localization::{EquivariantLocalizer, FixedPoint, TorusWeights};
+
+// Matroids
+pub use matroid::{Matroid, ValuatedMatroid};
+
+// CSM classes
+pub use csm::{CSMClass, SegreClass};
+
+// Operadic composition
+pub use operad::{
+    compose_namespaces, composition_multiplicity, interfaces_compatible, ComposableNamespace,
+    Interface, InterfaceDirection,
+};
+
+// Wall-crossing / stability
+pub use stability::{StabilityCondition, Wall, WallCrossingEngine};
 
 // GPU acceleration exports
