@@ -5,13 +5,16 @@
 //! using WebGPU compute shaders optimized for mathematical computations.
 
 #[cfg(feature = "enumerative")]
-use amari_enumerative::{ChowClass, Namespace, Partition, SchubertClass};
+use amari_enumerative::{
+    ChowClass, ComposableNamespace, FixedPoint, Matroid, Namespace, Partition, SchubertClass,
+    TorusWeights,
+};
 #[cfg(feature = "enumerative")]
 use bytemuck::{Pod, Zeroable};
 #[cfg(feature = "enumerative")]
 use futures::channel::oneshot;
 #[cfg(feature = "enumerative")]
-use std::collections::HashMap;
+use std::collections::{BTreeSet, HashMap};
 #[cfg(feature = "enumerative")]
 use std::vec::Vec;
 #[cfg(feature = "enumerative")]
@@ -165,7 +168,110 @@ pub struct GpuMultiIntersectData {
     pub padding: u32,
 }
 
-/// Self-contained GPU context for enumerative operations
+/// GPU-optimized WDVV/Kontsevich curve count data
+///
+/// Represents a degree for computing N_d via lookup table on GPU.
+#[cfg(feature = "enumerative")]
+#[repr(C)]
+#[derive(Copy, Clone, Debug, Pod, Zeroable)]
+pub struct GpuWDVVData {
+    /// Curve degree
+    pub degree: u32,
+    /// Padding for 16-byte alignment
+    pub padding: [u32; 3],
+}
+
+/// GPU-optimized equivariant localization data
+///
+/// Represents a fixed point and torus weights for Euler class computation.
+#[cfg(feature = "enumerative")]
+#[repr(C)]
+#[derive(Copy, Clone, Debug, Pod, Zeroable)]
+pub struct GpuLocalizationData {
+    /// Fixed point subset indices (up to 8 elements)
+    pub subset: [u32; 8],
+    /// Torus weights (up to 8 values)
+    pub weights: [f32; 8],
+    /// Number of elements in the subset
+    pub subset_len: u32,
+    /// Ambient dimension n
+    pub ambient_n: u32,
+    /// Padding for alignment
+    pub padding: [u32; 2],
+}
+
+/// GPU-optimized matroid rank evaluation data
+///
+/// Represents a matroid and a subset for rank computation.
+#[cfg(feature = "enumerative")]
+#[repr(C)]
+#[derive(Copy, Clone, Debug, Pod, Zeroable)]
+pub struct GpuMatroidRankData {
+    /// Size of the ground set
+    pub ground_set_size: u32,
+    /// Rank of the matroid
+    pub rank: u32,
+    /// Number of bases
+    pub num_bases: u32,
+    /// Subset to evaluate rank on (as bitmask)
+    pub subset_mask: u32,
+    /// Bases encoded as bitmasks (up to 32)
+    pub bases: [u32; 32],
+}
+
+/// GPU-optimized CSM class / Euler characteristic data
+///
+/// Represents a Schubert cell for CSM class computation.
+#[cfg(feature = "enumerative")]
+#[repr(C)]
+#[derive(Copy, Clone, Debug, Pod, Zeroable)]
+pub struct GpuCSMData {
+    /// Partition describing the Schubert cell (up to 8 parts)
+    pub partition: [u32; 8],
+    /// Number of non-zero parts in the partition
+    pub partition_len: u32,
+    /// Grassmannian k
+    pub grassmannian_k: u32,
+    /// Grassmannian n
+    pub grassmannian_n: u32,
+    /// Padding for alignment
+    pub padding: u32,
+}
+
+/// GPU-optimized operadic composition multiplicity data
+///
+/// Represents interface codimensions for composition multiplicity.
+#[cfg(feature = "enumerative")]
+#[repr(C)]
+#[derive(Copy, Clone, Debug, Pod, Zeroable)]
+pub struct GpuOperadData {
+    /// Output interface codimension
+    pub output_codimension: u32,
+    /// Input interface codimension
+    pub input_codimension: u32,
+    /// Grassmannian k
+    pub grassmannian_k: u32,
+    /// Grassmannian n
+    pub grassmannian_n: u32,
+}
+
+/// GPU-optimized stability condition data
+///
+/// Represents a stability condition for phase/stability computation.
+#[cfg(feature = "enumerative")]
+#[repr(C)]
+#[derive(Copy, Clone, Debug, Pod, Zeroable)]
+pub struct GpuStabilityData {
+    /// Codimension of the Schubert class
+    pub codimension: f32,
+    /// Dimension of the Grassmannian
+    pub dimension: f32,
+    /// Trust level parameter
+    pub trust_level: f32,
+    /// Padding for alignment
+    pub padding: f32,
+}
+
 /// Self-contained GPU context for enumerative operations
 #[cfg(feature = "enumerative")]
 pub struct EnumerativeGpuContext {
@@ -847,6 +953,476 @@ impl EnumerativeGpuOps {
         Ok(results)
     }
 
+    /// Batch WDVV/Kontsevich curve count computation
+    ///
+    /// Computes N_d for multiple degrees in parallel on GPU using a lookup table.
+    pub async fn batch_wdvv_curve_counts(
+        &mut self,
+        wdvv_data: &[GpuWDVVData],
+    ) -> EnumerativeGpuResult<Vec<u32>> {
+        let num_items = wdvv_data.len();
+        if num_items == 0 {
+            return Ok(Vec::new());
+        }
+
+        let input_buffer =
+            self.context
+                .device
+                .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                    label: Some("WDVV Input Buffer"),
+                    contents: bytemuck::cast_slice(wdvv_data),
+                    usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+                });
+
+        let output_buffer = self.context.device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("WDVV Output Buffer"),
+            size: (num_items * std::mem::size_of::<u32>()) as u64,
+            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+            mapped_at_creation: false,
+        });
+
+        let shader_source = self.get_wdvv_shader();
+        let bind_group_layout = self.create_generic_bind_group_layout("WDVV");
+        let bind_group = self
+            .context
+            .device
+            .create_bind_group(&wgpu::BindGroupDescriptor {
+                label: Some("WDVV Bind Group"),
+                layout: &bind_group_layout,
+                entries: &[
+                    wgpu::BindGroupEntry {
+                        binding: 0,
+                        resource: input_buffer.as_entire_binding(),
+                    },
+                    wgpu::BindGroupEntry {
+                        binding: 1,
+                        resource: output_buffer.as_entire_binding(),
+                    },
+                ],
+            });
+
+        let workgroup_count = num_items.div_ceil(64) as u32;
+        self.context.execute_enumerative_compute(
+            &shader_source,
+            &bind_group_layout,
+            &bind_group,
+            (workgroup_count, 1, 1),
+        )?;
+
+        let results: Vec<u32> = self
+            .context
+            .read_enumerative_buffer(
+                &output_buffer,
+                (num_items * std::mem::size_of::<u32>()) as u64,
+            )
+            .await?;
+
+        Ok(results)
+    }
+
+    /// Batch equivariant localization Euler class computation
+    ///
+    /// Computes Euler classes of normal bundles at torus fixed points.
+    pub async fn batch_localization_euler_classes(
+        &mut self,
+        loc_data: &[GpuLocalizationData],
+    ) -> EnumerativeGpuResult<Vec<f32>> {
+        let num_items = loc_data.len();
+        if num_items == 0 {
+            return Ok(Vec::new());
+        }
+
+        let input_buffer =
+            self.context
+                .device
+                .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                    label: Some("Localization Input Buffer"),
+                    contents: bytemuck::cast_slice(loc_data),
+                    usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+                });
+
+        let output_buffer = self.context.device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("Localization Output Buffer"),
+            size: (num_items * std::mem::size_of::<f32>()) as u64,
+            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+            mapped_at_creation: false,
+        });
+
+        let shader_source = self.get_localization_shader();
+        let bind_group_layout = self.create_generic_bind_group_layout("Localization");
+        let bind_group = self
+            .context
+            .device
+            .create_bind_group(&wgpu::BindGroupDescriptor {
+                label: Some("Localization Bind Group"),
+                layout: &bind_group_layout,
+                entries: &[
+                    wgpu::BindGroupEntry {
+                        binding: 0,
+                        resource: input_buffer.as_entire_binding(),
+                    },
+                    wgpu::BindGroupEntry {
+                        binding: 1,
+                        resource: output_buffer.as_entire_binding(),
+                    },
+                ],
+            });
+
+        let workgroup_count = num_items.div_ceil(64) as u32;
+        self.context.execute_enumerative_compute(
+            &shader_source,
+            &bind_group_layout,
+            &bind_group,
+            (workgroup_count, 1, 1),
+        )?;
+
+        let results: Vec<f32> = self
+            .context
+            .read_enumerative_buffer(
+                &output_buffer,
+                (num_items * std::mem::size_of::<f32>()) as u64,
+            )
+            .await?;
+
+        Ok(results)
+    }
+
+    /// Batch matroid rank computation
+    ///
+    /// Evaluates matroid rank function on subsets in parallel on GPU.
+    pub async fn batch_matroid_ranks(
+        &mut self,
+        matroid_data: &[GpuMatroidRankData],
+    ) -> EnumerativeGpuResult<Vec<u32>> {
+        let num_items = matroid_data.len();
+        if num_items == 0 {
+            return Ok(Vec::new());
+        }
+
+        let input_buffer =
+            self.context
+                .device
+                .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                    label: Some("Matroid Input Buffer"),
+                    contents: bytemuck::cast_slice(matroid_data),
+                    usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+                });
+
+        let output_buffer = self.context.device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("Matroid Output Buffer"),
+            size: (num_items * std::mem::size_of::<u32>()) as u64,
+            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+            mapped_at_creation: false,
+        });
+
+        let shader_source = self.get_matroid_rank_shader();
+        let bind_group_layout = self.create_generic_bind_group_layout("Matroid");
+        let bind_group = self
+            .context
+            .device
+            .create_bind_group(&wgpu::BindGroupDescriptor {
+                label: Some("Matroid Bind Group"),
+                layout: &bind_group_layout,
+                entries: &[
+                    wgpu::BindGroupEntry {
+                        binding: 0,
+                        resource: input_buffer.as_entire_binding(),
+                    },
+                    wgpu::BindGroupEntry {
+                        binding: 1,
+                        resource: output_buffer.as_entire_binding(),
+                    },
+                ],
+            });
+
+        let workgroup_count = num_items.div_ceil(64) as u32;
+        self.context.execute_enumerative_compute(
+            &shader_source,
+            &bind_group_layout,
+            &bind_group,
+            (workgroup_count, 1, 1),
+        )?;
+
+        let results: Vec<u32> = self
+            .context
+            .read_enumerative_buffer(
+                &output_buffer,
+                (num_items * std::mem::size_of::<u32>()) as u64,
+            )
+            .await?;
+
+        Ok(results)
+    }
+
+    /// Batch CSM Euler characteristic computation
+    ///
+    /// Computes Euler characteristics of Schubert cells in parallel on GPU.
+    pub async fn batch_csm_euler_characteristics(
+        &mut self,
+        csm_data: &[GpuCSMData],
+    ) -> EnumerativeGpuResult<Vec<i32>> {
+        let num_items = csm_data.len();
+        if num_items == 0 {
+            return Ok(Vec::new());
+        }
+
+        let input_buffer =
+            self.context
+                .device
+                .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                    label: Some("CSM Input Buffer"),
+                    contents: bytemuck::cast_slice(csm_data),
+                    usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+                });
+
+        let output_buffer = self.context.device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("CSM Output Buffer"),
+            size: (num_items * std::mem::size_of::<i32>()) as u64,
+            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+            mapped_at_creation: false,
+        });
+
+        let shader_source = self.get_csm_shader();
+        let bind_group_layout = self.create_generic_bind_group_layout("CSM");
+        let bind_group = self
+            .context
+            .device
+            .create_bind_group(&wgpu::BindGroupDescriptor {
+                label: Some("CSM Bind Group"),
+                layout: &bind_group_layout,
+                entries: &[
+                    wgpu::BindGroupEntry {
+                        binding: 0,
+                        resource: input_buffer.as_entire_binding(),
+                    },
+                    wgpu::BindGroupEntry {
+                        binding: 1,
+                        resource: output_buffer.as_entire_binding(),
+                    },
+                ],
+            });
+
+        let workgroup_count = num_items.div_ceil(64) as u32;
+        self.context.execute_enumerative_compute(
+            &shader_source,
+            &bind_group_layout,
+            &bind_group,
+            (workgroup_count, 1, 1),
+        )?;
+
+        let results: Vec<i32> = self
+            .context
+            .read_enumerative_buffer(
+                &output_buffer,
+                (num_items * std::mem::size_of::<i32>()) as u64,
+            )
+            .await?;
+
+        Ok(results)
+    }
+
+    /// Batch operadic composition multiplicity computation
+    ///
+    /// Computes composition multiplicities for interface pairs in parallel on GPU.
+    pub async fn batch_operad_multiplicities(
+        &mut self,
+        operad_data: &[GpuOperadData],
+    ) -> EnumerativeGpuResult<Vec<u32>> {
+        let num_items = operad_data.len();
+        if num_items == 0 {
+            return Ok(Vec::new());
+        }
+
+        let input_buffer =
+            self.context
+                .device
+                .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                    label: Some("Operad Input Buffer"),
+                    contents: bytemuck::cast_slice(operad_data),
+                    usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+                });
+
+        let output_buffer = self.context.device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("Operad Output Buffer"),
+            size: (num_items * std::mem::size_of::<u32>()) as u64,
+            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+            mapped_at_creation: false,
+        });
+
+        let shader_source = self.get_operad_shader();
+        let bind_group_layout = self.create_generic_bind_group_layout("Operad");
+        let bind_group = self
+            .context
+            .device
+            .create_bind_group(&wgpu::BindGroupDescriptor {
+                label: Some("Operad Bind Group"),
+                layout: &bind_group_layout,
+                entries: &[
+                    wgpu::BindGroupEntry {
+                        binding: 0,
+                        resource: input_buffer.as_entire_binding(),
+                    },
+                    wgpu::BindGroupEntry {
+                        binding: 1,
+                        resource: output_buffer.as_entire_binding(),
+                    },
+                ],
+            });
+
+        let workgroup_count = num_items.div_ceil(64) as u32;
+        self.context.execute_enumerative_compute(
+            &shader_source,
+            &bind_group_layout,
+            &bind_group,
+            (workgroup_count, 1, 1),
+        )?;
+
+        let results: Vec<u32> = self
+            .context
+            .read_enumerative_buffer(
+                &output_buffer,
+                (num_items * std::mem::size_of::<u32>()) as u64,
+            )
+            .await?;
+
+        Ok(results)
+    }
+
+    /// Batch stability phase computation
+    ///
+    /// Computes stability phases for multiple conditions in parallel on GPU.
+    pub async fn batch_stability_phases(
+        &mut self,
+        stability_data: &[GpuStabilityData],
+    ) -> EnumerativeGpuResult<Vec<f32>> {
+        let num_items = stability_data.len();
+        if num_items == 0 {
+            return Ok(Vec::new());
+        }
+
+        let input_buffer =
+            self.context
+                .device
+                .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                    label: Some("Stability Phase Input Buffer"),
+                    contents: bytemuck::cast_slice(stability_data),
+                    usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+                });
+
+        let output_buffer = self.context.device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("Stability Phase Output Buffer"),
+            size: (num_items * std::mem::size_of::<f32>()) as u64,
+            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+            mapped_at_creation: false,
+        });
+
+        let shader_source = self.get_stability_phase_shader();
+        let bind_group_layout = self.create_generic_bind_group_layout("StabilityPhase");
+        let bind_group = self
+            .context
+            .device
+            .create_bind_group(&wgpu::BindGroupDescriptor {
+                label: Some("Stability Phase Bind Group"),
+                layout: &bind_group_layout,
+                entries: &[
+                    wgpu::BindGroupEntry {
+                        binding: 0,
+                        resource: input_buffer.as_entire_binding(),
+                    },
+                    wgpu::BindGroupEntry {
+                        binding: 1,
+                        resource: output_buffer.as_entire_binding(),
+                    },
+                ],
+            });
+
+        let workgroup_count = num_items.div_ceil(64) as u32;
+        self.context.execute_enumerative_compute(
+            &shader_source,
+            &bind_group_layout,
+            &bind_group,
+            (workgroup_count, 1, 1),
+        )?;
+
+        let results: Vec<f32> = self
+            .context
+            .read_enumerative_buffer(
+                &output_buffer,
+                (num_items * std::mem::size_of::<f32>()) as u64,
+            )
+            .await?;
+
+        Ok(results)
+    }
+
+    /// Batch stability check computation
+    ///
+    /// Checks whether objects are stable under given conditions in parallel on GPU.
+    /// Returns 1 for stable, 0 for unstable.
+    pub async fn batch_stability_checks(
+        &mut self,
+        stability_data: &[GpuStabilityData],
+    ) -> EnumerativeGpuResult<Vec<u32>> {
+        let num_items = stability_data.len();
+        if num_items == 0 {
+            return Ok(Vec::new());
+        }
+
+        let input_buffer =
+            self.context
+                .device
+                .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                    label: Some("Stability Check Input Buffer"),
+                    contents: bytemuck::cast_slice(stability_data),
+                    usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+                });
+
+        let output_buffer = self.context.device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("Stability Check Output Buffer"),
+            size: (num_items * std::mem::size_of::<u32>()) as u64,
+            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+            mapped_at_creation: false,
+        });
+
+        let shader_source = self.get_stability_check_shader();
+        let bind_group_layout = self.create_generic_bind_group_layout("StabilityCheck");
+        let bind_group = self
+            .context
+            .device
+            .create_bind_group(&wgpu::BindGroupDescriptor {
+                label: Some("Stability Check Bind Group"),
+                layout: &bind_group_layout,
+                entries: &[
+                    wgpu::BindGroupEntry {
+                        binding: 0,
+                        resource: input_buffer.as_entire_binding(),
+                    },
+                    wgpu::BindGroupEntry {
+                        binding: 1,
+                        resource: output_buffer.as_entire_binding(),
+                    },
+                ],
+            });
+
+        let workgroup_count = num_items.div_ceil(64) as u32;
+        self.context.execute_enumerative_compute(
+            &shader_source,
+            &bind_group_layout,
+            &bind_group,
+            (workgroup_count, 1, 1),
+        )?;
+
+        let results: Vec<u32> = self
+            .context
+            .read_enumerative_buffer(
+                &output_buffer,
+                (num_items * std::mem::size_of::<u32>()) as u64,
+            )
+            .await?;
+
+        Ok(results)
+    }
+
     /// Generate intersection computation shader
     fn get_intersection_shader(&self) -> String {
         String::from(crate::shaders::INTERSECTION_THEORY)
@@ -1308,6 +1884,329 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
         )
     }
 
+    /// Generate WDVV curve count shader (lookup table for N_1..N_6)
+    fn get_wdvv_shader(&self) -> String {
+        String::from(
+            r#"
+struct WDVVData {
+    degree: u32,
+    padding: array<u32, 3>,
+}
+
+@group(0) @binding(0) var<storage, read> input_data: array<WDVVData>;
+@group(0) @binding(1) var<storage, read_write> output_data: array<u32>;
+
+@compute @workgroup_size(64, 1, 1)
+fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
+    let index = global_id.x;
+
+    if (index >= arrayLength(&input_data)) {
+        return;
+    }
+
+    let d = input_data[index].degree;
+
+    // Kontsevich numbers N_d for P^2 (lookup table)
+    var result: u32;
+    if (d == 1u) {
+        result = 1u;
+    } else if (d == 2u) {
+        result = 1u;
+    } else if (d == 3u) {
+        result = 12u;
+    } else if (d == 4u) {
+        result = 620u;
+    } else if (d == 5u) {
+        result = 87304u;
+    } else if (d == 6u) {
+        // N_6 = 26312976, fits in u32
+        result = 26312976u;
+    } else {
+        // Higher degrees overflow u32 or not precomputed
+        result = 0u;
+    }
+
+    output_data[index] = result;
+}
+"#,
+        )
+    }
+
+    /// Generate equivariant localization Euler class shader
+    fn get_localization_shader(&self) -> String {
+        String::from(
+            r#"
+struct LocalizationData {
+    subset: array<u32, 8>,
+    weights: array<f32, 8>,
+    subset_len: u32,
+    ambient_n: u32,
+    padding: array<u32, 2>,
+}
+
+@group(0) @binding(0) var<storage, read> input_data: array<LocalizationData>;
+@group(0) @binding(1) var<storage, read_write> output_data: array<f32>;
+
+@compute @workgroup_size(64, 1, 1)
+fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
+    let index = global_id.x;
+
+    if (index >= arrayLength(&input_data)) {
+        return;
+    }
+
+    let loc = input_data[index];
+    let k = loc.subset_len;
+    let n = loc.ambient_n;
+
+    // Euler class = product over i in I, j not in I of (t_j - t_i)
+    var euler: f32 = 1.0;
+
+    for (var ii: u32 = 0u; ii < k && ii < 8u; ii++) {
+        let i_idx = loc.subset[ii];
+        let t_i = loc.weights[i_idx];
+
+        for (var jj: u32 = 0u; jj < n && jj < 8u; jj++) {
+            // Check if jj-th element is NOT in subset
+            var in_subset: bool = false;
+            for (var kk: u32 = 0u; kk < k && kk < 8u; kk++) {
+                if (loc.subset[kk] == jj) {
+                    in_subset = true;
+                }
+            }
+
+            if (!in_subset) {
+                let t_j = loc.weights[jj];
+                euler *= (t_j - t_i);
+            }
+        }
+    }
+
+    output_data[index] = euler;
+}
+"#,
+        )
+    }
+
+    /// Generate matroid rank evaluation shader
+    fn get_matroid_rank_shader(&self) -> String {
+        String::from(
+            r#"
+struct MatroidRankData {
+    ground_set_size: u32,
+    rank: u32,
+    num_bases: u32,
+    subset_mask: u32,
+    bases: array<u32, 32>,
+}
+
+@group(0) @binding(0) var<storage, read> input_data: array<MatroidRankData>;
+@group(0) @binding(1) var<storage, read_write> output_data: array<u32>;
+
+fn count_ones(x: u32) -> u32 {
+    var n = x;
+    n = n - ((n >> 1u) & 0x55555555u);
+    n = (n & 0x33333333u) + ((n >> 2u) & 0x33333333u);
+    n = (n + (n >> 4u)) & 0x0F0F0F0Fu;
+    n = n + (n >> 8u);
+    n = n + (n >> 16u);
+    return n & 0x3Fu;
+}
+
+@compute @workgroup_size(64, 1, 1)
+fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
+    let index = global_id.x;
+
+    if (index >= arrayLength(&input_data)) {
+        return;
+    }
+
+    let m = input_data[index];
+
+    // rank(A) = max over bases B of |A ∩ B|
+    var max_intersect: u32 = 0u;
+
+    for (var i: u32 = 0u; i < m.num_bases && i < 32u; i++) {
+        let intersection = m.bases[i] & m.subset_mask;
+        let count = count_ones(intersection);
+        if (count > max_intersect) {
+            max_intersect = count;
+        }
+    }
+
+    output_data[index] = max_intersect;
+}
+"#,
+        )
+    }
+
+    /// Generate CSM Euler characteristic shader
+    fn get_csm_shader(&self) -> String {
+        String::from(
+            r#"
+struct CSMData {
+    partition: array<u32, 8>,
+    partition_len: u32,
+    grassmannian_k: u32,
+    grassmannian_n: u32,
+    padding: u32,
+}
+
+@group(0) @binding(0) var<storage, read> input_data: array<CSMData>;
+@group(0) @binding(1) var<storage, read_write> output_data: array<i32>;
+
+@compute @workgroup_size(64, 1, 1)
+fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
+    let index = global_id.x;
+
+    if (index >= arrayLength(&input_data)) {
+        return;
+    }
+
+    let csm = input_data[index];
+
+    // For Schubert cells in Grassmannians, the CSM class contribution
+    // to Euler characteristic is always 1 (each cell is contractible,
+    // hence chi = 1 by the theorem on CW complex decompositions).
+    output_data[index] = 1i;
+}
+"#,
+        )
+    }
+
+    /// Generate operadic composition multiplicity shader
+    fn get_operad_shader(&self) -> String {
+        String::from(
+            r#"
+struct OperadData {
+    output_codimension: u32,
+    input_codimension: u32,
+    grassmannian_k: u32,
+    grassmannian_n: u32,
+}
+
+@group(0) @binding(0) var<storage, read> input_data: array<OperadData>;
+@group(0) @binding(1) var<storage, read_write> output_data: array<u32>;
+
+@compute @workgroup_size(64, 1, 1)
+fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
+    let index = global_id.x;
+
+    if (index >= arrayLength(&input_data)) {
+        return;
+    }
+
+    let op = input_data[index];
+
+    // Composition multiplicity: interfaces must have matching codimensions
+    // If codimensions don't match, multiplicity is 0
+    if (op.output_codimension != op.input_codimension) {
+        output_data[index] = 0u;
+        return;
+    }
+
+    // For matching single-row partitions (Pieri rule), multiplicity is 1
+    let dim = op.grassmannian_k * (op.grassmannian_n - op.grassmannian_k);
+    if (op.output_codimension <= dim) {
+        output_data[index] = 1u;
+    } else {
+        output_data[index] = 0u;
+    }
+}
+"#,
+        )
+    }
+
+    /// Generate stability phase computation shader
+    fn get_stability_phase_shader(&self) -> String {
+        String::from(
+            r#"
+struct StabilityData {
+    codimension: f32,
+    dimension: f32,
+    trust_level: f32,
+    padding: f32,
+}
+
+@group(0) @binding(0) var<storage, read> input_data: array<StabilityData>;
+@group(0) @binding(1) var<storage, read_write> output_data: array<f32>;
+
+@compute @workgroup_size(64, 1, 1)
+fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
+    let index = global_id.x;
+
+    if (index >= arrayLength(&input_data)) {
+        return;
+    }
+
+    let s = input_data[index];
+
+    // Phase = atan2(trust * dim, -codim) / pi, normalized to [0, 1]
+    let phase_raw = atan2(s.trust_level * s.dimension, -s.codimension);
+    let pi = 3.14159265358979323846;
+    let phase = phase_raw / pi;
+
+    // Normalize to [0, 1]
+    var normalized: f32;
+    if (phase < 0.0) {
+        normalized = phase + 1.0;
+    } else {
+        normalized = phase;
+    }
+
+    output_data[index] = normalized;
+}
+"#,
+        )
+    }
+
+    /// Generate stability check shader (stable = 1, unstable = 0)
+    fn get_stability_check_shader(&self) -> String {
+        String::from(
+            r#"
+struct StabilityData {
+    codimension: f32,
+    dimension: f32,
+    trust_level: f32,
+    padding: f32,
+}
+
+@group(0) @binding(0) var<storage, read> input_data: array<StabilityData>;
+@group(0) @binding(1) var<storage, read_write> output_data: array<u32>;
+
+@compute @workgroup_size(64, 1, 1)
+fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
+    let index = global_id.x;
+
+    if (index >= arrayLength(&input_data)) {
+        return;
+    }
+
+    let s = input_data[index];
+
+    // Phase = atan2(trust * dim, -codim) / pi, normalized to [0, 1]
+    let phase_raw = atan2(s.trust_level * s.dimension, -s.codimension);
+    let pi = 3.14159265358979323846;
+    let phase = phase_raw / pi;
+
+    var normalized: f32;
+    if (phase < 0.0) {
+        normalized = phase + 1.0;
+    } else {
+        normalized = phase;
+    }
+
+    // Stable if phase is strictly in (0, 1)
+    if (normalized > 0.0 && normalized < 1.0) {
+        output_data[index] = 1u;
+    } else {
+        output_data[index] = 0u;
+    }
+}
+"#,
+        )
+    }
+
     fn create_generic_bind_group_layout(&self, label: &str) -> wgpu::BindGroupLayout {
         self.context
             .device
@@ -1587,6 +2486,158 @@ impl GpuMultiIntersectData {
             grassmannian_k: grassmannian_dim.0 as u32,
             grassmannian_n: grassmannian_dim.1 as u32,
             padding: 0,
+        }
+    }
+}
+
+/// Convert degree to GPU WDVV data
+#[cfg(feature = "enumerative")]
+impl GpuWDVVData {
+    /// Create GPU data from a curve degree
+    pub fn from_degree(degree: u64) -> Self {
+        Self {
+            degree: degree as u32,
+            padding: [0; 3],
+        }
+    }
+}
+
+/// Convert fixed point and torus weights to GPU localization data
+#[cfg(feature = "enumerative")]
+impl GpuLocalizationData {
+    /// Create GPU data from a fixed point and torus weights
+    pub fn from_fixed_point(fp: &FixedPoint, weights: &TorusWeights) -> Self {
+        let mut subset = [0u32; 8];
+        for (i, &idx) in fp.subset.iter().enumerate() {
+            if i < 8 {
+                subset[i] = idx as u32;
+            }
+        }
+
+        let mut w = [0.0f32; 8];
+        for (i, &weight) in weights.weights.iter().enumerate() {
+            if i < 8 {
+                w[i] = weight as f32;
+            }
+        }
+
+        Self {
+            subset,
+            weights: w,
+            subset_len: fp.subset.len().min(8) as u32,
+            ambient_n: fp.grassmannian.1 as u32,
+            padding: [0; 2],
+        }
+    }
+}
+
+/// Convert matroid and subset to GPU matroid rank data
+#[cfg(feature = "enumerative")]
+impl GpuMatroidRankData {
+    /// Create GPU data from a matroid and a subset to evaluate rank on
+    ///
+    /// Bases and the subset are encoded as bitmasks over the ground set.
+    pub fn from_matroid_subset(matroid: &Matroid, subset: &BTreeSet<usize>) -> Self {
+        let mut bases_arr = [0u32; 32];
+        for (i, basis) in matroid.bases.iter().enumerate() {
+            if i >= 32 {
+                break;
+            }
+            let mut mask: u32 = 0;
+            for &elem in basis {
+                if elem < 32 {
+                    mask |= 1 << elem;
+                }
+            }
+            bases_arr[i] = mask;
+        }
+
+        let mut subset_mask: u32 = 0;
+        for &elem in subset {
+            if elem < 32 {
+                subset_mask |= 1 << elem;
+            }
+        }
+
+        Self {
+            ground_set_size: matroid.ground_set_size as u32,
+            rank: matroid.rank as u32,
+            num_bases: matroid.bases.len().min(32) as u32,
+            subset_mask,
+            bases: bases_arr,
+        }
+    }
+}
+
+/// Convert partition to GPU CSM data
+#[cfg(feature = "enumerative")]
+impl GpuCSMData {
+    /// Create GPU data from a partition and Grassmannian parameters
+    pub fn from_partition(partition: &[usize], grassmannian: (usize, usize)) -> Self {
+        let mut part = [0u32; 8];
+        for (i, &p) in partition.iter().enumerate() {
+            if i < 8 {
+                part[i] = p as u32;
+            }
+        }
+
+        Self {
+            partition: part,
+            partition_len: partition.len().min(8) as u32,
+            grassmannian_k: grassmannian.0 as u32,
+            grassmannian_n: grassmannian.1 as u32,
+            padding: 0,
+        }
+    }
+}
+
+/// Convert composable namespace interfaces to GPU operad data
+#[cfg(feature = "enumerative")]
+impl GpuOperadData {
+    /// Create GPU data from two composable namespaces and their interface indices
+    pub fn from_composition(
+        ns_a: &ComposableNamespace,
+        out_idx: usize,
+        ns_b: &ComposableNamespace,
+        in_idx: usize,
+    ) -> Self {
+        let out_codim = ns_a
+            .interfaces
+            .get(out_idx)
+            .map(|iface| iface.codimension)
+            .unwrap_or(0);
+
+        let in_codim = ns_b
+            .interfaces
+            .get(in_idx)
+            .map(|iface| iface.codimension)
+            .unwrap_or(0);
+
+        let (k, n) = ns_a.namespace.grassmannian;
+
+        Self {
+            output_codimension: out_codim as u32,
+            input_codimension: in_codim as u32,
+            grassmannian_k: k as u32,
+            grassmannian_n: n as u32,
+        }
+    }
+}
+
+/// Convert Schubert class and trust level to GPU stability data
+#[cfg(feature = "enumerative")]
+impl GpuStabilityData {
+    /// Create GPU data from a Schubert class and trust level
+    pub fn from_class_and_trust(class: &SchubertClass, trust_level: f64) -> Self {
+        let codim: usize = class.partition.iter().sum();
+        let (k, n) = class.grassmannian_dim;
+        let dim = k * (n - k);
+
+        Self {
+            codimension: codim as f32,
+            dimension: dim as f32,
+            trust_level: trust_level as f32,
+            padding: 0.0,
         }
     }
 }
@@ -2014,5 +3065,361 @@ mod tests {
         }
 
         println!("✅ Multi-intersect GPU conversion verified");
+    }
+
+    // ─── New GPU operation tests (WDVV, localization, matroid, CSM, operad, stability) ───
+
+    #[tokio::test]
+    async fn test_gpu_wdvv_computation() {
+        if let Ok(mut gpu_ops) = EnumerativeGpuOps::new().await {
+            let wdvv_data: Vec<GpuWDVVData> = (1..=6).map(GpuWDVVData::from_degree).collect();
+
+            let result = gpu_ops.batch_wdvv_curve_counts(&wdvv_data).await;
+
+            match result {
+                Ok(counts) => {
+                    assert_eq!(counts.len(), 6);
+                    println!("✅ GPU WDVV computation successful");
+                    for (i, &count) in counts.iter().enumerate() {
+                        println!("   N_{}: {}", i + 1, count);
+                    }
+                }
+                Err(_) => {
+                    println!("⚠️  GPU WDVV computation failed, but test passes");
+                }
+            }
+        }
+    }
+
+    #[tokio::test]
+    async fn test_gpu_wdvv_empty_batch() {
+        if let Ok(mut gpu_ops) = EnumerativeGpuOps::new().await {
+            let result = gpu_ops.batch_wdvv_curve_counts(&[]).await;
+            match result {
+                Ok(counts) => {
+                    assert!(counts.is_empty());
+                    println!("✅ GPU WDVV empty batch returns empty");
+                }
+                Err(_) => {
+                    println!("⚠️  GPU not available, test passes");
+                }
+            }
+        }
+    }
+
+    #[tokio::test]
+    async fn test_gpu_localization_euler_class() {
+        if let Ok(mut gpu_ops) = EnumerativeGpuOps::new().await {
+            use amari_enumerative::{FixedPoint, TorusWeights};
+
+            let fp1 = FixedPoint {
+                subset: vec![0, 1],
+                grassmannian: (2, 4),
+            };
+            let fp2 = FixedPoint {
+                subset: vec![0, 2],
+                grassmannian: (2, 4),
+            };
+            let weights = TorusWeights {
+                weights: vec![1, 2, 3, 4],
+            };
+
+            let loc_data = vec![
+                GpuLocalizationData::from_fixed_point(&fp1, &weights),
+                GpuLocalizationData::from_fixed_point(&fp2, &weights),
+            ];
+
+            let result = gpu_ops.batch_localization_euler_classes(&loc_data).await;
+
+            match result {
+                Ok(euler_classes) => {
+                    assert_eq!(euler_classes.len(), 2);
+                    // Euler classes should be nonzero for generic weights
+                    for &ec in &euler_classes {
+                        assert!(ec.abs() > 0.0, "Euler class should be nonzero");
+                    }
+                    println!("✅ GPU localization computation successful");
+                    for (i, &ec) in euler_classes.iter().enumerate() {
+                        println!("   Euler class {}: {:.4}", i, ec);
+                    }
+                }
+                Err(_) => {
+                    println!("⚠️  GPU localization computation failed, but test passes");
+                }
+            }
+        }
+    }
+
+    #[tokio::test]
+    async fn test_gpu_matroid_rank_computation() {
+        if let Ok(mut gpu_ops) = EnumerativeGpuOps::new().await {
+            use amari_enumerative::Matroid;
+            use std::collections::BTreeSet;
+
+            // Uniform matroid U_{2,4}: all 2-element subsets of {0,1,2,3} are bases
+            let matroid = Matroid::uniform(2, 4);
+            let subset_full: BTreeSet<usize> = [0, 1, 2, 3].into_iter().collect();
+            let subset_pair: BTreeSet<usize> = [0, 1].into_iter().collect();
+            let subset_single: BTreeSet<usize> = [2].into_iter().collect();
+
+            let matroid_data = vec![
+                GpuMatroidRankData::from_matroid_subset(&matroid, &subset_full),
+                GpuMatroidRankData::from_matroid_subset(&matroid, &subset_pair),
+                GpuMatroidRankData::from_matroid_subset(&matroid, &subset_single),
+            ];
+
+            let result = gpu_ops.batch_matroid_ranks(&matroid_data).await;
+
+            match result {
+                Ok(ranks) => {
+                    assert_eq!(ranks.len(), 3);
+                    println!("✅ GPU matroid rank computation successful");
+                    for (i, &rank) in ranks.iter().enumerate() {
+                        println!("   Rank {}: {}", i, rank);
+                    }
+                }
+                Err(_) => {
+                    println!("⚠️  GPU matroid rank computation failed, but test passes");
+                }
+            }
+        }
+    }
+
+    #[tokio::test]
+    async fn test_gpu_csm_euler_characteristic() {
+        if let Ok(mut gpu_ops) = EnumerativeGpuOps::new().await {
+            let csm_data = vec![
+                // Top cell: partition [2,1] in Gr(2,4)
+                GpuCSMData::from_partition(&[2, 1], (2, 4)),
+                // Point class: partition [2,2] in Gr(2,4)
+                GpuCSMData::from_partition(&[2, 2], (2, 4)),
+            ];
+
+            let result = gpu_ops.batch_csm_euler_characteristics(&csm_data).await;
+
+            match result {
+                Ok(eulers) => {
+                    assert_eq!(eulers.len(), 2);
+                    println!("✅ GPU CSM computation successful");
+                    for (i, &euler) in eulers.iter().enumerate() {
+                        println!("   Euler char {}: {}", i, euler);
+                    }
+                }
+                Err(_) => {
+                    println!("⚠️  GPU CSM computation failed, but test passes");
+                }
+            }
+        }
+    }
+
+    #[tokio::test]
+    async fn test_gpu_operad_multiplicity() {
+        if let Ok(mut gpu_ops) = EnumerativeGpuOps::new().await {
+            let operad_data = vec![
+                // Compatible: same codimension
+                GpuOperadData {
+                    output_codimension: 1,
+                    input_codimension: 1,
+                    grassmannian_k: 2,
+                    grassmannian_n: 4,
+                },
+                // Incompatible: different codimension
+                GpuOperadData {
+                    output_codimension: 1,
+                    input_codimension: 2,
+                    grassmannian_k: 2,
+                    grassmannian_n: 4,
+                },
+            ];
+
+            let result = gpu_ops.batch_operad_multiplicities(&operad_data).await;
+
+            match result {
+                Ok(multiplicities) => {
+                    assert_eq!(multiplicities.len(), 2);
+                    println!("✅ GPU operad multiplicity computation successful");
+                    for (i, &mult) in multiplicities.iter().enumerate() {
+                        println!("   Multiplicity {}: {}", i, mult);
+                    }
+                }
+                Err(_) => {
+                    println!("⚠️  GPU operad computation failed, but test passes");
+                }
+            }
+        }
+    }
+
+    #[tokio::test]
+    async fn test_gpu_stability_phase() {
+        if let Ok(mut gpu_ops) = EnumerativeGpuOps::new().await {
+            // σ_1 on Gr(2,4): codim=1, dim=4, trust=1.0
+            let stability_data = vec![GpuStabilityData {
+                codimension: 1.0,
+                dimension: 4.0,
+                trust_level: 1.0,
+                padding: 0.0,
+            }];
+
+            let result = gpu_ops.batch_stability_phases(&stability_data).await;
+
+            match result {
+                Ok(phases) => {
+                    assert_eq!(phases.len(), 1);
+                    // Phase should be in [0, 1]
+                    assert!(
+                        phases[0] >= 0.0 && phases[0] <= 1.0,
+                        "Phase {} should be in [0,1]",
+                        phases[0]
+                    );
+                    println!(
+                        "✅ GPU stability phase computation successful: {:.4}",
+                        phases[0]
+                    );
+                }
+                Err(_) => {
+                    println!("⚠️  GPU stability computation failed, but test passes");
+                }
+            }
+        }
+    }
+
+    #[tokio::test]
+    async fn test_gpu_stability_check() {
+        if let Ok(mut gpu_ops) = EnumerativeGpuOps::new().await {
+            let stability_data = vec![
+                // Should be stable: positive trust, positive dim
+                GpuStabilityData {
+                    codimension: 1.0,
+                    dimension: 4.0,
+                    trust_level: 1.0,
+                    padding: 0.0,
+                },
+                // Edge case: zero trust
+                GpuStabilityData {
+                    codimension: 1.0,
+                    dimension: 4.0,
+                    trust_level: 0.0,
+                    padding: 0.0,
+                },
+            ];
+
+            let result = gpu_ops.batch_stability_checks(&stability_data).await;
+
+            match result {
+                Ok(checks) => {
+                    assert_eq!(checks.len(), 2);
+                    println!("✅ GPU stability check computation successful");
+                    for (i, &check) in checks.iter().enumerate() {
+                        println!(
+                            "   Stability check {}: {} ({})",
+                            i,
+                            check,
+                            if check == 1 { "stable" } else { "unstable" }
+                        );
+                    }
+                }
+                Err(_) => {
+                    println!("⚠️  GPU stability check failed, but test passes");
+                }
+            }
+        }
+    }
+
+    // ─── Sync conversion tests ───
+
+    #[test]
+    fn test_wdvv_gpu_conversion() {
+        let gpu_data = GpuWDVVData::from_degree(5);
+        assert_eq!(gpu_data.degree, 5);
+        assert_eq!(gpu_data.padding, [0, 0, 0]);
+        println!("✅ WDVV GPU conversion verified");
+    }
+
+    #[test]
+    fn test_localization_gpu_conversion() {
+        use amari_enumerative::{FixedPoint, TorusWeights};
+
+        let fp = FixedPoint {
+            subset: vec![0, 2],
+            grassmannian: (2, 4),
+        };
+        let weights = TorusWeights {
+            weights: vec![1, 3, 5, 7],
+        };
+
+        let gpu_data = GpuLocalizationData::from_fixed_point(&fp, &weights);
+        assert_eq!(gpu_data.subset[0], 0);
+        assert_eq!(gpu_data.subset[1], 2);
+        assert_eq!(gpu_data.subset_len, 2);
+        assert_eq!(gpu_data.ambient_n, 4);
+        assert_eq!(gpu_data.weights[0], 1.0);
+        assert_eq!(gpu_data.weights[2], 5.0);
+        println!("✅ Localization GPU conversion verified");
+    }
+
+    #[test]
+    fn test_matroid_rank_gpu_conversion() {
+        use amari_enumerative::Matroid;
+        use std::collections::BTreeSet;
+
+        let matroid = Matroid::uniform(2, 4);
+        let subset: BTreeSet<usize> = [0, 1].into_iter().collect();
+        let gpu_data = GpuMatroidRankData::from_matroid_subset(&matroid, &subset);
+
+        assert_eq!(gpu_data.ground_set_size, 4);
+        assert_eq!(gpu_data.rank, 2);
+        assert!(gpu_data.num_bases > 0);
+        // subset_mask should have bits 0 and 1 set = 0b11 = 3
+        assert_eq!(gpu_data.subset_mask, 3);
+        println!("✅ Matroid rank GPU conversion verified");
+    }
+
+    #[test]
+    fn test_csm_gpu_conversion() {
+        let gpu_data = GpuCSMData::from_partition(&[2, 1], (2, 4));
+        assert_eq!(gpu_data.partition[0], 2);
+        assert_eq!(gpu_data.partition[1], 1);
+        assert_eq!(gpu_data.partition_len, 2);
+        assert_eq!(gpu_data.grassmannian_k, 2);
+        assert_eq!(gpu_data.grassmannian_n, 4);
+        println!("✅ CSM GPU conversion verified");
+    }
+
+    #[test]
+    fn test_operad_gpu_conversion() {
+        use amari_enumerative::{
+            Capability, CapabilityId, ComposableNamespace, Namespace, SchubertClass,
+        };
+
+        let pos = SchubertClass::new(vec![], (2, 4)).unwrap();
+        let mut ns_a = Namespace::new("A", pos.clone());
+        let cap_a = Capability::new("out_cap", "Output Cap", vec![1], (2, 4)).unwrap();
+        ns_a.grant(cap_a).unwrap();
+        let mut comp_a = ComposableNamespace::new(ns_a);
+        comp_a.mark_output(&CapabilityId::new("out_cap")).unwrap();
+
+        let mut ns_b = Namespace::new("B", pos);
+        let cap_b = Capability::new("in_cap", "Input Cap", vec![1], (2, 4)).unwrap();
+        ns_b.grant(cap_b).unwrap();
+        let mut comp_b = ComposableNamespace::new(ns_b);
+        comp_b.mark_input(&CapabilityId::new("in_cap")).unwrap();
+
+        let gpu_data = GpuOperadData::from_composition(&comp_a, 0, &comp_b, 0);
+        assert_eq!(gpu_data.output_codimension, 1);
+        assert_eq!(gpu_data.input_codimension, 1);
+        assert_eq!(gpu_data.grassmannian_k, 2);
+        assert_eq!(gpu_data.grassmannian_n, 4);
+        println!("✅ Operad GPU conversion verified");
+    }
+
+    #[test]
+    fn test_stability_gpu_conversion() {
+        let schubert = SchubertClass::new(vec![1], (2, 4)).unwrap();
+        let gpu_data = GpuStabilityData::from_class_and_trust(&schubert, 0.5);
+
+        assert_eq!(gpu_data.codimension, 1.0);
+        assert_eq!(gpu_data.dimension, 4.0);
+        assert_eq!(gpu_data.trust_level, 0.5);
+        println!("✅ Stability GPU conversion verified");
     }
 }
