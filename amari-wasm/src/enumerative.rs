@@ -7,6 +7,12 @@
 //! - **Gromov-Witten Theory**: Curve counting and quantum cohomology
 //! - **Tropical Geometry**: Tropical curve counting and correspondence theorems
 //! - **Moduli Spaces**: Computations on moduli spaces of curves and surfaces
+//! - **WDVV/Kontsevich Recursion**: Genus-0 rational curve counting via WDVV equations
+//! - **Equivariant Localization**: Atiyah-Bott fixed point computations on Grassmannians
+//! - **Matroid Theory**: Combinatorial abstractions of linear dependence
+//! - **CSM Classes**: Chern-Schwartz-MacPherson classes and Euler characteristics
+//! - **Operadic Composition**: Composable namespace interfaces
+//! - **Wall-Crossing/Stability**: Bridgeland-style stability conditions and phase diagrams
 //!
 //! Perfect for:
 //! - Advanced mathematical research and education
@@ -405,9 +411,11 @@ pub fn init_enumerative() {
 // NEW WASM BINDINGS FOR AMARI-ENUMERATIVE EXTENSIONS
 // =============================================================================
 
+use amari_enumerative::csm::CSMClass;
 use amari_enumerative::{
-    Capability, CapabilityId, IntersectionResult, Namespace, NamespaceIntersection, Partition,
-    SchubertCalculus, SchubertClass,
+    Capability, CapabilityId, ComposableNamespace, EquivariantLocalizer, FixedPoint,
+    IntersectionResult, Matroid, Namespace, NamespaceIntersection, Partition, SchubertCalculus,
+    SchubertClass, StabilityCondition, TorusWeights, WDVVEngine, WallCrossingEngine,
 };
 
 /// WASM wrapper for partitions used in Schubert calculus and LR coefficients
@@ -941,6 +949,562 @@ impl NamespaceBatch {
             .collect()
     }
 }
+
+// =============================================================================
+// WASM BINDINGS FOR WDVV, LOCALIZATION, MATROID, CSM, OPERAD, STABILITY
+// =============================================================================
+
+/// WASM wrapper for WDVV/Kontsevich recursion engine
+///
+/// Computes genus-0 Gromov-Witten invariants N_d: the number of rational
+/// degree-d curves in P² through 3d-1 general points.
+#[wasm_bindgen]
+pub struct WasmWDVVEngine {
+    inner: WDVVEngine,
+}
+
+impl Default for WasmWDVVEngine {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+#[wasm_bindgen]
+impl WasmWDVVEngine {
+    /// Create a new WDVV engine with base cases N_1=1, N_2=1 seeded
+    #[wasm_bindgen(constructor)]
+    pub fn new() -> Self {
+        Self {
+            inner: WDVVEngine::new(),
+        }
+    }
+
+    /// Compute N_d: rational degree-d curves in P² through 3d-1 points
+    #[wasm_bindgen(js_name = rationalCurveCount)]
+    pub fn rational_curve_count(&mut self, degree: u32) -> f64 {
+        self.inner.rational_curve_count(degree as u64) as f64
+    }
+
+    /// Compute the GW invariant <H^2,...,H^2>_{0,d} for P²
+    #[wasm_bindgen(js_name = gwInvariantRational)]
+    pub fn gw_invariant_rational(&mut self, degree: u32) -> f64 {
+        self.inner.gw_invariant_rational(degree as u64) as f64
+    }
+
+    /// Number of marked points required: 3d + g - 1
+    #[wasm_bindgen(js_name = requiredPointCount)]
+    pub fn required_point_count(degree: u32, genus: u32) -> u32 {
+        WDVVEngine::required_point_count(degree as u64, genus as usize) as u32
+    }
+
+    /// Return all computed N_d values as an array of {degree, count} objects
+    #[wasm_bindgen(js_name = getTable)]
+    pub fn get_table(&self) -> Vec<JsValue> {
+        self.inner
+            .table()
+            .into_iter()
+            .map(|(d, n)| {
+                let obj = js_sys::Object::new();
+                js_sys::Reflect::set(&obj, &"degree".into(), &JsValue::from(d as u32)).unwrap();
+                js_sys::Reflect::set(&obj, &"count".into(), &JsValue::from(n as f64)).unwrap();
+                obj.into()
+            })
+            .collect()
+    }
+
+    /// Count rational curves on P¹×P¹ of bidegree (a, b)
+    #[wasm_bindgen(js_name = p1xp1Count)]
+    pub fn p1xp1_count(a: u32, b: u32) -> f64 {
+        amari_enumerative::wdvv::targets::p1xp1_rational_count(a as u64, b as u64) as f64
+    }
+
+    /// Count rational curves in P³ of degree d
+    #[wasm_bindgen(js_name = p3Count)]
+    pub fn p3_count(degree: u32) -> f64 {
+        amari_enumerative::wdvv::targets::p3_rational_curve_count(degree as u64) as f64
+    }
+}
+
+/// WASM wrapper for torus weights in equivariant localization
+#[wasm_bindgen]
+pub struct WasmTorusWeights {
+    inner: TorusWeights,
+}
+
+#[wasm_bindgen]
+impl WasmTorusWeights {
+    /// Create standard weights (1, 2, ..., n)
+    #[wasm_bindgen(js_name = standard)]
+    pub fn standard(n: u32) -> Self {
+        Self {
+            inner: TorusWeights::standard(n as usize),
+        }
+    }
+
+    /// Create custom weights
+    #[wasm_bindgen(constructor)]
+    pub fn custom(weights: &[i32]) -> Result<WasmTorusWeights, JsValue> {
+        let w: Vec<i64> = weights.iter().map(|&x| x as i64).collect();
+        match TorusWeights::custom(w) {
+            Ok(inner) => Ok(WasmTorusWeights { inner }),
+            Err(e) => Err(JsValue::from_str(&format!("TorusWeights error: {:?}", e))),
+        }
+    }
+
+    /// Get the weights
+    #[wasm_bindgen(js_name = getWeights)]
+    pub fn get_weights(&self) -> Vec<i32> {
+        self.inner.weights.iter().map(|&w| w as i32).collect()
+    }
+}
+
+/// WASM wrapper for torus fixed points on Grassmannians
+#[wasm_bindgen]
+pub struct WasmFixedPoint {
+    inner: FixedPoint,
+}
+
+#[wasm_bindgen]
+impl WasmFixedPoint {
+    /// Create a fixed point from a k-element subset of {0, ..., n-1}
+    #[wasm_bindgen(constructor)]
+    pub fn new(subset: &[usize], k: usize, n: usize) -> Result<WasmFixedPoint, JsValue> {
+        match FixedPoint::new(subset.to_vec(), (k, n)) {
+            Ok(inner) => Ok(WasmFixedPoint { inner }),
+            Err(e) => Err(JsValue::from_str(&format!("FixedPoint error: {:?}", e))),
+        }
+    }
+
+    /// Get the subset indices
+    #[wasm_bindgen(js_name = getSubset)]
+    pub fn get_subset(&self) -> Vec<usize> {
+        self.inner.subset.clone()
+    }
+
+    /// Get the Grassmannian parameters [k, n]
+    #[wasm_bindgen(js_name = getGrassmannian)]
+    pub fn get_grassmannian(&self) -> Vec<usize> {
+        vec![self.inner.grassmannian.0, self.inner.grassmannian.1]
+    }
+
+    /// Compute the tangent Euler class at this fixed point
+    #[wasm_bindgen(js_name = tangentEulerClass)]
+    pub fn tangent_euler_class(&self, weights: &WasmTorusWeights) -> f64 {
+        let rational = self.inner.tangent_euler_class(&weights.inner);
+        *rational.numer() as f64 / *rational.denom() as f64
+    }
+
+    /// Convert to a partition (for Schubert calculus)
+    #[wasm_bindgen(js_name = toPartition)]
+    pub fn to_partition(&self) -> Vec<usize> {
+        self.inner.to_partition()
+    }
+}
+
+/// WASM wrapper for equivariant localization on Grassmannians
+#[wasm_bindgen]
+pub struct WasmEquivariantLocalizer {
+    inner: EquivariantLocalizer,
+}
+
+#[wasm_bindgen]
+impl WasmEquivariantLocalizer {
+    /// Create a localizer for Gr(k, n) with standard weights
+    #[wasm_bindgen(constructor)]
+    pub fn new(k: usize, n: usize) -> Result<WasmEquivariantLocalizer, JsValue> {
+        match EquivariantLocalizer::new((k, n)) {
+            Ok(inner) => Ok(WasmEquivariantLocalizer { inner }),
+            Err(e) => Err(JsValue::from_str(&format!("Localizer error: {:?}", e))),
+        }
+    }
+
+    /// Create a localizer with custom torus weights
+    #[wasm_bindgen(js_name = withWeights)]
+    pub fn with_weights(
+        k: usize,
+        n: usize,
+        weights: &WasmTorusWeights,
+    ) -> Result<WasmEquivariantLocalizer, JsValue> {
+        match EquivariantLocalizer::with_weights((k, n), weights.inner.clone()) {
+            Ok(inner) => Ok(WasmEquivariantLocalizer { inner }),
+            Err(e) => Err(JsValue::from_str(&format!("Localizer error: {:?}", e))),
+        }
+    }
+
+    /// Number of torus fixed points (= C(n, k))
+    #[wasm_bindgen(js_name = fixedPointCount)]
+    pub fn fixed_point_count(&self) -> usize {
+        self.inner.fixed_point_count()
+    }
+
+    /// Compute localized intersection of Schubert classes
+    #[wasm_bindgen(js_name = localizedIntersection)]
+    pub fn localized_intersection(&mut self, classes: Vec<WasmSchubertClass>) -> f64 {
+        let inner_classes: Vec<SchubertClass> = classes.iter().map(|c| c.inner.clone()).collect();
+        let rational = self.inner.localized_intersection(&inner_classes);
+        *rational.numer() as f64 / *rational.denom() as f64
+    }
+}
+
+/// WASM wrapper for matroid theory
+///
+/// Matroids are combinatorial abstractions of linear dependence,
+/// connecting to Grassmannians via Schubert matroids.
+#[wasm_bindgen]
+pub struct WasmMatroid {
+    inner: Matroid,
+}
+
+#[wasm_bindgen]
+impl WasmMatroid {
+    /// Create the uniform matroid U_{k,n}
+    #[wasm_bindgen(js_name = uniform)]
+    pub fn uniform(k: usize, n: usize) -> Self {
+        Self {
+            inner: Matroid::uniform(k, n),
+        }
+    }
+
+    /// Create a Schubert matroid from a partition on Gr(k, n)
+    #[wasm_bindgen(js_name = schubertMatroid)]
+    pub fn schubert_matroid(
+        partition: &[usize],
+        k: usize,
+        n: usize,
+    ) -> Result<WasmMatroid, JsValue> {
+        match Matroid::schubert_matroid(partition, k, n) {
+            Ok(inner) => Ok(WasmMatroid { inner }),
+            Err(e) => Err(JsValue::from_str(&format!("Matroid error: {}", e))),
+        }
+    }
+
+    /// Get the rank of the matroid
+    #[wasm_bindgen(js_name = getRank)]
+    pub fn get_rank(&self) -> usize {
+        self.inner.rank
+    }
+
+    /// Get the size of the ground set
+    #[wasm_bindgen(js_name = getGroundSetSize)]
+    pub fn get_ground_set_size(&self) -> usize {
+        self.inner.ground_set_size
+    }
+
+    /// Get the number of bases
+    #[wasm_bindgen(js_name = getNumBases)]
+    pub fn get_num_bases(&self) -> usize {
+        self.inner.bases.len()
+    }
+
+    /// Compute the rank of a subset
+    #[wasm_bindgen(js_name = rankOf)]
+    pub fn rank_of(&self, subset: &[usize]) -> usize {
+        let set: std::collections::BTreeSet<usize> = subset.iter().copied().collect();
+        self.inner.rank_of(&set)
+    }
+
+    /// Check if an element is a loop
+    #[wasm_bindgen(js_name = isLoop)]
+    pub fn is_loop(&self, e: usize) -> bool {
+        self.inner.is_loop(e)
+    }
+
+    /// Check if an element is a coloop
+    #[wasm_bindgen(js_name = isColoop)]
+    pub fn is_coloop(&self, e: usize) -> bool {
+        self.inner.is_coloop(e)
+    }
+
+    /// Compute the dual matroid
+    #[wasm_bindgen(js_name = dual)]
+    pub fn dual(&self) -> WasmMatroid {
+        WasmMatroid {
+            inner: self.inner.dual(),
+        }
+    }
+
+    /// Delete an element from the matroid
+    #[wasm_bindgen(js_name = deleteElement)]
+    pub fn delete_element(&self, e: usize) -> WasmMatroid {
+        WasmMatroid {
+            inner: self.inner.delete(e),
+        }
+    }
+
+    /// Contract an element from the matroid
+    #[wasm_bindgen(js_name = contractElement)]
+    pub fn contract_element(&self, e: usize) -> WasmMatroid {
+        WasmMatroid {
+            inner: self.inner.contract(e),
+        }
+    }
+
+    /// Direct sum with another matroid
+    #[wasm_bindgen(js_name = directSum)]
+    pub fn direct_sum(&self, other: &WasmMatroid) -> WasmMatroid {
+        WasmMatroid {
+            inner: self.inner.direct_sum(&other.inner),
+        }
+    }
+
+    /// Compute the matroid intersection cardinality
+    #[wasm_bindgen(js_name = intersectionCardinality)]
+    pub fn intersection_cardinality(&self, other: &WasmMatroid) -> usize {
+        self.inner.intersection_cardinality(&other.inner)
+    }
+}
+
+/// WASM wrapper for Chern-Schwartz-MacPherson classes
+///
+/// CSM classes measure the complexity of singular varieties and
+/// compute Euler characteristics of Schubert cells.
+#[wasm_bindgen]
+pub struct WasmCSMClass {
+    inner: CSMClass,
+}
+
+#[wasm_bindgen]
+impl WasmCSMClass {
+    /// Compute the CSM class of a Schubert cell in Gr(k, n)
+    #[wasm_bindgen(js_name = ofSchubertCell)]
+    pub fn of_schubert_cell(partition: &[usize], k: usize, n: usize) -> Self {
+        Self {
+            inner: CSMClass::of_schubert_cell(partition, (k, n)),
+        }
+    }
+
+    /// Compute the CSM class of a Schubert variety in Gr(k, n)
+    #[wasm_bindgen(js_name = ofSchubertVariety)]
+    pub fn of_schubert_variety(partition: &[usize], k: usize, n: usize) -> Self {
+        Self {
+            inner: CSMClass::of_schubert_variety(partition, (k, n)),
+        }
+    }
+
+    /// Get the Euler characteristic
+    #[wasm_bindgen(js_name = eulerCharacteristic)]
+    pub fn euler_characteristic(&self) -> i32 {
+        self.inner.euler_characteristic() as i32
+    }
+
+    /// Compute the CSM intersection with another CSM class
+    #[wasm_bindgen(js_name = intersect)]
+    pub fn intersect(&self, other: &WasmCSMClass) -> WasmCSMClass {
+        WasmCSMClass {
+            inner: self.inner.csm_intersection(&other.inner),
+        }
+    }
+}
+
+/// WASM wrapper for composable namespaces (operadic composition)
+///
+/// Extends namespaces with input/output interfaces for composition.
+#[wasm_bindgen]
+pub struct WasmComposableNamespace {
+    inner: ComposableNamespace,
+}
+
+#[wasm_bindgen]
+impl WasmComposableNamespace {
+    /// Create a composable namespace from an existing namespace
+    #[wasm_bindgen(constructor)]
+    pub fn new(namespace: &WasmNamespace) -> Self {
+        Self {
+            inner: ComposableNamespace::new(namespace.inner.clone()),
+        }
+    }
+
+    /// Mark a capability as an output interface
+    #[wasm_bindgen(js_name = markOutput)]
+    pub fn mark_output(&mut self, cap_id: &str) -> Result<(), JsValue> {
+        self.inner
+            .mark_output(&CapabilityId::new(cap_id))
+            .map_err(|e| JsValue::from_str(&format!("Mark output error: {}", e)))
+    }
+
+    /// Mark a capability as an input interface
+    #[wasm_bindgen(js_name = markInput)]
+    pub fn mark_input(&mut self, cap_id: &str) -> Result<(), JsValue> {
+        self.inner
+            .mark_input(&CapabilityId::new(cap_id))
+            .map_err(|e| JsValue::from_str(&format!("Mark input error: {}", e)))
+    }
+
+    /// Get the number of output interfaces
+    #[wasm_bindgen(js_name = outputCount)]
+    pub fn output_count(&self) -> usize {
+        self.inner.outputs().len()
+    }
+
+    /// Get the number of input interfaces
+    #[wasm_bindgen(js_name = inputCount)]
+    pub fn input_count(&self) -> usize {
+        self.inner.inputs().len()
+    }
+
+    /// Get the effective capability count (non-interface capabilities)
+    #[wasm_bindgen(js_name = effectiveCapabilityCount)]
+    pub fn effective_capability_count(&self) -> usize {
+        self.inner.effective_capability_count()
+    }
+}
+
+/// Compose two composable namespaces via interface matching
+#[wasm_bindgen(js_name = composeNamespaces)]
+pub fn wasm_compose_namespaces(
+    ns_a: &WasmComposableNamespace,
+    out_idx: usize,
+    ns_b: &WasmComposableNamespace,
+    in_idx: usize,
+) -> Result<WasmComposableNamespace, JsValue> {
+    match amari_enumerative::compose_namespaces(&ns_a.inner, out_idx, &ns_b.inner, in_idx) {
+        Ok(inner) => Ok(WasmComposableNamespace { inner }),
+        Err(e) => Err(JsValue::from_str(&format!("Composition error: {}", e))),
+    }
+}
+
+/// Compute the composition multiplicity of two interfaces
+#[wasm_bindgen(js_name = compositionMultiplicity)]
+pub fn wasm_composition_multiplicity(
+    ns_a: &WasmComposableNamespace,
+    out_idx: usize,
+    ns_b: &WasmComposableNamespace,
+    in_idx: usize,
+) -> u32 {
+    amari_enumerative::composition_multiplicity(&ns_a.inner, out_idx, &ns_b.inner, in_idx) as u32
+}
+
+/// Check if two interfaces are compatible for composition
+#[wasm_bindgen(js_name = interfacesCompatible)]
+pub fn wasm_interfaces_compatible(
+    ns_a: &WasmComposableNamespace,
+    out_idx: usize,
+    ns_b: &WasmComposableNamespace,
+    in_idx: usize,
+) -> bool {
+    let outputs = ns_a.inner.outputs();
+    let inputs = ns_b.inner.inputs();
+    if let (Some(out), Some(inp)) = (outputs.get(out_idx), inputs.get(in_idx)) {
+        amari_enumerative::interfaces_compatible(out, inp)
+    } else {
+        false
+    }
+}
+
+/// WASM wrapper for Bridgeland-style stability conditions
+#[wasm_bindgen]
+pub struct WasmStabilityCondition {
+    inner: StabilityCondition,
+}
+
+#[wasm_bindgen]
+impl WasmStabilityCondition {
+    /// Create a stability condition on Gr(k, n) at a given trust level
+    #[wasm_bindgen(constructor)]
+    pub fn new(k: usize, n: usize, trust_level: f64) -> Self {
+        Self {
+            inner: StabilityCondition::standard((k, n), trust_level),
+        }
+    }
+
+    /// Compute the phase of a Schubert class under this stability condition
+    #[wasm_bindgen(js_name = phase)]
+    pub fn phase(&self, class: &WasmSchubertClass) -> f64 {
+        self.inner.phase(&class.inner)
+    }
+
+    /// Check if a capability is stable under this condition
+    #[wasm_bindgen(js_name = isStable)]
+    pub fn is_stable(&self, capability: &WasmCapability) -> bool {
+        self.inner.is_stable(&capability.inner)
+    }
+
+    /// Count stable capabilities in a namespace
+    #[wasm_bindgen(js_name = stableCount)]
+    pub fn stable_count(&self, namespace: &WasmNamespace) -> usize {
+        self.inner.stable_count(&namespace.inner)
+    }
+
+    /// Get the trust level
+    #[wasm_bindgen(js_name = getTrustLevel)]
+    pub fn get_trust_level(&self) -> f64 {
+        self.inner.trust_level
+    }
+}
+
+/// WASM wrapper for wall-crossing engine
+///
+/// Analyzes how stability varies as trust level changes,
+/// computing walls where objects cross between stable and unstable.
+#[wasm_bindgen]
+pub struct WasmWallCrossingEngine {
+    inner: WallCrossingEngine,
+}
+
+#[wasm_bindgen]
+impl WasmWallCrossingEngine {
+    /// Create a wall-crossing engine for Gr(k, n)
+    #[wasm_bindgen(constructor)]
+    pub fn new(k: usize, n: usize) -> Self {
+        Self {
+            inner: WallCrossingEngine::new((k, n)),
+        }
+    }
+
+    /// Compute all walls of marginal stability for a namespace
+    ///
+    /// Returns an array of {trustLevel, direction, countChange} objects
+    #[wasm_bindgen(js_name = computeWalls)]
+    pub fn compute_walls(&self, namespace: &WasmNamespace) -> Vec<JsValue> {
+        self.inner
+            .compute_walls(&namespace.inner)
+            .into_iter()
+            .map(|wall| {
+                let obj = js_sys::Object::new();
+                js_sys::Reflect::set(
+                    &obj,
+                    &"trustLevel".into(),
+                    &JsValue::from(wall.trust_level()),
+                )
+                .unwrap();
+                js_sys::Reflect::set(&obj, &"direction".into(), &JsValue::from(wall.direction))
+                    .unwrap();
+                js_sys::Reflect::set(
+                    &obj,
+                    &"countChange".into(),
+                    &JsValue::from(wall.count_change),
+                )
+                .unwrap();
+                obj.into()
+            })
+            .collect()
+    }
+
+    /// Count stable objects at a specific trust level
+    #[wasm_bindgen(js_name = stableCountAt)]
+    pub fn stable_count_at(&self, namespace: &WasmNamespace, trust_level: f64) -> usize {
+        self.inner.stable_count_at(&namespace.inner, trust_level)
+    }
+
+    /// Compute the full phase diagram for a namespace
+    ///
+    /// Returns an array of {trustLevel, stableCount} objects
+    #[wasm_bindgen(js_name = phaseDiagram)]
+    pub fn phase_diagram(&self, namespace: &WasmNamespace) -> Vec<JsValue> {
+        self.inner
+            .phase_diagram(&namespace.inner)
+            .into_iter()
+            .map(|(trust, count)| {
+                let obj = js_sys::Object::new();
+                js_sys::Reflect::set(&obj, &"trustLevel".into(), &JsValue::from(trust)).unwrap();
+                js_sys::Reflect::set(&obj, &"stableCount".into(), &JsValue::from(count as u32))
+                    .unwrap();
+                obj.into()
+            })
+            .collect()
+    }
+}
+
 #[cfg(test)]
 #[allow(dead_code)]
 mod tests {
@@ -1113,5 +1677,222 @@ mod tests {
         let result = result.unwrap();
         // Two full namespaces should have a subspace intersection
         assert!(result.is_subspace());
+    }
+
+    // ─── Tests for new WASM bindings ───
+
+    #[wasm_bindgen_test]
+    fn test_wdvv_engine() {
+        let mut engine = WasmWDVVEngine::new();
+        assert_eq!(engine.rational_curve_count(1), 1.0);
+        assert_eq!(engine.rational_curve_count(2), 1.0);
+        assert_eq!(engine.rational_curve_count(3), 12.0);
+        assert_eq!(engine.rational_curve_count(4), 620.0);
+        assert_eq!(engine.rational_curve_count(5), 87304.0);
+    }
+
+    #[wasm_bindgen_test]
+    fn test_wdvv_table() {
+        let mut engine = WasmWDVVEngine::new();
+        let _ = engine.rational_curve_count(5);
+        let table = engine.get_table();
+        assert_eq!(table.len(), 5);
+    }
+
+    #[wasm_bindgen_test]
+    fn test_wdvv_target_counts() {
+        // P¹×P¹: ruling families
+        assert_eq!(WasmWDVVEngine::p1xp1_count(1, 0), 1.0);
+        assert_eq!(WasmWDVVEngine::p1xp1_count(1, 1), 1.0);
+        assert_eq!(WasmWDVVEngine::p1xp1_count(2, 2), 12.0);
+
+        // P³
+        assert_eq!(WasmWDVVEngine::p3_count(1), 1.0);
+        assert_eq!(WasmWDVVEngine::p3_count(2), 1.0);
+        assert_eq!(WasmWDVVEngine::p3_count(3), 5.0);
+
+        // Required point count
+        assert_eq!(WasmWDVVEngine::required_point_count(1, 0), 2);
+        assert_eq!(WasmWDVVEngine::required_point_count(2, 0), 5);
+        assert_eq!(WasmWDVVEngine::required_point_count(3, 1), 9);
+    }
+
+    #[wasm_bindgen_test]
+    fn test_torus_weights() {
+        let std_weights = WasmTorusWeights::standard(4);
+        assert_eq!(std_weights.get_weights(), vec![1, 2, 3, 4]);
+
+        let custom = WasmTorusWeights::custom(&[5, 10, 15]).unwrap();
+        assert_eq!(custom.get_weights(), vec![5, 10, 15]);
+    }
+
+    #[wasm_bindgen_test]
+    fn test_fixed_point() {
+        let fp = WasmFixedPoint::new(&[0, 1], 2, 4).unwrap();
+        assert_eq!(fp.get_subset(), vec![0, 1]);
+        assert_eq!(fp.get_grassmannian(), vec![2, 4]);
+
+        let weights = WasmTorusWeights::standard(4);
+        let euler = fp.tangent_euler_class(&weights);
+        // Euler class should be nonzero for generic weights
+        assert!(euler.abs() > 0.0);
+
+        let partition = fp.to_partition();
+        assert!(!partition.is_empty());
+    }
+
+    #[wasm_bindgen_test]
+    fn test_equivariant_localizer() {
+        let loc = WasmEquivariantLocalizer::new(2, 4).unwrap();
+        // C(4, 2) = 6 fixed points
+        assert_eq!(loc.fixed_point_count(), 6);
+    }
+
+    #[wasm_bindgen_test]
+    fn test_matroid_uniform() {
+        let m = WasmMatroid::uniform(2, 4);
+        assert_eq!(m.get_rank(), 2);
+        assert_eq!(m.get_ground_set_size(), 4);
+        // C(4, 2) = 6 bases
+        assert_eq!(m.get_num_bases(), 6);
+
+        // Rank of full set should be 2
+        assert_eq!(m.rank_of(&[0, 1, 2, 3]), 2);
+        // Rank of a pair should be 2 (uniform matroid)
+        assert_eq!(m.rank_of(&[0, 1]), 2);
+        // Rank of a singleton should be 1
+        assert_eq!(m.rank_of(&[0]), 1);
+
+        // No loops or coloops in uniform matroid
+        assert!(!m.is_loop(0));
+        assert!(!m.is_coloop(0));
+    }
+
+    #[wasm_bindgen_test]
+    fn test_matroid_operations() {
+        let m = WasmMatroid::uniform(2, 4);
+
+        let d = m.dual();
+        assert_eq!(d.get_rank(), 2); // dual of U_{2,4} is U_{2,4}
+        assert_eq!(d.get_ground_set_size(), 4);
+
+        let del = m.delete_element(0);
+        assert_eq!(del.get_ground_set_size(), 3);
+
+        let con = m.contract_element(0);
+        assert_eq!(con.get_ground_set_size(), 3);
+        assert_eq!(con.get_rank(), 1);
+
+        let m2 = WasmMatroid::uniform(1, 2);
+        let ds = m.direct_sum(&m2);
+        assert_eq!(ds.get_rank(), 3); // 2 + 1
+        assert_eq!(ds.get_ground_set_size(), 6); // 4 + 2
+    }
+
+    #[wasm_bindgen_test]
+    fn test_matroid_schubert() {
+        let m = WasmMatroid::schubert_matroid(&[1], 2, 4);
+        assert!(m.is_ok());
+        let m = m.unwrap();
+        assert_eq!(m.get_rank(), 2);
+        assert_eq!(m.get_ground_set_size(), 4);
+    }
+
+    #[wasm_bindgen_test]
+    fn test_csm_class() {
+        // CSM of a Schubert cell (contractible, so chi = 1)
+        let csm = WasmCSMClass::of_schubert_cell(&[1], 2, 4);
+        assert_eq!(csm.euler_characteristic(), 1);
+
+        // CSM of Schubert variety
+        let csm_var = WasmCSMClass::of_schubert_variety(&[1], 2, 4);
+        // Euler characteristic of a Schubert variety is >= 1
+        assert!(csm_var.euler_characteristic() >= 1);
+    }
+
+    #[wasm_bindgen_test]
+    fn test_composable_namespace() {
+        let _ns = WasmNamespace::full("test", 2, 4).unwrap();
+        let _cap = WasmCapability::new("cap1", "Cap 1", &[1], 2, 4).unwrap();
+        let mut ns_clone = WasmNamespace::full("test", 2, 4).unwrap();
+        ns_clone
+            .grant(WasmCapability::new("cap1", "Cap 1", &[1], 2, 4).unwrap())
+            .unwrap();
+
+        let mut comp = WasmComposableNamespace::new(&ns_clone);
+        assert_eq!(comp.output_count(), 0);
+        assert_eq!(comp.input_count(), 0);
+
+        comp.mark_output("cap1").unwrap();
+        assert_eq!(comp.output_count(), 1);
+    }
+
+    #[wasm_bindgen_test]
+    fn test_compose_namespaces_wasm() {
+        // Create namespace A with an output
+        let mut ns_a = WasmNamespace::full("A", 2, 4).unwrap();
+        ns_a.grant(WasmCapability::new("out_cap", "Output", &[1], 2, 4).unwrap())
+            .unwrap();
+        let mut comp_a = WasmComposableNamespace::new(&ns_a);
+        comp_a.mark_output("out_cap").unwrap();
+
+        // Create namespace B with a matching input
+        let mut ns_b = WasmNamespace::full("B", 2, 4).unwrap();
+        ns_b.grant(WasmCapability::new("in_cap", "Input", &[1], 2, 4).unwrap())
+            .unwrap();
+        let mut comp_b = WasmComposableNamespace::new(&ns_b);
+        comp_b.mark_input("in_cap").unwrap();
+
+        // Check compatibility
+        assert!(wasm_interfaces_compatible(&comp_a, 0, &comp_b, 0));
+
+        // Compose
+        let result = wasm_compose_namespaces(&comp_a, 0, &comp_b, 0);
+        assert!(result.is_ok());
+
+        // Check multiplicity
+        let mult = wasm_composition_multiplicity(&comp_a, 0, &comp_b, 0);
+        assert!(mult >= 1);
+    }
+
+    #[wasm_bindgen_test]
+    fn test_stability_condition() {
+        let stab = WasmStabilityCondition::new(2, 4, 1.0);
+        assert_eq!(stab.get_trust_level(), 1.0);
+
+        // Phase of σ_1 on Gr(2,4) at trust=1.0
+        let sigma_1 = WasmSchubertClass::new(&[1], 2, 4).unwrap();
+        let phase = stab.phase(&sigma_1);
+        assert!(phase > 0.0 && phase < 1.0, "Phase should be in (0, 1)");
+
+        // Stability check
+        let cap = WasmCapability::new("test", "Test", &[1], 2, 4).unwrap();
+        let stable = stab.is_stable(&cap);
+        assert!(stable);
+    }
+
+    #[wasm_bindgen_test]
+    fn test_wall_crossing_engine() {
+        let engine = WasmWallCrossingEngine::new(2, 4);
+
+        // Create a namespace with capabilities at different codimensions
+        let mut ns = WasmNamespace::full("test", 2, 4).unwrap();
+        ns.grant(WasmCapability::new("c1", "Cap 1", &[1], 2, 4).unwrap())
+            .unwrap();
+        ns.grant(WasmCapability::new("c2", "Cap 2", &[2], 2, 4).unwrap())
+            .unwrap();
+
+        // Compute walls
+        let walls = engine.compute_walls(&ns);
+        // Should have some walls for different codimension capabilities
+        assert!(!walls.is_empty());
+
+        // Stable count at trust 1.0
+        let count = engine.stable_count_at(&ns, 1.0);
+        assert!(count <= 2); // At most 2 capabilities
+
+        // Phase diagram
+        let diagram = engine.phase_diagram(&ns);
+        assert!(!diagram.is_empty());
     }
 }

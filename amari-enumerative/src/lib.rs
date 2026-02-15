@@ -61,22 +61,30 @@
 pub mod comprehensive_tests;
 pub mod verified_contracts;
 
+pub mod csm;
 pub mod geometric_algebra;
 pub mod gromov_witten;
 pub mod higher_genus;
 pub mod intersection;
 pub mod littlewood_richardson;
+pub mod localization;
+pub mod matroid;
 pub mod moduli_space;
 pub mod namespace;
+pub mod operad;
 pub mod performance;
 pub mod phantom;
 pub mod schubert;
+pub mod stability;
 pub mod tropical_curves;
+pub mod wdvv;
 
 #[cfg(feature = "tropical-schubert")]
 pub mod tropical_schubert;
 
 // Re-export core types
+#[cfg(feature = "tropical-schubert")]
+pub use geometric_algebra::tropicalize_multivector;
 pub use geometric_algebra::{
     quantum_k_theory, signatures, GeometricProjectiveSpace, GeometricSchubertClass,
     GeometricVariety,
@@ -105,6 +113,8 @@ pub use littlewood_richardson::{
 
 // Parallel batch operations (when parallel feature is enabled)
 #[cfg(feature = "parallel")]
+pub use geometric_algebra::geometric_intersection_batch;
+#[cfg(feature = "parallel")]
 pub use littlewood_richardson::lr_coefficients_batch;
 #[cfg(feature = "parallel")]
 pub use namespace::{
@@ -112,19 +122,24 @@ pub use namespace::{
 };
 #[cfg(feature = "parallel")]
 pub use schubert::multi_intersect_batch;
+#[cfg(feature = "parallel")]
+pub use tropical_curves::{mikhalkin_correspondence_verify_batch, verify_mikhalkin_gw_batch};
 
 // Namespace exports for ShaperOS
 pub use namespace::{
     capability_accessible, namespace_intersection, Capability, CapabilityId, Namespace,
-    NamespaceBuilder, NamespaceError, NamespaceIntersection,
+    NamespaceBuilder, NamespaceError, NamespaceIntersection, QuantumCapability,
 };
 
 // Tropical curves
 pub use tropical_curves::{
-    TropicalCurve, TropicalEdge, TropicalIntersection, TropicalModuliSpace, TropicalPoint,
+    verify_mikhalkin_gw, MikhalkinResult, TropicalCurve, TropicalEdge, TropicalIntersection,
+    TropicalModuliSpace, TropicalPoint,
 };
 
 // Optional tropical Schubert exports
+#[cfg(all(feature = "tropical-schubert", feature = "parallel"))]
+pub use geometric_algebra::tropicalize_multivector_batch;
 #[cfg(all(feature = "tropical-schubert", feature = "parallel"))]
 pub use tropical_schubert::{tropical_convexity_batch, tropical_intersection_batch};
 #[cfg(feature = "tropical-schubert")]
@@ -193,5 +208,36 @@ pub enum EnumerativeError {
 
 /// Result type for enumerative geometry computations
 pub type EnumerativeResult<T> = Result<T, EnumerativeError>;
+
+// WDVV recursion
+pub use wdvv::WDVVEngine;
+
+// Equivariant localization
+pub use localization::{EquivariantLocalizer, FixedPoint, TorusWeights};
+
+// Matroids
+pub use matroid::{Matroid, ValuatedMatroid};
+
+// CSM classes
+pub use csm::{CSMClass, SegreClass};
+
+// Operadic composition
+pub use operad::{
+    compose_namespaces, composition_multiplicity, interfaces_compatible, ComposableNamespace,
+    Interface, InterfaceDirection,
+};
+
+// Wall-crossing / stability
+pub use stability::{StabilityCondition, Wall, WallCrossingEngine};
+
+// Parallel batch operations for new modules
+#[cfg(feature = "parallel")]
+pub use csm::{csm_of_cells_batch, euler_characteristic_batch};
+#[cfg(feature = "parallel")]
+pub use matroid::{circuits_batch, intersection_cardinality_batch, tutte_polynomial_batch};
+#[cfg(feature = "parallel")]
+pub use stability::{compute_walls_batch, stable_count_batch};
+#[cfg(feature = "parallel")]
+pub use wdvv::rational_curve_count_batch;
 
 // GPU acceleration exports

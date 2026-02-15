@@ -10,7 +10,7 @@
 )]
 use amari_enumerative::{
     GWCurveClass as CurveClass, GromovWittenInvariant, ModuliSpace, ProjectiveSpace,
-    QuantumCohomology, TautologicalClass,
+    QuantumCohomology, TautologicalClass, WDVVEngine,
 };
 use num_rational::Rational64;
 
@@ -72,15 +72,10 @@ fn test_kontsevich_formula() {
     assert_eq!(cubic_count, 12);
 }
 
-// Helper function to compute Kontsevich numbers
+// Helper function to compute Kontsevich numbers via WDVV recursion
 fn kontsevich_number(degree: i64) -> i64 {
-    match degree {
-        1 => 1,
-        2 => 1,
-        3 => 12,
-        4 => 620,
-        _ => 0, // Placeholder for higher degrees
-    }
+    let mut engine = WDVVEngine::new();
+    engine.rational_curve_count(degree as u64) as i64
 }
 
 #[test]

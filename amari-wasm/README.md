@@ -1,4 +1,4 @@
-# @justinelliottcobb/amari-wasm v0.18.0
+# @justinelliottcobb/amari-wasm v0.18.1
 
 **Unified Mathematical Computing Library with High-Precision WebAssembly Support**
 
@@ -20,7 +20,8 @@ Amari is a comprehensive mathematical computing library that brings advanced alg
 - **Functional Analysis** *(v0.15.0)*: Hilbert spaces, linear operators, spectral decomposition, and Sobolev spaces
 - **Optical Field Operations** *(v0.15.1)*: GA-native Lee hologram encoding for DMD displays and VSA-based optical processing
 - **Computational Topology** *(v0.16.0)*: Simplicial complexes, homology computation, persistent homology, and Morse theory
-- **Dynamical Systems** *(v0.18.0)*: ODE solvers, stability analysis, bifurcation diagrams, Lyapunov exponents, and phase portraits
+- **Dynamical Systems** *(v0.18.1)*: ODE solvers, stability analysis, bifurcation diagrams, Lyapunov exponents, and phase portraits
+- **Enumerative Geometry** *(v0.18.1)*: WDVV curve counting, equivariant localization, matroids, CSM classes, operadic composition, and stability conditions
 - **Probability Theory** *(v0.13.0)*: Distributions on multivector spaces, MCMC sampling, and Monte Carlo estimation
 - **Relativistic Physics**: Spacetime algebra (Cl(1,3)) with WebAssembly-compatible precision
 - **Spacecraft Orbital Mechanics**: Full-precision trajectory calculations in browsers
@@ -720,7 +721,7 @@ async function topologyDemo() {
 topologyDemo();
 ```
 
-### Dynamical Systems *(v0.18.0)*
+### Dynamical Systems *(v0.18.1)*
 
 Analyze chaotic systems, compute bifurcation diagrams, and explore phase space:
 
@@ -1091,6 +1092,9 @@ dynamicsDemo();
 - **Chaos Theory**: Lorenz attractors, bifurcation diagrams, Lyapunov exponents
 - **Control Systems**: Stability analysis and phase portraits for dynamical systems
 - **Climate Modeling**: Sensitivity analysis via Lyapunov spectrum computation
+- **Algebraic Geometry**: Rational curve counting, Schubert calculus, Gromov-Witten invariants
+- **Combinatorics**: Matroid operations, Littlewood-Richardson coefficients
+- **Access Control**: Geometric namespace/capability systems for secure multi-agent coordination
 
 ## API Reference
 
@@ -1198,6 +1202,40 @@ dynamicsDemo();
 - `WasmStabilityAnalysis.analyze(system, point)`: Analyze fixed point stability
 - `findFixedPoints(system, guesses, tolerance)`: Find fixed points
 - `WasmPhasePortrait.generate(system, xRange, yRange, res, tMax, dt)`: Generate phase portrait
+
+### Enumerative Geometry Operations
+
+- `WasmWDVVEngine.new()`: Create WDVV engine for rational curve counting
+- `WasmWDVVEngine.rationalCurveCount(degree)`: Compute N_d (rational curves through 3d-1 points)
+- `WasmWDVVEngine.requiredPointCount(degree, genus)`: Required point count (3d+g-1)
+- `WasmWDVVEngine.getTable()`: Get table of computed curve counts
+- `WasmWDVVEngine.p1xp1Count(a, b)`: Rational curves on P^1 x P^1 of bidegree (a,b)
+- `WasmWDVVEngine.p3Count(degree)`: Rational curves in P^3
+- `WasmEquivariantLocalizer.new(k, n)`: Create localizer for Gr(k,n)
+- `WasmEquivariantLocalizer.fixedPointCount()`: Count T-fixed points (= C(n,k))
+- `WasmEquivariantLocalizer.localizedIntersection(classes)`: Intersection via localization
+- `WasmMatroid.uniform(k, n)`: Create uniform matroid U_{k,n}
+- `WasmMatroid.getRank()`: Get matroid rank
+- `WasmMatroid.getNumBases()`: Get number of bases
+- `WasmMatroid.dual()`: Compute dual matroid
+- `WasmMatroid.deleteElement(e)`: Delete element
+- `WasmMatroid.contractElement(e)`: Contract element
+- `WasmCSMClass.ofSchubertCell(partition, k, n)`: CSM class of Schubert cell
+- `WasmCSMClass.ofSchubertVariety(partition, k, n)`: CSM class of Schubert variety
+- `WasmCSMClass.eulerCharacteristic()`: Get Euler characteristic
+- `WasmStabilityCondition.new(k, n, trust)`: Create stability condition
+- `WasmStabilityCondition.phase(class)`: Compute phase of a class
+- `WasmStabilityCondition.stableCount(namespace)`: Count stable objects
+- `WasmWallCrossingEngine.new(k, n)`: Create wall-crossing engine
+- `WasmWallCrossingEngine.computeWalls(namespace)`: Find walls
+- `WasmWallCrossingEngine.stableCountAt(namespace, trust)`: Stable count at trust level
+- `WasmWallCrossingEngine.phaseDiagram(namespace)`: Generate phase diagram
+- `WasmComposableNamespace.new(namespace)`: Create composable namespace
+- `WasmComposableNamespace.markOutput(capId)`: Mark output interface
+- `WasmComposableNamespace.markInput(capId)`: Mark input interface
+- `composeNamespaces(outer, inner)`: Compose along matching interfaces
+- `compositionMultiplicity(outer, inner)`: Intersection number of interfaces
+- `interfacesCompatible(outer, inner)`: Check interface compatibility
 
 ## Examples
 

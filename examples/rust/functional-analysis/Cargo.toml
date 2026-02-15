@@ -1,6 +1,6 @@
 [package]
 name = "functional-analysis-examples"
-version = "0.18.0"
+version = "0.18.1"
 edition = "2021"
 authors = ["Amari Project <amari@example.com>"]
 description = "Functional analysis examples using amari-functional"
