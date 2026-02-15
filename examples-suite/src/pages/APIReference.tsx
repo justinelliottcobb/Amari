@@ -2608,7 +2608,7 @@ console.log(\`Self-similarity: \${algebra.similarity(f, f)}\`); // 1.0`
   {
     id: "enumerative",
     title: "Enumerative Geometry",
-    description: "Intersection theory, Schubert calculus, LR coefficients, namespaces, and curve counting",
+    description: "Intersection theory, Schubert calculus, LR coefficients, namespaces, curve counting, matroids, stability, and equivariant localization",
     icon: "∩",
     classes: [
       {
@@ -3100,6 +3100,368 @@ const coeff = lrCoefficient(lambda, mu, nu);`
             name: "namespaceIntersection",
             signature: "namespaceIntersection(ns1: WasmNamespace, ns2: WasmNamespace): WasmNamespaceIntersection",
             description: "Compute the intersection of two namespaces"
+          }
+        ]
+      },
+      {
+        name: "WasmWDVVEngine",
+        description: "Engine for computing genus-0 Gromov-Witten invariants N_d via Kontsevich's recursion (WDVV equations). Counts rational degree-d curves in P² through 3d-1 general points.",
+        methods: [
+          {
+            name: "constructor",
+            signature: "new WasmWDVVEngine()",
+            description: "Create a new WDVV engine with base cases N_1 = N_2 = 1 seeded",
+            example: `const engine = new WasmWDVVEngine();
+console.log(engine.rationalCurveCount(3)); // 12`
+          },
+          {
+            name: "rationalCurveCount",
+            signature: "rationalCurveCount(degree: number): number",
+            description: "Compute N_d: number of rational degree-d curves in P² through 3d-1 general points. Returns result as f64 (JS number). Known values: N_1=1, N_2=1, N_3=12, N_4=620, N_5=87304."
+          },
+          {
+            name: "gwInvariantRational",
+            signature: "gwInvariantRational(degree: number): number",
+            description: "Compute the Gromov-Witten invariant ⟨H², ..., H²⟩_{0,d} for P² (same as rationalCurveCount)"
+          },
+          {
+            name: "requiredPointCount",
+            signature: "static requiredPointCount(degree: number, genus: number): number",
+            description: "Number of marked points for the dimension constraint: 3d + g - 1",
+            isStatic: true
+          },
+          {
+            name: "getTable",
+            signature: "getTable(): Array<{degree: number, count: number}>",
+            description: "Return all computed N_d values as a sorted table"
+          },
+          {
+            name: "p1xp1Count",
+            signature: "static p1xp1Count(a: number, b: number): number",
+            description: "Count rational curves on P¹×P¹ of bidegree (a,b)",
+            isStatic: true
+          },
+          {
+            name: "p3Count",
+            signature: "static p3Count(degree: number): number",
+            description: "Count rational curves in P³ of degree d meeting 4d general lines",
+            isStatic: true
+          }
+        ]
+      },
+      {
+        name: "WasmTorusWeights",
+        description: "Torus weights for equivariant localization computations. Represents the weights of a torus action on the ambient space.",
+        methods: [
+          {
+            name: "standard",
+            signature: "static standard(n: number): WasmTorusWeights",
+            description: "Create standard weights (1, 2, ..., n)",
+            isStatic: true
+          },
+          {
+            name: "constructor",
+            signature: "new WasmTorusWeights(weights: Float64Array)",
+            description: "Create custom torus weights from an array of values"
+          },
+          {
+            name: "getWeights",
+            signature: "getWeights(): Float64Array",
+            description: "Get the weight values"
+          }
+        ]
+      },
+      {
+        name: "WasmFixedPoint",
+        description: "A torus-fixed point on a Grassmannian Gr(k,n), represented by a k-element subset of {0,...,n-1}.",
+        methods: [
+          {
+            name: "constructor",
+            signature: "new WasmFixedPoint(subset: Uint32Array, k: number, n: number)",
+            description: "Create a fixed point from a k-element subset",
+            example: `const fp = new WasmFixedPoint(new Uint32Array([0, 1]), 2, 4);
+console.log(fp.toPartition()); // partition corresponding to this fixed point`
+          },
+          {
+            name: "getSubset",
+            signature: "getSubset(): Uint32Array",
+            description: "Get the subset defining this fixed point"
+          },
+          {
+            name: "getGrassmannian",
+            signature: "getGrassmannian(): Uint32Array",
+            description: "Get [k, n] parameters"
+          },
+          {
+            name: "tangentEulerClass",
+            signature: "tangentEulerClass(weights: WasmTorusWeights): number",
+            description: "Compute the Euler class of the tangent space at this fixed point: ∏(t_j - t_i) for i in subset, j not in subset"
+          },
+          {
+            name: "toPartition",
+            signature: "toPartition(): Uint32Array",
+            description: "Convert fixed point to the corresponding Schubert partition"
+          }
+        ]
+      },
+      {
+        name: "WasmEquivariantLocalizer",
+        description: "Equivariant localization engine for Grassmannians. Uses the Atiyah-Bott fixed point formula to compute integrals over Gr(k,n).",
+        methods: [
+          {
+            name: "constructor",
+            signature: "new WasmEquivariantLocalizer(k: number, n: number)",
+            description: "Create a localizer for Gr(k,n) with standard torus weights",
+            example: `// Verify σ_1^4 = 2 on Gr(2,4) via localization
+const loc = new WasmEquivariantLocalizer(2, 4);
+const classes = [new Uint32Array([1]), new Uint32Array([1]),
+                 new Uint32Array([1]), new Uint32Array([1])];
+console.log(loc.localizedIntersection(classes)); // 2.0`
+          },
+          {
+            name: "withWeights",
+            signature: "withWeights(weights: WasmTorusWeights): WasmEquivariantLocalizer",
+            description: "Create a localizer with custom torus weights"
+          },
+          {
+            name: "fixedPointCount",
+            signature: "fixedPointCount(): number",
+            description: "Number of T-fixed points on Gr(k,n) = C(n,k)"
+          },
+          {
+            name: "localizedIntersection",
+            signature: "localizedIntersection(classes: Uint32Array[]): number",
+            description: "Compute intersection number of Schubert classes via localization formula"
+          }
+        ]
+      },
+      {
+        name: "WasmMatroid",
+        description: "A matroid represented by its bases. Supports uniform matroids, Schubert matroids, duality, deletion, contraction, and direct sum.",
+        methods: [
+          {
+            name: "uniform",
+            signature: "static uniform(k: number, n: number): WasmMatroid",
+            description: "Create the uniform matroid U_{k,n} where every k-element subset is a basis",
+            isStatic: true,
+            example: `const m = WasmMatroid.uniform(2, 4);
+console.log(m.getRank());      // 2
+console.log(m.getNumBases());  // 6`
+          },
+          {
+            name: "schubertMatroid",
+            signature: "static schubertMatroid(partition: Uint32Array, k: number, n: number): WasmMatroid",
+            description: "Create a Schubert matroid from a partition on Gr(k,n)",
+            isStatic: true
+          },
+          {
+            name: "getRank",
+            signature: "getRank(): number",
+            description: "Get the rank of the matroid"
+          },
+          {
+            name: "getGroundSetSize",
+            signature: "getGroundSetSize(): number",
+            description: "Get the ground set size"
+          },
+          {
+            name: "getNumBases",
+            signature: "getNumBases(): number",
+            description: "Get the number of bases"
+          },
+          {
+            name: "rankOf",
+            signature: "rankOf(subset: Uint32Array): number",
+            description: "Compute the rank of a subset"
+          },
+          {
+            name: "isLoop",
+            signature: "isLoop(element: number): boolean",
+            description: "Check if element is a loop (rank 0 element)"
+          },
+          {
+            name: "isColoop",
+            signature: "isColoop(element: number): boolean",
+            description: "Check if element is a coloop (in every basis)"
+          },
+          {
+            name: "dual",
+            signature: "dual(): WasmMatroid",
+            description: "Compute the dual matroid (bases are complements of original bases)"
+          },
+          {
+            name: "deleteElement",
+            signature: "deleteElement(element: number): WasmMatroid",
+            description: "Delete an element from the matroid"
+          },
+          {
+            name: "contractElement",
+            signature: "contractElement(element: number): WasmMatroid",
+            description: "Contract an element in the matroid"
+          },
+          {
+            name: "directSum",
+            signature: "directSum(other: WasmMatroid): WasmMatroid",
+            description: "Compute the direct sum of two matroids"
+          },
+          {
+            name: "intersectionCardinality",
+            signature: "intersectionCardinality(other: WasmMatroid): number",
+            description: "Compute the intersection cardinality (max common independent set size)"
+          }
+        ]
+      },
+      {
+        name: "WasmCSMClass",
+        description: "Chern-Schwartz-MacPherson (CSM) class of a Schubert variety or cell. Captures singularity information via characteristic classes.",
+        methods: [
+          {
+            name: "ofSchubertCell",
+            signature: "static ofSchubertCell(partition: Uint32Array, k: number, n: number): WasmCSMClass",
+            description: "Compute CSM class of a Schubert cell (open stratum)",
+            isStatic: true,
+            example: `const csm = WasmCSMClass.ofSchubertCell(new Uint32Array([1]), 2, 4);
+console.log(csm.eulerCharacteristic()); // 1 (cells are smooth)`
+          },
+          {
+            name: "ofSchubertVariety",
+            signature: "static ofSchubertVariety(partition: Uint32Array, k: number, n: number): WasmCSMClass",
+            description: "Compute CSM class of a Schubert variety (closed, possibly singular)",
+            isStatic: true
+          },
+          {
+            name: "eulerCharacteristic",
+            signature: "eulerCharacteristic(): number",
+            description: "Get the Euler characteristic (degree of CSM class)"
+          },
+          {
+            name: "intersect",
+            signature: "intersect(other: WasmCSMClass): WasmCSMClass",
+            description: "Intersect two CSM classes"
+          }
+        ]
+      },
+      {
+        name: "WasmComposableNamespace",
+        description: "A namespace with marked input/output interfaces for operadic composition. Used to compose two namespaces along matching interfaces.",
+        methods: [
+          {
+            name: "constructor",
+            signature: "new WasmComposableNamespace(namespace: WasmNamespace)",
+            description: "Create a composable namespace wrapper around an existing namespace"
+          },
+          {
+            name: "markOutput",
+            signature: "markOutput(capabilityId: string): void",
+            description: "Mark a capability as an output interface"
+          },
+          {
+            name: "markInput",
+            signature: "markInput(capabilityId: string): void",
+            description: "Mark a capability as an input interface"
+          },
+          {
+            name: "outputCount",
+            signature: "outputCount(): number",
+            description: "Get number of output interfaces"
+          },
+          {
+            name: "inputCount",
+            signature: "inputCount(): number",
+            description: "Get number of input interfaces"
+          },
+          {
+            name: "effectiveCapabilityCount",
+            signature: "effectiveCapabilityCount(): number",
+            description: "Get effective capability count (total minus interface caps)"
+          }
+        ]
+      },
+      {
+        name: "WasmStabilityCondition",
+        description: "A Bridgeland-type stability condition on the derived category of Gr(k,n). Assigns phases to objects based on a trust parameter.",
+        methods: [
+          {
+            name: "constructor",
+            signature: "new WasmStabilityCondition(k: number, n: number, trustLevel: number)",
+            description: "Create a stability condition on Gr(k,n) with given trust level",
+            example: `const cond = new WasmStabilityCondition(2, 4, 0.8);
+const phase = cond.phase(schubertClass); // phase in (0, 1]`
+          },
+          {
+            name: "phase",
+            signature: "phase(class: WasmSchubertClass): number",
+            description: "Compute the phase of a Schubert class under this stability condition"
+          },
+          {
+            name: "isStable",
+            signature: "isStable(capability: WasmCapability): boolean",
+            description: "Check if a capability is stable under this condition"
+          },
+          {
+            name: "stableCount",
+            signature: "stableCount(namespace: WasmNamespace): number",
+            description: "Count stable objects in a namespace"
+          },
+          {
+            name: "getTrustLevel",
+            signature: "getTrustLevel(): number",
+            description: "Get the trust level parameter"
+          }
+        ]
+      },
+      {
+        name: "WasmWallCrossingEngine",
+        description: "Engine for computing wall-crossing phenomena. Finds walls in the stability parameter space where stable counts change.",
+        methods: [
+          {
+            name: "constructor",
+            signature: "new WasmWallCrossingEngine(k: number, n: number)",
+            description: "Create a wall-crossing engine for Gr(k,n)",
+            example: `const engine = new WasmWallCrossingEngine(2, 4);
+const walls = engine.computeWalls(namespace);
+walls.forEach(w => console.log(\`Wall at t=\${w.trustLevel}\`));`
+          },
+          {
+            name: "computeWalls",
+            signature: "computeWalls(namespace: WasmNamespace): Array<{trustLevel: number, direction: number, countChange: number}>",
+            description: "Find all walls (critical trust values) for a given namespace"
+          },
+          {
+            name: "stableCountAt",
+            signature: "stableCountAt(namespace: WasmNamespace, trust: number): number",
+            description: "Compute stable count at a specific trust level"
+          },
+          {
+            name: "phaseDiagram",
+            signature: "phaseDiagram(namespace: WasmNamespace): Array<{trustLevel: number, stableCount: number}>",
+            description: "Generate a phase diagram showing stable count vs trust level"
+          }
+        ]
+      },
+      {
+        name: "Operad & Composition Functions",
+        description: "Functions for operadic composition of namespaces. Compose two namespaces along matching input/output interfaces.",
+        methods: [
+          {
+            name: "composeNamespaces",
+            signature: "composeNamespaces(outer: WasmComposableNamespace, inner: WasmComposableNamespace): WasmNamespace",
+            description: "Compose two namespaces along matching interfaces (outer's inputs meet inner's outputs)",
+            example: `const outer = new WasmComposableNamespace(ns1);
+outer.markInput("read");
+const inner = new WasmComposableNamespace(ns2);
+inner.markOutput("read");
+const composed = composeNamespaces(outer, inner);`
+          },
+          {
+            name: "compositionMultiplicity",
+            signature: "compositionMultiplicity(outer: WasmComposableNamespace, inner: WasmComposableNamespace): number",
+            description: "Compute the multiplicity of a composition (intersection number of interface Schubert classes)"
+          },
+          {
+            name: "interfacesCompatible",
+            signature: "interfacesCompatible(outer: WasmComposableNamespace, inner: WasmComposableNamespace): boolean",
+            description: "Check if two namespaces have compatible interfaces for composition"
           }
         ]
       }

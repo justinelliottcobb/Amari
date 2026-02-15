@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import {
   Container, Stack, Card, Title, Text, Button, SimpleGrid,
-  Code, Table, Badge, Tabs, NumberInput, TextInput
+  Code, Table, Badge, Tabs, NumberInput, TextInput, Slider
 } from '@mantine/core';
 import { ExampleCard } from '../components/ExampleCard';
 
@@ -124,6 +124,72 @@ const mockEnumerativeGeometry = {
         return { isFinite: false, count: 0, dimension: grDim - totalCodim };
       }
     })
+  },
+  // WDVV / Kontsevich rational curve counting
+  WDVVEngine: {
+    new: () => ({
+      rationalCurveCount: (d: number) => [1, 1, 12, 620, 87304, 26312976, 14616808192][d - 1] || 0,
+      getTable: () => [[1, 1], [2, 1], [3, 12], [4, 620], [5, 87304]].map(([d, n]) => ({ degree: d, count: n })),
+    }),
+    requiredPointCount: (d: number, g: number) => 3 * d + g - 1,
+    p1xp1Count: (a: number, b: number) => {
+      if (a <= 1 && b <= 1) return 1;
+      if (a === 2 && b === 2) return 12;
+      return 0;
+    },
+    p3Count: (d: number) => [0, 1, 1, 5][d] || 0,
+  },
+  // Equivariant localization
+  EquivariantLocalizer: {
+    new: (k: number, n: number) => ({
+      fixedPointCount: () => {
+        let r = 1;
+        for (let i = 0; i < k; i++) r *= (n - i) / (i + 1);
+        return Math.round(r);
+      },
+    }),
+  },
+  // Matroid theory
+  Matroid: {
+    uniform: (k: number, n: number) => ({
+      getRank: () => k,
+      getGroundSetSize: () => n,
+      getNumBases: () => {
+        let r = 1;
+        for (let i = 0; i < k; i++) r *= (n - i) / (i + 1);
+        return Math.round(r);
+      },
+      dual: () => ({ getRank: () => n - k, getGroundSetSize: () => n }),
+      rankOf: (s: number[]) => Math.min(s.length, k),
+    }),
+  },
+  // Chern-Schwartz-MacPherson classes
+  CSMClass: {
+    ofSchubertCell: (_partition: number[], _k: number, _n: number) => ({
+      eulerCharacteristic: () => 1,
+    }),
+    ofSchubertVariety: (partition: number[], _k: number, _n: number) => ({
+      eulerCharacteristic: () => partition.reduce((a, b) => a + b, 0) + 1,
+    }),
+  },
+  // Stability conditions and wall-crossing
+  StabilityCondition: {
+    new: (k: number, n: number, trust: number) => ({
+      phase: (codim: number) => Math.atan2(trust * k * (n - k), -codim) / Math.PI,
+      stableCount: (nCaps: number) => nCaps,
+      getTrustLevel: () => trust,
+    }),
+  },
+  WallCrossingEngine: {
+    new: (k: number, n: number) => ({
+      computeWalls: () => [{ trustLevel: 0.5, direction: 1, countChange: 1 }],
+      stableCountAt: (trust: number) => trust > 0 ? Math.round(k * (n - k) * trust) : 0,
+      phaseDiagram: () => [
+        { trustLevel: 0.0, stableCount: 0 },
+        { trustLevel: 0.5, stableCount: Math.round(k * (n - k) * 0.5) },
+        { trustLevel: 1.0, stableCount: k * (n - k) },
+      ],
+    }),
   }
 };
 
@@ -178,6 +244,26 @@ export function EnumerativeGeometry() {
   // Multi-Intersection Demo
   const [multiPartitions, setMultiPartitions] = useState('1;1;1;1');
   const [multiResult, setMultiResult] = useState<any>(null);
+
+  // WDVV / Curve Counting
+  const [wdvvDegree, setWdvvDegree] = useState<number | string>(3);
+  const [wdvvResult, setWdvvResult] = useState<any>(null);
+  const [localizerK, setLocalizerK] = useState<number | string>(2);
+  const [localizerN, setLocalizerN] = useState<number | string>(4);
+  const [localizationResult, setLocalizationResult] = useState<any>(null);
+
+  // Matroids
+  const [matroidK, setMatroidK] = useState<number | string>(2);
+  const [matroidN, setMatroidN] = useState<number | string>(4);
+  const [matroidResult, setMatroidResult] = useState<any>(null);
+  const [csmPartition, setCsmPartition] = useState<string>('1');
+  const [csmResult, setCsmResult] = useState<any>(null);
+
+  // Stability
+  const [stabilityK, setStabilityK] = useState<number | string>(2);
+  const [stabilityN, setStabilityN] = useState<number | string>(4);
+  const [trustLevel, setTrustLevel] = useState<number>(1.0);
+  const [stabilityResult, setStabilityResult] = useState<any>(null);
 
   const addToHistory = useCallback((input: string, output: any, time: number, error?: string) => {
     setComputationHistory(prev => [{ input, output, time, error }, ...prev.slice(0, 9)]);
@@ -395,6 +481,171 @@ export function EnumerativeGeometry() {
     }
   }, [grassmannianK, grassmannianN, multiPartitions, addToHistory]);
 
+  const computeWDVV = useCallback(async () => {
+    setIsComputing(true);
+    const start = Date.now();
+
+    try {
+      const d = Number(wdvvDegree);
+      const engine = mockEnumerativeGeometry.WDVVEngine.new();
+      const nd = engine.rationalCurveCount(d);
+      const requiredPoints = mockEnumerativeGeometry.WDVVEngine.requiredPointCount(d, 0);
+      const table = engine.getTable();
+
+      const result = {
+        degree: d,
+        curveCount: nd,
+        requiredPoints,
+        table,
+      };
+
+      setWdvvResult(result);
+      addToHistory(
+        `N_${d} (rational curves through ${requiredPoints} points)`,
+        `${nd}`,
+        Date.now() - start
+      );
+    } catch (error) {
+      addToHistory('WDVV computation', 'Error', Date.now() - start, error as string);
+    } finally {
+      setIsComputing(false);
+    }
+  }, [wdvvDegree, addToHistory]);
+
+  const computeLocalization = useCallback(async () => {
+    setIsComputing(true);
+    const start = Date.now();
+
+    try {
+      const k = Number(localizerK);
+      const n = Number(localizerN);
+      const localizer = mockEnumerativeGeometry.EquivariantLocalizer.new(k, n);
+      const fixedPointCount = localizer.fixedPointCount();
+
+      const result = {
+        k,
+        n,
+        fixedPointCount,
+        grassmannianDim: k * (n - k),
+      };
+
+      setLocalizationResult(result);
+      addToHistory(
+        `Fixed points of T-action on Gr(${k},${n})`,
+        `C(${n},${k}) = ${fixedPointCount}`,
+        Date.now() - start
+      );
+    } catch (error) {
+      addToHistory('Localization computation', 'Error', Date.now() - start, error as string);
+    } finally {
+      setIsComputing(false);
+    }
+  }, [localizerK, localizerN, addToHistory]);
+
+  const computeMatroid = useCallback(async () => {
+    setIsComputing(true);
+    const start = Date.now();
+
+    try {
+      const k = Number(matroidK);
+      const n = Number(matroidN);
+      const matroid = mockEnumerativeGeometry.Matroid.uniform(k, n);
+      const dual = matroid.dual();
+
+      const result = {
+        k,
+        n,
+        rank: matroid.getRank(),
+        groundSetSize: matroid.getGroundSetSize(),
+        numBases: matroid.getNumBases(),
+        dualRank: dual.getRank(),
+        dualGroundSetSize: dual.getGroundSetSize(),
+      };
+
+      setMatroidResult(result);
+      addToHistory(
+        `U_{${k},${n}} (uniform matroid)`,
+        `rank=${k}, bases=C(${n},${k})=${result.numBases}`,
+        Date.now() - start
+      );
+    } catch (error) {
+      addToHistory('Matroid computation', 'Error', Date.now() - start, error as string);
+    } finally {
+      setIsComputing(false);
+    }
+  }, [matroidK, matroidN, addToHistory]);
+
+  const computeCSM = useCallback(async () => {
+    setIsComputing(true);
+    const start = Date.now();
+
+    try {
+      const parts = csmPartition.split(',').map(x => parseInt(x.trim()));
+      const k = Number(matroidK);
+      const n = Number(matroidN);
+
+      const cell = mockEnumerativeGeometry.CSMClass.ofSchubertCell(parts, k, n);
+      const variety = mockEnumerativeGeometry.CSMClass.ofSchubertVariety(parts, k, n);
+
+      const result = {
+        partition: parts,
+        cellEuler: cell.eulerCharacteristic(),
+        varietyEuler: variety.eulerCharacteristic(),
+        k,
+        n,
+      };
+
+      setCsmResult(result);
+      addToHistory(
+        `CSM class of Schubert variety [${parts}] in Gr(${k},${n})`,
+        `chi(cell)=${result.cellEuler}, chi(variety)=${result.varietyEuler}`,
+        Date.now() - start
+      );
+    } catch (error) {
+      addToHistory('CSM computation', 'Error', Date.now() - start, error as string);
+    } finally {
+      setIsComputing(false);
+    }
+  }, [csmPartition, matroidK, matroidN, addToHistory]);
+
+  const computeStability = useCallback(async () => {
+    setIsComputing(true);
+    const start = Date.now();
+
+    try {
+      const k = Number(stabilityK);
+      const n = Number(stabilityN);
+      const trust = trustLevel;
+
+      const condition = mockEnumerativeGeometry.StabilityCondition.new(k, n, trust);
+      const wallEngine = mockEnumerativeGeometry.WallCrossingEngine.new(k, n);
+      const walls = wallEngine.computeWalls();
+      const stableCount = wallEngine.stableCountAt(trust);
+      const phaseDiagram = wallEngine.phaseDiagram();
+
+      const result = {
+        k,
+        n,
+        trust,
+        phase: condition.phase(1),
+        stableCount,
+        walls,
+        phaseDiagram,
+      };
+
+      setStabilityResult(result);
+      addToHistory(
+        `Stability on Gr(${k},${n}), trust=${trust.toFixed(2)}`,
+        `stable count=${stableCount}, ${walls.length} wall(s)`,
+        Date.now() - start
+      );
+    } catch (error) {
+      addToHistory('Stability computation', 'Error', Date.now() - start, error as string);
+    } finally {
+      setIsComputing(false);
+    }
+  }, [stabilityK, stabilityN, trustLevel, addToHistory]);
+
   return (
     <Container size="lg" py="xl">
       <Stack gap="lg">
@@ -420,6 +671,9 @@ export function EnumerativeGeometry() {
                   <li><Text span fw={600}>LR Coefficients:</Text> Young tableaux and representation theory</li>
                   <li><Text span fw={600}>Tropical Geometry:</Text> Piecewise-linear structures</li>
                   <li><Text span fw={600}>Namespaces:</Text> Geometric access control (ShaperOS)</li>
+                  <li><Text span fw={600}>Curve Counting:</Text> WDVV/Kontsevich rational curves</li>
+                  <li><Text span fw={600}>Matroids:</Text> Matroid theory and CSM classes</li>
+                  <li><Text span fw={600}>Stability:</Text> Wall-crossing and stability conditions</li>
                 </Text>
               </div>
               <div>
@@ -445,6 +699,9 @@ export function EnumerativeGeometry() {
             <Tabs.Tab value="tropical">Tropical Geometry</Tabs.Tab>
             <Tabs.Tab value="higher-genus">Higher Genus</Tabs.Tab>
             <Tabs.Tab value="performance">Performance</Tabs.Tab>
+            <Tabs.Tab value="wdvv">Curve Counting</Tabs.Tab>
+            <Tabs.Tab value="matroids">Matroids</Tabs.Tab>
+            <Tabs.Tab value="stability">Stability</Tabs.Tab>
           </Tabs.List>
 
           <Tabs.Panel value="intersection" pt="md">
@@ -950,6 +1207,364 @@ export function EnumerativeGeometry() {
               </Card.Section>
             </Card>
           </Tabs.Panel>
+
+          <Tabs.Panel value="wdvv" pt="md">
+            <Card withBorder>
+              <Card.Section inheritPadding py="xs" bg="dark.6">
+                <Title order={2} size="h3">Curve Counting (WDVV/Kontsevich)</Title>
+                <Text size="sm" c="dimmed">Compute rational curve counts N_d via Kontsevich's recursion from the WDVV equations</Text>
+              </Card.Section>
+              <Card.Section inheritPadding py="md">
+                <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="lg">
+                  <Stack gap="md">
+                    <NumberInput
+                      label="Degree d"
+                      description="Count degree-d rational curves in P² through 3d-1 points"
+                      min={1}
+                      max={7}
+                      value={wdvvDegree}
+                      onChange={setWdvvDegree}
+                    />
+                    <Button onClick={computeWDVV} disabled={isComputing}>
+                      {isComputing ? 'Computing...' : 'Compute N_d'}
+                    </Button>
+                    <Card withBorder p="sm">
+                      <Text size="sm">
+                        <Text span fw={600}>Kontsevich's Formula:</Text> Uses the WDVV equations to recursively
+                        compute genus-0 Gromov-Witten invariants. Base cases: N_1 = N_2 = 1.
+                      </Text>
+                    </Card>
+                  </Stack>
+                  <Card withBorder>
+                    <Card.Section inheritPadding py="xs" bg="dark.6">
+                      <Title order={3} size="h4">Result</Title>
+                    </Card.Section>
+                    <Card.Section inheritPadding py="md">
+                      {wdvvResult ? (
+                        <Stack gap="sm">
+                          <Text>
+                            <Text span fw={600}>N_{wdvvResult.degree}:</Text>{' '}
+                            <Badge color="green" size="lg">{wdvvResult.curveCount.toLocaleString()}</Badge>
+                          </Text>
+                          <Text>
+                            <Text span fw={600}>Required Points:</Text> {wdvvResult.requiredPoints} general points in P²
+                          </Text>
+                          <Text size="sm" c="dimmed" mt="xs" fw={600}>Known Values:</Text>
+                          <Table>
+                            <Table.Thead>
+                              <Table.Tr>
+                                <Table.Th>d</Table.Th>
+                                <Table.Th>N_d</Table.Th>
+                                <Table.Th>Points</Table.Th>
+                              </Table.Tr>
+                            </Table.Thead>
+                            <Table.Tbody>
+                              {wdvvResult.table.map((row: any) => (
+                                <Table.Tr key={row.degree}>
+                                  <Table.Td>{row.degree}</Table.Td>
+                                  <Table.Td>{row.count.toLocaleString()}</Table.Td>
+                                  <Table.Td>{3 * row.degree - 1}</Table.Td>
+                                </Table.Tr>
+                              ))}
+                            </Table.Tbody>
+                          </Table>
+                        </Stack>
+                      ) : (
+                        <Text c="dimmed">Click "Compute N_d" to see results</Text>
+                      )}
+                    </Card.Section>
+                  </Card>
+                </SimpleGrid>
+
+                {/* Equivariant Localization Sub-Section */}
+                <Card withBorder mt="lg">
+                  <Card.Section inheritPadding py="xs" bg="dark.6">
+                    <Title order={3} size="h4">Equivariant Localization</Title>
+                    <Text size="sm" c="dimmed">Count torus-fixed points on Grassmannians via Atiyah-Bott localization</Text>
+                  </Card.Section>
+                  <Card.Section inheritPadding py="md">
+                    <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="lg">
+                      <Stack gap="md">
+                        <NumberInput
+                          label="k (subspace dimension)"
+                          min={1}
+                          max={5}
+                          value={localizerK}
+                          onChange={setLocalizerK}
+                        />
+                        <NumberInput
+                          label="n (ambient dimension)"
+                          min={Number(localizerK) + 1}
+                          max={8}
+                          value={localizerN}
+                          onChange={setLocalizerN}
+                        />
+                        <Button onClick={computeLocalization} disabled={isComputing}>
+                          {isComputing ? 'Computing...' : 'Compute Fixed Points'}
+                        </Button>
+                      </Stack>
+                      <Card withBorder>
+                        <Card.Section inheritPadding py="xs" bg="dark.6">
+                          <Title order={3} size="h4">Localization Result</Title>
+                        </Card.Section>
+                        <Card.Section inheritPadding py="md">
+                          {localizationResult ? (
+                            <Stack gap="sm">
+                              <Text>
+                                <Text span fw={600}>Grassmannian:</Text> Gr({localizationResult.k}, {localizationResult.n})
+                              </Text>
+                              <Text>
+                                <Text span fw={600}>Dimension:</Text> {localizationResult.grassmannianDim}
+                              </Text>
+                              <Text>
+                                <Text span fw={600}>T-fixed points:</Text>{' '}
+                                <Badge color="blue" size="lg">
+                                  C({localizationResult.n},{localizationResult.k}) = {localizationResult.fixedPointCount}
+                                </Badge>
+                              </Text>
+                              <Text size="sm" c="dimmed">
+                                Each fixed point corresponds to a coordinate k-plane.
+                                The Atiyah-Bott formula reduces integrals to sums over these fixed points.
+                              </Text>
+                            </Stack>
+                          ) : (
+                            <Text c="dimmed">Click "Compute Fixed Points" to see results</Text>
+                          )}
+                        </Card.Section>
+                      </Card>
+                    </SimpleGrid>
+                  </Card.Section>
+                </Card>
+              </Card.Section>
+            </Card>
+          </Tabs.Panel>
+
+          <Tabs.Panel value="matroids" pt="md">
+            <Card withBorder>
+              <Card.Section inheritPadding py="xs" bg="dark.6">
+                <Title order={2} size="h3">Matroid Theory</Title>
+                <Text size="sm" c="dimmed">Uniform matroids, rank functions, duality, and Tutte polynomials</Text>
+              </Card.Section>
+              <Card.Section inheritPadding py="md">
+                <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="lg">
+                  <Stack gap="md">
+                    <NumberInput
+                      label="Rank k"
+                      description="Rank of the uniform matroid U_{k,n}"
+                      min={1}
+                      max={6}
+                      value={matroidK}
+                      onChange={setMatroidK}
+                    />
+                    <NumberInput
+                      label="Ground set size n"
+                      description="Size of the ground set [n]"
+                      min={Number(matroidK) + 1}
+                      max={10}
+                      value={matroidN}
+                      onChange={setMatroidN}
+                    />
+                    <Button onClick={computeMatroid} disabled={isComputing}>
+                      {isComputing ? 'Computing...' : 'Compute Matroid'}
+                    </Button>
+                    <Card withBorder p="sm">
+                      <Text size="sm">
+                        <Text span fw={600}>Uniform Matroid U(k,n):</Text> Every k-element subset of [n] is a basis.
+                        The dual matroid has rank n-k.
+                      </Text>
+                    </Card>
+                  </Stack>
+                  <Card withBorder>
+                    <Card.Section inheritPadding py="xs" bg="dark.6">
+                      <Title order={3} size="h4">Matroid Properties</Title>
+                    </Card.Section>
+                    <Card.Section inheritPadding py="md">
+                      {matroidResult ? (
+                        <Stack gap="sm">
+                          <Text>
+                            <Text span fw={600}>Matroid:</Text> U({matroidResult.k}, {matroidResult.n})
+                          </Text>
+                          <Text><Text span fw={600}>Rank:</Text> {matroidResult.rank}</Text>
+                          <Text><Text span fw={600}>Ground Set:</Text> [{'{'}1, ..., {matroidResult.groundSetSize}{'}'}]</Text>
+                          <Text>
+                            <Text span fw={600}>Number of Bases:</Text>{' '}
+                            <Badge color="green" size="lg">
+                              C({matroidResult.n},{matroidResult.k}) = {matroidResult.numBases}
+                            </Badge>
+                          </Text>
+                          <Text size="sm" c="dimmed" mt="xs" fw={600}>Dual Matroid:</Text>
+                          <Text>
+                            <Text span fw={600}>Dual:</Text> U({matroidResult.dualRank}, {matroidResult.dualGroundSetSize})
+                          </Text>
+                        </Stack>
+                      ) : (
+                        <Text c="dimmed">Click "Compute Matroid" to see results</Text>
+                      )}
+                    </Card.Section>
+                  </Card>
+                </SimpleGrid>
+
+                {/* CSM Classes Sub-Section */}
+                <Card withBorder mt="lg">
+                  <Card.Section inheritPadding py="xs" bg="dark.6">
+                    <Title order={3} size="h4">CSM Classes</Title>
+                    <Text size="sm" c="dimmed">Chern-Schwartz-MacPherson classes and Euler characteristics of Schubert varieties</Text>
+                  </Card.Section>
+                  <Card.Section inheritPadding py="md">
+                    <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="lg">
+                      <Stack gap="md">
+                        <TextInput
+                          label="Partition (comma-separated)"
+                          description="Schubert variety partition in Gr(k,n) from above"
+                          value={csmPartition}
+                          onChange={(e) => setCsmPartition(e.target.value)}
+                          placeholder="e.g., 1 or 2,1"
+                        />
+                        <Button onClick={computeCSM} disabled={isComputing}>
+                          {isComputing ? 'Computing...' : 'Compute CSM Class'}
+                        </Button>
+                      </Stack>
+                      <Card withBorder>
+                        <Card.Section inheritPadding py="xs" bg="dark.6">
+                          <Title order={3} size="h4">CSM Result</Title>
+                        </Card.Section>
+                        <Card.Section inheritPadding py="md">
+                          {csmResult ? (
+                            <Stack gap="sm">
+                              <Text>
+                                <Text span fw={600}>Partition:</Text> ({csmResult.partition.join(', ')})
+                              </Text>
+                              <Text>
+                                <Text span fw={600}>Grassmannian:</Text> Gr({csmResult.k}, {csmResult.n})
+                              </Text>
+                              <Text>
+                                <Text span fw={600}>Euler char (cell):</Text>{' '}
+                                <Badge color="blue">{csmResult.cellEuler}</Badge>
+                              </Text>
+                              <Text>
+                                <Text span fw={600}>Euler char (variety):</Text>{' '}
+                                <Badge color="green">{csmResult.varietyEuler}</Badge>
+                              </Text>
+                              <Text size="sm" c="dimmed">
+                                The CSM class captures singularity information. For Schubert cells, chi = 1.
+                                For Schubert varieties, chi depends on the partition complexity.
+                              </Text>
+                            </Stack>
+                          ) : (
+                            <Text c="dimmed">Click "Compute CSM Class" to see results</Text>
+                          )}
+                        </Card.Section>
+                      </Card>
+                    </SimpleGrid>
+                  </Card.Section>
+                </Card>
+              </Card.Section>
+            </Card>
+          </Tabs.Panel>
+
+          <Tabs.Panel value="stability" pt="md">
+            <Card withBorder>
+              <Card.Section inheritPadding py="xs" bg="dark.6">
+                <Title order={2} size="h3">Stability Conditions & Wall-Crossing</Title>
+                <Text size="sm" c="dimmed">Bridgeland-type stability conditions and wall-crossing phenomena on Grassmannians</Text>
+              </Card.Section>
+              <Card.Section inheritPadding py="md">
+                <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="lg">
+                  <Stack gap="md">
+                    <NumberInput
+                      label="Grassmannian k"
+                      min={1}
+                      max={5}
+                      value={stabilityK}
+                      onChange={setStabilityK}
+                    />
+                    <NumberInput
+                      label="Grassmannian n"
+                      min={Number(stabilityK) + 1}
+                      max={8}
+                      value={stabilityN}
+                      onChange={setStabilityN}
+                    />
+                    <div>
+                      <Text size="sm" fw={500} mb={4}>Trust Level: {trustLevel.toFixed(2)}</Text>
+                      <Slider
+                        min={0}
+                        max={1}
+                        step={0.05}
+                        value={trustLevel}
+                        onChange={setTrustLevel}
+                        marks={[
+                          { value: 0, label: '0' },
+                          { value: 0.5, label: '0.5' },
+                          { value: 1, label: '1' },
+                        ]}
+                      />
+                    </div>
+                    <Button onClick={computeStability} disabled={isComputing} mt="md">
+                      {isComputing ? 'Computing...' : 'Compute Stability'}
+                    </Button>
+                    <Card withBorder p="sm">
+                      <Text size="sm">
+                        <Text span fw={600}>Wall-Crossing:</Text> As the trust parameter varies, the stable
+                        count can jump at critical values called walls. This models how the
+                        space of stable objects changes as stability conditions vary.
+                      </Text>
+                    </Card>
+                  </Stack>
+                  <Card withBorder>
+                    <Card.Section inheritPadding py="xs" bg="dark.6">
+                      <Title order={3} size="h4">Stability Result</Title>
+                    </Card.Section>
+                    <Card.Section inheritPadding py="md">
+                      {stabilityResult ? (
+                        <Stack gap="sm">
+                          <Text>
+                            <Text span fw={600}>Grassmannian:</Text> Gr({stabilityResult.k}, {stabilityResult.n})
+                          </Text>
+                          <Text>
+                            <Text span fw={600}>Trust Level:</Text> {stabilityResult.trust.toFixed(2)}
+                          </Text>
+                          <Text>
+                            <Text span fw={600}>Phase (codim 1):</Text>{' '}
+                            <Badge color="blue">{stabilityResult.phase.toFixed(4)}</Badge>
+                          </Text>
+                          <Text>
+                            <Text span fw={600}>Stable Count:</Text>{' '}
+                            <Badge color="green" size="lg">{stabilityResult.stableCount}</Badge>
+                          </Text>
+                          <Text size="sm" c="dimmed" mt="xs" fw={600}>Walls:</Text>
+                          {stabilityResult.walls.map((wall: any, i: number) => (
+                            <Text key={i} size="sm">
+                              Wall at t = {wall.trustLevel}, direction = {wall.direction > 0 ? '+' : '-'}, count change = {wall.countChange}
+                            </Text>
+                          ))}
+                          <Text size="sm" c="dimmed" mt="xs" fw={600}>Phase Diagram:</Text>
+                          <Table>
+                            <Table.Thead>
+                              <Table.Tr>
+                                <Table.Th>Trust</Table.Th>
+                                <Table.Th>Stable Count</Table.Th>
+                              </Table.Tr>
+                            </Table.Thead>
+                            <Table.Tbody>
+                              {stabilityResult.phaseDiagram.map((point: any, i: number) => (
+                                <Table.Tr key={i}>
+                                  <Table.Td>{point.trustLevel.toFixed(2)}</Table.Td>
+                                  <Table.Td>{point.stableCount}</Table.Td>
+                                </Table.Tr>
+                              ))}
+                            </Table.Tbody>
+                          </Table>
+                        </Stack>
+                      ) : (
+                        <Text c="dimmed">Click "Compute Stability" to see results</Text>
+                      )}
+                    </Card.Section>
+                  </Card>
+                </SimpleGrid>
+              </Card.Section>
+            </Card>
+          </Tabs.Panel>
         </Tabs>
 
         {/* Computation History */}
@@ -1081,6 +1696,66 @@ const classes = [
 // Compute intersection: how many lines meet 4 general lines?
 const result = calc.multiIntersect(classes);
 console.log("Answer:", result.getCount()); // 2 (famous result!)`}
+              />
+
+              <ExampleCard
+                title="WDVV Curve Counting"
+                description="Count rational curves via Kontsevich's formula"
+                code={`// Import WDVV engine
+import { WasmWDVVEngine } from 'amari-enumerative';
+
+// Create engine and compute curve counts
+const engine = new WasmWDVVEngine();
+console.log("N_1 =", engine.rationalCurveCount(1)); // 1
+console.log("N_3 =", engine.rationalCurveCount(3)); // 12
+console.log("N_5 =", engine.rationalCurveCount(5)); // 87304
+
+// Required points for degree-d genus-0 curves
+console.log("Points:", WasmWDVVEngine.requiredPointCount(3, 0)); // 8
+
+// Get table of all computed values
+const table = engine.getTable();
+table.forEach(({degree, count}) => console.log(\`N_\${degree} = \${count}\`));`}
+              />
+
+              <ExampleCard
+                title="Matroid Operations"
+                description="Uniform matroids, duality, and rank functions"
+                code={`// Import matroid types
+import { WasmMatroid } from 'amari-enumerative';
+
+// Create uniform matroid U_{2,4}
+const m = WasmMatroid.uniform(2, 4);
+console.log("Rank:", m.getRank());           // 2
+console.log("Bases:", m.getNumBases());      // 6 = C(4,2)
+
+// Matroid duality
+const dual = m.dual();
+console.log("Dual rank:", dual.getRank());   // 2
+
+// Rank function
+console.log("rank({0,1}):", m.rankOf([0, 1])); // 2
+console.log("rank({0}):", m.rankOf([0]));       // 1`}
+              />
+
+              <ExampleCard
+                title="Stability & Wall-Crossing"
+                description="Bridgeland stability conditions and wall-crossing"
+                code={`// Import stability types
+import { WasmStabilityCondition, WasmWallCrossingEngine } from 'amari-enumerative';
+
+// Create stability condition on Gr(2,4)
+const cond = new WasmStabilityCondition(2, 4, 0.8);
+console.log("Phase:", cond.phase(schubertClass));
+
+// Wall-crossing engine
+const engine = new WasmWallCrossingEngine(2, 4);
+const walls = engine.computeWalls(namespace);
+walls.forEach(w => console.log(\`Wall at t=\${w.trustLevel}\`));
+
+// Phase diagram
+const diagram = engine.phaseDiagram(namespace);
+diagram.forEach(p => console.log(\`t=\${p.trustLevel}: \${p.stableCount} stable\`));`}
               />
 
               <ExampleCard

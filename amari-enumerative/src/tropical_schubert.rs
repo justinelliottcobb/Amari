@@ -26,7 +26,7 @@
 //! When the `parallel` feature is enabled, batch operations use parallel
 //! iterators for improved performance on multi-core systems.
 
-use crate::schubert::{IntersectionResult, SchubertClass};
+use crate::schubert::{IntersectionResult, SchubertCalculus, SchubertClass};
 
 #[cfg(feature = "parallel")]
 use rayon::prelude::*;
@@ -296,62 +296,124 @@ fn compute_special_intersection(classes: &[TropicalSchubertClass], k: usize, _n:
     1
 }
 
-/// Compute σ_1^d in Gr(k,n)
+/// Compute σ_1^d in Gr(k,n) using the hook-length formula
 ///
-/// This counts d-tuples of hyperplanes meeting a k-plane in a point.
+/// The degree of Gr(k,n) under Plücker equals the number of
+/// standard Young tableaux of rectangular shape (n-k) × k,
+/// given by:
+///   (k(n-k))! / ∏_{(i,j) in box} hook(i,j)
 ///
-/// # Known Values
+/// where hook(i,j) = (n-k-j) + (k-i) + 1 for the (n-k) × k rectangle.
 ///
-/// | (k, d) | Result | Description |
-/// |--------|--------|-------------|
-/// | (2, 4) | 2      | Lines meeting 4 lines in P³ |
-/// | (2, 6) | 5      | Gr(2,5) |
-/// | (2, 8) | 14     | Gr(2,6) |
-/// | (3, 6) | 5      | Gr(3,5) |
-/// | (3, 9) | 42     | Gr(3,6) |
+/// # Contract
+///
+/// ```text
+/// requires: d == k * (n - k) for some valid n
+/// ensures: result == number of SYT of rectangular shape
+/// ```
 fn compute_sigma1_power(k: usize, d: usize) -> u64 {
-    // When d = k(n-k), this is the degree of the Grassmannian
-    // under the Plucker embedding, which equals the number of
-    // standard Young tableaux of rectangular shape (n-k) x k
+    // d must equal k*(n-k) for this to be a transverse intersection.
+    // Solve: k*(n-k) = d for n given k.
+    if k == 0 {
+        return 1;
+    }
 
-    // For small cases, we can compute directly
-    match (k, d) {
-        (2, 4) => 2,  // Lines meeting 4 lines in P³
-        (2, 6) => 5,  // Gr(2,5)
-        (2, 8) => 14, // Gr(2,6)
-        (3, 6) => 5,  // Gr(3,5)
-        (3, 9) => 42, // Gr(3,6)
-        _ => {
-            // General formula using hook length
-            // For now, return 1 as a placeholder
-            1
+    if !d.is_multiple_of(k) {
+        // Not of the form σ_1^{k(n-k)}, use lookup
+        return sigma1_lookup(k, d);
+    }
+
+    let n_minus_k = d / k;
+    if n_minus_k == 0 {
+        return 1;
+    }
+
+    // Hook-length formula for rectangular tableau k rows × (n-k) cols
+    hook_length_rectangular(k, n_minus_k)
+}
+
+/// Hook-length formula for counting standard Young tableaux of
+/// rectangular shape (rows × cols).
+///
+/// # Contract
+///
+/// ```text
+/// ensures: result == (rows * cols)! / product of hook lengths
+/// ```
+fn hook_length_rectangular(rows: usize, cols: usize) -> u64 {
+    let total = rows * cols;
+    if total == 0 {
+        return 1;
+    }
+
+    let mut numerator: u128 = 1;
+    let mut denominator: u128 = 1;
+
+    // Numerator: (rows*cols)!
+    for i in 1..=total {
+        numerator *= i as u128;
+    }
+
+    // Denominator: product of hook lengths
+    for i in 0..rows {
+        for j in 0..cols {
+            let hook = (cols - j) + (rows - i) - 1;
+            denominator *= hook as u128;
         }
+    }
+
+    (numerator / denominator) as u64
+}
+
+/// Lookup table for known σ_1 power values (fallback when hook-length
+/// doesn't directly apply because d is not divisible by k)
+fn sigma1_lookup(k: usize, d: usize) -> u64 {
+    match (k, d) {
+        (2, 4) => 2,
+        (2, 6) => 5,
+        (2, 8) => 14,
+        (2, 10) => 42,
+        (3, 6) => 5,
+        (3, 9) => 42,
+        (3, 12) => 462,
+        (4, 8) => 14,
+        (4, 12) => 462,
+        _ => 1,
     }
 }
 
-/// Compute general tropical intersection
+/// Compute general tropical intersection via classical LR coefficients
+///
+/// By the correspondence theorem, tropical intersection counts equal
+/// classical intersection counts for generic inputs. We delegate to
+/// `SchubertCalculus::multi_intersect` which uses LR coefficients.
+///
+/// # Contract
+///
+/// ```text
+/// requires: total codimension of classes == k * (n - k)
+/// ensures: result == classical Schubert intersection number
+/// ```
 fn compute_general_tropical_intersection(
     classes: &[TropicalSchubertClass],
-    _k: usize,
-    _n: usize,
+    k: usize,
+    n: usize,
 ) -> u64 {
-    // For general Schubert classes, the tropical computation
-    // involves studying the polyhedral complex cut out by
-    // tropical linear conditions.
-    //
-    // This is a placeholder - a full implementation would use:
-    // 1. Compute the tropical Schubert variety for each class
-    // 2. Intersect these as polyhedral complexes
-    // 3. Count lattice points with appropriate multiplicities
+    // Convert back to classical Schubert classes and use LR coefficients
+    // (Correspondence theorem: tropical count = classical count for generic inputs)
+    let classical_classes: Vec<SchubertClass> = classes
+        .iter()
+        .map(|tc| {
+            let partition: Vec<usize> = tc.weights.iter().map(|&w| w as usize).collect();
+            SchubertClass::new(partition, (k, n))
+                .unwrap_or_else(|_| SchubertClass::new(vec![], (k, n)).unwrap())
+        })
+        .collect();
 
-    // As a heuristic, check if the sum of all weights suggests
-    // a non-trivial intersection
-    let total_weight: i64 = classes.iter().flat_map(|c| &c.weights).sum();
-
-    if total_weight > 0 {
-        1 // Non-empty intersection (placeholder)
-    } else {
-        0
+    let mut calc = SchubertCalculus::new((k, n));
+    match calc.multi_intersect(&classical_classes) {
+        IntersectionResult::Finite(count) => count,
+        _ => 0,
     }
 }
 
@@ -525,6 +587,44 @@ mod tests {
             .collect();
 
         assert!(!tropical_convexity_check(&too_many, 2, 4));
+    }
+
+    #[test]
+    fn test_hook_length_rectangular() {
+        // Gr(2,4): 2×2 rectangle → 2 SYT
+        assert_eq!(hook_length_rectangular(2, 2), 2);
+        // Gr(2,5): 2×3 rectangle → 5 SYT
+        assert_eq!(hook_length_rectangular(2, 3), 5);
+        // Gr(2,6): 2×4 rectangle → 14 SYT (Catalan number C_4)
+        assert_eq!(hook_length_rectangular(2, 4), 14);
+        // Gr(3,6): 3×3 rectangle → 42 SYT
+        assert_eq!(hook_length_rectangular(3, 3), 42);
+    }
+
+    #[test]
+    fn test_sigma1_power_uses_hook_length() {
+        // σ_1^4 in Gr(2,4) = 2
+        assert_eq!(compute_sigma1_power(2, 4), 2);
+        // σ_1^6 in Gr(2,5) = 5
+        assert_eq!(compute_sigma1_power(2, 6), 5);
+        // σ_1^8 in Gr(2,6) = 14
+        assert_eq!(compute_sigma1_power(2, 8), 14);
+        // σ_1^9 in Gr(3,6) = 42
+        assert_eq!(compute_sigma1_power(3, 9), 42);
+        // σ_1^12 in Gr(3,7) = 462
+        assert_eq!(compute_sigma1_power(3, 12), 462);
+    }
+
+    #[test]
+    fn test_general_tropical_intersection_delegates_to_lr() {
+        // σ_{1,1} · σ_{1,1} in Gr(2,4) should give 1
+        // (intersection of two codimension-2 classes in dimension-4 Grassmannian)
+        let classes = vec![
+            TropicalSchubertClass::new(vec![1, 1]),
+            TropicalSchubertClass::new(vec![1, 1]),
+        ];
+        let result = compute_general_tropical_intersection(&classes, 2, 4);
+        assert_eq!(result, 1);
     }
 
     #[test]
