@@ -1,6 +1,6 @@
 [package]
 name = "machine-learning"
-version = "0.18.0"
+version = "0.18.1"
 edition = "2021"
 authors = ["Amari Project <amari@example.com>"]
 description = "Machine learning applications with verified mathematics using Amari"

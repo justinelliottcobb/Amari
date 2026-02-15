@@ -1,4 +1,4 @@
-# @justinelliottcobb/amari-wasm v0.18.0
+# @justinelliottcobb/amari-wasm v0.18.1
 
 **Unified Mathematical Computing Library with High-Precision WebAssembly Support**
 
@@ -20,7 +20,7 @@ Amari is a comprehensive mathematical computing library that brings advanced alg
 - **Functional Analysis** *(v0.15.0)*: Hilbert spaces, linear operators, spectral decomposition, and Sobolev spaces
 - **Optical Field Operations** *(v0.15.1)*: GA-native Lee hologram encoding for DMD displays and VSA-based optical processing
 - **Computational Topology** *(v0.16.0)*: Simplicial complexes, homology computation, persistent homology, and Morse theory
-- **Dynamical Systems** *(v0.18.0)*: ODE solvers, stability analysis, bifurcation diagrams, Lyapunov exponents, and phase portraits
+- **Dynamical Systems** *(v0.18.1)*: ODE solvers, stability analysis, bifurcation diagrams, Lyapunov exponents, and phase portraits
 - **Enumerative Geometry** *(v0.18.1)*: WDVV curve counting, equivariant localization, matroids, CSM classes, operadic composition, and stability conditions
 - **Probability Theory** *(v0.13.0)*: Distributions on multivector spaces, MCMC sampling, and Monte Carlo estimation
 - **Relativistic Physics**: Spacetime algebra (Cl(1,3)) with WebAssembly-compatible precision
@@ -721,7 +721,7 @@ async function topologyDemo() {
 topologyDemo();
 ```
 
-### Dynamical Systems *(v0.18.0)*
+### Dynamical Systems *(v0.18.1)*
 
 Analyze chaotic systems, compute bifurcation diagrams, and explore phase space:
 
