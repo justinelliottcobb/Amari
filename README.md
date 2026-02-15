@@ -32,7 +32,7 @@ A unified mathematical computing library featuring geometric algebra, differenti
 - **Optimization**: Gradient-based optimization with geometric constraints
 - **Network Analysis**: Geometric network analysis and graph neural networks
 - **Cellular Automata**: Geometric automata with configurable rules
-- **Enumerative Geometry**: Algebraic curves and enumerative computations
+- **Enumerative Geometry**: Intersection theory, Schubert calculus, LR coefficients, WDVV curve counting, matroids, CSM classes, equivariant localization, operadic composition, and stability conditions
 
 ### Multi-GPU Infrastructure
 
@@ -549,7 +549,7 @@ main();
 - `amari-automata`: Cellular automata with geometric algebra
 - `amari-network`: Graph neural networks and network analysis
 - `amari-relativistic`: Spacetime algebra and relativistic physics
-- `amari-enumerative`: Enumerative geometry and algebraic curves
+- `amari-enumerative`: Enumerative geometry, Schubert calculus, WDVV curve counting, matroids, CSM classes, equivariant localization, and stability
 - `amari-optimization`: Gradient-based optimization algorithms
 - `amari-flynn`: Probabilistic verification contracts
 

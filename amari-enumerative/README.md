@@ -16,6 +16,12 @@ Enumerative geometry for counting geometric configurations.
 - **Tropical Schubert Calculus**: Fast intersection counting using tropical methods
 - **Moduli Spaces**: Computations on moduli spaces of curves
 - **Namespace/Capabilities**: ShaperOS integration via geometric access control
+- **WDVV/Kontsevich Recursion**: Genus-0 rational curve counting via WDVV equations
+- **Equivariant Localization**: Atiyah-Bott fixed point formula on Grassmannians
+- **Matroid Theory**: Uniform/Schubert matroids, duality, deletion, contraction, Tutte polynomials
+- **CSM Classes**: Chern-Schwartz-MacPherson classes and Euler characteristics
+- **Operadic Composition**: Compose namespaces along input/output interfaces
+- **Stability Conditions**: Bridgeland-type stability and wall-crossing phenomena
 - **Phantom Types**: Compile-time verification of mathematical properties
 - **GPU Acceleration**: Optional GPU support for large computations
 - **Parallel Computation**: Rayon-based parallelization for batch operations
@@ -223,6 +229,88 @@ let gw = GromovWittenInvariant::new(variety, degree);
 let count = gw.compute_with_insertions(&insertions)?;
 ```
 
+### WDVV/Kontsevich Curve Counting
+
+Count rational curves via Kontsevich's recursion:
+
+```rust
+use amari_enumerative::WDVVEngine;
+
+let mut engine = WDVVEngine::new();
+
+// N_d = number of rational degree-d curves in P² through 3d-1 general points
+assert_eq!(engine.rational_curve_count(1), 1);   // 1 line through 2 points
+assert_eq!(engine.rational_curve_count(2), 1);   // 1 conic through 5 points
+assert_eq!(engine.rational_curve_count(3), 12);  // 12 cubics through 8 points
+assert_eq!(engine.rational_curve_count(4), 620); // 620 quartics through 11 points
+
+// Required points for dimension constraint: 3d + g - 1
+let points = WDVVEngine::required_point_count(5, 0); // 14 for degree 5 genus 0
+
+// Table of all computed values
+let table = engine.table(); // [(1,1), (2,1), (3,12), (4,620), ...]
+```
+
+### Equivariant Localization
+
+Compute intersection numbers via the Atiyah-Bott fixed point formula:
+
+```rust
+use amari_enumerative::{EquivariantLocalizer, TorusWeights};
+
+// Create localizer for Gr(2,4) with standard torus weights
+let localizer = EquivariantLocalizer::new(2, 4);
+
+// Number of T-fixed points = C(n,k)
+assert_eq!(localizer.fixed_point_count(), 6); // C(4,2) = 6
+
+// Verify σ_1^4 = 2 via localization
+let classes = vec![vec![1], vec![1], vec![1], vec![1]];
+let result = localizer.localized_intersection(&classes);
+assert!((result - 2.0).abs() < 1e-10);
+```
+
+### Matroid Theory
+
+Work with uniform matroids, duality, and rank functions:
+
+```rust
+use amari_enumerative::Matroid;
+
+// Create uniform matroid U_{2,4}: every 2-element subset is a basis
+let m = Matroid::uniform(2, 4);
+assert_eq!(m.rank(), 2);
+assert_eq!(m.ground_set_size(), 4);
+assert_eq!(m.num_bases(), 6); // C(4,2)
+
+// Matroid duality: rank of dual = n - k
+let dual = m.dual();
+assert_eq!(dual.rank(), 2); // 4 - 2
+
+// Deletion and contraction
+let deleted = m.delete(0);
+let contracted = m.contract(0);
+```
+
+### Stability Conditions & Wall-Crossing
+
+Bridgeland-type stability and wall-crossing phenomena:
+
+```rust
+use amari_enumerative::{StabilityCondition, WallCrossingEngine};
+
+// Create stability condition on Gr(2,4) with trust level
+let condition = StabilityCondition::new(2, 4, 0.8);
+
+// Wall-crossing engine
+let engine = WallCrossingEngine::new(2, 4);
+let walls = engine.compute_walls(&namespace);
+
+// Stable count changes at wall-crossing values
+let count_before = engine.stable_count_at(&namespace, 0.49);
+let count_after = engine.stable_count_at(&namespace, 0.51);
+```
+
 ### Tropical Curves
 
 Use tropical geometry for curve counting:
@@ -250,6 +338,12 @@ let count = curve.tropical_count()?;
 | `higher_genus` | Higher genus curve counting, DT/PT invariants |
 | `geometric_algebra` | Integration with geometric algebra |
 | `performance` | Optimized computation utilities |
+| `wdvv` | WDVV/Kontsevich recursion for rational curve counts |
+| `localization` | Equivariant localization on Grassmannians |
+| `matroid` | Matroid theory: uniform, Schubert, duality, Tutte |
+| `csm` | Chern-Schwartz-MacPherson classes |
+| `operad` | Operadic composition of namespaces |
+| `stability` | Bridgeland stability conditions and wall-crossing |
 
 ## Mathematical Background
 
@@ -298,6 +392,8 @@ GW invariants count curves via:
 | Lines meeting 4 general lines in P³ | 2 |
 | Rational cubics through 8 points in P² | 12 |
 | Lines on a smooth cubic surface | 27 |
+| Rational quartics through 11 points in P² | 620 |
+| Rational quintics through 14 points in P² | 87,304 |
 
 ## Performance
 

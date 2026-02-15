@@ -35,7 +35,7 @@ Integration Crates (consume APIs):
 | **amari-measure** | `measure` | Measure theory computations, sigma-algebras | ✅ Implemented (feature: `measure`) |
 | **amari-calculus** | `calculus` | Field evaluation, gradients, divergence, curl | ✅ Implemented (feature: `calculus`) |
 | **amari-dual** | `dual` | Automatic differentiation GPU operations | ✅ Implemented (feature: `dual`) |
-| **amari-enumerative** | `enumerative` | Intersection theory GPU operations | ✅ Implemented (feature: `enumerative`) |
+| **amari-enumerative** | `enumerative` | Intersection theory, WDVV curve counting, matroid ranks, CSM classes, localization, operad, stability | ✅ Implemented (feature: `enumerative`) |
 | **amari-automata** | `automata` | Cellular automata GPU evolution | ✅ Implemented (feature: `automata`) |
 | **amari-fusion** | `fusion` | Tropical-dual-Clifford fusion operations | ✅ Implemented (feature: `fusion`) |
 | **amari-holographic** | `holographic` | Holographic memory, batch binding, similarity matrices, **optical field operations** | ✅ Implemented (feature: `holographic`) |
@@ -405,6 +405,50 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 - **`DYNAMICS_BASIN`**: Grid-based trajectory classification
   - Classifies each grid point by attractor convergence
   - 256-thread workgroups for spatial parallelism
+
+### Enumerative Geometry GPU Acceleration *(v0.18.1)*
+
+```rust
+use amari_gpu::enumerative::{EnumerativeGpuOps, GpuWDVVData, GpuMatroidRankData, GpuStabilityData};
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let mut gpu_ops = EnumerativeGpuOps::new().await?;
+
+    // Batch WDVV curve counts (degrees 1-6)
+    let wdvv_data: Vec<GpuWDVVData> = (1..=6).map(GpuWDVVData::from_degree).collect();
+    let counts = gpu_ops.batch_wdvv_curve_counts(&wdvv_data).await?;
+    // counts = [1, 1, 12, 620, 87304, 26312976]
+
+    // Batch matroid rank computation
+    let matroid_data = vec![
+        GpuMatroidRankData::from_matroid_subset(&matroid, &[0, 1]),
+        GpuMatroidRankData::from_matroid_subset(&matroid, &[0, 2, 3]),
+    ];
+    let ranks = gpu_ops.batch_matroid_ranks(&matroid_data).await?;
+
+    // Batch stability phase computation
+    let stability_data = vec![
+        GpuStabilityData::from_class_and_trust(&class, 0.5),
+        GpuStabilityData::from_class_and_trust(&class, 1.0),
+    ];
+    let phases = gpu_ops.batch_stability_phases(&stability_data).await?;
+
+    Ok(())
+}
+```
+
+#### Enumerative GPU Operations
+
+| Operation | Description | Shader |
+|-----------|-------------|--------|
+| `batch_wdvv_curve_counts()` | WDVV rational curve counts N_d | Lookup table (N_1..N_6) |
+| `batch_localization_euler_classes()` | Tangent Euler classes at fixed points | Product formula |
+| `batch_matroid_ranks()` | Matroid rank via bitmask popcount | Bitmask intersection |
+| `batch_csm_euler_characteristics()` | CSM Euler characteristics | Cell decomposition |
+| `batch_operad_multiplicities()` | Operadic composition multiplicities | Codimension matching |
+| `batch_stability_phases()` | Stability phases | Normalized atan2 |
+| `batch_stability_checks()` | Stability checks (phase in (0,1)) | Phase interval test |
 
 ### Probabilistic GPU Acceleration
 
