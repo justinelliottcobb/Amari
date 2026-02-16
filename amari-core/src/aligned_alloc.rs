@@ -19,13 +19,17 @@ pub const SSE_ALIGNMENT: usize = 16;
 pub const CACHE_LINE_SIZE: usize = 64;
 
 /// Aligned memory block for SIMD operations
+///
+/// The `Copy` bound ensures soundness: since `AlignedMemory` uses raw allocation
+/// and does not run destructors on the contained elements, `T` must be `Copy`
+/// (which implies no `Drop` implementation).
 #[repr(C)]
-pub struct AlignedMemory<T> {
+pub struct AlignedMemory<T: Copy> {
     ptr: NonNull<T>,
     layout: Layout,
 }
 
-impl<T> AlignedMemory<T> {
+impl<T: Copy> AlignedMemory<T> {
     /// Allocate aligned memory for the given number of elements
     pub fn new(count: usize, alignment: usize) -> Result<Self, &'static str> {
         let size = count * core::mem::size_of::<T>();
@@ -58,7 +62,7 @@ impl<T> AlignedMemory<T> {
     }
 }
 
-impl<T> Drop for AlignedMemory<T> {
+impl<T: Copy> Drop for AlignedMemory<T> {
     fn drop(&mut self) {
         unsafe {
             dealloc(self.ptr.as_ptr() as *mut u8, self.layout);

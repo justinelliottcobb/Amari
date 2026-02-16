@@ -200,43 +200,77 @@ where
     pub fn reversion_antiautomorphism() {}
 }
 
-// Helper functions for proofs (these would be implemented in the actual module)
+// Helper functions for proofs
 fn scalar_product<T, const P: usize, const Q: usize, const R: usize>(
-    _scalar: T,
-    _mv: &VerifiedMultivector<T, P, Q, R>
+    scalar: T,
+    mv: &VerifiedMultivector<T, P, Q, R>,
 ) -> VerifiedMultivector<T, P, Q, R>
 where
     T: Float + Zero + One,
 {
-    todo!("Scalar multiplication")
+    let coefficients = mv.coefficients.iter().map(|c| *c * scalar).collect();
+    VerifiedMultivector {
+        coefficients,
+        _signature: PhantomData,
+    }
 }
 
 fn scalar_product_reverse<T, const P: usize, const Q: usize, const R: usize>(
-    _mv: &VerifiedMultivector<T, P, Q, R>,
-    _scalar: T
+    mv: &VerifiedMultivector<T, P, Q, R>,
+    scalar: T,
 ) -> VerifiedMultivector<T, P, Q, R>
 where
     T: Float + Zero + One,
 {
-    todo!("Scalar multiplication (reversed)")
+    scalar_product(scalar, mv)
 }
 
 fn grade_involution<T, const P: usize, const Q: usize, const R: usize>(
-    _mv: &VerifiedMultivector<T, P, Q, R>
+    mv: &VerifiedMultivector<T, P, Q, R>,
 ) -> VerifiedMultivector<T, P, Q, R>
 where
     T: Float + Zero + One,
 {
-    todo!("Grade involution")
+    // Grade involution: negate odd-grade components
+    let coefficients = mv
+        .coefficients
+        .iter()
+        .enumerate()
+        .map(|(i, c)| {
+            let grade = i.count_ones() as usize;
+            if grade.is_multiple_of(2) { *c } else { -*c }
+        })
+        .collect();
+    VerifiedMultivector {
+        coefficients,
+        _signature: PhantomData,
+    }
 }
 
 fn reverse<T, const P: usize, const Q: usize, const R: usize>(
-    _mv: &VerifiedMultivector<T, P, Q, R>
+    mv: &VerifiedMultivector<T, P, Q, R>,
 ) -> VerifiedMultivector<T, P, Q, R>
 where
     T: Float + Zero + One,
 {
-    todo!("Reversion")
+    // Reversion: negate grades where k*(k-1)/2 is odd (grades 2, 3, 6, 7, ...)
+    let coefficients = mv
+        .coefficients
+        .iter()
+        .enumerate()
+        .map(|(i, c)| {
+            let grade = i.count_ones() as usize;
+            if grade >= 2 && (grade * (grade - 1) / 2) % 2 == 1 {
+                -*c
+            } else {
+                *c
+            }
+        })
+        .collect();
+    VerifiedMultivector {
+        coefficients,
+        _signature: PhantomData,
+    }
 }
 
 #[cfg(test)]

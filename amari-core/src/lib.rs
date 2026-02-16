@@ -21,7 +21,8 @@ use alloc::vec::Vec;
 use core::ops::{Add, Mul, Neg, Sub};
 use num_traits::Zero;
 
-pub mod aligned_alloc;
+#[allow(dead_code)]
+pub(crate) mod aligned_alloc;
 pub mod basis;
 pub mod cayley;
 pub mod error;
@@ -29,8 +30,9 @@ pub mod precision;
 pub mod rotor;
 pub mod unicode_ops;
 
+#[allow(dead_code)]
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-pub mod simd;
+pub(crate) mod simd;
 
 // Re-export error types
 pub use error::{CoreError, CoreResult};
@@ -282,21 +284,11 @@ impl<const P: usize, const Q: usize, const R: usize> Multivector<P, Q, R> {
     /// The geometric product is the fundamental operation in geometric algebra,
     /// combining both the inner and outer products.
     pub fn geometric_product(&self, rhs: &Self) -> Self {
-        // SIMD optimization temporarily disabled for testing
-        // TODO: Fix SIMD implementation precision issue in follow-up
-        // #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        // {
-        //     if P == 3 && Q == 0 && R == 0 && Self::BASIS_COUNT == 8 {
-        //         // SIMD implementation would go here
-        //     }
-        // }
-
-        // Fallback to scalar implementation
         self.geometric_product_scalar(rhs)
     }
 
     /// Scalar implementation of geometric product (fallback)
-    pub fn geometric_product_scalar(&self, rhs: &Self) -> Self {
+    pub(crate) fn geometric_product_scalar(&self, rhs: &Self) -> Self {
         let table = CayleyTable::<P, Q, R>::get();
         let mut result = Self::zero();
 
@@ -644,8 +636,13 @@ impl<const P: usize, const Q: usize, const R: usize> Multivector<P, Q, R> {
     /// Hodge dual: ⋆a
     ///
     /// Maps k-vectors to (n-k)-vectors in n-dimensional space.
-    /// Essential for electromagnetic field theory and differential forms.
-    /// In 3D: scalar -> pseudoscalar, vector -> bivector, bivector -> vector, pseudoscalar -> scalar
+    /// Defined such that `e_A ∧ ⋆e_A = |e_A|² · I` where I is the pseudoscalar.
+    ///
+    /// In 3D Euclidean (Cl(3,0,0)): ⋆e1 = e23, ⋆e2 = -e13, ⋆e3 = e12
+    ///
+    /// For degenerate algebras (R > 0), the pseudoscalar squares to zero
+    /// and the Hodge dual is not well-defined. In this case, the function
+    /// computes a formal complement using only the permutation sign.
     pub fn hodge_dual(&self) -> Self {
         let n = Self::DIM;
         if n == 0 {
@@ -653,8 +650,6 @@ impl<const P: usize, const Q: usize, const R: usize> Multivector<P, Q, R> {
         }
 
         let mut result = Self::zero();
-
-        // Create the pseudoscalar (highest grade basis element)
         let pseudoscalar_index = (1 << n) - 1; // All bits set
 
         for i in 0..Self::BASIS_COUNT {
@@ -662,49 +657,40 @@ impl<const P: usize, const Q: usize, const R: usize> Multivector<P, Q, R> {
                 continue;
             }
 
-            // The Hodge dual of basis element e_i is obtained by
-            // complementing the basis indices and applying the pseudoscalar
             let dual_index = i ^ pseudoscalar_index;
 
-            // Calculate the sign based on the number of swaps needed
-            let _grade_i = i.count_ones() as usize;
-            let _grade_dual = dual_index.count_ones() as usize;
-
-            // Sign depends on the permutation parity
-            let mut sign = 1.0;
-
-            // Count the number of index swaps needed (simplified calculation)
-            let temp_i = i;
-            let temp_dual = dual_index;
-            let mut swaps = 0;
-
+            // Compute permutation sign: e_A ∧ e_complement = sign * I
+            // Count swaps needed to interleave bits of i with bits of dual_index
+            // into canonical order (ascending bit positions)
+            let mut swaps = 0u32;
             for bit_pos in 0..n {
-                let bit_mask = 1 << bit_pos;
-                if (temp_i & bit_mask) != 0 && (temp_dual & bit_mask) == 0 {
-                    // Count bits to the right in dual that are set
-                    let right_bits = temp_dual & ((1 << bit_pos) - 1);
-                    swaps += right_bits.count_ones();
+                if (i >> bit_pos) & 1 == 1 {
+                    // Count bits in dual_index at positions below bit_pos
+                    let below_mask = (1 << bit_pos) - 1;
+                    swaps += (dual_index & below_mask).count_ones();
                 }
             }
+            let permutation_sign: f64 = if swaps.is_multiple_of(2) { 1.0 } else { -1.0 };
 
-            if swaps % 2 == 1 {
-                sign = -1.0;
-            }
-
-            // Apply metric signature for negative basis vectors
+            // Apply metric factor for the blade being dualized
+            // |e_A|² = product of e_i² for each basis vector in A
+            let mut metric_factor = 1.0;
             for j in 0..n {
-                let bit_mask = 1 << j;
-                if (dual_index & bit_mask) != 0 {
+                if (i >> j) & 1 == 1 {
                     if j >= P + Q {
-                        // R signature (negative)
-                        sign *= -1.0;
+                        // Null basis vector: |e_A|² = 0
+                        metric_factor = 0.0;
+                        break;
                     } else if j >= P {
-                        // Q signature (negative)
-                        sign *= -1.0;
+                        // Negative basis vector: contributes -1
+                        metric_factor *= -1.0;
                     }
-                    // P signature remains positive
+                    // Positive basis vector: contributes +1
                 }
             }
+
+            // ⋆e_A = metric(A) * permutation_sign * e_complement
+            let sign = metric_factor * permutation_sign;
 
             result.coefficients[dual_index] += sign * self.coefficients[i];
         }

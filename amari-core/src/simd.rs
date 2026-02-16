@@ -6,9 +6,6 @@
 #[cfg(all(target_arch = "x86_64", target_feature = "avx2"))]
 use core::arch::x86_64::*;
 
-#[cfg(all(target_arch = "x86_64", target_feature = "sse2"))]
-use core::arch::x86_64::*;
-
 use crate::Multivector;
 
 /// SIMD-optimized geometric product for 3D Euclidean algebra (most common case)
@@ -98,61 +95,6 @@ pub fn geometric_product_3d_avx2(
     }
 }
 
-/// SIMD-optimized geometric product using SSE2 (fallback for older CPUs)
-#[cfg(all(target_feature = "sse2", not(target_feature = "avx2")))]
-#[inline(always)]
-pub fn geometric_product_3d_sse2(
-    lhs: &Multivector<3, 0, 0>,
-    rhs: &Multivector<3, 0, 0>,
-) -> Multivector<3, 0, 0> {
-    unsafe {
-        let _result = Multivector::<3, 0, 0>::zero();
-
-        // Load coefficients into SSE registers (128-bit, 2 doubles each)
-        let _lhs_0_1 = _mm_loadu_pd(lhs.as_slice().as_ptr());
-        let _lhs_2_3 = _mm_loadu_pd(lhs.as_slice().as_ptr().add(2));
-        let _lhs_4_5 = _mm_loadu_pd(lhs.as_slice().as_ptr().add(4));
-        let _lhs_6_7 = _mm_loadu_pd(lhs.as_slice().as_ptr().add(6));
-
-        let rhs_0_1 = _mm_loadu_pd(rhs.as_slice().as_ptr());
-        let rhs_2_3 = _mm_loadu_pd(rhs.as_slice().as_ptr().add(2));
-        let rhs_4_5 = _mm_loadu_pd(rhs.as_slice().as_ptr().add(4));
-        let rhs_6_7 = _mm_loadu_pd(rhs.as_slice().as_ptr().add(6));
-
-        // Result accumulators
-        let mut result_0_1 = _mm_setzero_pd();
-        let mut result_2_3 = _mm_setzero_pd();
-        let mut result_4_5 = _mm_setzero_pd();
-        let mut result_6_7 = _mm_setzero_pd();
-
-        // Scalar multiplication
-        let scalar_lhs = _mm_set1_pd(lhs.get(0));
-        result_0_1 = _mm_add_pd(result_0_1, _mm_mul_pd(scalar_lhs, rhs_0_1));
-        result_2_3 = _mm_add_pd(result_2_3, _mm_mul_pd(scalar_lhs, rhs_2_3));
-        result_4_5 = _mm_add_pd(result_4_5, _mm_mul_pd(scalar_lhs, rhs_4_5));
-        result_6_7 = _mm_add_pd(result_6_7, _mm_mul_pd(scalar_lhs, rhs_6_7));
-
-        // e1 products (simplified patterns for SSE2)
-        let e1_lhs = _mm_set1_pd(lhs.get(1));
-        let e1_part1 = _mm_set_pd(rhs.get(0), rhs.get(1));
-        let e1_part2 = _mm_set_pd(-rhs.get(3), rhs.get(2));
-        result_0_1 = _mm_add_pd(result_0_1, _mm_mul_pd(e1_lhs, e1_part1));
-        result_2_3 = _mm_add_pd(result_2_3, _mm_mul_pd(e1_lhs, e1_part2));
-
-        // Continue with other basis elements...
-        // (Simplified implementation for brevity)
-
-        // Store results
-        let mut coeffs = [0.0; 8];
-        _mm_storeu_pd(coeffs.as_mut_ptr(), result_0_1);
-        _mm_storeu_pd(coeffs.as_mut_ptr().add(2), result_2_3);
-        _mm_storeu_pd(coeffs.as_mut_ptr().add(4), result_4_5);
-        _mm_storeu_pd(coeffs.as_mut_ptr().add(6), result_6_7);
-
-        Multivector::from_coefficients(coeffs.to_vec())
-    }
-}
-
 /// Optimized batch geometric product for processing multiple multivector pairs
 #[cfg(target_feature = "avx2")]
 pub fn batch_geometric_product_avx2(
@@ -188,33 +130,15 @@ pub fn batch_geometric_product_avx2(
 /// In std environments, uses runtime detection; in no_std, uses compile-time detection
 pub fn select_geometric_product_impl(
 ) -> fn(&Multivector<3, 0, 0>, &Multivector<3, 0, 0>) -> Multivector<3, 0, 0> {
-    // For no_std environments, use compile-time feature detection
     #[cfg(all(not(feature = "std"), target_feature = "avx2"))]
     {
         return geometric_product_3d_avx2;
     }
 
-    #[cfg(all(
-        not(feature = "std"),
-        target_feature = "sse2",
-        not(target_feature = "avx2")
-    ))]
-    {
-        return geometric_product_3d_sse2;
-    }
-
-    // For std environments, use runtime detection
     #[cfg(all(feature = "std", target_feature = "avx2"))]
     {
         if is_x86_feature_detected!("avx2") {
             return geometric_product_3d_avx2;
-        }
-    }
-
-    #[cfg(all(feature = "std", target_feature = "sse2", not(target_feature = "avx2")))]
-    {
-        if is_x86_feature_detected!("sse2") {
-            return geometric_product_3d_sse2;
         }
     }
 
@@ -283,7 +207,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore] // Temporarily ignored while SIMD is disabled
     fn test_runtime_feature_detection() {
         let impl_fn = select_geometric_product_impl();
 

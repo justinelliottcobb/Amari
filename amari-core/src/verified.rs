@@ -170,16 +170,34 @@ where
         }
     }
 
-    /// Compute the sign of the product of two basis blades
+    /// Compute the sign (and zero factor) of the product of two basis blades
+    ///
+    /// Accounts for the metric signature (P,Q,R):
+    /// - Basis vectors 0..P square to +1
+    /// - Basis vectors P..P+Q square to -1
+    /// - Basis vectors P+Q..P+Q+R square to 0
     fn compute_product_sign(&self, blade1: usize, blade2: usize) -> i32 {
-        // Simplified sign computation
-        // Full implementation would consider the signature (P,Q,R)
+        // Step 1: Count transposition swaps for reorder sign
         let swaps = self.count_swaps(blade1, blade2);
-        if swaps.is_multiple_of(2) {
-            1
-        } else {
-            -1
+        let mut sign: i32 = if swaps.is_multiple_of(2) { 1 } else { -1 };
+
+        // Step 2: Apply metric signature for shared basis vectors
+        // When e_i appears in both blades, e_i * e_i = metric(i)
+        let shared = blade1 & blade2;
+        for i in 0..Self::DIM {
+            if shared & (1 << i) != 0 {
+                if i >= P + Q {
+                    // Null basis vector (R range): e_i² = 0
+                    return 0;
+                } else if i >= P {
+                    // Negative basis vector (Q range): e_i² = -1
+                    sign = -sign;
+                }
+                // Positive basis vector (P range): e_i² = +1, no change
+            }
         }
+
+        sign
     }
 
     /// Count the number of swaps needed to reorder basis vectors
@@ -309,9 +327,45 @@ where
 {
     type Output = KVector<T, 3, P, Q, R>;
 
-    fn outer_product(&self, _other: &KVector<T, 2, P, Q, R>) -> Self::Output {
-        // Implementation for vector ∧ bivector
-        todo!("Implement grade 1 ∧ grade 2")
+    fn outer_product(&self, other: &KVector<T, 2, P, Q, R>) -> Self::Output {
+        let dim = VerifiedMultivector::<T, P, Q, R>::DIM;
+        let basis_size = VerifiedMultivector::<T, P, Q, R>::BASIS_SIZE;
+        let mut coefficients = vec![T::zero(); basis_size];
+
+        // For each grade-1 blade (vectors) and grade-2 blade (bivectors),
+        // compute their wedge product contributing to grade-3 (trivectors)
+        for i in 0..dim {
+            let blade_i = 1usize << i;
+            for j in 0..basis_size {
+                if j.count_ones() != 2 {
+                    continue;
+                }
+                // Only wedge if basis vectors don't overlap
+                if blade_i & j == 0 {
+                    let target = blade_i | j;
+                    // Compute sign from reordering e_i into canonical position within target
+                    let mut swaps = 0;
+                    for k in 0..i {
+                        if j & (1 << k) != 0 {
+                            swaps += 1;
+                        }
+                    }
+                    let sign = if swaps % 2 == 0 { T::one() } else { -T::one() };
+                    coefficients[target] = coefficients[target]
+                        + sign
+                            * self.multivector.coefficients[blade_i]
+                            * other.multivector.coefficients[j];
+                }
+            }
+        }
+
+        KVector {
+            multivector: VerifiedMultivector {
+                coefficients,
+                _signature: PhantomData,
+            },
+            _grade: PhantomData,
+        }
     }
 }
 
@@ -323,9 +377,45 @@ where
 {
     type Output = KVector<T, 3, P, Q, R>;
 
-    fn outer_product(&self, _other: &KVector<T, 1, P, Q, R>) -> Self::Output {
-        // Implementation for bivector ∧ vector
-        todo!("Implement grade 2 ∧ grade 1")
+    fn outer_product(&self, other: &KVector<T, 1, P, Q, R>) -> Self::Output {
+        let dim = VerifiedMultivector::<T, P, Q, R>::DIM;
+        let basis_size = VerifiedMultivector::<T, P, Q, R>::BASIS_SIZE;
+        let mut coefficients = vec![T::zero(); basis_size];
+
+        // For each grade-2 blade (bivectors) and grade-1 blade (vectors),
+        // compute their wedge product contributing to grade-3 (trivectors)
+        for i in 0..basis_size {
+            if i.count_ones() != 2 {
+                continue;
+            }
+            for j in 0..dim {
+                let blade_j = 1usize << j;
+                // Only wedge if basis vectors don't overlap
+                if i & blade_j == 0 {
+                    let target = i | blade_j;
+                    // Compute sign: count how many bits in i are above j
+                    let mut swaps = 0;
+                    for k in (j + 1)..dim {
+                        if i & (1 << k) != 0 {
+                            swaps += 1;
+                        }
+                    }
+                    let sign = if swaps % 2 == 0 { T::one() } else { -T::one() };
+                    coefficients[target] = coefficients[target]
+                        + sign
+                            * self.multivector.coefficients[i]
+                            * other.multivector.coefficients[blade_j];
+                }
+            }
+        }
+
+        KVector {
+            multivector: VerifiedMultivector {
+                coefficients,
+                _signature: PhantomData,
+            },
+            _grade: PhantomData,
+        }
     }
 }
 
@@ -414,13 +504,29 @@ where
         }
     }
 
-    /// Apply rotor to a vector (rotation/reflection)
-    pub fn apply<const D: usize>(&self, _v: &Vector<T, D>) -> Vector<T, D>
-    where
-        [(); D]: Sized,
-    {
-        // R v R† transformation
-        todo!("Rotor application")
+    /// Apply rotor to a multivector (rotation/reflection)
+    ///
+    /// Computes R v R† where R† is the reverse of the rotor.
+    pub fn apply_to_multivector(
+        &self,
+        v: &VerifiedMultivector<T, P, Q, R>,
+    ) -> VerifiedMultivector<T, P, Q, R> {
+        // Compute R† (reverse): negate grades where k*(k-1)/2 is odd
+        let mut rev_coeffs = self.multivector.coefficients.clone();
+        for (i, coeff) in rev_coeffs.iter_mut().enumerate() {
+            let grade = i.count_ones() as usize;
+            if grade >= 2 && (grade * (grade - 1) / 2) % 2 == 1 {
+                *coeff = -*coeff;
+            }
+        }
+        let r_rev = VerifiedMultivector::<T, P, Q, R> {
+            coefficients: rev_coeffs,
+            _signature: PhantomData,
+        };
+
+        // Compute R * v * R†
+        let rv = self.multivector.geometric_product(v);
+        rv.geometric_product(&r_rev)
     }
 }
 
