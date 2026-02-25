@@ -10,8 +10,11 @@
 
 use crate::contracts::VerificationResult;
 use std::fmt;
+#[cfg(feature = "std")]
 use std::fs;
+#[cfg(feature = "std")]
 use std::io;
+#[cfg(feature = "std")]
 use std::path::Path;
 
 /// Sort (type) in the SMT-LIB2 theory.
@@ -205,6 +208,7 @@ impl SmtProofObligation {
     }
 
     /// Write this proof obligation to a `.smt2` file.
+    #[cfg(feature = "std")]
     pub fn write_to_file(&self, path: &Path) -> io::Result<()> {
         fs::write(path, self.to_smtlib2())
     }
@@ -622,17 +626,18 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "std")]
     fn test_write_to_file() {
         let ob = hoeffding_obligation("file_test", 100, 0.05, 0.01);
         let dir = std::env::temp_dir();
         let path = dir.join("test_obligation.smt2");
         ob.write_to_file(&path).unwrap();
 
-        let content = fs::read_to_string(&path).unwrap();
+        let content = std::fs::read_to_string(&path).unwrap();
         assert!(content.contains("(set-logic QF_NRA)"));
         assert!(content.contains("(check-sat)"));
 
         // Clean up
-        let _ = fs::remove_file(&path);
+        let _ = std::fs::remove_file(&path);
     }
 }
