@@ -674,6 +674,546 @@ impl Matroid {
     }
 }
 
+/// Combinatorial extensions for matroid theory.
+impl Matroid {
+    /// Characteristic polynomial χ_M(q) = Σ_{A ⊆ E} (−1)^|A| · q^(r − rank(A)).
+    ///
+    /// Returns coefficients [c_0, c_1, ..., c_r] where χ_M(q) = Σ cᵢ · q^i.
+    #[must_use]
+    pub fn characteristic_polynomial(&self) -> Vec<i64> {
+        let r = self.rank;
+        let n = self.ground_set_size;
+        let mut coeffs = vec![0i64; r + 1];
+
+        for mask in 0..(1u64 << n) {
+            let subset: BTreeSet<usize> = (0..n).filter(|&i| mask & (1 << i) != 0).collect();
+            let size = subset.len();
+            let rank_a = self.rank_of(&subset);
+            let power = r - rank_a;
+            let sign = if size.is_multiple_of(2) { 1i64 } else { -1 };
+            coeffs[power] += sign;
+        }
+        coeffs
+    }
+
+    /// Evaluate the characteristic polynomial at an integer q.
+    #[must_use]
+    pub fn characteristic_polynomial_eval(&self, q: i64) -> i64 {
+        let coeffs = self.characteristic_polynomial();
+        let mut result = 0i64;
+        let mut q_power = 1i64;
+        for &c in &coeffs {
+            result += c * q_power;
+            q_power *= q;
+        }
+        result
+    }
+
+    /// Beta invariant β(M) = (−1)^r · χ'_M(1).
+    #[must_use]
+    pub fn beta_invariant(&self) -> i64 {
+        let coeffs = self.characteristic_polynomial();
+        let deriv_at_1: i64 = coeffs.iter().enumerate().map(|(i, &c)| i as i64 * c).sum();
+        let sign = if self.rank.is_multiple_of(2) {
+            1i64
+        } else {
+            -1
+        };
+        sign * deriv_at_1
+    }
+
+    /// Closure operator: cl(A) = smallest flat containing A.
+    #[must_use]
+    pub fn closure(&self, subset: &BTreeSet<usize>) -> BTreeSet<usize> {
+        let mut cl = subset.clone();
+        let rank_s = self.rank_of(&cl);
+        for e in 0..self.ground_set_size {
+            if !cl.contains(&e) {
+                let mut test = cl.clone();
+                test.insert(e);
+                if self.rank_of(&test) == rank_s {
+                    cl.insert(e);
+                }
+            }
+        }
+        cl
+    }
+
+    /// Check if a subset is a flat.
+    #[must_use]
+    pub fn is_flat(&self, subset: &BTreeSet<usize>) -> bool {
+        self.closure(subset) == *subset
+    }
+
+    /// Lattice of flats grouped by rank: flats[i] = all flats of rank i.
+    #[must_use]
+    pub fn flats(&self) -> Vec<Vec<BTreeSet<usize>>> {
+        let n = self.ground_set_size;
+        let r = self.rank;
+        let mut by_rank: Vec<Vec<BTreeSet<usize>>> = vec![Vec::new(); r + 1];
+
+        // Compute closures of all subsets and collect unique flats.
+        let mut seen: BTreeSet<BTreeSet<usize>> = BTreeSet::new();
+        for mask in 0..(1u64 << n) {
+            let subset: BTreeSet<usize> = (0..n).filter(|&i| mask & (1 << i) != 0).collect();
+            let flat = self.closure(&subset);
+            if seen.insert(flat.clone()) {
+                let rk = self.rank_of(&flat);
+                by_rank[rk].push(flat);
+            }
+        }
+        by_rank
+    }
+
+    /// Möbius function μ(∅, F) for each flat F.
+    #[must_use]
+    pub fn mobius_values(&self) -> BTreeMap<BTreeSet<usize>, i64> {
+        let flats_by_rank = self.flats();
+        let mut mu: BTreeMap<BTreeSet<usize>, i64> = BTreeMap::new();
+
+        // μ(∅, ∅) = 1
+        let empty: BTreeSet<usize> = BTreeSet::new();
+        let cl_empty = self.closure(&empty);
+        mu.insert(cl_empty.clone(), 1);
+
+        // For each flat F (in increasing rank order), μ(∅,F) = -Σ_{G < F} μ(∅,G)
+        for rank_flats in &flats_by_rank {
+            for flat in rank_flats {
+                if mu.contains_key(flat) {
+                    continue;
+                }
+                let mut sum = 0i64;
+                for (g, &m) in &mu {
+                    // G < F means G is a proper subset of F and G is a flat
+                    if g.is_subset(flat) && g != flat {
+                        sum += m;
+                    }
+                }
+                mu.insert(flat.clone(), -sum);
+            }
+        }
+        mu
+    }
+
+    /// Check if the matroid is connected (no direct sum decomposition).
+    #[must_use]
+    pub fn is_connected(&self) -> bool {
+        if self.ground_set_size <= 1 {
+            return true;
+        }
+        self.connected_components().len() == 1
+    }
+
+    /// Connected components of the matroid.
+    #[must_use]
+    pub fn connected_components(&self) -> Vec<Matroid> {
+        let n = self.ground_set_size;
+        if n == 0 {
+            return vec![self.clone()];
+        }
+
+        // Two elements are in the same component if they appear in a common circuit.
+        // Use union-find approach: e, f are connected if rank({e,f}) < 2 or
+        // they're in the same circuit. More precisely, use closure:
+        // e ~ f if removing either doesn't change the rank of the closure of {e, f}.
+        let mut parent: Vec<usize> = (0..n).collect();
+
+        fn find(parent: &mut Vec<usize>, x: usize) -> usize {
+            if parent[x] != x {
+                parent[x] = find(parent, parent[x]);
+            }
+            parent[x]
+        }
+
+        fn union(parent: &mut Vec<usize>, x: usize, y: usize) {
+            let rx = find(parent, x);
+            let ry = find(parent, y);
+            if rx != ry {
+                parent[rx] = ry;
+            }
+        }
+
+        // Elements e, f are in the same component if they lie in a common circuit.
+        // Equivalently: e, f are connected if rank(E\{e}) < rank(E) and
+        // there exists a basis B containing e and another containing f.
+        // Simpler: for each pair, check if they're in the same component via circuits.
+        // For efficiency, use the criterion: e ~ f if cl({e}) and cl({f}) intersect
+        // in a circuit, or more directly, use the parallel connection criterion.
+
+        // Simple approach: e ~ f if there exists a circuit containing both.
+        let circuits = self.circuits();
+        for circuit in &circuits {
+            let elems: Vec<usize> = circuit.iter().copied().collect();
+            for i in 1..elems.len() {
+                union(&mut parent, elems[0], elems[i]);
+            }
+        }
+
+        // Also connect elements that are parallel (same closure).
+        for e in 0..n {
+            for f in (e + 1)..n {
+                let mut pair = BTreeSet::new();
+                pair.insert(e);
+                pair.insert(f);
+                if self.rank_of(&pair) < 2 {
+                    union(&mut parent, e, f);
+                }
+            }
+        }
+
+        // Group elements by component.
+        let mut components: BTreeMap<usize, Vec<usize>> = BTreeMap::new();
+        for e in 0..n {
+            let root = find(&mut parent, e);
+            components.entry(root).or_default().push(e);
+        }
+
+        // If everything is in one component, return self.
+        if components.len() == 1 {
+            return vec![self.clone()];
+        }
+
+        // Build matroid for each component.
+        components
+            .values()
+            .map(|elems| {
+                let elem_set: BTreeSet<usize> = elems.iter().copied().collect();
+                self.restrict(&elem_set)
+            })
+            .collect()
+    }
+
+    /// f-vector: f_i = number of independent sets of size i.
+    #[must_use]
+    pub fn f_vector(&self) -> Vec<u64> {
+        let n = self.ground_set_size;
+        let r = self.rank;
+        let mut f = vec![0u64; r + 1];
+
+        for mask in 0..(1u64 << n) {
+            let subset: BTreeSet<usize> = (0..n).filter(|&i| mask & (1 << i) != 0).collect();
+            let size = subset.len();
+            if size <= r && self.rank_of(&subset) == size {
+                f[size] += 1;
+            }
+        }
+        f
+    }
+
+    /// h-vector derived from f-vector.
+    ///
+    /// h_i = Σ_j (-1)^{i-j} C(r-j, i-j) f_j
+    #[must_use]
+    pub fn h_vector(&self) -> Vec<i64> {
+        let f = self.f_vector();
+        let r = self.rank;
+        let mut h = vec![0i64; r + 1];
+
+        for (i, h_i) in h.iter_mut().enumerate() {
+            for (j, &f_j) in f.iter().enumerate().take(i + 1) {
+                let sign = if (i - j).is_multiple_of(2) { 1i64 } else { -1 };
+                let binom = binomial(r - j, i - j);
+                *h_i += sign * binom as i64 * f_j as i64;
+            }
+        }
+        h
+    }
+
+    /// Whitney numbers of the first kind: |coefficient of q^i in χ_M(q)|.
+    #[must_use]
+    pub fn whitney_numbers_first_kind(&self) -> Vec<u64> {
+        self.characteristic_polynomial()
+            .iter()
+            .map(|c| c.unsigned_abs())
+            .collect()
+    }
+
+    /// Whitney numbers of the second kind: W_i = number of flats of rank i.
+    #[must_use]
+    pub fn whitney_numbers_second_kind(&self) -> Vec<u64> {
+        self.flats().iter().map(|f| f.len() as u64).collect()
+    }
+
+    /// Restriction M|A: matroid on subset A with inherited independence.
+    #[must_use]
+    pub fn restrict(&self, subset: &BTreeSet<usize>) -> Matroid {
+        let elems: Vec<usize> = subset.iter().copied().collect();
+        let new_n = elems.len();
+
+        // Map old indices to new indices.
+        let mut index_map: BTreeMap<usize, usize> = BTreeMap::new();
+        for (new_idx, &old_idx) in elems.iter().enumerate() {
+            index_map.insert(old_idx, new_idx);
+        }
+
+        // Restrict each basis: intersect with subset and remap.
+        let restricted_bases: BTreeSet<BTreeSet<usize>> = self
+            .bases
+            .iter()
+            .map(|b| {
+                b.intersection(subset)
+                    .map(|e| index_map[e])
+                    .collect::<BTreeSet<usize>>()
+            })
+            .collect();
+
+        // The rank of the restriction is the rank of the subset.
+        let new_rank = self.rank_of(subset);
+
+        // Filter to only maximal independent sets of size new_rank.
+        let bases: BTreeSet<BTreeSet<usize>> = restricted_bases
+            .into_iter()
+            .filter(|b| b.len() == new_rank)
+            .collect();
+
+        // If no bases found at that rank, build from all independent sets.
+        if bases.is_empty() && new_rank == 0 {
+            let mut b = BTreeSet::new();
+            b.insert(BTreeSet::new());
+            return Matroid {
+                ground_set_size: new_n,
+                bases: b,
+                rank: 0,
+            };
+        }
+
+        Matroid {
+            ground_set_size: new_n,
+            bases,
+            rank: new_rank,
+        }
+    }
+
+    /// Contraction-deletion pair: returns (M/e, M\e).
+    #[must_use]
+    pub fn contraction_deletion(&self, e: usize) -> (Matroid, Matroid) {
+        (self.contract(e), self.delete(e))
+    }
+
+    /// Check for a specific excluded minor by name.
+    ///
+    /// Supported: "U24" (uniform 2,4), "F7" (Fano), "F7*" (dual Fano).
+    #[must_use]
+    pub fn has_excluded_minor(&self, name: &str) -> bool {
+        match name {
+            "U24" => {
+                let u24 = Matroid::uniform(2, 4);
+                has_minor_check(self, &u24)
+            }
+            "F7" => {
+                let f7 = fano_matroid_internal();
+                has_minor_check(self, &f7)
+            }
+            "F7*" => {
+                let f7 = fano_matroid_internal();
+                has_minor_check(self, &f7.dual())
+            }
+            _ => false,
+        }
+    }
+}
+
+/// Check if matroid has another matroid as a minor.
+///
+/// M has N as a minor iff there exist disjoint C, D ⊆ E(M) such that M/C\D ≅ N.
+fn has_minor_check(matroid: &Matroid, minor: &Matroid) -> bool {
+    let n = matroid.ground_set_size;
+    let m_n = minor.ground_set_size;
+    let m_r = minor.rank;
+
+    if n < m_n || matroid.rank < m_r {
+        return false;
+    }
+
+    // Try all ways to select elements to contract (size = rank - m_r)
+    // and delete (size = n - m_n - contract_size).
+    let contract_size = matroid.rank - m_r;
+    let delete_size = n - m_n - contract_size;
+
+    if contract_size + delete_size + m_n != n {
+        return false;
+    }
+
+    // Iterate over all subsets of size contract_size to contract.
+    for contract_set in subsets_of_size(n, contract_size) {
+        let remaining: Vec<usize> = (0..n).filter(|e| !contract_set.contains(e)).collect();
+
+        if remaining.len() < m_n {
+            continue;
+        }
+
+        // Try all subsets of remaining of size delete_size to delete.
+        for del_indices in subsets_of_size_from(&remaining, delete_size) {
+            let del_set: BTreeSet<usize> = del_indices.iter().copied().collect();
+
+            // Apply contraction then deletion.
+            let mut result = matroid.clone();
+
+            // Contract elements (in reverse order to keep indices valid).
+            let mut to_contract: Vec<usize> = contract_set.iter().copied().collect();
+            to_contract.sort_unstable_by(|a, b| b.cmp(a));
+            for &e in &to_contract {
+                result = result.contract(e);
+            }
+
+            // Adjust deletion indices after contraction.
+            let mut to_delete: Vec<usize> = Vec::new();
+            for &d in &del_set {
+                let adjusted = d - contract_set.iter().filter(|&&c| c < d).count();
+                to_delete.push(adjusted);
+            }
+            to_delete.sort_unstable_by(|a, b| b.cmp(a));
+
+            for &e in &to_delete {
+                if e < result.ground_set_size {
+                    result = result.delete(e);
+                }
+            }
+
+            // Check isomorphism: same rank and same bases structure.
+            if result.ground_set_size == minor.ground_set_size
+                && result.rank == minor.rank
+                && result.bases == minor.bases
+            {
+                return true;
+            }
+
+            // Also try all permutations of the remaining ground set for isomorphism.
+            // For small ground sets only.
+            if m_n <= 6
+                && result.ground_set_size == m_n
+                && result.rank == m_r
+                && is_matroid_isomorphic(&result, minor)
+            {
+                return true;
+            }
+        }
+    }
+    false
+}
+
+/// Check if two matroids on the same size ground set are isomorphic.
+fn is_matroid_isomorphic(a: &Matroid, b: &Matroid) -> bool {
+    if a.ground_set_size != b.ground_set_size || a.rank != b.rank || a.bases.len() != b.bases.len()
+    {
+        return false;
+    }
+    let n = a.ground_set_size;
+    if n > 8 {
+        return a.bases == b.bases;
+    }
+
+    // Try all permutations.
+    let perms = permutations(n);
+    for perm in &perms {
+        let mapped_bases: BTreeSet<BTreeSet<usize>> = a
+            .bases
+            .iter()
+            .map(|basis| basis.iter().map(|&e| perm[e]).collect())
+            .collect();
+        if mapped_bases == b.bases {
+            return true;
+        }
+    }
+    false
+}
+
+fn permutations(n: usize) -> Vec<Vec<usize>> {
+    if n == 0 {
+        return vec![vec![]];
+    }
+    let mut result = Vec::new();
+    let sub = permutations(n - 1);
+    for p in sub {
+        for i in 0..=p.len() {
+            let mut new_p = p.clone();
+            new_p.insert(i, n - 1);
+            result.push(new_p);
+        }
+    }
+    result
+}
+
+fn subsets_of_size_from(elements: &[usize], k: usize) -> Vec<BTreeSet<usize>> {
+    if k == 0 {
+        return vec![BTreeSet::new()];
+    }
+    if elements.len() < k {
+        return Vec::new();
+    }
+    let mut result = Vec::new();
+    let mut current = Vec::with_capacity(k);
+    gen_subsets_from(elements, k, 0, &mut current, &mut result);
+    result
+}
+
+fn gen_subsets_from(
+    elements: &[usize],
+    k: usize,
+    start: usize,
+    current: &mut Vec<usize>,
+    result: &mut Vec<BTreeSet<usize>>,
+) {
+    if current.len() == k {
+        result.push(current.iter().copied().collect());
+        return;
+    }
+    let remaining = k - current.len();
+    if start + remaining > elements.len() {
+        return;
+    }
+    for i in start..=(elements.len() - remaining) {
+        current.push(elements[i]);
+        gen_subsets_from(elements, k, i + 1, current, result);
+        current.pop();
+    }
+}
+
+/// Fano matroid (internal, for excluded minor checks).
+fn fano_matroid_internal() -> Matroid {
+    // Fano plane PG(2,2): rank 3 on 7 elements.
+    // Lines (dependent triples): {0,1,3}, {1,2,4}, {2,3,5}, {3,4,6}, {0,4,5}, {1,5,6}, {0,2,6}
+    let n = 7;
+    let k = 3;
+    let lines: Vec<BTreeSet<usize>> = vec![
+        [0, 1, 3].iter().copied().collect(),
+        [1, 2, 4].iter().copied().collect(),
+        [2, 3, 5].iter().copied().collect(),
+        [3, 4, 6].iter().copied().collect(),
+        [0, 4, 5].iter().copied().collect(),
+        [1, 5, 6].iter().copied().collect(),
+        [0, 2, 6].iter().copied().collect(),
+    ];
+
+    // Bases are 3-element subsets that are NOT lines.
+    let all_triples = k_subsets_btree(n, k);
+    let bases: BTreeSet<BTreeSet<usize>> = all_triples
+        .into_iter()
+        .filter(|t| !lines.contains(t))
+        .collect();
+
+    Matroid {
+        ground_set_size: n,
+        bases,
+        rank: k,
+    }
+}
+
+fn binomial(n: usize, k: usize) -> u64 {
+    if k > n {
+        return 0;
+    }
+    if k == 0 || k == n {
+        return 1;
+    }
+    let k = k.min(n - k);
+    let mut result: u64 = 1;
+    for i in 0..k {
+        result = result * (n - i) as u64 / (i + 1) as u64;
+    }
+    result
+}
+
 /// ShaperOS integration: matroid-based namespace analysis.
 impl Namespace {
     /// Compute the capability matroid of this namespace.
@@ -1129,6 +1669,113 @@ mod tests {
         let vm = ValuatedMatroid::from_tropical_plucker(2, 4, &coords).unwrap();
         assert_eq!(vm.matroid.rank, 2);
         assert!(vm.satisfies_tropical_plucker());
+    }
+
+    #[test]
+    fn test_characteristic_polynomial_u24() {
+        let m = Matroid::uniform(2, 4);
+        let chi = m.characteristic_polynomial();
+        // χ_{U_{2,4}}(q) = q² - 4q + 3
+        assert_eq!(chi, vec![3, -4, 1]);
+    }
+
+    #[test]
+    fn test_characteristic_polynomial_eval_at_1() {
+        // χ_M(1) = 0 for any matroid with at least one element
+        let m = Matroid::uniform(2, 4);
+        assert_eq!(m.characteristic_polynomial_eval(1), 0);
+    }
+
+    #[test]
+    fn test_beta_invariant() {
+        let m = Matroid::uniform(2, 4);
+        let beta = m.beta_invariant();
+        // β(M) = (-1)^r · χ'(1)
+        // For U_{2,4}: χ(q) = q² - 4q + 3, χ'(1) = -2, β = (-1)² · (-2) = -2
+        assert_eq!(beta, -2);
+    }
+
+    #[test]
+    fn test_closure_idempotent() {
+        let m = Matroid::uniform(2, 4);
+        let s: BTreeSet<usize> = [0].iter().copied().collect();
+        let cl = m.closure(&s);
+        let cl2 = m.closure(&cl);
+        assert_eq!(cl, cl2);
+    }
+
+    #[test]
+    fn test_flats_of_u24() {
+        let m = Matroid::uniform(2, 4);
+        let flats = m.flats();
+        // Rank 0: just ∅
+        assert_eq!(flats[0].len(), 1);
+        // Rank 1: singletons {0}, {1}, {2}, {3}
+        assert_eq!(flats[1].len(), 4);
+        // Rank 2: just {0,1,2,3} (the whole set)
+        assert_eq!(flats[2].len(), 1);
+    }
+
+    #[test]
+    fn test_f_vector_uniform() {
+        let m = Matroid::uniform(2, 4);
+        let f = m.f_vector();
+        // f_0 = 1, f_1 = 4, f_2 = 6
+        assert_eq!(f, vec![1, 4, 6]);
+    }
+
+    #[test]
+    fn test_whitney_second_kind() {
+        let m = Matroid::uniform(2, 4);
+        let w = m.whitney_numbers_second_kind();
+        // W_0 = 1 (empty flat), W_1 = 4 (singleton flats), W_2 = 1 (full set)
+        assert_eq!(w, vec![1, 4, 1]);
+    }
+
+    #[test]
+    fn test_restrict() {
+        let m = Matroid::uniform(2, 4);
+        let s: BTreeSet<usize> = [0, 1, 2].iter().copied().collect();
+        let r = m.restrict(&s);
+        assert_eq!(r.ground_set_size, 3);
+        assert_eq!(r.rank, 2);
+        // Should be U_{2,3}
+        assert_eq!(r.bases.len(), 3);
+    }
+
+    #[test]
+    fn test_contraction_deletion_pair() {
+        let m = Matroid::uniform(2, 4);
+        let (contracted, deleted) = m.contraction_deletion(0);
+        assert_eq!(contracted.ground_set_size, 3);
+        assert_eq!(contracted.rank, 1);
+        assert_eq!(deleted.ground_set_size, 3);
+        assert_eq!(deleted.rank, 2);
+    }
+
+    #[test]
+    fn test_connected_uniform() {
+        let m = Matroid::uniform(2, 4);
+        assert!(m.is_connected());
+    }
+
+    #[test]
+    fn test_connected_components_direct_sum() {
+        let m1 = Matroid::uniform(1, 2);
+        let m2 = Matroid::uniform(1, 2);
+        let sum = m1.direct_sum(&m2);
+        let components = sum.connected_components();
+        assert_eq!(components.len(), 2);
+    }
+
+    #[test]
+    fn test_has_excluded_minor_u24() {
+        // U_{2,5} should contain U_{2,4} as a minor
+        let m = Matroid::uniform(2, 5);
+        assert!(m.has_excluded_minor("U24"));
+        // U_{2,3} should NOT contain U_{2,4}
+        let m2 = Matroid::uniform(2, 3);
+        assert!(!m2.has_excluded_minor("U24"));
     }
 
     #[cfg(feature = "parallel")]

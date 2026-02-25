@@ -82,6 +82,14 @@ pub mod wdvv;
 #[cfg(feature = "tropical-schubert")]
 pub mod tropical_schubert;
 
+#[cfg(feature = "gf2")]
+pub mod finite_field;
+pub mod kazhdan_lusztig;
+#[cfg(feature = "gf2")]
+pub mod representability;
+#[cfg(feature = "gf2")]
+pub mod weight_enumerator;
+
 // Re-export core types
 #[cfg(feature = "tropical-schubert")]
 pub use geometric_algebra::tropicalize_multivector;
@@ -204,6 +212,22 @@ pub enum EnumerativeError {
     /// General computational error
     #[error("Computation error: {0}")]
     ComputationError(String),
+
+    /// Matroid representability error
+    #[error("Representability error: {0}")]
+    RepresentabilityError(String),
+
+    /// Linear code error
+    #[error("Code error: {0}")]
+    CodeError(String),
+
+    /// Invalid field size (must be a prime power)
+    #[error("Invalid field size: {q} is not a prime power")]
+    InvalidFieldSize { q: u64 },
+
+    /// Search space too large for exhaustive computation
+    #[error("Search space too large: {description}")]
+    SearchSpaceTooLarge { description: String },
 }
 
 /// Result type for enumerative geometry computations
@@ -217,6 +241,29 @@ pub use localization::{EquivariantLocalizer, FixedPoint, TorusWeights};
 
 // Matroids
 pub use matroid::{Matroid, ValuatedMatroid};
+
+// Kazhdan-Lusztig polynomials
+pub use kazhdan_lusztig::{
+    flag_f_vector, inverse_kl_polynomial, kl_is_non_negative, kl_polynomial, z_polynomial,
+};
+
+// GF(2)-dependent modules
+#[cfg(feature = "gf2")]
+pub use finite_field::{
+    grassmannian_poincare_polynomial, grassmannian_points, point_counts_over_extensions,
+    schubert_cell_points, schubert_poincare_polynomial, schubert_variety_points,
+    schubert_zeta_exponents,
+};
+#[cfg(feature = "gf2")]
+pub use representability::{
+    column_matroid, dual_fano_matroid, fano_matroid, has_minor, is_binary, is_regular, is_ternary,
+    standard_representation, RepresentabilityResult,
+};
+#[cfg(feature = "gf2")]
+pub use weight_enumerator::{
+    extended_golay_code, gilbert_varshamov_bound, hamming_bound, hamming_code, plotkin_bound,
+    reed_muller_code, simplex_code, singleton_bound, BinaryCode,
+};
 
 // CSM classes
 pub use csm::{CSMClass, SegreClass};
