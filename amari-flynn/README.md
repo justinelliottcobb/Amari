@@ -14,7 +14,8 @@ This library embodies that philosophy: formal verification should prove what's i
 - **Event Classification**: Distinguish impossible (P=0), rare (0<P<<1), and emergent (P>0) events
 - **Monte Carlo Verification**: Statistical verification of probability bounds
 - **Distribution Types**: Uniform, Normal, Bernoulli, Exponential distributions
-- **Procedural Macros**: `#[prob_requires]`, `#[prob_ensures]`, `#[ensures_expected]`
+- **Procedural Macros**: `#[prob_requires]`, `#[prob_ensures]`, `#[ensures_expected]` with full multi-parameter support
+- **SMT-LIB2 Backend**: Generate formal proof obligations for Z3, CVC5, and other solvers
 - **Rare Event Tracking**: Monitor and bound low-probability events
 
 ## Installation
@@ -23,18 +24,18 @@ Add to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-amari-flynn = "0.12"
+amari-flynn = "0.19"
 ```
 
 ### Feature Flags
 
 ```toml
 [dependencies]
-# Default features
-amari-flynn = "0.12"
+# Default features (includes std)
+amari-flynn = "0.19"
 
-# Minimal, no-std compatible
-amari-flynn = { version = "0.12", default-features = false }
+# Minimal, no-std compatible (disables file export)
+amari-flynn = { version = "0.19", default-features = false }
 ```
 
 ## Quick Start
@@ -79,18 +80,30 @@ Flynn teaches us to distinguish between three categories:
 
 ```rust
 use amari_flynn::prelude::*;
-use amari_flynn_macros::{prob_requires, prob_ensures};
+use amari_flynn::{prob_requires, prob_ensures, ensures_expected};
 
-// Precondition: x > 0 holds with P ≥ 0.95
+// Precondition: x > 0 holds with P >= 0.95
 #[prob_requires(x > 0.0, 0.95)]
 fn compute(x: f64) -> f64 {
     x.sqrt()
 }
 
-// Postcondition: result is non-negative with P ≥ 0.99
+// Postcondition: result is non-negative with P >= 0.99
 #[prob_ensures(result >= 0.0, 0.99)]
 fn safe_compute(x: f64) -> f64 {
     x.abs()
+}
+
+// Multi-parameter functions are fully supported
+#[prob_requires(x > 0.0 && y > 0.0, 0.9)]
+fn product_positive(x: f64, y: f64) -> f64 {
+    x * y
+}
+
+// Expected value: result should average to 0.5 +/- 0.15
+#[ensures_expected(result, 0.5, 0.15)]
+fn biased_coin() -> f64 {
+    if rand::random::<bool>() { 1.0 } else { 0.0 }
 }
 ```
 
@@ -105,14 +118,72 @@ let verifier = MonteCarloVerifier::new(10_000);
 // Verify a probability bound
 let result = verifier.verify_probability_bound(
     || rand::random::<f64>() > 0.9, // Event: random > 0.9
-    0.15, // Should occur with P ≤ 0.15
+    0.15, // Should occur with P <= 0.15
 );
 
 match result {
-    VerificationResult::Verified { .. } => println!("Bound verified!"),
-    VerificationResult::Failed { .. } => println!("Bound violated!"),
-    _ => {}
+    VerificationResult::Verified => println!("Bound verified!"),
+    VerificationResult::Violated => println!("Bound violated!"),
+    VerificationResult::Inconclusive => println!("Need more samples"),
 }
+```
+
+## SMT-LIB2 Formal Verification
+
+Generate proof obligations in SMT-LIB2 format for external solvers like Z3 and CVC5. The SMT backend uses `QF_NRA` (quantifier-free nonlinear real arithmetic) logic.
+
+### Generating Proof Obligations
+
+```rust
+use amari_flynn::prelude::*;
+
+// Hoeffding bound: verify that P(|X_bar - mu| > epsilon) <= delta
+let obligation = SmtProofObligation::hoeffding_obligation(
+    "sample_mean_bound", 1000, 0.1, 0.05,
+);
+
+// Export as SMT-LIB2 string (for Z3, CVC5, etc.)
+let smt_output = obligation.to_smtlib2();
+println!("{}", smt_output);
+
+// Or write directly to a .smt2 file
+obligation.write_to_file("proof.smt2").unwrap();
+```
+
+### Convenience Constructors
+
+```rust
+use amari_flynn::prelude::*;
+
+// Precondition bound
+let pre = precondition_obligation("input_valid", "x > 0", 0.95);
+
+// Postcondition bound
+let post = postcondition_obligation("output_safe", "result >= 0", 0.99);
+
+// Expected value verification
+let ev = expected_value_obligation("fair_coin", 0.5, 0.05, 10000);
+
+// Each can be verified statistically as a bridge to formal methods
+let result = pre.verify_with_monte_carlo(10_000);
+```
+
+### Custom Obligations
+
+```rust
+use amari_flynn::prelude::*;
+
+let mut ob = SmtProofObligation::new(
+    "custom_bound",
+    "Verify tail probability is small",
+    ObligationKind::ConcentrationBound { samples: 500, epsilon: 0.05 },
+);
+ob.add_variable("alpha", SmtSort::Real);
+ob.add_assertion("(> alpha 0.0)", Some("alpha is positive".to_string()));
+
+let smt = ob.to_smtlib2();
+// Feed to Z3: z3 -smt2 output.smt2
+// If result is "unsat", the property holds
 ```
 
 ## Key Types
@@ -127,10 +198,15 @@ use amari_flynn::prelude::*;
 // Value with 70% probability
 let likely = Prob::with_probability(0.7, "success");
 
-// Sample the value
-if likely.sample() {
-    println!("Got: {}", likely.value());
-}
+// Map preserves probability
+let doubled = Prob::with_probability(0.5, 10).map(|v| v * 2);
+assert_eq!(doubled.into_inner(), 20);
+assert_eq!(doubled.probability(), 0.5);
+
+// Monadic bind multiplies probabilities (independence assumed)
+let combined = Prob::with_probability(0.5, 10)
+    .and_then(|x| Prob::with_probability(0.4, x + 5));
+assert_eq!(combined.probability(), 0.2); // 0.5 * 0.4
 ```
 
 ### Distributions
@@ -147,7 +223,7 @@ let standard_normal = Normal::new(0.0, 1.0);
 // Bernoulli with P(true) = 0.3
 let coin = Bernoulli::new(0.3);
 
-// Exponential with rate λ = 2.0
+// Exponential with rate lambda = 2.0
 let waiting_time = Exponential::new(2.0);
 ```
 
@@ -160,9 +236,12 @@ use amari_flynn::prelude::*;
 
 // Critical hit with 1% chance
 let crit = RareEvent::<()>::new(0.01, "critical_hit");
+assert!(crit.is_rare(0.05)); // rare relative to 5% threshold
 
-// Network timeout with 0.1% chance
-let timeout = RareEvent::<String>::new(0.001, "network_timeout");
+// Classify events
+use amari_flynn::contracts::EventVerification;
+let class = EventVerification::classify(0.001, 0.01);
+// Returns EventVerification::Rare
 ```
 
 ## Modules
@@ -170,10 +249,12 @@ let timeout = RareEvent::<String>::new(0.001, "network_timeout");
 | Module | Description |
 |--------|-------------|
 | `prob` | Core Prob<T> type and probability operations |
-| `distributions` | Statistical distributions |
-| `contracts` | ProbabilisticContract, RareEvent, VerificationResult |
-| `backend` | Verification backends (Monte Carlo) |
-| `statistical` | Statistical analysis utilities |
+| `distributions` | Statistical distributions (Uniform, Normal, Bernoulli, Exponential) |
+| `contracts` | ProbabilisticContract, RareEvent, VerificationResult, EventVerification |
+| `backend::monte_carlo` | Monte Carlo statistical verification |
+| `backend::smt` | SMT-LIB2 proof obligation generation and export |
+| `backend::why3` | *(deprecated)* Use `backend::smt` instead |
+| `statistical` | Statistical bounds (Hoeffding, Chernoff) and estimators |
 
 ## Use Cases
 
@@ -181,25 +262,7 @@ let timeout = RareEvent::<String>::new(0.001, "network_timeout");
 - **Reliability Engineering**: Bound failure probabilities in distributed systems
 - **Financial Modeling**: Verify risk bounds in Monte Carlo simulations
 - **Quality Assurance**: Statistical testing of randomized algorithms
-
-## Example: Game Mechanics
-
-```rust
-use amari_flynn::prelude::*;
-
-// Verify critical hit rate is bounded
-let crit_rate = 0.15;
-let crit_prob = Prob::with_probability(crit_rate, ());
-
-// Statistical verification that P(crit) ≤ 0.20
-// (leaving room for buffs/modifiers while maintaining balance)
-
-let verifier = MonteCarloVerifier::new(50_000);
-let result = verifier.verify_probability_bound(
-    || rand::random::<f64>() < crit_rate,
-    0.20, // upper bound
-);
-```
+- **Formal Methods**: Generate SMT-LIB2 proof obligations for automated theorem provers
 
 ## The ISO Philosophy
 
@@ -211,9 +274,8 @@ Like the ISOs in Tron: Legacy, the most valuable behaviors in a system are often
 
 ## Roadmap
 
-- **Why3 Integration**: Formal verification of probability bounds
+- **External Solver Integration**: Automatic invocation of installed Z3/CVC5 solvers
 - **Creusot Support**: Rust-native formal verification
-- **SMT Backend**: Automated theorem proving for event impossibility
 - **Geometric Integration**: Probabilistic contracts over geometric algebra types
 
 ## License

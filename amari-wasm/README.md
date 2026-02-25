@@ -22,6 +22,7 @@ Amari is a comprehensive mathematical computing library that brings advanced alg
 - **Computational Topology** *(v0.16.0)*: Simplicial complexes, homology computation, persistent homology, and Morse theory
 - **Dynamical Systems** *(v0.18.1)*: ODE solvers, stability analysis, bifurcation diagrams, Lyapunov exponents, and phase portraits
 - **Enumerative Geometry** *(v0.18.1)*: WDVV curve counting, equivariant localization, matroids, CSM classes, operadic composition, and stability conditions
+- **Probabilistic Contracts** *(v0.19.0)*: SMT-LIB2 proof obligation generation, Monte Carlo verification, probabilistic value tracking, and rare event classification
 - **Probability Theory** *(v0.13.0)*: Distributions on multivector spaces, MCMC sampling, and Monte Carlo estimation
 - **Relativistic Physics**: Spacetime algebra (Cl(1,3)) with WebAssembly-compatible precision
 - **Spacecraft Orbital Mechanics**: Full-precision trajectory calculations in browsers
@@ -1094,6 +1095,8 @@ dynamicsDemo();
 - **Climate Modeling**: Sensitivity analysis via Lyapunov spectrum computation
 - **Algebraic Geometry**: Rational curve counting, Schubert calculus, Gromov-Witten invariants
 - **Combinatorics**: Matroid operations, Littlewood-Richardson coefficients
+- **Formal Verification**: SMT-LIB2 proof obligation generation for browser-based verification workflows
+- **Statistical Testing**: Monte Carlo verification of probability bounds in WASM
 - **Access Control**: Geometric namespace/capability systems for secure multi-agent coordination
 
 ## API Reference
@@ -1236,6 +1239,30 @@ dynamicsDemo();
 - `composeNamespaces(outer, inner)`: Compose along matching interfaces
 - `compositionMultiplicity(outer, inner)`: Intersection number of interfaces
 - `interfacesCompatible(outer, inner)`: Check interface compatibility
+
+### Probabilistic Contracts (Flynn)
+
+- `WasmSmtProofObligation(name, description, kind, param1, param2)`: Create proof obligation
+  - `kind`: `"precondition"`, `"postcondition"`, `"expected_value"`, or `"concentration"`
+- `WasmSmtProofObligation.addVariable(name, sort)`: Declare variable (`"Real"`, `"Int"`, `"Bool"`)
+- `WasmSmtProofObligation.addAssertion(expr, comment)`: Add SMT-LIB2 assertion
+- `WasmSmtProofObligation.toSmtlib2()`: Generate complete SMT-LIB2 string for Z3/CVC5
+- `WasmSmtProofObligation.verifyWithMonteCarlo(samples)`: Statistical verification bridge
+- `flynnHoeffdingObligation(name, n, epsilon, delta)`: Hoeffding concentration bound
+- `flynnPreconditionObligation(name, condition, probability)`: Precondition bound
+- `flynnPostconditionObligation(name, condition, probability)`: Postcondition bound
+- `flynnExpectedValueObligation(name, expected, epsilon, samples)`: Expected value bound
+- `WasmMonteCarloVerifier(samples)`: Create Monte Carlo verifier
+- `WasmMonteCarloVerifier.estimateProbability(trials, successProb)`: Estimate with confidence bounds
+- `WasmMonteCarloVerifier.verifyProbabilityBound(successProb, bound)`: Verify P <= bound
+- `WasmProb(value)`: Create certain probabilistic value (P=1.0)
+- `WasmProb.withProbability(p, value)`: Create with specified probability
+- `WasmProb.probability()`: Get probability
+- `WasmProb.value()`: Get value
+- `WasmProb.map(factor)`: Scale value, preserve probability
+- `WasmProb.andThen(otherProb, otherValue)`: Combine (multiply probabilities and values)
+- `WasmRareEvent(probability, description)`: Create rare event tracker
+- `WasmRareEvent.classify(threshold)`: Returns `"Impossible"`, `"Rare"`, or `"Probable"`
 
 ## Examples
 
