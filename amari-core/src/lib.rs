@@ -30,6 +30,9 @@ pub mod precision;
 pub mod rotor;
 pub mod unicode_ops;
 
+#[cfg(feature = "gf2")]
+pub mod gf2;
+
 #[allow(dead_code)]
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 pub(crate) mod simd;
