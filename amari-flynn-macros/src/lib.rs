@@ -2,11 +2,16 @@
 //!
 //! These macros provide syntactic sugar for probabilistic contract verification,
 //! integrating with the Flynn verification framework.
+//!
+//! Supports zero-parameter, single-parameter, and multi-parameter functions.
+//! For multi-parameter functions, the verification helper accepts a generator
+//! that returns a tuple of all parameter types.
 
 use proc_macro::TokenStream;
+use proc_macro2::TokenStream as TokenStream2;
 use quote::quote;
 use syn::parse::{Parse, ParseStream};
-use syn::{parse_macro_input, Expr, ItemFn, LitFloat, Token};
+use syn::{parse_macro_input, Expr, FnArg, Ident, ItemFn, LitFloat, Token};
 
 /// Parsed attribute for probabilistic requires/ensures
 struct ProbabilisticAttr {
@@ -46,6 +51,56 @@ impl Parse for ExpectedValueAttr {
     }
 }
 
+/// Result of extracting parameters from a function signature.
+///
+/// - `param_type`: The type the generator returns (single type or tuple)
+/// - `param_bindings`: `let` bindings to destructure inputs
+/// - `param_names`: Individual parameter idents for fn calls
+struct ExtractedParams {
+    param_type: TokenStream2,
+    param_bindings: TokenStream2,
+    param_names: Vec<Ident>,
+}
+
+/// Extract parameter types, destructuring bindings, and names from function inputs.
+///
+/// Returns `None` if any parameter has a non-ident pattern (e.g. `(a, b): (T, U)`)
+/// or is a receiver (`self`/`&self`).
+fn extract_multi_params(
+    inputs: &syn::punctuated::Punctuated<FnArg, Token![,]>,
+) -> Option<ExtractedParams> {
+    let mut types = Vec::new();
+    let mut names = Vec::new();
+
+    for input in inputs {
+        match input {
+            FnArg::Receiver(_) => return None, // skip methods
+            FnArg::Typed(pat_type) => {
+                let ty = &pat_type.ty;
+                if let syn::Pat::Ident(pat_ident) = &*pat_type.pat {
+                    types.push(quote! { #ty });
+                    names.push(pat_ident.ident.clone());
+                } else {
+                    return None; // non-ident pattern, can't destructure
+                }
+            }
+        }
+    }
+
+    if names.is_empty() {
+        return None;
+    }
+
+    let param_type = quote! { (#(#types),*) };
+    let param_bindings = quote! { let (#(#names),*) = inputs; };
+
+    Some(ExtractedParams {
+        param_type,
+        param_bindings,
+        param_names: names,
+    })
+}
+
 /// Probabilistic precondition
 ///
 /// Generates documentation and verification infrastructure for preconditions.
@@ -70,7 +125,16 @@ impl Parse for ExpectedValueAttr {
 /// }
 /// ```
 ///
-/// This documents that the function expects x > 0.0 to hold with probability ≥ 0.95.
+/// This documents that the function expects x > 0.0 to hold with probability >= 0.95.
+///
+/// Multi-parameter functions are also supported:
+///
+/// ```ignore
+/// #[prob_requires(x > 0.0 && y > 0.0, 0.9)]
+/// fn compute_pair(x: f64, y: f64) -> f64 {
+///     (x * y).sqrt()
+/// }
+/// ```
 #[proc_macro_attribute]
 pub fn prob_requires(attr: TokenStream, item: TokenStream) -> TokenStream {
     let input = parse_macro_input!(item as ItemFn);
@@ -84,7 +148,7 @@ pub fn prob_requires(attr: TokenStream, item: TokenStream) -> TokenStream {
                 let condition = &parsed.condition;
                 let bound = &parsed.bound;
                 format!(
-                    "Probabilistic precondition: Requires `{}` with P ≥ {}",
+                    "Probabilistic precondition: Requires `{}` with P >= {}",
                     quote!(#condition),
                     bound.base10_parse::<f64>().unwrap_or(0.0)
                 )
@@ -101,7 +165,8 @@ pub fn prob_requires(attr: TokenStream, item: TokenStream) -> TokenStream {
 
     // Extract parameter type and name for binding in verification helper
     let (param_type, param_bindings) = if input.sig.inputs.len() == 1 {
-        if let Some(syn::FnArg::Typed(pat_type)) = input.sig.inputs.first() {
+        // Single-parameter: cleaner generated code without tuple wrapper
+        if let Some(FnArg::Typed(pat_type)) = input.sig.inputs.first() {
             let param_type = &pat_type.ty;
             if let syn::Pat::Ident(pat_ident) = &*pat_type.pat {
                 let param_name = &pat_ident.ident;
@@ -112,8 +177,13 @@ pub fn prob_requires(attr: TokenStream, item: TokenStream) -> TokenStream {
         } else {
             (quote! { _ }, quote! {})
         }
+    } else if input.sig.inputs.len() > 1 {
+        // Multi-parameter: use tuple destructuring
+        match extract_multi_params(&input.sig.inputs) {
+            Some(extracted) => (extracted.param_type, extracted.param_bindings),
+            None => (quote! { _ }, quote! {}),
+        }
     } else {
-        // For multiple parameters, we'd need tuple destructuring - skip for now
         (quote! { _ }, quote! {})
     };
 
@@ -187,7 +257,16 @@ pub fn prob_requires(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// }
 /// ```
 ///
-/// This documents that the result should be non-negative with probability ≥ 0.99.
+/// This documents that the result should be non-negative with probability >= 0.99.
+///
+/// Multi-parameter functions are also supported:
+///
+/// ```ignore
+/// #[prob_ensures(result >= 0.0, 0.99)]
+/// fn sum_abs(x: f64, y: f64) -> f64 {
+///     x.abs() + y.abs()
+/// }
+/// ```
 #[proc_macro_attribute]
 pub fn prob_ensures(attr: TokenStream, item: TokenStream) -> TokenStream {
     let input = parse_macro_input!(item as ItemFn);
@@ -200,7 +279,7 @@ pub fn prob_ensures(attr: TokenStream, item: TokenStream) -> TokenStream {
                 let condition = &parsed.condition;
                 let bound = &parsed.bound;
                 format!(
-                    "Probabilistic postcondition: Ensures `{}` with P ≥ {}",
+                    "Probabilistic postcondition: Ensures `{}` with P >= {}",
                     quote!(#condition),
                     bound.base10_parse::<f64>().unwrap_or(0.0)
                 )
@@ -214,13 +293,13 @@ pub fn prob_ensures(attr: TokenStream, item: TokenStream) -> TokenStream {
         syn::Ident::new(&format!("verify_{}_postcondition", fn_name), fn_name.span());
 
     // Extract parameter type and name for binding in verification helper
-    // Handle both zero-parameter and single-parameter functions
+    // Handle zero-parameter, single-parameter, and multi-parameter functions
     let (param_type, param_bindings, fn_call) = if input.sig.inputs.is_empty() {
         // Zero-parameter function
         (quote! { () }, quote! {}, quote! { #fn_name() })
     } else if input.sig.inputs.len() == 1 {
         // Single-parameter function
-        if let Some(syn::FnArg::Typed(pat_type)) = input.sig.inputs.first() {
+        if let Some(FnArg::Typed(pat_type)) = input.sig.inputs.first() {
             let param_type = &pat_type.ty;
             if let syn::Pat::Ident(pat_ident) = &*pat_type.pat {
                 let param_name = &pat_ident.ident;
@@ -236,8 +315,18 @@ pub fn prob_ensures(attr: TokenStream, item: TokenStream) -> TokenStream {
             (quote! { _ }, quote! {}, quote! { #fn_name(inputs) })
         }
     } else {
-        // Multiple parameters - skip for now
-        (quote! { _ }, quote! {}, quote! { #fn_name(inputs) })
+        // Multi-parameter function: tuple destructuring
+        match extract_multi_params(&input.sig.inputs) {
+            Some(extracted) => {
+                let names = &extracted.param_names;
+                (
+                    extracted.param_type,
+                    extracted.param_bindings,
+                    quote! { #fn_name(#(#names),*) },
+                )
+            }
+            None => (quote! { _ }, quote! {}, quote! { #fn_name(inputs) }),
+        }
     };
 
     let verification_helper = if !attr.is_empty() {
@@ -311,7 +400,16 @@ pub fn prob_ensures(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// }
 /// ```
 ///
-/// This documents that the result should have expected value 5.0 ± 0.1.
+/// This documents that the result should have expected value 5.0 +/- 0.1.
+///
+/// Multi-parameter functions are also supported:
+///
+/// ```ignore
+/// #[ensures_expected(result, 0.0, 0.5)]
+/// fn weighted_diff(x: f64, y: f64) -> f64 {
+///     x - y
+/// }
+/// ```
 #[proc_macro_attribute]
 pub fn ensures_expected(attr: TokenStream, item: TokenStream) -> TokenStream {
     let input = parse_macro_input!(item as ItemFn);
@@ -325,7 +423,7 @@ pub fn ensures_expected(attr: TokenStream, item: TokenStream) -> TokenStream {
                 let expected = &parsed.expected;
                 let epsilon = &parsed.epsilon;
                 format!(
-                    "Expected value constraint: E[{}] = {} ± {}",
+                    "Expected value constraint: E[{}] = {} +/- {}",
                     quote!(#expression),
                     expected.base10_parse::<f64>().unwrap_or(0.0),
                     epsilon.base10_parse::<f64>().unwrap_or(0.0)
@@ -342,13 +440,13 @@ pub fn ensures_expected(attr: TokenStream, item: TokenStream) -> TokenStream {
     );
 
     // Extract parameter type and name for binding in verification helper
-    // Handle both zero-parameter and single-parameter functions
+    // Handle zero-parameter, single-parameter, and multi-parameter functions
     let (param_type, param_bindings, fn_call) = if input.sig.inputs.is_empty() {
         // Zero-parameter function
         (quote! { () }, quote! {}, quote! { #fn_name() })
     } else if input.sig.inputs.len() == 1 {
         // Single-parameter function
-        if let Some(syn::FnArg::Typed(pat_type)) = input.sig.inputs.first() {
+        if let Some(FnArg::Typed(pat_type)) = input.sig.inputs.first() {
             let param_type = &pat_type.ty;
             if let syn::Pat::Ident(pat_ident) = &*pat_type.pat {
                 let param_name = &pat_ident.ident;
@@ -364,8 +462,18 @@ pub fn ensures_expected(attr: TokenStream, item: TokenStream) -> TokenStream {
             (quote! { _ }, quote! {}, quote! { #fn_name(inputs) })
         }
     } else {
-        // Multiple parameters - skip for now
-        (quote! { _ }, quote! {}, quote! { #fn_name(inputs) })
+        // Multi-parameter function: tuple destructuring
+        match extract_multi_params(&input.sig.inputs) {
+            Some(extracted) => {
+                let names = &extracted.param_names;
+                (
+                    extracted.param_type,
+                    extracted.param_bindings,
+                    quote! { #fn_name(#(#names),*) },
+                )
+            }
+            None => (quote! { _ }, quote! {}, quote! { #fn_name(inputs) }),
+        }
     };
 
     let verification_helper = if !attr.is_empty() {

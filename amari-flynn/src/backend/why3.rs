@@ -1,8 +1,14 @@
 //! Why3 formal verification backend (stub)
 //!
-//! Future integration with Why3 for formal verification of probability bounds.
+//! This module is deprecated. Use [`super::smt`] for SMT-LIB2 proof obligation generation.
+
+#![allow(deprecated)]
 
 /// Why3 verification generator (placeholder)
+///
+/// This type is a placeholder from the initial release. Use
+/// [`super::smt::SmtProofObligation`] for actual formal verification output.
+#[deprecated(since = "0.19.0", note = "Use amari_flynn::backend::smt instead")]
 #[derive(Debug)]
 pub struct Why3Generator;
 
