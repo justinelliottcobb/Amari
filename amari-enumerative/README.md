@@ -15,7 +15,7 @@ Enumerative geometry for counting geometric configurations.
 - **Tropical Geometry**: Tropical curve counting via correspondence theorems
 - **Tropical Schubert Calculus**: Fast intersection counting using tropical methods
 - **Moduli Spaces**: Computations on moduli spaces of curves
-- **Namespace/Capabilities**: ShaperOS integration via geometric access control
+- **Namespace/Capabilities**: Geometric access control via Schubert calculus
 - **WDVV/Kontsevich Recursion**: Genus-0 rational curve counting via WDVV equations
 - **Equivariant Localization**: Atiyah-Bott fixed point formula on Grassmannians
 - **Matroid Theory**: Uniform/Schubert matroids, duality, deletion, contraction, Tutte polynomials
@@ -119,7 +119,7 @@ for (partition, coefficient) in products {
 }
 ```
 
-### Namespace and Capabilities (ShaperOS Integration)
+### Namespace and Capabilities (Geometric Access Control)
 
 Use enumerative geometry for access control:
 
@@ -329,7 +329,7 @@ let count = curve.tropical_count()?;
 | `intersection` | Chow rings, intersection products, Bézout |
 | `schubert` | Schubert calculus on Grassmannians |
 | `littlewood_richardson` | LR coefficients, partitions, Young tableaux |
-| `namespace` | Namespace/Capability types for ShaperOS |
+| `namespace` | Namespace/Capability types for geometric access control |
 | `phantom` | Compile-time verification phantom types |
 | `gromov_witten` | Curve counting, quantum cohomology |
 | `tropical_curves` | Tropical geometry methods |

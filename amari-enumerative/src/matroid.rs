@@ -1,7 +1,7 @@
 //! Matroid Theory for Enumerative Geometry
 //!
 //! Implements combinatorial matroid theory with connections to tropical geometry,
-//! Grassmannians, and ShaperOS namespace analysis.
+//! Grassmannians, and namespace analysis.
 //!
 //! # Key Types
 //!
@@ -1214,7 +1214,7 @@ fn binomial(n: usize, k: usize) -> u64 {
     result
 }
 
-/// ShaperOS integration: matroid-based namespace analysis.
+/// Matroid-based namespace analysis.
 impl Namespace {
     /// Compute the capability matroid of this namespace.
     ///

@@ -1,4 +1,4 @@
-//! Operadic Composition for ShaperOS Namespace Stacking
+//! Operadic Composition for Namespace Stacking
 //!
 //! Models capability composition using the operad structure of moduli
 //! spaces M̄_{0,n}. Namespaces can be composed by gluing along

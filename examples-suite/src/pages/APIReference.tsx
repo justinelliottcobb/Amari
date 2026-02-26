@@ -2904,7 +2904,7 @@ console.log(result.getCount()); // 2`
       },
       {
         name: "WasmCapability",
-        description: "A capability (access condition) represented as a Schubert class. Used for geometric access control in ShaperOS.",
+        description: "A capability (access condition) represented as a Schubert class. Used for geometric access control.",
         methods: [
           {
             name: "constructor",

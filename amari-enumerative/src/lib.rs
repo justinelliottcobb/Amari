@@ -12,7 +12,7 @@
 //! - **Gromov-Witten Theory**: Curve counting and quantum cohomology
 //! - **Tropical Geometry**: Tropical curve counting and correspondence theorems
 //! - **Moduli Spaces**: Computations on moduli spaces of curves and surfaces
-//! - **Namespace/Capabilities**: ShaperOS integration via geometric access control
+//! - **Namespace/Capabilities**: Geometric access control via Schubert calculus
 //! - **Phantom Types**: Compile-time verification of mathematical properties
 //!
 //! ## Usage
@@ -133,7 +133,7 @@ pub use schubert::multi_intersect_batch;
 #[cfg(feature = "parallel")]
 pub use tropical_curves::{mikhalkin_correspondence_verify_batch, verify_mikhalkin_gw_batch};
 
-// Namespace exports for ShaperOS
+// Namespace exports for geometric access control
 pub use namespace::{
     capability_accessible, namespace_intersection, Capability, CapabilityId, Namespace,
     NamespaceBuilder, NamespaceError, NamespaceIntersection, QuantumCapability,

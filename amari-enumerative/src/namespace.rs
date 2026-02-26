@@ -1,10 +1,10 @@
-//! Namespace and Capability types for ShaperOS
+//! Namespace and Capability types for geometric access control
 //!
 //! Namespaces are points in Grassmannians. Capabilities are Schubert conditions.
 //! Intersection theory determines access control.
 //!
-//! This module enables ShaperOS to answer questions like "how many valid namespace
-//! configurations satisfy these capability constraints?" using rigorous enumerative geometry.
+//! This module answers questions like "how many valid namespace configurations
+//! satisfy these capability constraints?" using rigorous enumerative geometry.
 //!
 //! # Contracts
 //!
@@ -82,7 +82,7 @@ impl From<String> for CapabilityId {
     }
 }
 
-/// A capability in ShaperOS: an incidence condition on namespaces
+/// A capability: an incidence condition on namespaces
 ///
 /// Capabilities represent access rights that can be granted to namespaces.
 /// Each capability corresponds to a Schubert class, representing the geometric
@@ -188,7 +188,7 @@ impl Capability {
 
 /// A namespace: a point in a Grassmannian with associated capabilities
 ///
-/// In ShaperOS, namespaces represent isolated execution contexts.
+/// Namespaces represent isolated execution contexts.
 /// Their position in the Grassmannian encodes their "geometric location"
 /// while their capabilities determine what operations they can perform.
 ///
