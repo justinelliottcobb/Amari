@@ -10,7 +10,8 @@
     "autodiff": "node --loader ts-node/esm automatic-diff.ts",
     "infogeom": "node --loader ts-node/esm information-geometry.ts",
     "fusion": "node --loader ts-node/esm fusion-systems.ts",
-    "all": "npm run demo && npm run geometric && npm run tropical && npm run autodiff && npm run infogeom && npm run fusion"
+    "gf2": "node --loader ts-node/esm gf2-algebra.ts",
+    "all": "npm run demo && npm run geometric && npm run tropical && npm run autodiff && npm run infogeom && npm run fusion && npm run gf2"
   },
   "dependencies": {
     "@justinelliottcobb/amari-wasm": "^0.12.0"
