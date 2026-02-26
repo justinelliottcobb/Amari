@@ -56,9 +56,10 @@
 //!
 //! ## Roadmap
 //!
-//! - **Why3 Integration**: Formal verification of probability bounds
+//! - **SMT-LIB2 Backend** (v0.19.0): Generate proof obligations in SMT-LIB2 format
+//!   for Z3, CVC5, and other solvers. See [`backend::smt`].
 //! - **Creusot Support**: Rust-native formal verification
-//! - **SMT Backend**: Automated theorem proving for event impossibility
+//! - **External Solver Integration**: Automatic invocation of installed solvers
 //!
 //! ## The ISO Philosophy
 //!
@@ -98,6 +99,7 @@ pub mod statistical;
 /// Prelude module for common imports
 pub mod prelude {
     pub use crate::backend::monte_carlo::MonteCarloVerifier;
+    pub use crate::backend::smt::{ObligationKind, SmtProofObligation};
     pub use crate::contracts::{
         EventVerification, ProbabilisticContract, RareEvent, StatisticalProperty,
         VerificationResult,
