@@ -14,7 +14,11 @@ import init, {
   WasmBinaryMultivector,
   WasmBinaryCode,
   GF2Grassmannian,
-  GF2Representability
+  GF2Representability,
+  flynnHoeffdingObligation,
+  WasmMonteCarloVerifier,
+  WasmProb,
+  WasmRareEvent
 } from '@justinelliottcobb/amari-wasm';
 
 /**
@@ -26,7 +30,7 @@ async function runCompleteDemo() {
   console.log('=======================================');
   console.log('Unified Mathematical Computing: Geometric Algebra + Tropical Algebra +');
   console.log('Automatic Differentiation + Fusion Systems + Information Geometry +');
-  console.log('Functional Analysis + GF(2) Algebra & Coding Theory');
+  console.log('Functional Analysis + GF(2) Algebra + Probabilistic Contracts');
 
   // Initialize the WASM module
   await init();
@@ -241,8 +245,32 @@ async function runCompleteDemo() {
   const fanoTernary = GF2Representability.isTernary(fanoMatroid);
   console.log(`   Fano matroid: binary=${fanoRep.status}, ternary=${fanoTernary.status}`);
 
-  // 8. UNIFIED EXAMPLE: Physics + ML + Optimization
-  console.log('\n⚡ 8. UNIFIED EXAMPLE - Physics-Informed Neural Network');
+  // 8. PROBABILISTIC CONTRACTS (Flynn)
+  console.log('\n📋 8. PROBABILISTIC CONTRACTS - Formal Verification');
+  console.log('   SMT-LIB2 generation, Monte Carlo verification, rare events...');
+
+  // Hoeffding bound proof obligation
+  const hoeffding = flynnHoeffdingObligation("sample_mean", 1000, 0.1, 0.05);
+  const smtOutput = hoeffding.toSmtlib2();
+  console.log(`   SMT-LIB2 output: ${smtOutput.split('\n').length} lines`);
+  console.log(`   Monte Carlo verification: ${hoeffding.verifyWithMonteCarlo(10000)}`);
+
+  // Monte Carlo verifier
+  const mcVerifier = new WasmMonteCarloVerifier(10000);
+  const estimate = mcVerifier.estimateProbability(10000, 0.7);
+  console.log(`   P(0.7) estimate: ${estimate[0].toFixed(3)} [${estimate[1].toFixed(3)}, ${estimate[2].toFixed(3)}]`);
+
+  // Probabilistic values
+  const coinFlip = WasmProb.withProbability(0.5, 1.0);
+  const scaledFlip = coinFlip.map(3.0);
+  console.log(`   Prob value: ${coinFlip.value()} @ P=${coinFlip.probability()} -> scaled: ${scaledFlip.value()}`);
+
+  // Rare event classification
+  const rareEvent = new WasmRareEvent(0.05, "critical_hit");
+  console.log(`   ${rareEvent.description()}: ${rareEvent.classify(0.1)} (P=${rareEvent.probability()})`);
+
+  // 9. UNIFIED EXAMPLE: Physics + ML + Optimization
+  console.log('\n⚡ 9. UNIFIED EXAMPLE - Physics-Informed Neural Network');
   console.log('   Combining all systems for physics-informed machine learning...');
 
   // Use geometric algebra for physics simulation
@@ -273,7 +301,7 @@ async function runCompleteDemo() {
   console.log(`   Evaluation: KL divergence = ${model_divergence.toFixed(4)}`);
 
   // Performance demonstration
-  console.log('\n🎯 9. PERFORMANCE SHOWCASE');
+  console.log('\n🎯 10. PERFORMANCE SHOWCASE');
   console.log('   Running batch operations across all systems...');
 
   const startTime = performance.now();
@@ -338,6 +366,10 @@ async function runCompleteDemo() {
   cl_e12.free();
   hammingCode.free();
   fanoMatroid.free();
+  hoeffding.free();
+  coinFlip.free();
+  scaledFlip.free();
+  rareEvent.free();
 
   console.log('\n🎉 COMPLETE DEMONSTRATION FINISHED!');
   console.log('=====================================');
@@ -348,6 +380,7 @@ async function runCompleteDemo() {
   console.log('✅ Fusion Systems: Advanced neural architectures');
   console.log('✅ Functional Analysis: Hilbert spaces and spectral theory');
   console.log('✅ GF(2) Algebra: Finite fields, codes, and matroids');
+  console.log('✅ Probabilistic Contracts: SMT-LIB2, Monte Carlo, rare events');
   console.log('✅ Unified Systems: Physics-informed machine learning');
   console.log('\n📦 Amari v0.15.0 - Your unified mathematical computing platform!');
 }
