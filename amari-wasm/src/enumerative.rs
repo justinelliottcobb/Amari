@@ -1152,7 +1152,7 @@ impl WasmEquivariantLocalizer {
 /// connecting to Grassmannians via Schubert matroids.
 #[wasm_bindgen]
 pub struct WasmMatroid {
-    inner: Matroid,
+    pub(crate) inner: Matroid,
 }
 
 #[wasm_bindgen]
