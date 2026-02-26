@@ -17,3 +17,5 @@ wasm-pack.log
 .idea/
 # Local Netlify folder
 .netlify
+/docs/prompts/
+

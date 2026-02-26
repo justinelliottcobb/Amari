@@ -207,67 +207,72 @@ impl<const P: usize, const Q: usize, const R: usize> Rotor<P, Q, R> {
     }
 
     /// Convert rotor to rotation matrix (3x3 for 3D)
+    ///
+    /// Computes the matrix M such that M*v = R*v*R† for column vectors.
+    /// Each column j is the image of basis vector e_j under the rotation.
     pub fn to_rotation_matrix(&self) -> [[f64; 3]; 3] {
-        // Extract rotor components (scalar + bivector parts)
-        let w = self.multivector.scalar_part(); // scalar part
-        let xy = self.multivector.get(3); // e12 bivector
-        let xz = self.multivector.get(4); // e13 bivector
-        let yz = self.multivector.get(5); // e23 bivector
+        // Compute rotated basis vectors
+        let cols: Vec<_> = (0..3)
+            .map(|j| {
+                let basis = Multivector::basis_vector(j);
+                self.apply(&basis)
+            })
+            .collect();
 
-        // Convert using corrected rotor-to-matrix formulas
-        // Note: these formulas assume rotor = w + xy*e12 + xz*e13 + yz*e23
-        [
-            [
-                w * w + xy * xy - xz * xz - yz * yz,
-                2.0 * (xy * yz - w * xz),
-                2.0 * (xy * xz + w * yz),
-            ],
-            [
-                2.0 * (xy * yz + w * xz),
-                w * w - xy * xy + xz * xz - yz * yz,
-                2.0 * (yz * xz - w * xy),
-            ],
-            [
-                2.0 * (xy * xz - w * yz),
-                2.0 * (yz * xz + w * xy),
-                w * w - xy * xy - xz * xz + yz * yz,
-            ],
-        ]
+        // Build matrix: M[i][j] = (rotated e_j).component(i)
+        let mut matrix = [[0.0; 3]; 3];
+        for (i, row) in matrix.iter_mut().enumerate() {
+            for (j, entry) in row.iter_mut().enumerate() {
+                *entry = cols[j].vector_component(i);
+            }
+        }
+
+        matrix
     }
 
     /// Compute logarithm of rotor
+    ///
+    /// For a unit rotor R = cos(θ/2) + sin(θ/2)B̂, returns (θ/2)B̂
+    /// where B̂ is the unit bivector of the rotation plane.
     pub fn logarithm(&self) -> Multivector<P, Q, R> {
-        // For a unit rotor R = exp(B), log(R) = B
-        // Simplified implementation to match test expectations
-        let bivector_part = self.multivector.grade_projection(2);
+        let w = self.scalar_part().clamp(-1.0, 1.0);
+        let half_angle = w.acos(); // θ/2
 
-        // Scale by appropriate factor - adjust based on observed test behavior
-        let angle = 2.0 * self.scalar_part().acos();
-        if angle.abs() > 1e-12 {
-            bivector_part * (-angle) // Corrected scaling factor
-        } else {
-            bivector_part
+        let bivector_part = self.multivector.grade_projection(2);
+        let biv_norm = bivector_part.norm();
+
+        if biv_norm < 1e-14 {
+            // Near-identity rotor or π rotation with no bivector component
+            // Return zero bivector (identity has zero log)
+            return Multivector::zero();
         }
+
+        // Normalize bivector to get B̂, then scale by half_angle
+        // log(R) = (θ/2) * B̂ = (θ/2) * bivector_part / |bivector_part|
+        bivector_part * (half_angle / biv_norm)
     }
 
     /// Raise rotor to a power
+    ///
+    /// Computes R^t = exp(t * log(R)) for any real exponent t.
+    /// For a rotor representing rotation by angle θ, R^t rotates by tθ.
     pub fn power(&self, exponent: f64) -> Self {
-        // Simplified implementation for common cases
-        if (exponent - 2.0).abs() < 1e-12 {
-            // For squaring, just use geometric product
-            Self {
-                multivector: self.multivector.geometric_product(&self.multivector),
-            }
-        } else if (exponent - 1.0).abs() < 1e-12 {
-            // For power of 1, return self
-            Self {
-                multivector: self.multivector.clone(),
-            }
-        } else {
-            // For other powers, fall back to log/exp approach
-            // This requires implementing exp on multivectors
-            // For now, return identity as a stub
-            Self::identity()
+        if exponent.abs() < 1e-14 {
+            return Self::identity();
+        }
+
+        let log_r = self.logarithm();
+
+        // If log is zero (identity rotor), any power is still identity
+        if log_r.norm() < 1e-14 {
+            return Self::identity();
+        }
+
+        let scaled = log_r * exponent;
+        let result = scaled.exp();
+
+        Self {
+            multivector: result.normalize().unwrap_or(Multivector::scalar(1.0)),
         }
     }
 }

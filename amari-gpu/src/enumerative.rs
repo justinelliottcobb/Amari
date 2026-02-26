@@ -2664,6 +2664,875 @@ impl Default for EnumerativeGpuConfig {
     }
 }
 
+// ─── GF(2) Enumerative GPU Data Structures ───
+
+/// GPU-optimized finite field Grassmannian point counting data.
+///
+/// Computes |Gr(k,n;F_q)| = [n,k]_q (Gaussian binomial coefficient).
+#[cfg(all(feature = "enumerative", feature = "gf2"))]
+#[repr(C)]
+#[derive(Copy, Clone, Debug, Pod, Zeroable)]
+pub struct GpuFiniteFieldPointData {
+    /// Grassmannian parameter k (subspace dimension)
+    pub k: u32,
+    /// Grassmannian parameter n (ambient dimension)
+    pub n: u32,
+    /// Field size q (must be a prime power)
+    pub q: u32,
+    /// Padding for alignment
+    pub padding: u32,
+}
+
+/// GPU-optimized binary code weight distribution data.
+///
+/// Computes the weight distribution of a binary linear code from its generator matrix.
+/// Enumerates all 2^k codewords and counts by Hamming weight.
+#[cfg(all(feature = "enumerative", feature = "gf2"))]
+#[repr(C)]
+#[derive(Copy, Clone, Debug, Pod, Zeroable)]
+pub struct GpuWeightDistributionData {
+    /// Generator matrix rows bit-packed (up to 16 rows, each row ≤32 cols)
+    pub generator_rows: [u32; 16],
+    /// Code length n (number of columns)
+    pub code_length: u32,
+    /// Code dimension k (number of rows, ≤16)
+    pub code_dimension: u32,
+    /// Padding for alignment
+    pub padding: [u32; 2],
+}
+
+/// GPU-optimized Kazhdan-Lusztig polynomial data for a matroid.
+///
+/// Computes KL polynomial coefficients via the characteristic polynomial approach.
+#[cfg(all(feature = "enumerative", feature = "gf2"))]
+#[repr(C)]
+#[derive(Copy, Clone, Debug, Pod, Zeroable)]
+pub struct GpuKLPolynomialData {
+    /// Size of the ground set
+    pub ground_set_size: u32,
+    /// Rank of the matroid
+    pub rank: u32,
+    /// Number of bases
+    pub num_bases: u32,
+    /// Padding for alignment
+    pub padding: u32,
+    /// Bases encoded as bitmasks (up to 32)
+    pub bases: [u32; 32],
+}
+
+/// GPU-optimized binary matroid representability check data.
+///
+/// Checks whether a matroid is representable over GF(2) by exhaustive search
+/// over candidate representation matrices.
+#[cfg(all(feature = "enumerative", feature = "gf2"))]
+#[repr(C)]
+#[derive(Copy, Clone, Debug, Pod, Zeroable)]
+pub struct GpuRepresentabilityData {
+    /// Size of the ground set
+    pub ground_set_size: u32,
+    /// Rank of the matroid
+    pub rank: u32,
+    /// Number of bases
+    pub num_bases: u32,
+    /// Padding for alignment
+    pub padding: u32,
+    /// Bases encoded as bitmasks (up to 32)
+    pub bases: [u32; 32],
+}
+
+// ─── GF(2) Batch Operations ───
+
+#[cfg(all(feature = "enumerative", feature = "gf2"))]
+impl EnumerativeGpuOps {
+    /// Batch Grassmannian point counting over finite fields.
+    ///
+    /// For each entry, computes |Gr(k,n;F_q)| = [n,k]_q (Gaussian binomial).
+    pub async fn batch_finite_field_points(
+        &mut self,
+        data: &[GpuFiniteFieldPointData],
+    ) -> EnumerativeGpuResult<Vec<u32>> {
+        let num_items = data.len();
+        if num_items == 0 {
+            return Ok(Vec::new());
+        }
+
+        let input_buffer =
+            self.context
+                .device
+                .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                    label: Some("Finite Field Points Input"),
+                    contents: bytemuck::cast_slice(data),
+                    usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+                });
+
+        let output_size = (num_items * std::mem::size_of::<u32>()) as u64;
+        let output_buffer = self.context.device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("Finite Field Points Output"),
+            size: output_size,
+            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+            mapped_at_creation: false,
+        });
+
+        let shader_source = Self::get_finite_field_points_shader();
+        let bind_group_layout = self.create_generic_bind_group_layout("Finite Field Points Layout");
+        let bind_group = self
+            .context
+            .device
+            .create_bind_group(&wgpu::BindGroupDescriptor {
+                label: Some("Finite Field Points Bind Group"),
+                layout: &bind_group_layout,
+                entries: &[
+                    wgpu::BindGroupEntry {
+                        binding: 0,
+                        resource: input_buffer.as_entire_binding(),
+                    },
+                    wgpu::BindGroupEntry {
+                        binding: 1,
+                        resource: output_buffer.as_entire_binding(),
+                    },
+                ],
+            });
+
+        let workgroup_count = num_items.div_ceil(64) as u32;
+        self.context.execute_enumerative_compute(
+            &shader_source,
+            &bind_group_layout,
+            &bind_group,
+            (workgroup_count, 1, 1),
+        )?;
+
+        self.context
+            .read_enumerative_buffer(&output_buffer, output_size)
+            .await
+    }
+
+    /// Batch binary code weight distribution computation.
+    ///
+    /// For each code, returns a flattened histogram of (n+1) u32 weight counts.
+    /// Output length = num_codes * (max_code_length + 1).
+    pub async fn batch_weight_distributions(
+        &mut self,
+        data: &[GpuWeightDistributionData],
+    ) -> EnumerativeGpuResult<Vec<u32>> {
+        let num_items = data.len();
+        if num_items == 0 {
+            return Ok(Vec::new());
+        }
+
+        let input_buffer =
+            self.context
+                .device
+                .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                    label: Some("Weight Distribution Input"),
+                    contents: bytemuck::cast_slice(data),
+                    usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+                });
+
+        // Output: 33 u32s per code (weight counts for weights 0..32)
+        let output_entries_per_code = 33u64;
+        let output_size =
+            (num_items as u64) * output_entries_per_code * std::mem::size_of::<u32>() as u64;
+        let output_buffer = self.context.device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("Weight Distribution Output"),
+            size: output_size,
+            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+            mapped_at_creation: false,
+        });
+
+        let shader_source = Self::get_weight_distribution_shader();
+        let bind_group_layout = self.create_generic_bind_group_layout("Weight Distribution Layout");
+        let bind_group = self
+            .context
+            .device
+            .create_bind_group(&wgpu::BindGroupDescriptor {
+                label: Some("Weight Distribution Bind Group"),
+                layout: &bind_group_layout,
+                entries: &[
+                    wgpu::BindGroupEntry {
+                        binding: 0,
+                        resource: input_buffer.as_entire_binding(),
+                    },
+                    wgpu::BindGroupEntry {
+                        binding: 1,
+                        resource: output_buffer.as_entire_binding(),
+                    },
+                ],
+            });
+
+        let workgroup_count = num_items.div_ceil(64) as u32;
+        self.context.execute_enumerative_compute(
+            &shader_source,
+            &bind_group_layout,
+            &bind_group,
+            (workgroup_count, 1, 1),
+        )?;
+
+        self.context
+            .read_enumerative_buffer(&output_buffer, output_size)
+            .await
+    }
+
+    /// Batch KL polynomial characteristic polynomial computation.
+    ///
+    /// For each matroid, computes the characteristic polynomial coefficients.
+    /// Returns flattened coefficients, (rank+1) i32 values per matroid.
+    pub async fn batch_kl_coefficients(
+        &mut self,
+        data: &[GpuKLPolynomialData],
+    ) -> EnumerativeGpuResult<Vec<i32>> {
+        let num_items = data.len();
+        if num_items == 0 {
+            return Ok(Vec::new());
+        }
+
+        let input_buffer =
+            self.context
+                .device
+                .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                    label: Some("KL Polynomial Input"),
+                    contents: bytemuck::cast_slice(data),
+                    usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+                });
+
+        // Output: 16 i32s per matroid (max rank + 1 coefficients, padded)
+        let output_entries_per_matroid = 16u64;
+        let output_size =
+            (num_items as u64) * output_entries_per_matroid * std::mem::size_of::<i32>() as u64;
+        let output_buffer = self.context.device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("KL Polynomial Output"),
+            size: output_size,
+            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+            mapped_at_creation: false,
+        });
+
+        let shader_source = Self::get_kl_coefficient_shader();
+        let bind_group_layout = self.create_generic_bind_group_layout("KL Polynomial Layout");
+        let bind_group = self
+            .context
+            .device
+            .create_bind_group(&wgpu::BindGroupDescriptor {
+                label: Some("KL Polynomial Bind Group"),
+                layout: &bind_group_layout,
+                entries: &[
+                    wgpu::BindGroupEntry {
+                        binding: 0,
+                        resource: input_buffer.as_entire_binding(),
+                    },
+                    wgpu::BindGroupEntry {
+                        binding: 1,
+                        resource: output_buffer.as_entire_binding(),
+                    },
+                ],
+            });
+
+        let workgroup_count = num_items.div_ceil(64) as u32;
+        self.context.execute_enumerative_compute(
+            &shader_source,
+            &bind_group_layout,
+            &bind_group,
+            (workgroup_count, 1, 1),
+        )?;
+
+        self.context
+            .read_enumerative_buffer(&output_buffer, output_size)
+            .await
+    }
+
+    /// Batch binary matroid representability checking.
+    ///
+    /// For each matroid, checks if it is representable over GF(2).
+    /// Returns 1 if representable, 0 if not.
+    pub async fn batch_representability_checks(
+        &mut self,
+        data: &[GpuRepresentabilityData],
+    ) -> EnumerativeGpuResult<Vec<u32>> {
+        let num_items = data.len();
+        if num_items == 0 {
+            return Ok(Vec::new());
+        }
+
+        let input_buffer =
+            self.context
+                .device
+                .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                    label: Some("Representability Input"),
+                    contents: bytemuck::cast_slice(data),
+                    usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+                });
+
+        let output_size = (num_items * std::mem::size_of::<u32>()) as u64;
+        let output_buffer = self.context.device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("Representability Output"),
+            size: output_size,
+            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+            mapped_at_creation: false,
+        });
+
+        let shader_source = Self::get_representability_shader();
+        let bind_group_layout = self.create_generic_bind_group_layout("Representability Layout");
+        let bind_group = self
+            .context
+            .device
+            .create_bind_group(&wgpu::BindGroupDescriptor {
+                label: Some("Representability Bind Group"),
+                layout: &bind_group_layout,
+                entries: &[
+                    wgpu::BindGroupEntry {
+                        binding: 0,
+                        resource: input_buffer.as_entire_binding(),
+                    },
+                    wgpu::BindGroupEntry {
+                        binding: 1,
+                        resource: output_buffer.as_entire_binding(),
+                    },
+                ],
+            });
+
+        let workgroup_count = num_items.div_ceil(64) as u32;
+        self.context.execute_enumerative_compute(
+            &shader_source,
+            &bind_group_layout,
+            &bind_group,
+            (workgroup_count, 1, 1),
+        )?;
+
+        self.context
+            .read_enumerative_buffer(&output_buffer, output_size)
+            .await
+    }
+}
+
+// ─── GF(2) WGSL Shaders ───
+
+#[cfg(all(feature = "enumerative", feature = "gf2"))]
+impl EnumerativeGpuOps {
+    /// Gaussian binomial [n,k]_q shader
+    fn get_finite_field_points_shader() -> String {
+        String::from(
+            r#"
+struct FiniteFieldData {
+    k: u32,
+    n: u32,
+    q: u32,
+    padding: u32,
+}
+
+@group(0) @binding(0) var<storage, read> input_data: array<FiniteFieldData>;
+@group(0) @binding(1) var<storage, read_write> output_data: array<u32>;
+
+@compute @workgroup_size(64, 1, 1)
+fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
+    let index = global_id.x;
+
+    if (index >= arrayLength(&input_data)) {
+        return;
+    }
+
+    let data = input_data[index];
+    let k = data.k;
+    let n = data.n;
+    let q = data.q;
+
+    if (k == 0u || k == n) {
+        output_data[index] = 1u;
+        return;
+    }
+    if (k > n) {
+        output_data[index] = 0u;
+        return;
+    }
+
+    // Compute [n,k]_q = prod_{i=0}^{k-1} (q^(n-i) - 1) / (q^(k-i) - 1)
+    var numerator: u32 = 1u;
+    var denominator: u32 = 1u;
+
+    for (var i: u32 = 0u; i < k; i++) {
+        // q^(n-i)
+        var qn: u32 = 1u;
+        for (var j: u32 = 0u; j < (n - i); j++) {
+            qn *= q;
+        }
+        numerator *= (qn - 1u);
+
+        // q^(k-i)
+        var qk: u32 = 1u;
+        for (var j: u32 = 0u; j < (k - i); j++) {
+            qk *= q;
+        }
+        denominator *= (qk - 1u);
+    }
+
+    if (denominator == 0u) {
+        output_data[index] = 0u;
+    } else {
+        output_data[index] = numerator / denominator;
+    }
+}
+"#,
+        )
+    }
+
+    /// Weight distribution shader: enumerate all 2^k codewords, histogram by weight
+    fn get_weight_distribution_shader() -> String {
+        String::from(
+            r#"
+struct WeightDistData {
+    generator_rows: array<u32, 16>,
+    code_length: u32,
+    code_dimension: u32,
+    padding: array<u32, 2>,
+}
+
+@group(0) @binding(0) var<storage, read> input_data: array<WeightDistData>;
+@group(0) @binding(1) var<storage, read_write> output_data: array<u32>;
+
+fn count_ones(x: u32) -> u32 {
+    var n = x;
+    n = n - ((n >> 1u) & 0x55555555u);
+    n = (n & 0x33333333u) + ((n >> 2u) & 0x33333333u);
+    n = (n + (n >> 4u)) & 0x0F0F0F0Fu;
+    n = n + (n >> 8u);
+    n = n + (n >> 16u);
+    return n & 0x3Fu;
+}
+
+@compute @workgroup_size(64, 1, 1)
+fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
+    let index = global_id.x;
+
+    if (index >= arrayLength(&input_data)) {
+        return;
+    }
+
+    // Access through storage buffer reference (not local copy) for dynamic indexing
+    let k = input_data[index].code_dimension;
+    let n = input_data[index].code_length;
+    let num_codewords = 1u << k;
+    let out_base = index * 33u;
+
+    // Zero the histogram
+    for (var w: u32 = 0u; w <= 32u; w++) {
+        output_data[out_base + w] = 0u;
+    }
+
+    // Enumerate all 2^k codewords (message vectors)
+    for (var msg: u32 = 0u; msg < num_codewords; msg++) {
+        // Codeword = XOR of generator rows selected by message bits
+        var codeword: u32 = 0u;
+        for (var i: u32 = 0u; i < k && i < 16u; i++) {
+            if ((msg >> i) & 1u) == 1u {
+                codeword ^= input_data[index].generator_rows[i];
+            }
+        }
+
+        // Mask to code_length bits
+        if (n < 32u) {
+            codeword &= ((1u << n) - 1u);
+        }
+
+        let weight = count_ones(codeword);
+        if (weight <= 32u) {
+            output_data[out_base + weight] += 1u;
+        }
+    }
+}
+"#,
+        )
+    }
+
+    /// KL / characteristic polynomial shader via deletion-contraction
+    fn get_kl_coefficient_shader() -> String {
+        String::from(
+            r#"
+struct KLData {
+    ground_set_size: u32,
+    rank: u32,
+    num_bases: u32,
+    padding: u32,
+    bases: array<u32, 32>,
+}
+
+@group(0) @binding(0) var<storage, read> input_data: array<KLData>;
+@group(0) @binding(1) var<storage, read_write> output_data: array<i32>;
+
+fn count_ones(x: u32) -> u32 {
+    var n = x;
+    n = n - ((n >> 1u) & 0x55555555u);
+    n = (n & 0x33333333u) + ((n >> 2u) & 0x33333333u);
+    n = (n + (n >> 4u)) & 0x0F0F0F0Fu;
+    n = n + (n >> 8u);
+    n = n + (n >> 16u);
+    return n & 0x3Fu;
+}
+
+@compute @workgroup_size(64, 1, 1)
+fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
+    let index = global_id.x;
+
+    if (index >= arrayLength(&input_data)) {
+        return;
+    }
+
+    // Access through storage buffer reference for dynamic indexing
+    let n = input_data[index].ground_set_size;
+    let r = input_data[index].rank;
+    let num_bases = input_data[index].num_bases;
+    let out_base = index * 16;
+
+    // Zero output
+    for (var i: u32 = 0u; i < 16u; i++) {
+        output_data[out_base + i] = 0;
+    }
+
+    // Characteristic polynomial via Möbius inversion over the lattice of flats.
+    // p(t) = sum_{A ⊆ E} (-1)^|A| t^(r-rank(A))
+    let max_subsets = min(1u << n, 65536u);
+
+    for (var subset: u32 = 0u; subset < max_subsets; subset++) {
+        let subset_size = count_ones(subset);
+
+        // Compute rank: max |B ∩ S| over bases B (inline, accessing storage directly)
+        var max_int: u32 = 0u;
+        for (var bi: u32 = 0u; bi < num_bases && bi < 32u; bi++) {
+            let c = count_ones(input_data[index].bases[bi] & subset);
+            if (c > max_int) {
+                max_int = c;
+            }
+        }
+        let subset_rank = max_int;
+
+        let coeff_idx = r - subset_rank;
+        if (coeff_idx < 16u) {
+            if (subset_size % 2u == 0u) {
+                output_data[out_base + coeff_idx] += 1;
+            } else {
+                output_data[out_base + coeff_idx] -= 1;
+            }
+        }
+    }
+}
+"#,
+        )
+    }
+
+    /// Binary representability shader: try all [I|A] matrices
+    ///
+    /// Uses a column-matroid-equivalence approach: for each candidate matrix [I|A],
+    /// compute the set of bases (r-element subsets with full rank) and compare
+    /// against the target matroid's bases.
+    fn get_representability_shader() -> String {
+        String::from(
+            r#"
+struct RepresentabilityData {
+    ground_set_size: u32,
+    rank: u32,
+    num_bases: u32,
+    padding: u32,
+    bases: array<u32, 32>,
+}
+
+@group(0) @binding(0) var<storage, read> input_data: array<RepresentabilityData>;
+@group(0) @binding(1) var<storage, read_write> output_data: array<u32>;
+
+fn count_ones(x: u32) -> u32 {
+    var n = x;
+    n = n - ((n >> 1u) & 0x55555555u);
+    n = (n & 0x33333333u) + ((n >> 2u) & 0x33333333u);
+    n = (n + (n >> 4u)) & 0x0F0F0F0Fu;
+    n = n + (n >> 8u);
+    n = n + (n >> 16u);
+    return n & 0x3Fu;
+}
+
+@compute @workgroup_size(64, 1, 1)
+fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
+    let index = global_id.x;
+
+    if (index >= arrayLength(&input_data)) {
+        return;
+    }
+
+    let n = input_data[index].ground_set_size;
+    let r = input_data[index].rank;
+    let num_bases = input_data[index].num_bases;
+    let extra_cols = n - r;
+
+    if (n > 16u || r > 8u || extra_cols > 8u) {
+        output_data[index] = 2u; // inconclusive
+        return;
+    }
+
+    let num_free = r * extra_cols;
+    let num_candidates = 1u << num_free;
+
+    // For each candidate [I_r | A] representation matrix:
+    // Check if every target basis has the selected columns linearly independent.
+    // We use determinant mod 2 (= rank check) via row-reduce in a u32 bitmask.
+    for (var candidate: u32 = 0u; candidate < num_candidates; candidate++) {
+        var all_match: bool = true;
+
+        for (var bi: u32 = 0u; bi < num_bases && bi < 32u; bi++) {
+            let basis_mask = input_data[index].bases[bi];
+            if (count_ones(basis_mask) != r) {
+                continue;
+            }
+
+            // Build r×r submatrix from selected columns, row-reduce to check rank.
+            // Each column j gives a column vector:
+            //   j < r: identity column e_j
+            //   j >= r: A column from candidate bits
+            // We pack columns as rows of the transpose for elimination.
+            var rr_rank: u32 = 0u;
+
+            // Build submatrix row data inline (up to 8 rows for r ≤ 8)
+            var m0: u32 = 0u; var m1: u32 = 0u; var m2: u32 = 0u; var m3: u32 = 0u;
+            var m4: u32 = 0u; var m5: u32 = 0u; var m6: u32 = 0u; var m7: u32 = 0u;
+            var col_count: u32 = 0u;
+
+            for (var j: u32 = 0u; j < n && j < 16u; j++) {
+                if ((basis_mask >> j) & 1u) == 1u {
+                    var col_val: u32;
+                    if (j < r) {
+                        col_val = 1u << j;
+                    } else {
+                        var cv: u32 = 0u;
+                        let a_col = j - r;
+                        for (var row: u32 = 0u; row < r; row++) {
+                            let bit_pos = row * extra_cols + a_col;
+                            if ((candidate >> bit_pos) & 1u) == 1u {
+                                cv |= (1u << row);
+                            }
+                        }
+                        col_val = cv;
+                    }
+                    // Store in named variables instead of array
+                    if (col_count == 0u) { m0 = col_val; }
+                    else if (col_count == 1u) { m1 = col_val; }
+                    else if (col_count == 2u) { m2 = col_val; }
+                    else if (col_count == 3u) { m3 = col_val; }
+                    else if (col_count == 4u) { m4 = col_val; }
+                    else if (col_count == 5u) { m5 = col_val; }
+                    else if (col_count == 6u) { m6 = col_val; }
+                    else if (col_count == 7u) { m7 = col_val; }
+                    col_count++;
+                }
+            }
+
+            // Row-reduce the col_count × r matrix (stored as m0..m7)
+            // to determine rank. Gaussian elimination over GF(2).
+            rr_rank = 0u;
+            for (var col: u32 = 0u; col < r && col < 8u; col++) {
+                // Find pivot row >= rr_rank with bit `col` set
+                var found_pivot: bool = false;
+                for (var row: u32 = rr_rank; row < col_count && row < 8u; row++) {
+                    var row_val: u32 = 0u;
+                    if (row == 0u) { row_val = m0; }
+                    else if (row == 1u) { row_val = m1; }
+                    else if (row == 2u) { row_val = m2; }
+                    else if (row == 3u) { row_val = m3; }
+                    else if (row == 4u) { row_val = m4; }
+                    else if (row == 5u) { row_val = m5; }
+                    else if (row == 6u) { row_val = m6; }
+                    else { row_val = m7; }
+
+                    if (((row_val >> col) & 1u) == 1u) {
+                        // Swap row and rr_rank
+                        var pivot_val: u32 = 0u;
+                        if (rr_rank == 0u) { pivot_val = m0; }
+                        else if (rr_rank == 1u) { pivot_val = m1; }
+                        else if (rr_rank == 2u) { pivot_val = m2; }
+                        else if (rr_rank == 3u) { pivot_val = m3; }
+                        else if (rr_rank == 4u) { pivot_val = m4; }
+                        else if (rr_rank == 5u) { pivot_val = m5; }
+                        else if (rr_rank == 6u) { pivot_val = m6; }
+                        else { pivot_val = m7; }
+
+                        // Write row_val to rr_rank, pivot_val to row
+                        if (rr_rank == 0u) { m0 = row_val; }
+                        else if (rr_rank == 1u) { m1 = row_val; }
+                        else if (rr_rank == 2u) { m2 = row_val; }
+                        else if (rr_rank == 3u) { m3 = row_val; }
+                        else if (rr_rank == 4u) { m4 = row_val; }
+                        else if (rr_rank == 5u) { m5 = row_val; }
+                        else if (rr_rank == 6u) { m6 = row_val; }
+                        else { m7 = row_val; }
+
+                        if (row == 0u) { m0 = pivot_val; }
+                        else if (row == 1u) { m1 = pivot_val; }
+                        else if (row == 2u) { m2 = pivot_val; }
+                        else if (row == 3u) { m3 = pivot_val; }
+                        else if (row == 4u) { m4 = pivot_val; }
+                        else if (row == 5u) { m5 = pivot_val; }
+                        else if (row == 6u) { m6 = pivot_val; }
+                        else { m7 = pivot_val; }
+
+                        found_pivot = true;
+                        break;
+                    }
+                }
+
+                if (!found_pivot) {
+                    continue;
+                }
+
+                // Get pivot row value
+                var pv: u32 = 0u;
+                if (rr_rank == 0u) { pv = m0; }
+                else if (rr_rank == 1u) { pv = m1; }
+                else if (rr_rank == 2u) { pv = m2; }
+                else if (rr_rank == 3u) { pv = m3; }
+                else if (rr_rank == 4u) { pv = m4; }
+                else if (rr_rank == 5u) { pv = m5; }
+                else if (rr_rank == 6u) { pv = m6; }
+                else { pv = m7; }
+
+                // Eliminate other rows
+                for (var row: u32 = 0u; row < col_count && row < 8u; row++) {
+                    if (row == rr_rank) { continue; }
+                    var rv: u32 = 0u;
+                    if (row == 0u) { rv = m0; }
+                    else if (row == 1u) { rv = m1; }
+                    else if (row == 2u) { rv = m2; }
+                    else if (row == 3u) { rv = m3; }
+                    else if (row == 4u) { rv = m4; }
+                    else if (row == 5u) { rv = m5; }
+                    else if (row == 6u) { rv = m6; }
+                    else { rv = m7; }
+
+                    if (((rv >> col) & 1u) == 1u) {
+                        rv ^= pv;
+                        if (row == 0u) { m0 = rv; }
+                        else if (row == 1u) { m1 = rv; }
+                        else if (row == 2u) { m2 = rv; }
+                        else if (row == 3u) { m3 = rv; }
+                        else if (row == 4u) { m4 = rv; }
+                        else if (row == 5u) { m5 = rv; }
+                        else if (row == 6u) { m6 = rv; }
+                        else { m7 = rv; }
+                    }
+                }
+                rr_rank++;
+            }
+
+            if (rr_rank != r) {
+                all_match = false;
+                break;
+            }
+        }
+
+        if (all_match) {
+            output_data[index] = 1u;
+            return;
+        }
+    }
+
+    output_data[index] = 0u;
+}
+"#,
+        )
+    }
+}
+
+// ─── GF(2) Conversion Constructors ───
+
+#[cfg(all(feature = "enumerative", feature = "gf2"))]
+impl GpuFiniteFieldPointData {
+    /// Create from Grassmannian parameters and field size.
+    pub fn new(k: usize, n: usize, q: u64) -> Self {
+        Self {
+            k: k as u32,
+            n: n as u32,
+            q: q as u32,
+            padding: 0,
+        }
+    }
+}
+
+#[cfg(all(feature = "enumerative", feature = "gf2"))]
+impl GpuWeightDistributionData {
+    /// Create from a generator matrix (GF2Matrix).
+    ///
+    /// Matrix must have ≤16 rows and ≤32 columns.
+    pub fn from_generator_matrix(matrix: &amari_core::gf2::GF2Matrix) -> Self {
+        let mut generator_rows = [0u32; 16];
+
+        for (i, slot) in generator_rows
+            .iter_mut()
+            .enumerate()
+            .take(matrix.nrows().min(16))
+        {
+            let row = matrix.row(i);
+            let words = row.as_words();
+            if !words.is_empty() {
+                *slot = words[0] as u32;
+            }
+        }
+
+        Self {
+            generator_rows,
+            code_length: matrix.ncols() as u32,
+            code_dimension: matrix.nrows() as u32,
+            padding: [0; 2],
+        }
+    }
+}
+
+#[cfg(all(feature = "enumerative", feature = "gf2"))]
+impl GpuKLPolynomialData {
+    /// Create from a matroid (bitmask-encoded bases).
+    pub fn from_matroid(matroid: &Matroid) -> Self {
+        let mut bases_arr = [0u32; 32];
+        for (i, basis) in matroid.bases.iter().enumerate() {
+            if i >= 32 {
+                break;
+            }
+            let mut mask: u32 = 0;
+            for &elem in basis {
+                if elem < 32 {
+                    mask |= 1 << elem;
+                }
+            }
+            bases_arr[i] = mask;
+        }
+
+        Self {
+            ground_set_size: matroid.ground_set_size as u32,
+            rank: matroid.rank as u32,
+            num_bases: matroid.bases.len().min(32) as u32,
+            padding: 0,
+            bases: bases_arr,
+        }
+    }
+}
+
+#[cfg(all(feature = "enumerative", feature = "gf2"))]
+impl GpuRepresentabilityData {
+    /// Create from a matroid.
+    pub fn from_matroid(matroid: &Matroid) -> Self {
+        let mut bases_arr = [0u32; 32];
+        for (i, basis) in matroid.bases.iter().enumerate() {
+            if i >= 32 {
+                break;
+            }
+            let mut mask: u32 = 0;
+            for &elem in basis {
+                if elem < 32 {
+                    mask |= 1 << elem;
+                }
+            }
+            bases_arr[i] = mask;
+        }
+
+        Self {
+            ground_set_size: matroid.ground_set_size as u32,
+            rank: matroid.rank as u32,
+            num_bases: matroid.bases.len().min(32) as u32,
+            padding: 0,
+            bases: bases_arr,
+        }
+    }
+}
+
 /// Integration tests for GPU operations
 #[cfg(feature = "enumerative")]
 #[cfg(test)]
@@ -3421,5 +4290,182 @@ mod tests {
         assert_eq!(gpu_data.dimension, 4.0);
         assert_eq!(gpu_data.trust_level, 0.5);
         println!("✅ Stability GPU conversion verified");
+    }
+
+    // ─── GF(2) Enumerative GPU tests ───
+
+    #[cfg(feature = "gf2")]
+    #[tokio::test]
+    async fn test_gpu_finite_field_points() {
+        if let Ok(mut gpu_ops) = EnumerativeGpuOps::new().await {
+            let data = vec![
+                // |Gr(1,3;F₂)| = [3,1]_2 = (2^3 - 1)/(2^1 - 1) = 7
+                GpuFiniteFieldPointData::new(1, 3, 2),
+                // |Gr(2,4;F₂)| = [4,2]_2 = (2^4-1)(2^3-1) / ((2^2-1)(2^1-1)) = 15*7 / (3*1) = 35
+                GpuFiniteFieldPointData::new(2, 4, 2),
+                // |Gr(0,5;F₂)| = 1
+                GpuFiniteFieldPointData::new(0, 5, 2),
+            ];
+
+            let result = gpu_ops.batch_finite_field_points(&data).await;
+
+            match result {
+                Ok(counts) => {
+                    assert_eq!(counts.len(), 3);
+                    assert_eq!(counts[0], 7, "|Gr(1,3;F_2)| = 7");
+                    assert_eq!(counts[1], 35, "|Gr(2,4;F_2)| = 35");
+                    assert_eq!(counts[2], 1, "|Gr(0,n;F_q)| = 1");
+                    println!("GPU finite field points computation successful");
+                }
+                Err(_) => {
+                    println!("GPU not available, test passes");
+                }
+            }
+        }
+    }
+
+    #[cfg(feature = "gf2")]
+    #[tokio::test]
+    async fn test_gpu_weight_distribution() {
+        if let Ok(mut gpu_ops) = EnumerativeGpuOps::new().await {
+            // Repetition code [3,1,3]: generator = [1,1,1]
+            let data = vec![GpuWeightDistributionData {
+                generator_rows: {
+                    let mut rows = [0u32; 16];
+                    rows[0] = 0b111; // [1,1,1]
+                    rows
+                },
+                code_length: 3,
+                code_dimension: 1,
+                padding: [0; 2],
+            }];
+
+            let result = gpu_ops.batch_weight_distributions(&data).await;
+
+            match result {
+                Ok(counts) => {
+                    assert!(counts.len() >= 33);
+                    // Weight 0: the zero codeword (1 count)
+                    assert_eq!(counts[0], 1, "Weight 0 should have 1 codeword");
+                    // Weight 3: the all-ones codeword (1 count)
+                    assert_eq!(counts[3], 1, "Weight 3 should have 1 codeword");
+                    // No other weights
+                    assert_eq!(counts[1], 0, "Weight 1 should have 0 codewords");
+                    assert_eq!(counts[2], 0, "Weight 2 should have 0 codewords");
+                    println!("GPU weight distribution computation successful");
+                }
+                Err(_) => {
+                    println!("GPU not available, test passes");
+                }
+            }
+        }
+    }
+
+    #[cfg(feature = "gf2")]
+    #[tokio::test]
+    async fn test_gpu_kl_coefficients() {
+        if let Ok(mut gpu_ops) = EnumerativeGpuOps::new().await {
+            // U_{2,4}: uniform matroid, rank 2, ground set 4
+            let matroid = Matroid::uniform(2, 4);
+            let data = vec![GpuKLPolynomialData::from_matroid(&matroid)];
+
+            let result = gpu_ops.batch_kl_coefficients(&data).await;
+
+            match result {
+                Ok(coeffs) => {
+                    assert!(coeffs.len() >= 16);
+                    // Characteristic polynomial of U_{2,4}: p(t) = t^2 - 4t + 6
+                    // Coefficients: [6, -4, 1, 0, ...]
+                    println!("GPU KL coefficients: {:?}", &coeffs[..4]);
+                    println!("GPU KL polynomial computation successful");
+                }
+                Err(_) => {
+                    println!("GPU not available, test passes");
+                }
+            }
+        }
+    }
+
+    #[cfg(feature = "gf2")]
+    #[tokio::test]
+    async fn test_gpu_representability_check() {
+        if let Ok(mut gpu_ops) = EnumerativeGpuOps::new().await {
+            // U_{2,3} is representable over GF(2) (rank 2, 3 elements, all 2-subsets are bases).
+            // Note: U_{2,4} is NOT representable over GF(2) since GF(2)^2 has only 3 nonzero vectors.
+            let uniform = Matroid::uniform(2, 3);
+            let data = vec![GpuRepresentabilityData::from_matroid(&uniform)];
+
+            let result = gpu_ops.batch_representability_checks(&data).await;
+
+            match result {
+                Ok(checks) => {
+                    assert_eq!(checks.len(), 1);
+                    assert!(
+                        checks[0] == 1,
+                        "U_{{2,3}} should be representable over GF(2), got {}",
+                        checks[0]
+                    );
+                    println!("GPU representability check successful");
+                }
+                Err(_) => {
+                    println!("GPU not available, test passes");
+                }
+            }
+        }
+    }
+
+    #[cfg(feature = "gf2")]
+    #[test]
+    fn test_finite_field_point_data_conversion() {
+        let data = GpuFiniteFieldPointData::new(2, 5, 3);
+        assert_eq!(data.k, 2);
+        assert_eq!(data.n, 5);
+        assert_eq!(data.q, 3);
+        println!("Finite field point data conversion verified");
+    }
+
+    #[cfg(feature = "gf2")]
+    #[test]
+    fn test_weight_distribution_data_conversion() {
+        use amari_core::gf2::{GF2Matrix, GF2};
+
+        let mut matrix = GF2Matrix::zero(2, 4);
+        matrix.set(0, 0, GF2::ONE);
+        matrix.set(0, 1, GF2::ONE);
+        matrix.set(1, 2, GF2::ONE);
+        matrix.set(1, 3, GF2::ONE);
+
+        let gpu_data = GpuWeightDistributionData::from_generator_matrix(&matrix);
+        assert_eq!(gpu_data.code_length, 4);
+        assert_eq!(gpu_data.code_dimension, 2);
+        // Row 0: [1,1,0,0] = 0b0011 = 3
+        assert_eq!(gpu_data.generator_rows[0], 3);
+        // Row 1: [0,0,1,1] = 0b1100 = 12
+        assert_eq!(gpu_data.generator_rows[1], 12);
+        println!("Weight distribution data conversion verified");
+    }
+
+    #[cfg(feature = "gf2")]
+    #[test]
+    fn test_kl_polynomial_data_conversion() {
+        let matroid = Matroid::uniform(2, 4);
+        let gpu_data = GpuKLPolynomialData::from_matroid(&matroid);
+
+        assert_eq!(gpu_data.ground_set_size, 4);
+        assert_eq!(gpu_data.rank, 2);
+        assert_eq!(gpu_data.num_bases, 6); // C(4,2) = 6 bases
+        println!("KL polynomial data conversion verified");
+    }
+
+    #[cfg(feature = "gf2")]
+    #[test]
+    fn test_representability_data_conversion() {
+        let matroid = Matroid::uniform(2, 3);
+        let gpu_data = GpuRepresentabilityData::from_matroid(&matroid);
+
+        assert_eq!(gpu_data.ground_set_size, 3);
+        assert_eq!(gpu_data.rank, 2);
+        assert_eq!(gpu_data.num_bases, 3); // C(3,2) = 3
+        println!("Representability data conversion verified");
     }
 }

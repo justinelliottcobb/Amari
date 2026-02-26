@@ -38,6 +38,18 @@ pub enum CoreError {
         zero: usize,
         dimension: usize,
     },
+
+    /// GF(2) dimension mismatch
+    #[error("GF(2) dimension mismatch: expected {expected}, got {got}")]
+    GF2DimensionMismatch { expected: usize, got: usize },
+
+    /// GF(2) matrix is not square
+    #[error("GF(2) matrix is not square: {rows}x{cols}")]
+    GF2NotSquare { rows: usize, cols: usize },
+
+    /// GF(2) index out of bounds
+    #[error("GF(2) index {index} out of bounds for dimension {dim}")]
+    GF2IndexOutOfBounds { index: usize, dim: usize },
 }
 
 /// Error types for core geometric algebra operations (no_std version)
@@ -66,6 +78,15 @@ pub enum CoreError {
         zero: usize,
         dimension: usize,
     },
+
+    /// GF(2) dimension mismatch
+    GF2DimensionMismatch { expected: usize, got: usize },
+
+    /// GF(2) matrix is not square
+    GF2NotSquare { rows: usize, cols: usize },
+
+    /// GF(2) index out of bounds
+    GF2IndexOutOfBounds { index: usize, dim: usize },
 }
 
 #[cfg(not(feature = "std"))]
@@ -101,6 +122,23 @@ impl fmt::Display for CoreError {
                     f,
                     "Invalid metric signature: positive {} + negative {} + zero {} != dimension {}",
                     positive, negative, zero, dimension
+                )
+            }
+            CoreError::GF2DimensionMismatch { expected, got } => {
+                write!(
+                    f,
+                    "GF(2) dimension mismatch: expected {}, got {}",
+                    expected, got
+                )
+            }
+            CoreError::GF2NotSquare { rows, cols } => {
+                write!(f, "GF(2) matrix is not square: {}x{}", rows, cols)
+            }
+            CoreError::GF2IndexOutOfBounds { index, dim } => {
+                write!(
+                    f,
+                    "GF(2) index {} out of bounds for dimension {}",
+                    index, dim
                 )
             }
         }

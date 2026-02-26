@@ -17,7 +17,7 @@ fn bench_geometric_product(c: &mut Criterion) {
     let e2 = Cl3::basis_vector(1);
 
     group.bench_function("scalar_implementation", |b| {
-        b.iter(|| black_box(e1.geometric_product_scalar(black_box(&e2))))
+        b.iter(|| black_box(e1.geometric_product(black_box(&e2))))
     });
 
     #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
@@ -187,10 +187,7 @@ fn bench_memory_operations(c: &mut Criterion) {
         b.iter(|| black_box(mv.clone()))
     });
 
-    // Test aligned allocation performance
-    group.bench_function("aligned_allocation", |b| {
-        b.iter(|| black_box(amari_core::aligned_alloc::AlignedCoefficients::zero(8)))
-    });
+    // Aligned allocation benchmark removed — aligned_alloc is now pub(crate)
 
     group.finish();
 }
@@ -204,7 +201,7 @@ fn bench_verification_overhead(c: &mut Criterion) {
 
     // Measure raw operation without verification
     group.bench_function("geometric_product_raw", |b| {
-        b.iter(|| black_box(e1.geometric_product_scalar(black_box(&e2))))
+        b.iter(|| black_box(e1.geometric_product(black_box(&e2))))
     });
 
     #[cfg(feature = "formal-verification")]

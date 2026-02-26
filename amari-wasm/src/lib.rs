@@ -76,6 +76,7 @@ pub mod enumerative; // Enabled for v0.9.4 - Enumerative geometry and intersecti
 pub mod flynn; // Enabled for v0.19.0 - Probabilistic contracts, SMT-LIB2 proof obligations, Monte Carlo verification
 pub mod functional; // Enabled for v0.15.0 - Functional analysis on multivector spaces
 pub mod fusion; // Enabled for v0.9.4 - TropicalDualClifford system for LLM evaluation in web
+pub mod gf2; // Enabled for v0.19.0 - GF(2) algebra, binary codes, and finite field combinatorics
 pub mod info_geom; // Enabled for v0.9.4 - Information geometry and statistical manifolds for web
 pub mod measure; // Enabled for v0.10.0 - Measure theory and Lebesgue integration for web
 pub mod network; // Enabled for v0.9.4 - Geometric network analysis for web

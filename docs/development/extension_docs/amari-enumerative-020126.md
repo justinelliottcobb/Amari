@@ -2,14 +2,14 @@
 
 ## Overview
 
-This document specifies extensions to `amari-enumerative` for version 0.18.0, driven by requirements from the ShaperOS project. The primary additions are:
+This document specifies extensions to `amari-enumerative` for version 0.18.0, driven by requirements from the the namespace system project. The primary additions are:
 
 1. **Complete Littlewood-Richardson coefficient computation** - replacing placeholder intersection numbers with actual Schubert calculus
 2. **Multi-class Schubert intersection** - computing intersection numbers for arbitrary collections of Schubert classes
 3. **Namespace and Capability types** - domain types that consume Schubert calculus for geometric access control
 4. **Tropical acceleration** - fast approximate counting via tropical correspondence
 
-These extensions enable ShaperOS to answer questions like "how many valid namespace configurations satisfy these capability constraints?" using rigorous enumerative geometry.
+These extensions enable the namespace system to answer questions like "how many valid namespace configurations satisfy these capability constraints?" using rigorous enumerative geometry.
 
 ---
 
@@ -606,12 +606,12 @@ impl SchubertClass {
 
 ## 3. Namespace and Capability Types
 
-These types bridge `amari-enumerative` to ShaperOS. They can live in a new module or a separate crate that depends on `amari-enumerative`.
+These types bridge `amari-enumerative` to the namespace system. They can live in a new module or a separate crate that depends on `amari-enumerative`.
 
 ```rust
 // In: amari-enumerative/src/namespace.rs
 
-//! Namespace and Capability types for ShaperOS
+//! Namespace and Capability types for the namespace system
 //!
 //! Namespaces are points in Grassmannians. Capabilities are Schubert conditions.
 //! Intersection theory determines access control.
@@ -631,7 +631,7 @@ impl CapabilityId {
     }
 }
 
-/// A capability in ShaperOS: an incidence condition on namespaces
+/// A capability in the namespace system: an incidence condition on namespaces
 #[derive(Debug, Clone)]
 pub struct Capability {
     /// Unique identifier
@@ -1169,7 +1169,7 @@ Version 0.18.0 adds:
 |-----------|---------|-----------|
 | `littlewood_richardson` | LR coefficient computation | `Partition`, `SkewShape`, `SkewTableau` |
 | `schubert` extensions | Multi-class intersection | `IntersectionResult`, `SchubertCalculus::multi_intersect` |
-| `namespace` | ShaperOS integration | `Namespace`, `Capability`, `CapabilityId` |
+| `namespace` | the namespace system integration | `Namespace`, `Capability`, `CapabilityId` |
 | `tropical_schubert` | Fast approximation (optional) | `TropicalSchubertClass`, `tropical_intersection_count` |
 
-These enable the ShaperOS project to perform rigorous access control via enumerative geometry: "Does this agent have a valid namespace configuration for these capabilities?" becomes a Schubert intersection computation.
+These enable the the namespace system project to perform rigorous access control via enumerative geometry: "Does this agent have a valid namespace configuration for these capabilities?" becomes a Schubert intersection computation.

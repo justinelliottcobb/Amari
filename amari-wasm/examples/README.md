@@ -85,7 +85,26 @@ npx ts-node examples/typescript/complete-demo.ts
 - Asteroid deflection simulations
 - Solar sail dynamics with relativistic effects
 
-### 7. Fusion Systems (`fusion-systems.ts`)
+### 8. Probabilistic Contracts (`probabilistic-contracts.ts`)
+**Formal Verification & Statistical Testing** *(New in v0.19.0)*
+- SMT-LIB2 proof obligation generation (Hoeffding, precondition, postcondition, expected value)
+- Custom proof obligations with variables and assertions
+- Monte Carlo statistical verification with confidence intervals
+- Probabilistic value tracking, mapping, and composition
+- Rare event classification and threshold checking
+- Practical game balance verification example
+
+### 10. GF(2) Algebra & Coding Theory (`gf2-algebra.ts`)
+**Finite Fields & Error-Correcting Codes** *(New in v0.19.0)*
+- GF(2) vector and matrix arithmetic (XOR/AND)
+- Binary Clifford algebra Cl(N,R; F₂)
+- Binary linear codes: Hamming, Reed-Muller, Golay
+- Encoding, syndrome decoding, weight distributions
+- Grassmannian combinatorics and finite field point counting
+- Matroid representability testing (binary, ternary)
+- Kazhdan-Lusztig polynomials for matroids
+
+### 11. Fusion Systems (`fusion-systems.ts`)
 **Advanced Neural Architectures**
 - Tropical-dual-Clifford fusion operations
 - Attention mechanisms
@@ -151,6 +170,35 @@ const transformed = rotor.rotate_vector(vertex);
 const projected = camera.apply_projection(transformed);
 ```
 
+### Formal Verification & Game Balance
+```typescript
+// Generate SMT-LIB2 proof obligations
+const obligation = flynnHoeffdingObligation("bounds", 1000, 0.1, 0.05);
+const smt = obligation.toSmtlib2(); // Download for Z3/CVC5
+
+// Monte Carlo verification in-browser
+const result = obligation.verifyWithMonteCarlo(10000); // "Verified"
+
+// Track rare events for game balance
+const critHit = new WasmRareEvent(0.05, "critical_hit");
+console.log(critHit.classify(0.1)); // "Rare"
+```
+
+### Error-Correcting Codes & Finite Fields
+```typescript
+// Construct and analyze binary codes
+const hamming = WasmBinaryCode.hammingCode(3); // [7, 4, 3]
+const codeword = hamming.encode(new Uint8Array([1, 0, 1, 0]));
+const syndrome = hamming.syndrome(codeword); // all zeros
+
+// Matroid representability
+const fano = GF2Representability.fanoMatroid();
+const result = GF2Representability.isBinary(fano); // representable
+
+// Grassmannian point counting
+const points = GF2FiniteField.grassmannianPoints(2, 4, 3); // |Gr(2,4;F_3)|
+```
+
 ### AI Research
 ```typescript
 // Fusion systems for multimodal learning
@@ -166,7 +214,9 @@ const output = attention.apply_to_value(value);
 4. **Statistics**: Study `information-geometry.ts` for statistical analysis
 5. **Physics**: Learn `relativistic.ts` for spacetime physics and orbital mechanics
 6. **Functional Analysis**: Explore `functional-analysis.ts` for Hilbert spaces and spectral theory
-7. **Advanced**: Dive into `fusion-systems.ts` for cutting-edge architectures
+7. **Formal Verification**: Study `probabilistic-contracts.ts` for SMT-LIB2 and Monte Carlo
+8. **Finite Fields**: Study `gf2-algebra.ts` for GF(2) arithmetic, codes, and matroids
+9. **Advanced**: Dive into `fusion-systems.ts` for cutting-edge architectures
 
 ## API Patterns
 

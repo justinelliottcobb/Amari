@@ -336,7 +336,7 @@ impl SegreClass {
     }
 }
 
-/// ShaperOS integration
+/// Namespace integration
 impl Namespace {
     /// Check if the namespace is degenerate (CSM Euler characteristic is anomalous).
     ///

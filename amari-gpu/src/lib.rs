@@ -8,6 +8,7 @@
 //! The crate offers GPU acceleration for:
 //!
 //! - **Clifford Algebra**: Batch geometric products with Cayley table upload
+//! - **GF(2) Algebra**: Batch binary Clifford products, matrix-vector multiply, Hamming distance (with `gf2` feature)
 //! - **Information Geometry**: Batch Amari-Chentsov tensor computation
 //! - **Holographic Memory**: Batch bind, unbind, bundle, similarity (with `holographic` feature)
 //! - **Measure Theory**: GPU-accelerated Monte Carlo integration (with `measure` feature)
@@ -86,6 +87,7 @@
 //! | `enumerative` | GPU-accelerated combinatorics |
 //! | `functional` | GPU-accelerated functional analysis (Hilbert spaces, spectral theory) |
 //! | `topology` | GPU-accelerated computational topology (distance matrices, Morse theory) |
+//! | `gf2` | GPU-accelerated GF(2) algebra (binary Clifford products, matrix ops, Hamming distance) |
 //! | `webgpu` | Enable WebGPU backend |
 //! | `high-precision` | Enable 128-bit float support |
 //!
@@ -116,6 +118,8 @@ pub mod dual;
 pub mod enumerative;
 #[cfg(feature = "functional")]
 pub mod functional;
+#[cfg(feature = "gf2")]
+pub mod gf2;
 // NOTE: fusion GPU module disabled - requires gpu submodules in amari_dual and amari_tropical crates
 // These would need to be created with DualGpuOps, GpuDualNumber, TropicalGpuOps, GpuTropicalNumber types
 // #[cfg(feature = "fusion")]
@@ -159,6 +163,10 @@ pub use calculus::GpuCalculus;
 pub use functional::{
     AdaptiveFunctionalCompute, GpuFunctionalError, GpuFunctionalResult, GpuHilbertSpace,
     GpuMatrixOperator, GpuSpectralDecomposition,
+};
+#[cfg(feature = "gf2")]
+pub use gf2::{
+    GF2GpuError, GF2GpuOps, GF2GpuResult, GpuGF2CliffordPair, GpuGF2HammingPair, GpuGF2MatVecData,
 };
 #[cfg(feature = "holographic")]
 pub use holographic::{

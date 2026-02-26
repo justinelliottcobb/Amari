@@ -509,6 +509,15 @@ GPU acceleration (CUDA/ROCm)
 Custom SIMD for GA operations
 Parallel algorithms
 
+**Note (0.19.0):** The `amari-gpu` crate needs an extensive overhaul on an
+instance with a modern GPU before 1.0.0. Current WGSL shaders were developed
+without GPU hardware access and contain significant workarounds (named
+variables instead of array indexing, unrolled loops, fixed-size buffers) that
+compromise readability and maintainability. Several pre-existing shaders have
+unresolved validation errors. All GPU compute results need validation against
+CPU reference implementations on real hardware. This work is blocked on
+environment access, not design.
+
 
 Cross-Cutting Concerns (All Phases)
 Documentation Standards

@@ -33,10 +33,11 @@ js-sys = { version = "0.3", optional = true }
 web-sys = { version = "0.3", features = ["console"], optional = true }
 
 [features]
-default = ["std", "high-precision"]
+default = ["std", "high-precision", "gf2"]
 std = []
 serde = ["dep:serde", "num-rational/serde", "num-bigint/serde"]
 high-precision = ["amari-core/high-precision"]
+gf2 = ["amari-core/gf2"]
 gpu = ["bytemuck", "wgpu", "pollster", "futures", "tokio"]
 wasm = ["dep:wasm-bindgen", "dep:js-sys", "dep:web-sys"]
 parallel = ["dep:rayon"]

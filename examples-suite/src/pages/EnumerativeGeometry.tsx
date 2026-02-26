@@ -82,7 +82,7 @@ const mockEnumerativeGeometry = {
       return results;
     }
   },
-  // Namespace/Capability access control (ShaperOS integration)
+  // Namespace/Capability access control (geometric)
   Namespace: {
     full: (name: string, k: number, n: number) => ({
       name,
@@ -670,7 +670,7 @@ export function EnumerativeGeometry() {
                   <li><Text span fw={600}>Schubert Calculus:</Text> Grassmannians and flag varieties</li>
                   <li><Text span fw={600}>LR Coefficients:</Text> Young tableaux and representation theory</li>
                   <li><Text span fw={600}>Tropical Geometry:</Text> Piecewise-linear structures</li>
-                  <li><Text span fw={600}>Namespaces:</Text> Geometric access control (ShaperOS)</li>
+                  <li><Text span fw={600}>Namespaces:</Text> Geometric access control via Schubert calculus</li>
                   <li><Text span fw={600}>Curve Counting:</Text> WDVV/Kontsevich rational curves</li>
                   <li><Text span fw={600}>Matroids:</Text> Matroid theory and CSM classes</li>
                   <li><Text span fw={600}>Stability:</Text> Wall-crossing and stability conditions</li>
@@ -952,7 +952,7 @@ export function EnumerativeGeometry() {
             <Card withBorder>
               <Card.Section inheritPadding py="xs" bg="dark.6">
                 <Title order={2} size="h3">Namespaces & Capabilities</Title>
-                <Text size="sm" c="dimmed">Geometric access control using Schubert calculus (ShaperOS integration)</Text>
+                <Text size="sm" c="dimmed">Geometric access control using Schubert calculus</Text>
               </Card.Section>
               <Card.Section inheritPadding py="md">
                 <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="lg">

@@ -8,7 +8,17 @@ import init, {
   InfoGeomUtils,
   WasmHilbertSpace,
   WasmMatrixOperator,
-  WasmSpectralDecomposition
+  WasmSpectralDecomposition,
+  WasmGF2Vector,
+  WasmGF2Matrix,
+  WasmBinaryMultivector,
+  WasmBinaryCode,
+  GF2Grassmannian,
+  GF2Representability,
+  flynnHoeffdingObligation,
+  WasmMonteCarloVerifier,
+  WasmProb,
+  WasmRareEvent
 } from '@justinelliottcobb/amari-wasm';
 
 /**
@@ -20,7 +30,7 @@ async function runCompleteDemo() {
   console.log('=======================================');
   console.log('Unified Mathematical Computing: Geometric Algebra + Tropical Algebra +');
   console.log('Automatic Differentiation + Fusion Systems + Information Geometry +');
-  console.log('Functional Analysis (Hilbert Spaces, Operators, Spectral Theory)');
+  console.log('Functional Analysis + GF(2) Algebra + Probabilistic Contracts');
 
   // Initialize the WASM module
   await init();
@@ -193,8 +203,74 @@ async function runCompleteDemo() {
   const evolved = spectral.applyFunction((E: number) => Math.exp(-E * 0.5), superposition);
   console.log(`   Time evolution e^{-Ht/2}|ψ⟩: [${evolved.map(v => v.toFixed(4)).join(', ')}]`);
 
-  // 7. UNIFIED EXAMPLE: Physics + ML + Optimization
-  console.log('\n⚡ 7. UNIFIED EXAMPLE - Physics-Informed Neural Network');
+  // 7. GF(2) ALGEBRA & CODING THEORY
+  console.log('\n🔢 7. GF(2) ALGEBRA - Finite Fields & Error-Correcting Codes');
+  console.log('   Linear algebra over GF(2) and binary codes...');
+
+  // GF(2) vectors
+  const gf2_v1 = WasmGF2Vector.fromBits(new Uint8Array([1, 0, 1, 1]));
+  const gf2_v2 = WasmGF2Vector.fromBits(new Uint8Array([1, 1, 0, 1]));
+  const gf2_sum = gf2_v1.add(gf2_v2);
+  console.log(`   v1 = ${gf2_v1.toString()}, weight = ${gf2_v1.weight()}`);
+  console.log(`   v1 + v2 (XOR) = ${gf2_sum.toString()}`);
+  console.log(`   Hamming distance: ${gf2_v1.hammingDistance(gf2_v2)}`);
+
+  // GF(2) matrix rank
+  const gf2_mat = WasmGF2Matrix.fromRows(
+    new Uint8Array([1, 0, 1, 0, 1, 1]), 2, 3
+  );
+  console.log(`   Matrix rank: ${gf2_mat.rank()}`);
+
+  // Binary Clifford algebra
+  const cl_e1 = WasmBinaryMultivector.basisVector(3, 0, 0);
+  const cl_e2 = WasmBinaryMultivector.basisVector(3, 0, 1);
+  const cl_e12 = cl_e1.geometricProduct(cl_e2);
+  console.log(`   Cl(3,0;F_2): e1 * e2 = ${cl_e12.toString()}`);
+
+  // Hamming code
+  const hammingCode = WasmBinaryCode.hammingCode(3);
+  console.log(`   Hamming code: [${hammingCode.parameters()}]`);
+  const msg = new Uint8Array([1, 0, 1, 0]);
+  const cw = hammingCode.encode(msg);
+  const syndrome = hammingCode.syndrome(cw);
+  console.log(`   Encode [1,0,1,0] -> syndrome: [${syndrome}] (all zeros = valid)`);
+
+  // Grassmannian
+  const fanoPlaneSize = GF2Grassmannian.binaryGrassmannianSize(1, 3);
+  console.log(`   Lines in PG(2,F_2) (Fano plane): ${fanoPlaneSize}`);
+
+  // Matroid representability
+  const fanoMatroid = GF2Representability.fanoMatroid();
+  const fanoRep = GF2Representability.isBinary(fanoMatroid);
+  const fanoTernary = GF2Representability.isTernary(fanoMatroid);
+  console.log(`   Fano matroid: binary=${fanoRep.status}, ternary=${fanoTernary.status}`);
+
+  // 8. PROBABILISTIC CONTRACTS (Flynn)
+  console.log('\n📋 8. PROBABILISTIC CONTRACTS - Formal Verification');
+  console.log('   SMT-LIB2 generation, Monte Carlo verification, rare events...');
+
+  // Hoeffding bound proof obligation
+  const hoeffding = flynnHoeffdingObligation("sample_mean", 1000, 0.1, 0.05);
+  const smtOutput = hoeffding.toSmtlib2();
+  console.log(`   SMT-LIB2 output: ${smtOutput.split('\n').length} lines`);
+  console.log(`   Monte Carlo verification: ${hoeffding.verifyWithMonteCarlo(10000)}`);
+
+  // Monte Carlo verifier
+  const mcVerifier = new WasmMonteCarloVerifier(10000);
+  const estimate = mcVerifier.estimateProbability(10000, 0.7);
+  console.log(`   P(0.7) estimate: ${estimate[0].toFixed(3)} [${estimate[1].toFixed(3)}, ${estimate[2].toFixed(3)}]`);
+
+  // Probabilistic values
+  const coinFlip = WasmProb.withProbability(0.5, 1.0);
+  const scaledFlip = coinFlip.map(3.0);
+  console.log(`   Prob value: ${coinFlip.value()} @ P=${coinFlip.probability()} -> scaled: ${scaledFlip.value()}`);
+
+  // Rare event classification
+  const rareEvent = new WasmRareEvent(0.05, "critical_hit");
+  console.log(`   ${rareEvent.description()}: ${rareEvent.classify(0.1)} (P=${rareEvent.probability()})`);
+
+  // 9. UNIFIED EXAMPLE: Physics + ML + Optimization
+  console.log('\n⚡ 9. UNIFIED EXAMPLE - Physics-Informed Neural Network');
   console.log('   Combining all systems for physics-informed machine learning...');
 
   // Use geometric algebra for physics simulation
@@ -225,7 +301,7 @@ async function runCompleteDemo() {
   console.log(`   Evaluation: KL divergence = ${model_divergence.toFixed(4)}`);
 
   // Performance demonstration
-  console.log('\n🎯 8. PERFORMANCE SHOWCASE');
+  console.log('\n🎯 10. PERFORMANCE SHOWCASE');
   console.log('   Running batch operations across all systems...');
 
   const startTime = performance.now();
@@ -281,6 +357,19 @@ async function runCompleteDemo() {
   predicted_pos.free();
   target_pos.free();
   loss.free();
+  gf2_v1.free();
+  gf2_v2.free();
+  gf2_sum.free();
+  gf2_mat.free();
+  cl_e1.free();
+  cl_e2.free();
+  cl_e12.free();
+  hammingCode.free();
+  fanoMatroid.free();
+  hoeffding.free();
+  coinFlip.free();
+  scaledFlip.free();
+  rareEvent.free();
 
   console.log('\n🎉 COMPLETE DEMONSTRATION FINISHED!');
   console.log('=====================================');
@@ -290,6 +379,8 @@ async function runCompleteDemo() {
   console.log('✅ Information Geometry: ML model evaluation');
   console.log('✅ Fusion Systems: Advanced neural architectures');
   console.log('✅ Functional Analysis: Hilbert spaces and spectral theory');
+  console.log('✅ GF(2) Algebra: Finite fields, codes, and matroids');
+  console.log('✅ Probabilistic Contracts: SMT-LIB2, Monte Carlo, rare events');
   console.log('✅ Unified Systems: Physics-informed machine learning');
   console.log('\n📦 Amari v0.15.0 - Your unified mathematical computing platform!');
 }

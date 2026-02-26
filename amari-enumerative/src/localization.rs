@@ -324,6 +324,106 @@ impl EquivariantLocalizer {
         // Same as sequential — both use LR coefficients
         self.localized_intersection(classes)
     }
+
+    /// Count F_q-rational points on a Schubert variety via localization.
+    ///
+    /// Uses the Lefschetz trace formula:
+    /// |X_λ(F_q)| = Σ_{fixed points p in X_λ} q^{dim of attracting cell at p}
+    pub fn fq_point_count(&mut self, class: &SchubertClass, q: u64) -> EnumerativeResult<u64> {
+        self.ensure_fixed_points();
+
+        let lambda = crate::littlewood_richardson::Partition::new(class.partition.clone());
+        let mut count = 0u64;
+
+        for fp in self.fixed_points.as_ref().unwrap() {
+            let mu = crate::littlewood_richardson::Partition::new(fp.to_partition());
+            if lambda.contains(&mu) {
+                count += q.pow(mu.size() as u32);
+            }
+        }
+        Ok(count)
+    }
+
+    /// Genuine Atiyah-Bott localization computation.
+    ///
+    /// Computes ∫_{Gr(k,n)} σ_{λ₁} · ... · σ_{λ_m} via:
+    /// Σ_{I} ∏_j σ_{λ_j}(e_I) / e_T(T_{e_I} Gr)
+    pub fn atiyah_bott_intersection(
+        &mut self,
+        classes: &[SchubertClass],
+    ) -> EnumerativeResult<Rational64> {
+        self.ensure_fixed_points();
+
+        let weights = &self.weights;
+        let mut total = Rational64::from(0);
+
+        for fp in self.fixed_points.as_ref().unwrap() {
+            let euler = fp.tangent_euler_class(weights);
+            if euler == Rational64::from(0) {
+                continue;
+            }
+
+            let mut product = Rational64::from(1);
+            for class in classes {
+                let restriction = self.schubert_restriction(class, fp);
+                product *= restriction;
+            }
+
+            total += product / euler;
+        }
+
+        Ok(total)
+    }
+
+    /// Schubert class restriction to a torus fixed point.
+    ///
+    /// σ_λ(e_I) = ∏_{(i,j) ∈ λ} (t_{I_j} − t_{complement_{i}})
+    /// where the product is over boxes (i,j) of the Young diagram of λ.
+    pub fn schubert_restriction(
+        &self,
+        class: &SchubertClass,
+        fixed_point: &FixedPoint,
+    ) -> Rational64 {
+        let (k, n) = self.grassmannian;
+        let m = n - k;
+        let partition = &class.partition;
+
+        // Pad partition to length k.
+        let mut lambda = vec![0usize; k];
+        for (i, &p) in partition.iter().enumerate() {
+            if i < k {
+                lambda[i] = p;
+            }
+        }
+
+        let subset = &fixed_point.subset;
+        let complement: Vec<usize> = (0..n).filter(|i| !subset.contains(i)).collect();
+
+        let mut product = Rational64::from(1);
+
+        // Iterate over boxes (i, j) in the Young diagram of λ.
+        // i ranges from 0..k (rows), j ranges from 0..lambda[i] (columns).
+        for (i, &li) in lambda.iter().enumerate() {
+            for j in 0..li {
+                // The weight contribution for box (i, j):
+                // t_{subset[k-1-i]} - t_{complement[m-1-j]}
+                // But the exact formula depends on convention. Use:
+                // t_{subset[j]} - t_{complement[m - lambda[i] + j]}
+                // which is the standard formula for Grassmannian Schubert polynomials.
+                if i < k && j < m {
+                    let row_idx = k - 1 - i; // bottom-to-top
+                    let col_idx = m - 1 - j; // right-to-left
+                    if row_idx < subset.len() && col_idx < complement.len() {
+                        let t_i = self.weights.weights[subset[row_idx]];
+                        let t_j = self.weights.weights[complement[col_idx]];
+                        product *= Rational64::from(t_i - t_j);
+                    }
+                }
+            }
+        }
+
+        product
+    }
 }
 
 /// Generate all k-element subsets of {0, ..., n-1}.

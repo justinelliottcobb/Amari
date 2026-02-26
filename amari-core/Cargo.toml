@@ -26,9 +26,10 @@ creusot-contracts = { version = "0.6", optional = true }
 [dev-dependencies]
 proptest = "1.4"
 criterion = "0.5"
+rand = "0.8"
 
 [features]
-default = ["std", "phantom-types", "high-precision"]
+default = ["std", "phantom-types", "high-precision", "gf2"]
 std = []
 serialize = ["serde"]
 parallel = ["rayon"]
@@ -43,6 +44,7 @@ native-precision = ["dep:rug"]
 # Maximum precision (includes both backends for auto-selection)
 full-precision = ["high-precision", "native-precision"]
 # Formal verification with Creusot (requires nightly)
+gf2 = []
 formal-verification = ["creusot-contracts", "phantom-types"]
 
 [[bench]]
