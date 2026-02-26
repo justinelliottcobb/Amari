@@ -9,7 +9,7 @@ A unified mathematical computing library featuring geometric algebra, differenti
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue.svg)](https://www.typescriptlang.org/)
 [![License](https://img.shields.io/badge/License-MIT%20OR%20Apache--2.0-green.svg)](LICENSE)
 
-**[Live Examples Suite](https://amari-math.netlify.app)** | **[API Documentation](https://docs.rs/amari)**
+**[Live Examples Suite](https://amari-math.netlify.app)** | **[API Documentation](https://docs.rs/amari)** | **[MCP Server](https://github.com/justinelliottcobb/Amari-mcp)**
 
 ## Features
 
@@ -33,6 +33,8 @@ A unified mathematical computing library featuring geometric algebra, differenti
 - **Network Analysis**: Geometric network analysis and graph neural networks
 - **Cellular Automata**: Geometric automata with configurable rules
 - **Enumerative Geometry**: Intersection theory, Schubert calculus, LR coefficients, WDVV curve counting, matroids, CSM classes, equivariant localization, operadic composition, and stability conditions
+- **GF(2) Algebra** *(v0.19.0)*: Finite field GF(2) linear algebra, binary Clifford algebra Cl(N,R; F₂), coding theory (Hamming, Reed-Muller, Golay codes), Grassmannian combinatorics, matroid representability, and Kazhdan-Lusztig polynomials
+- **Probabilistic Contracts** *(v0.19.0)*: SMT-LIB2 proof obligation generation, Monte Carlo statistical verification, probabilistic value tracking, and rare event classification
 
 ### Multi-GPU Infrastructure
 
@@ -104,6 +106,9 @@ amari-automata = "0.18.1"
 amari-fusion = "0.18.1"
 amari-network = "0.18.1"
 amari-enumerative = "0.18.1"
+
+# Probabilistic verification contracts (SMT-LIB2, Monte Carlo)
+amari-flynn = "0.18.1"
 ```
 
 ### JavaScript/TypeScript (WebAssembly)
@@ -728,12 +733,32 @@ See [`examples/README.md`](examples/README.md) for complete documentation and [`
 | Probabilistic | ✅ Enabled | `probabilistic` |
 | Functional | ✅ Enabled | `functional` |
 | Topology | ✅ Enabled | `topology` |
-| **Dynamics** | ✅ **New in v0.18.1x** | `dynamics` |
+| **Dynamics** | ✅ **New in v0.18.1** | `dynamics` |
+| **GF(2)** | ✅ **New in v0.19.0** | `gf2` |
+| **Enumerative (GF(2))** | ✅ **New in v0.19.0** | `enumerative` |
 | Tropical | ❌ Disabled | - |
 
 Note: Tropical GPU module temporarily disabled due to Rust orphan impl rules. Use CPU implementations from domain crates.
 
-### v0.18.1x GPU Additions
+### v0.19.0 Additions
+
+**GF(2) Algebra & Coding Theory** — New mathematical domain across amari-core, amari-enumerative, amari-gpu, and amari-wasm:
+
+- **amari-core**: GF(2) vectors, matrices, Gaussian elimination, binary Clifford algebra Cl(N,R; F₂)
+- **amari-enumerative**: Binary linear codes (Hamming, Reed-Muller, Golay), weight enumerators, Grassmannian combinatorics, matroid representability, Kazhdan-Lusztig polynomials
+- **amari-gpu**: GPU-accelerated GF(2) matrix operations, coding theory, and representability checking
+- **amari-wasm**: Complete WASM bindings for all GF(2) operations (8 new types/utilities)
+
+**Probabilistic Contracts (amari-flynn)** — Formal verification framework:
+
+- SMT-LIB2 proof obligation generation for external solvers (Z3, CVC5)
+- Monte Carlo statistical verification in WASM
+- Probabilistic value tracking and rare event classification
+- WASM bindings for browser-based verification workflows
+
+**MCP Server** — [Amari-MCP](https://github.com/justinelliottcobb/Amari-mcp) provides Model Context Protocol integration, enabling AI assistants to use Amari's mathematical operations as tools.
+
+### v0.18.1 GPU Additions (Dynamics)
 
 The `dynamics` feature provides GPU-accelerated dynamical systems operations:
 
