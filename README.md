@@ -1,4 +1,4 @@
-# Amari v0.18.1
+# Amari v0.19.0
 
 **Comprehensive Mathematical Computing Platform with Geometric Algebra, Differential Calculus, Measure Theory, Probability Theory, Functional Analysis, Algebraic Topology, Dynamical Systems, and Vector Symbolic Architectures**
 
@@ -61,54 +61,54 @@ Add to your `Cargo.toml`:
 ```toml
 [dependencies]
 # Complete library with all features
-amari = "0.18.1"
+amari = "0.19.0"
 
 # Or individual crates:
 
 # Core geometric algebra and mathematical foundations
-amari-core = "0.18.1"
+amari-core = "0.19.0"
 
 # Differential calculus with geometric algebra
-amari-calculus = "0.18.1"
+amari-calculus = "0.19.0"
 
 # Measure theory and integration
-amari-measure = "0.18.1"
+amari-measure = "0.19.0"
 
 # Probability theory on geometric algebra spaces
-amari-probabilistic = "0.18.1"
+amari-probabilistic = "0.19.0"
 
 # Functional analysis: Hilbert spaces, operators, spectral theory
-amari-functional = "0.18.1"
+amari-functional = "0.19.0"
 
 # Algebraic topology: homology, persistent homology, Morse theory
-amari-topology = "0.18.1"
+amari-topology = "0.19.0"
 
 # Dynamical systems: ODE solvers, stability, bifurcations, Lyapunov exponents
-amari-dynamics = "0.18.1"
+amari-dynamics = "0.19.0"
 
 # Vector Symbolic Architectures, holographic memory, and optical fields
-amari-holographic = "0.18.1"
+amari-holographic = "0.19.0"
 
 # High-precision relativistic physics
-amari-relativistic = { version = "0.18.1", features = ["high-precision"] }
+amari-relativistic = { version = "0.19.0", features = ["high-precision"] }
 
 # GPU acceleration (includes optical field GPU operations)
-amari-gpu = "0.18.1"
+amari-gpu = "0.19.0"
 
 # Optimization algorithms
-amari-optimization = "0.18.1"
+amari-optimization = "0.19.0"
 
 # Additional mathematical systems
-amari-tropical = "0.18.1"
-amari-dual = "0.18.1"
-amari-info-geom = "0.18.1"
-amari-automata = "0.18.1"
-amari-fusion = "0.18.1"
-amari-network = "0.18.1"
-amari-enumerative = "0.18.1"
+amari-tropical = "0.19.0"
+amari-dual = "0.19.0"
+amari-info-geom = "0.19.0"
+amari-automata = "0.19.0"
+amari-fusion = "0.19.0"
+amari-network = "0.19.0"
+amari-enumerative = "0.19.0"
 
 # Probabilistic verification contracts (SMT-LIB2, Monte Carlo)
-amari-flynn = "0.18.1"
+amari-flynn = "0.19.0"
 ```
 
 ### JavaScript/TypeScript (WebAssembly)
@@ -693,9 +693,9 @@ The **[Amari Examples Suite](https://amari-math.netlify.app)** provides comprehe
 
 - **Interactive Playground**: Write and run JavaScript code with live WASM execution
 
-## Examples & Documentation (v0.18.1)
+## Examples & Documentation (v0.19.0)
 
-The examples suite has been completely overhauled for v0.18.1 with comprehensive coverage of all new crates:
+The examples suite has been completely overhauled for v0.19.0 with comprehensive coverage of all new crates:
 
 ### Rust Examples (`examples/rust/`)
 
@@ -714,7 +714,7 @@ The examples suite has been completely overhauled for v0.18.1 with comprehensive
 
 See [`examples/README.md`](examples/README.md) for complete documentation and [`examples/LEARNING_PATHS.md`](examples/LEARNING_PATHS.md) for structured learning curricula.
 
-## GPU Module Status (v0.18.1)
+## GPU Module Status (v0.19.0)
 
 | Module | Status | Feature Flag |
 |--------|--------|--------------|
@@ -733,7 +733,7 @@ See [`examples/README.md`](examples/README.md) for complete documentation and [`
 | Probabilistic | ✅ Enabled | `probabilistic` |
 | Functional | ✅ Enabled | `functional` |
 | Topology | ✅ Enabled | `topology` |
-| **Dynamics** | ✅ **New in v0.18.1** | `dynamics` |
+| **Dynamics** | ✅ **New in v0.19.0** | `dynamics` |
 | **GF(2)** | ✅ **New in v0.19.0** | `gf2` |
 | **Enumerative (GF(2))** | ✅ **New in v0.19.0** | `enumerative` |
 | Tropical | ❌ Disabled | - |
@@ -758,7 +758,7 @@ Note: Tropical GPU module temporarily disabled due to Rust orphan impl rules. Us
 
 **MCP Server** — [Amari-MCP](https://github.com/justinelliottcobb/Amari-mcp) provides Model Context Protocol integration, enabling AI assistants to use Amari's mathematical operations as tools.
 
-### v0.18.1 GPU Additions (Dynamics)
+### v0.19.0 GPU Additions (Dynamics)
 
 The `dynamics` feature provides GPU-accelerated dynamical systems operations:
 

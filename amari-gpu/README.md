@@ -22,7 +22,7 @@ Integration Crates (consume APIs):
 
 **Dependency Rule**: Integration crates depend on domain crates, never the reverse.
 
-## Current Integrations (v0.18.1)
+## Current Integrations (v0.19.0)
 
 ### Implemented GPU Acceleration
 
@@ -42,7 +42,7 @@ Integration Crates (consume APIs):
 | **amari-probabilistic** | `probabilistic` | Gaussian sampling, batch statistics, Monte Carlo | ✅ Implemented (feature: `probabilistic`) |
 | **amari-functional** | `functional` | Matrix operators, spectral decomposition, Hilbert spaces | ✅ Implemented (feature: `functional`) |
 | **amari-topology** | `topology` | Distance matrices, Morse critical points, Rips filtrations | ✅ Implemented (feature: `topology`) |
-| **amari-dynamics** | `dynamics` | Batch trajectory integration, bifurcation diagrams, Lyapunov spectra, basin computation | ✅ **New in v0.18.1** (feature: `dynamics`) |
+| **amari-dynamics** | `dynamics` | Batch trajectory integration, bifurcation diagrams, Lyapunov spectra, basin computation | ✅ **New in v0.19.0** (feature: `dynamics`) |
 
 ### Temporarily Disabled Modules
 
@@ -318,7 +318,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
   - Implements standard algorithm for reduced boundary matrix
   - Extracts persistence pairs from reduced matrix
 
-### Dynamics GPU Acceleration *(v0.18.1)*
+### Dynamics GPU Acceleration *(v0.19.0)*
 
 ```rust
 use amari_gpu::dynamics::{GpuDynamics, BatchTrajectoryConfig, GpuSystemType};
@@ -406,7 +406,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
   - Classifies each grid point by attractor convergence
   - 256-thread workgroups for spatial parallelism
 
-### Enumerative Geometry GPU Acceleration *(v0.18.1)*
+### Enumerative Geometry GPU Acceleration *(v0.19.0)*
 
 ```rust
 use amari_gpu::enumerative::{EnumerativeGpuOps, GpuWDVVData, GpuMatroidRankData, GpuStabilityData};
@@ -607,7 +607,7 @@ let values = gpu_calculus.batch_eval_scalar_field(&field, &large_points).await?;
 - Morse critical points: GPU for ≥ 10,000 grid cells (100×100)
 - Falls back to CPU for smaller workloads to avoid transfer overhead
 
-### Dynamics Module (v0.18.1)
+### Dynamics Module (v0.19.0)
 
 **GPU Implementations** (✅ Complete):
 - Batch trajectory integration with RK4 solver

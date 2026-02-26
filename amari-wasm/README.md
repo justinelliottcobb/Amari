@@ -1,4 +1,4 @@
-# @justinelliottcobb/amari-wasm v0.18.1
+# @justinelliottcobb/amari-wasm v0.19.0
 
 **Unified Mathematical Computing Library with High-Precision WebAssembly Support**
 
@@ -22,8 +22,8 @@ Amari is a comprehensive mathematical computing library that brings advanced alg
 | [Functional Analysis](docs/functional-analysis.md) | amari-functional | v0.15.0 | Hilbert spaces, linear operators, spectral decomposition, Sobolev spaces |
 | [Optical Fields](docs/optical-fields.md) | amari-holographic | v0.15.1 | GA-native Lee hologram encoding for DMD displays and VSA-based optical processing |
 | [Computational Topology](docs/topology.md) | amari-topology | v0.16.0 | Simplicial complexes, homology, persistent homology, Morse theory |
-| [Dynamical Systems](docs/dynamics.md) | amari-calculus | v0.18.1 | ODE solvers, stability analysis, bifurcation diagrams, Lyapunov exponents |
-| [Enumerative Geometry](docs/enumerative-geometry.md) | amari-enumerative | v0.18.1 | WDVV curve counting, matroids, CSM classes, stability conditions |
+| [Dynamical Systems](docs/dynamics.md) | amari-calculus | v0.19.0 | ODE solvers, stability analysis, bifurcation diagrams, Lyapunov exponents |
+| [Enumerative Geometry](docs/enumerative-geometry.md) | amari-enumerative | v0.19.0 | WDVV curve counting, matroids, CSM classes, stability conditions |
 | [Probabilistic Contracts](docs/probabilistic-contracts.md) | amari-flynn | v0.19.0 | SMT-LIB2 proof obligations, Monte Carlo verification, rare event tracking |
 | [GF(2) Algebra](docs/gf2-algebra.md) | amari-core, amari-enumerative | v0.19.0 | GF(2) linear algebra, binary Clifford algebra, coding theory, matroid representability, Kazhdan-Lusztig polynomials |
 | [Orbital Mechanics](docs/orbital-mechanics.md) | amari-relativistic | v0.9.4 | Spacetime algebra (Cl(1,3)) with high-precision trajectory calculations |
