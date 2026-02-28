@@ -20,13 +20,6 @@ serde = { workspace = true, optional = true }
 rayon = { version = "1.8", optional = true }
 once_cell = "1.19"
 
-# GPU acceleration dependencies
-bytemuck = { version = "1.14", features = ["derive"], optional = true }
-wgpu = { version = "0.19", optional = true }
-pollster = { version = "0.3", optional = true }
-futures = { version = "0.3", optional = true }
-tokio = { version = "1.0", features = ["macros", "rt-multi-thread"], optional = true }
-
 # WASM optimization dependencies
 wasm-bindgen = { version = "0.2", optional = true }
 js-sys = { version = "0.3", optional = true }
@@ -38,11 +31,8 @@ std = []
 serde = ["dep:serde", "num-rational/serde", "num-bigint/serde"]
 high-precision = ["amari-core/high-precision"]
 gf2 = ["amari-core/gf2"]
-gpu = ["bytemuck", "wgpu", "pollster", "futures", "tokio"]
 wasm = ["dep:wasm-bindgen", "dep:js-sys", "dep:web-sys"]
 parallel = ["dep:rayon"]
-performance = ["parallel"]
-wasm-full = ["wasm", "gpu", "performance"]
 # Tropical Schubert calculus for fast intersection counting
 tropical-schubert = []
 

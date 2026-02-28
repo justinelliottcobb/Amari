@@ -698,7 +698,6 @@ export function EnumerativeGeometry() {
             <Tabs.Tab value="namespaces">Namespaces</Tabs.Tab>
             <Tabs.Tab value="tropical">Tropical Geometry</Tabs.Tab>
             <Tabs.Tab value="higher-genus">Higher Genus</Tabs.Tab>
-            <Tabs.Tab value="performance">Performance</Tabs.Tab>
             <Tabs.Tab value="wdvv">Curve Counting</Tabs.Tab>
             <Tabs.Tab value="matroids">Matroids</Tabs.Tab>
             <Tabs.Tab value="stability">Stability</Tabs.Tab>
@@ -1134,73 +1133,6 @@ export function EnumerativeGeometry() {
                       ) : (
                         <Text c="dimmed">Click "Compute Riemann-Roch" to see results</Text>
                       )}
-                    </Card.Section>
-                  </Card>
-                </SimpleGrid>
-              </Card.Section>
-            </Card>
-          </Tabs.Panel>
-
-          <Tabs.Panel value="performance" pt="md">
-            <Card withBorder>
-              <Card.Section inheritPadding py="xs" bg="dark.6">
-                <Title order={2} size="h3">Performance & Optimization</Title>
-                <Text size="sm" c="dimmed">WASM-first architecture with GPU acceleration</Text>
-              </Card.Section>
-              <Card.Section inheritPadding py="md">
-                <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="lg">
-                  <Stack gap="md">
-                    <div>
-                      <Title order={3} size="h4" mb="xs">WASM Optimization</Title>
-                      <Text size="sm" c="dimmed" component="ul" style={{ paddingLeft: '1rem' }}>
-                        <li>Memory-efficient sparse matrix operations</li>
-                        <li>Custom memory pooling for large computations</li>
-                        <li>SIMD optimizations where available</li>
-                        <li>Configurable batch processing</li>
-                      </Text>
-                    </div>
-                    <div>
-                      <Title order={3} size="h4" mb="xs">GPU Acceleration</Title>
-                      <Text size="sm" c="dimmed" component="ul" style={{ paddingLeft: '1rem' }}>
-                        <li>WGPU compute shaders for intersection numbers</li>
-                        <li>Parallel Schubert calculus kernels</li>
-                        <li>Batch LR coefficient computation</li>
-                        <li>Namespace configuration enumeration</li>
-                        <li>Tropical curve counting acceleration</li>
-                      </Text>
-                    </div>
-                  </Stack>
-                  <Card withBorder>
-                    <Card.Section inheritPadding py="xs" bg="dark.6">
-                      <Title order={3} size="h4">Feature Flags</Title>
-                    </Card.Section>
-                    <Card.Section inheritPadding py="md">
-                      <Table>
-                        <Table.Thead>
-                          <Table.Tr>
-                            <Table.Th>Feature</Table.Th>
-                            <Table.Th>Status</Table.Th>
-                          </Table.Tr>
-                        </Table.Thead>
-                        <Table.Tbody>
-                          <Table.Tr>
-                            <Table.Td><Code>wgpu</Code></Table.Td>
-                            <Table.Td><Badge color="green">Available</Badge></Table.Td>
-                          </Table.Tr>
-                          <Table.Tr>
-                            <Table.Td><Code>wasm</Code></Table.Td>
-                            <Table.Td><Badge color="green">Available</Badge></Table.Td>
-                          </Table.Tr>
-                          <Table.Tr>
-                            <Table.Td><Code>parallel</Code></Table.Td>
-                            <Table.Td><Badge color="green">Available</Badge></Table.Td>
-                          </Table.Tr>
-                          <Table.Tr>
-                            <Table.Td><Code>performance</Code></Table.Td>
-                            <Table.Td><Badge color="green">Available</Badge></Table.Td>
-                          </Table.Tr>
-                        </Table.Tbody>
-                      </Table>
                     </Card.Section>
                   </Card>
                 </SimpleGrid>
@@ -1758,24 +1690,6 @@ const diagram = engine.phaseDiagram(namespace);
 diagram.forEach(p => console.log(\`t=\${p.trustLevel}: \${p.stableCount} stable\`));`}
               />
 
-              <ExampleCard
-                title="Performance Optimization"
-                description="Configure WASM performance settings"
-                code={`// Import performance components
-import { WasmPerformanceConfig, FastIntersectionComputer } from 'amari-enumerative';
-
-// Configure for high performance
-const config = WasmPerformanceConfig.default();
-config.enable_gpu = true;
-config.cache_size = 50000;
-config.max_workers = 8;
-
-// Create optimized computer
-const computer = FastIntersectionComputer.new(config);
-
-// Perform fast computations
-const result = computer.fast_intersect(p2, cubic, quartic);`}
-              />
             </Stack>
           </Card.Section>
         </Card>
