@@ -416,7 +416,7 @@ console.log("• Respects geometry of parameter space");`,
           );
         }
 
-        let params = [0.2, 0.3, 0.5];
+        const params = [0.2, 0.3, 0.5];
         const target = [0.4, 0.35, 0.25];
         const gradient = params.map((p, i) => 2 * (p - target[i]));
 

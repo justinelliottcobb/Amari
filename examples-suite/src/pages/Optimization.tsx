@@ -351,7 +351,7 @@ console.log("Optimal point:", result.point);
         // Augmented Lagrangian method
         let x = [0, 0];
         let lambda = 0;
-        let rho = 1;
+        const rho = 1;
         const history = [];
 
         for (let outer = 0; outer < 10; outer++) {

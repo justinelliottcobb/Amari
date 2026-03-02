@@ -10,6 +10,7 @@ dist/
 docs/prompts/
 *.wasm
 *.js
+!examples-suite/eslint.config.js
 *.d.ts
 pkg/
 wasm-pack.log
