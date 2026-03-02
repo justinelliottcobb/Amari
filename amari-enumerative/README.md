@@ -23,7 +23,6 @@ Enumerative geometry for counting geometric configurations.
 - **Operadic Composition**: Compose namespaces along input/output interfaces
 - **Stability Conditions**: Bridgeland-type stability and wall-crossing phenomena
 - **Phantom Types**: Compile-time verification of mathematical properties
-- **GPU Acceleration**: Optional GPU support for large computations
 - **Parallel Computation**: Rayon-based parallelization for batch operations
 
 ## Installation
@@ -44,9 +43,6 @@ amari-enumerative = "0.19.0"
 
 # With serialization
 amari-enumerative = { version = "0.19.0", features = ["serde"] }
-
-# With GPU acceleration
-amari-enumerative = { version = "0.19.0", features = ["gpu"] }
 
 # With parallel computation (Rayon)
 amari-enumerative = { version = "0.19.0", features = ["parallel"] }
@@ -337,7 +333,6 @@ let count = curve.tropical_count()?;
 | `moduli_space` | Moduli spaces of curves |
 | `higher_genus` | Higher genus curve counting, DT/PT invariants |
 | `geometric_algebra` | Integration with geometric algebra |
-| `performance` | Optimized computation utilities |
 | `wdvv` | WDVV/Kontsevich recursion for rational curve counts |
 | `localization` | Equivariant localization on Grassmannians |
 | `matroid` | Matroid theory: uniform, Schubert, duality, Tutte |
@@ -399,8 +394,6 @@ GW invariants count curves via:
 
 - **Parallel Computation**: Rayon-based parallelization for batch operations
 - **Tropical Acceleration**: Fast counting via tropical correspondence
-- **GPU Acceleration**: WebGPU for large intersection computations
-- **Sparse Matrices**: Efficient representation of Schubert classes
 - **Batch Processing**: Process multiple computations simultaneously
 - **Caching**: LR coefficients and intersection numbers are cached
 
