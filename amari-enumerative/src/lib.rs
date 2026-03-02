@@ -72,7 +72,6 @@ pub mod matroid;
 pub mod moduli_space;
 pub mod namespace;
 pub mod operad;
-pub mod performance;
 pub mod phantom;
 pub mod schubert;
 pub mod stability;
@@ -106,10 +105,6 @@ pub use intersection::{
     IntersectionRing, MockMultivector, ProjectiveSpace, QuantumProduct,
 };
 pub use moduli_space::{CurveClass, ModuliSpace, TautologicalClass};
-pub use performance::{
-    CurveBatchProcessor, FastIntersectionComputer, MemoryPool, SparseSchubertMatrix,
-    WasmPerformanceConfig,
-};
 
 // Schubert calculus exports
 pub use schubert::{FlagVariety, IntersectionResult, SchubertCalculus, SchubertClass};
@@ -286,5 +281,3 @@ pub use matroid::{circuits_batch, intersection_cardinality_batch, tutte_polynomi
 pub use stability::{compute_walls_batch, stable_count_batch};
 #[cfg(feature = "parallel")]
 pub use wdvv::rational_curve_count_batch;
-
-// GPU acceleration exports
