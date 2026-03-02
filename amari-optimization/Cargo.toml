@@ -21,7 +21,7 @@ thiserror = { workspace = true }
 num-traits = { workspace = true }
 nalgebra = { workspace = true, optional = true }
 rayon = { workspace = true, optional = true }
-rand = { version = "0.8", features = ["getrandom"] }
+rand = { version = "0.10", features = ["getrandom"] }
 getrandom = { version = "0.2", features = ["js"], optional = true }
 serde = { workspace = true, optional = true }
 
