@@ -110,7 +110,7 @@ serde = { version = "1.0", features = ["derive"] }
 nalgebra = "0.32"
 rand = "0.8"
 rand_distr = "0.4"
-statrs = "0.17"
+statrs = "0.18"
 syn = "2.0"
 quote = "1.0"
 proc-macro2 = "1.0"
