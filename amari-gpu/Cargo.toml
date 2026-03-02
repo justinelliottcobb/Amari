@@ -38,7 +38,7 @@ rand = { workspace = true, optional = true }
 rand_distr = { workspace = true, optional = true }
 
 [dev-dependencies]
-criterion = "0.5"
+criterion = "0.8"
 tokio = { version = "1.0", features = ["macros", "rt"] }
 
 [features]

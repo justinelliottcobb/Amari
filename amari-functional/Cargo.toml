@@ -22,7 +22,7 @@ nalgebra = { workspace = true }
 [dev-dependencies]
 approx = { workspace = true }
 rand = { workspace = true }
-criterion = "0.5"
+criterion = "0.8"
 
 [[bench]]
 name = "functional_benchmarks"

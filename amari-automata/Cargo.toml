@@ -31,4 +31,4 @@ gpu = ["bytemuck", "wgpu", "pollster", "futures", "tokio"]
 
 [dev-dependencies]
 approx = { workspace = true }
-criterion = "0.5"
+criterion = "0.8"
