@@ -38,4 +38,4 @@ tropical-schubert = []
 
 [dev-dependencies]
 proptest = "1.0"
-criterion = "0.5"
+criterion = "0.8"

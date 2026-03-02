@@ -36,7 +36,7 @@ amari-automata = { path = "../amari-automata" }
 amari-info-geom = { path = "../amari-info-geom" }
 amari-enumerative = { path = "../amari-enumerative" }
 amari-relativistic = { path = "../amari-relativistic", features = ["phantom-types"] }
-amari-optimization = { path = "../amari-optimization", features = ["wasm", "linalg"] }
+amari-optimization = { path = "../amari-optimization", features = ["wasm"] }
 amari-measure = { path = "../amari-measure" }
 amari-calculus = { path = "../amari-calculus" }
 amari-probabilistic = { path = "../amari-probabilistic" }

@@ -54,7 +54,7 @@ fn bench_tensor_computation_scaling(c: &mut Criterion) {
                         let overhead_work =
                             (x.norm_squared() + y.norm_squared() + z.norm_squared()) * 0.001;
                         let result = amari_chentsov_tensor(x, y, z);
-                        criterion::black_box(overhead_work + result)
+                        std::hint::black_box(overhead_work + result)
                     })
                     .collect();
             });

@@ -5,7 +5,8 @@
 
 #![cfg(feature = "deterministic")]
 
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use criterion::{criterion_group, criterion_main, Criterion};
+use std::hint::black_box;
 
 use amari::deterministic::ga2d::{DetRotor2, DetVector2};
 use amari::deterministic::DetF32;

@@ -4,7 +4,8 @@
 //! are met and provides regression testing for optimization work.
 
 use amari_core::{Bivector, Multivector, Rotor, Vector};
-use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
+use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
+use std::hint::black_box;
 
 type Cl3 = Multivector<3, 0, 0>; // 3D Euclidean space
 

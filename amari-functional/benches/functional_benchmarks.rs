@@ -3,7 +3,8 @@
 //! Measures critical operations for Hilbert spaces, operators, and spectral theory.
 
 use amari_core::Multivector;
-use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
+use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
+use std::hint::black_box;
 
 type Cl3 = Multivector<3, 0, 0>;
 
