@@ -39,8 +39,8 @@ amari = { workspace = true, features = ["dynamics"] }
 amari-core = { workspace = true }
 amari-dynamics = { workspace = true, features = ["stochastic"] }
 plotters = "0.3"
-rand = "0.8"
-rand_chacha = "0.3"
+rand = "0.10"
+rand_chacha = "0.10"
 nalgebra = "0.33"
 approx = "0.5"
 

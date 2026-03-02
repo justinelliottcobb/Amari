@@ -6,7 +6,7 @@
 
 use amari_dual::{Dual, DualNumber};
 use amari_core::{Vector, Multivector};
-use rand::Rng;
+use rand::{Rng, RngExt};
 use std::f64::consts::{PI, E};
 
 /// A verified linear regression model with exact gradients
@@ -522,11 +522,11 @@ impl PolynomialFitResult {
 
 /// Generate synthetic data with known polynomial
 fn generate_polynomial_data(coefficients: &[f64], n_samples: usize, noise_level: f64) -> Vec<(f64, f64)> {
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     let mut data = Vec::new();
 
     for _ in 0..n_samples {
-        let x = rng.gen::<f64>() * 4.0 - 2.0; // x ∈ [-2, 2]
+        let x = rng.random::<f64>() * 4.0 - 2.0; // x ∈ [-2, 2]
 
         // Evaluate true polynomial
         let mut y = 0.0;
@@ -537,7 +537,7 @@ fn generate_polynomial_data(coefficients: &[f64], n_samples: usize, noise_level:
         }
 
         // Add noise
-        let noise = rng.gen::<f64>() * noise_level - noise_level / 2.0;
+        let noise = rng.random::<f64>() * noise_level - noise_level / 2.0;
         y += noise;
 
         data.push((x, y));
@@ -554,11 +554,11 @@ fn verified_linear_regression_demo() {
     // Generate synthetic data: y = 2x + 1 + noise
     let true_weights = vec![2.0];
     let true_bias = 1.0;
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
 
     let training_data: Vec<(Vec<f64>, f64)> = (0..100).map(|_| {
-        let x = rng.gen::<f64>() * 4.0 - 2.0;
-        let y = true_weights[0] * x + true_bias + rng.gen::<f64>() * 0.1 - 0.05;
+        let x = rng.random::<f64>() * 4.0 - 2.0;
+        let y = true_weights[0] * x + true_bias + rng.random::<f64>() * 0.1 - 0.05;
         (vec![x], y)
     }).collect();
 

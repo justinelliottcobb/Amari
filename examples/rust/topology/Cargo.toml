@@ -26,6 +26,6 @@ path = "src/topological_data_analysis.rs"
 amari = { workspace = true, features = ["topology"] }
 amari-core = { workspace = true }
 amari-topology = { workspace = true }
-rand = "0.8"
+rand = "0.10"
 nalgebra = "0.33"
 approx = "0.5"

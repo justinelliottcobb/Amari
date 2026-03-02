@@ -20,7 +20,7 @@
 //! let proposal_std = 0.1;
 //! let sampler = MetropolisHastings::new(&target, proposal_std);
 //!
-//! let mut rng = rand::thread_rng();
+//! let mut rng = rand::rng();
 //! let samples = sampler.run(&mut rng, 10000, 1000)?; // 10k samples, 1k burnin
 //! ```
 

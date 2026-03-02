@@ -6,7 +6,7 @@
 
 use amari_core::{Multivector, Vector, Bivector};
 use std::f64::consts::PI;
-use rand::Rng;
+use rand::{Rng, RngExt};
 
 type Cl3 = Multivector<3, 0, 0>;
 
@@ -597,7 +597,7 @@ fn monte_carlo_demo() {
 
     let num_samples = 16;
     let mut shadow_samples = 0;
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
 
     println!("Sample\\tLight Position\\t\\t\\tShadow Ray\\t\\tBlocked?");
     println!("\\t(x, y, z)\\t\\t\\t(direction)\\t\\t");
@@ -605,8 +605,8 @@ fn monte_carlo_demo() {
 
     for i in 0..num_samples {
         // Generate random point on light surface (simplified circular sampling)
-        let theta = rng.gen::<f64>() * 2.0 * PI;
-        let r = rng.gen::<f64>().sqrt() * light_radius;
+        let theta = rng.random::<f64>() * 2.0 * PI;
+        let r = rng.random::<f64>().sqrt() * light_radius;
         let light_offset = Vector::from_components(
             r * theta.cos(),
             0.0,

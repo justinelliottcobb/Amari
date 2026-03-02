@@ -4,7 +4,7 @@ use crate::distribution::Distribution;
 use crate::error::{ProbabilisticError, Result};
 use crate::sampling::{MetropolisHastings, Sampler};
 use amari_core::Multivector;
-use rand::Rng;
+use rand::{Rng, RngExt};
 use std::marker::PhantomData;
 
 /// Bayesian model on geometric algebra spaces
@@ -160,7 +160,7 @@ impl<const P: usize, const Q: usize, const R: usize> Distribution<Multivector<P,
         let range = self.upper_bound - self.lower_bound;
 
         let coeffs: Vec<f64> = (0..dim)
-            .map(|_| self.lower_bound + rng.gen::<f64>() * range)
+            .map(|_| self.lower_bound + rng.random::<f64>() * range)
             .collect();
 
         Multivector::from_coefficients(coeffs)
@@ -361,7 +361,7 @@ mod tests {
     #[test]
     fn test_jeffreys_prior() {
         let prior = JeffreysPrior::<2, 0, 0>::new();
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
 
         let sample = prior.sample(&mut rng);
         let log_p = prior.log_prob(&sample).unwrap();
@@ -374,7 +374,7 @@ mod tests {
     fn test_gaussian_prior() {
         let mean = Multivector::<2, 0, 0>::scalar(1.0);
         let prior = GaussianPrior::new(mean.clone(), 1.0).unwrap();
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
 
         let samples = prior.sample_n(&mut rng, 100);
         assert_eq!(samples.len(), 100);

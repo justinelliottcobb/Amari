@@ -27,7 +27,7 @@ amari = { workspace = true }
 amari-core = { workspace = true }
 amari-dual = { workspace = true }
 plotters = "0.3"
-rand = "0.8"
+rand = "0.10"
 nalgebra = "0.33"
 approx = "0.5"
 csv = "1.3"

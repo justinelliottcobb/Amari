@@ -22,6 +22,7 @@ serde = { workspace = true }
 serde-wasm-bindgen = "0.6"
 nalgebra = { workspace = true }
 fastrand = "2.0"
+getrandom = { version = "0.4", features = ["wasm_js"] }
 
 # Amari dependencies - now WASM-compatible by default
 # Note: high-precision now uses pure Rust dashu-float (WASM-compatible)
