@@ -41,7 +41,7 @@ amari-dynamics = { workspace = true, features = ["stochastic"] }
 plotters = "0.3"
 rand = "0.10"
 rand_chacha = "0.10"
-nalgebra = "0.33"
+nalgebra = "0.34"
 approx = "0.5"
 
 [features]

@@ -4,7 +4,7 @@
 //! with concrete geometric algebra operations.
 
 use super::verified::VerifiedMultivector;
-use creusot_contracts::requires;
+use creusot_contracts::macros::requires;
 use num_traits::{Float, One, Zero};
 
 /// Verified scalar multiplication

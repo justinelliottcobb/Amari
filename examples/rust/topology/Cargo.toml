@@ -27,5 +27,5 @@ amari = { workspace = true, features = ["topology"] }
 amari-core = { workspace = true }
 amari-topology = { workspace = true }
 rand = "0.10"
-nalgebra = "0.33"
+nalgebra = "0.34"
 approx = "0.5"
