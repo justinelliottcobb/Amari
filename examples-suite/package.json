@@ -21,7 +21,7 @@
     "@justinelliottcobb/amari-wasm": "latest",
     "@mantine/code-highlight": "^7.17.0",
     "@mantine/core": "^7.17.0",
-    "@mantine/hooks": "^7.17.0",
+    "@mantine/hooks": "^8.3.15",
     "@vitejs/plugin-react": "^5.0.0",
     "postcss": "^8.4.49",
     "postcss-preset-mantine": "^1.18.0",
