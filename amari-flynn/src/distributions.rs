@@ -1,7 +1,7 @@
 //! Common probability distributions
 
 use crate::prob::Prob;
-use rand::Rng;
+use rand::RngExt;
 use rand_distr::{Bernoulli as RandBernoulli, Distribution, Exp, Normal as RandNormal};
 
 /// Uniform distribution over a range
@@ -19,8 +19,8 @@ impl Uniform<i32> {
 
     /// Sample from the distribution
     pub fn sample(&self) -> Prob<i32> {
-        let mut rng = rand::thread_rng();
-        let value = rng.gen_range(self.min..self.max);
+        let mut rng = rand::rng();
+        let value = rng.random_range(self.min..self.max);
         Prob::new(value)
     }
 }
@@ -40,7 +40,7 @@ impl Bernoulli {
 
     /// Sample from the distribution
     pub fn sample(&self) -> Prob<bool> {
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         let dist = RandBernoulli::new(self.p).unwrap();
         let value = dist.sample(&mut rng);
         Prob::with_probability(self.p, value)
@@ -63,7 +63,7 @@ impl Normal {
 
     /// Sample from the distribution
     pub fn sample(&self) -> Prob<f64> {
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         let dist = RandNormal::new(self.mean, self.std_dev).unwrap();
         let value = dist.sample(&mut rng);
         Prob::new(value)
@@ -85,7 +85,7 @@ impl Exponential {
 
     /// Sample from the distribution
     pub fn sample(&self) -> Prob<f64> {
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         let dist = Exp::new(self.lambda).unwrap();
         let value = dist.sample(&mut rng);
         Prob::new(value)

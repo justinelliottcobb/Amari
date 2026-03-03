@@ -6,7 +6,7 @@
 use crate::distribution::Distribution;
 use crate::error::{ProbabilisticError, Result};
 use amari_core::Multivector;
-use rand::Rng;
+use rand::{Rng, RngExt};
 use rand_distr::{Distribution as RandDist, Normal};
 
 /// Trait for MCMC samplers
@@ -110,7 +110,7 @@ where
     /// * `target` - Target distribution to sample from
     /// * `proposal_std` - Standard deviation of the Gaussian proposal
     pub fn new(target: &'a D, proposal_std: f64) -> Self {
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         let initial = target.sample(&mut rng);
         let log_prob = target.log_prob(&initial).unwrap_or(f64::NEG_INFINITY);
 
@@ -185,7 +185,7 @@ where
         let accept = if log_accept_ratio >= 0.0 {
             true
         } else {
-            let u: f64 = rng.gen();
+            let u: f64 = rng.random();
             u.ln() < log_accept_ratio
         };
 
@@ -246,7 +246,7 @@ where
     /// * `step_size` - Step size for leapfrog integration
     /// * `num_leapfrog` - Number of leapfrog steps per proposal
     pub fn new(target: &'a D, step_size: f64, num_leapfrog: usize) -> Self {
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         let initial = target.sample(&mut rng);
         let log_prob = target.log_prob(&initial).unwrap_or(f64::NEG_INFINITY);
 
@@ -396,7 +396,7 @@ where
         let accept = if log_accept >= 0.0 {
             true
         } else {
-            let u: f64 = rng.gen();
+            let u: f64 = rng.random();
             u.ln() < log_accept
         };
 
@@ -430,7 +430,7 @@ mod tests {
     fn test_metropolis_hastings() {
         let target = GaussianMultivector::<2, 0, 0>::standard();
         let mut sampler = MetropolisHastings::new(&target, 0.5);
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
 
         // Run for a few steps
         let samples = sampler.run(&mut rng, 100, 50).unwrap();
@@ -446,7 +446,7 @@ mod tests {
     fn test_hmc() {
         let target = GaussianMultivector::<2, 0, 0>::standard();
         let mut sampler = HamiltonianMonteCarlo::new(&target, 0.1, 10);
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
 
         // Run for a few steps
         let samples = sampler.run(&mut rng, 50, 10).unwrap();
@@ -461,7 +461,7 @@ mod tests {
     fn test_sampler_diagnostics() {
         let target = GaussianMultivector::<2, 0, 0>::standard();
         let mut sampler = MetropolisHastings::new(&target, 0.5);
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
 
         // Initial diagnostics
         let diag0 = sampler.diagnostics();

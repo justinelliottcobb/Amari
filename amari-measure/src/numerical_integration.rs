@@ -26,7 +26,7 @@
 //! ```
 
 use crate::error::{MeasureError, Result};
-use rand::Rng;
+use rand::RngExt;
 
 /// Monte Carlo integration over an interval
 ///
@@ -60,11 +60,11 @@ where
         ));
     }
 
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     let mut sum = 0.0;
 
     for _ in 0..num_samples {
-        let x = rng.gen_range(a..b);
+        let x = rng.random_range(a..b);
         sum += f(x);
     }
 
@@ -280,7 +280,7 @@ where
     }
 
     let dimension = bounds.len();
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     let mut sum = 0.0;
 
     // Compute volume of integration region
@@ -290,7 +290,7 @@ where
     let mut point = vec![0.0; dimension];
     for _ in 0..num_samples {
         for (i, (a, b)) in bounds.iter().enumerate() {
-            point[i] = rng.gen_range(*a..*b);
+            point[i] = rng.random_range(*a..*b);
         }
         sum += f(&point);
     }

@@ -60,7 +60,7 @@ where
             return Err(ProbabilisticError::insufficient_samples(1, 0));
         }
 
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         let sum: f64 = (0..num_samples)
             .map(|_| {
                 let x = self.distribution.sample(&mut rng);
@@ -82,7 +82,7 @@ where
             return Err(ProbabilisticError::insufficient_samples(2, num_samples));
         }
 
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         let values: Vec<f64> = (0..num_samples)
             .map(|_| {
                 let x = self.distribution.sample(&mut rng);
@@ -111,7 +111,7 @@ where
         }
 
         let _dim = 1 << (P + Q + R);
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         let mut sum = 0.0;
 
         for _ in 0..num_pairs {
@@ -163,7 +163,7 @@ where
             return Err(ProbabilisticError::insufficient_samples(1, 0));
         }
 
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         let mut weighted_sum = 0.0;
         let mut weight_sum = 0.0;
 
@@ -194,7 +194,7 @@ where
 
     /// Compute effective sample size (ESS)
     pub fn effective_sample_size(&self, num_samples: usize) -> Result<f64> {
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         let mut weights = Vec::with_capacity(num_samples);
 
         for _ in 0..num_samples {

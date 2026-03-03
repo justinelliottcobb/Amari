@@ -141,7 +141,7 @@ impl<const P: usize, const Q: usize, const R: usize> MomentComputer<P, Q, R> {
     where
         D: Distribution<Multivector<P, Q, R>>,
     {
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         let samples = dist.sample_n(&mut rng, self.num_samples);
 
         let mut sum = Multivector::zero();
@@ -160,7 +160,7 @@ impl<const P: usize, const Q: usize, const R: usize> MomentComputer<P, Q, R> {
     where
         D: Distribution<Multivector<P, Q, R>>,
     {
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         let samples = dist.sample_n(&mut rng, self.num_samples);
 
         // Compute mean first

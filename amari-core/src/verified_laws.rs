@@ -5,7 +5,7 @@
 
 #![cfg(feature = "formal-verification")]
 
-use creusot_contracts::{ensures, requires};
+use creusot_contracts::macros::{ensures, requires};
 use super::verified::VerifiedMultivector;
 use num_traits::{Zero, One, Float};
 

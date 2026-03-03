@@ -216,7 +216,7 @@ impl<T: Float> ParetoFront<T> {
         // Monte Carlo approximation
         let samples = 10000;
         let mut dominated_count = 0;
-        let mut rng = thread_rng();
+        let mut rng = rand::rng();
 
         let obj_count = self.solutions[0].objectives.len();
 
@@ -230,7 +230,7 @@ impl<T: Float> ParetoFront<T> {
                         .map(|s| s.objectives[i])
                         .fold(T::infinity(), |a, b| if a < b { a } else { b });
                     let range = reference_point[i] - min_obj;
-                    min_obj + T::from(rng.gen::<f64>()).unwrap() * range
+                    min_obj + T::from(rng.random::<f64>()).unwrap() * range
                 })
                 .collect();
 
@@ -342,7 +342,7 @@ impl<T: Float> NsgaII<T> {
         _problem: &OptimizationProblem<DIM, C, MultiObjective, V, M>,
         objective_function: &impl MultiObjectiveFunction<T>,
     ) -> OptimizationResult<MultiObjectiveResult<T>> {
-        let mut rng = thread_rng();
+        let mut rng = rand::rng();
 
         // Initialize population
         let mut population = self.initialize_population(objective_function, &mut rng)?;
@@ -444,7 +444,7 @@ impl<T: Float> NsgaII<T> {
                 .iter()
                 .map(|(min, max)| {
                     let range = *max - *min;
-                    *min + T::from(rng.gen::<f64>()).unwrap() * range
+                    *min + T::from(rng.random::<f64>()).unwrap() * range
                 })
                 .collect();
 
@@ -547,17 +547,17 @@ impl<T: Float> NsgaII<T> {
 
             // Crossover
             let (mut child1, mut child2) =
-                if rng.gen::<f64>() < self.config.crossover_probability.to_f64().unwrap() {
+                if rng.random::<f64>() < self.config.crossover_probability.to_f64().unwrap() {
                     self.simulated_binary_crossover(parent1, parent2, rng)
                 } else {
                     (parent1.clone(), parent2.clone())
                 };
 
             // Mutation
-            if rng.gen::<f64>() < self.config.mutation_probability.to_f64().unwrap() {
+            if rng.random::<f64>() < self.config.mutation_probability.to_f64().unwrap() {
                 self.polynomial_mutation(&mut child1, objective_function, rng);
             }
-            if rng.gen::<f64>() < self.config.mutation_probability.to_f64().unwrap() {
+            if rng.random::<f64>() < self.config.mutation_probability.to_f64().unwrap() {
                 self.polynomial_mutation(&mut child2, objective_function, rng);
             }
 
@@ -585,10 +585,10 @@ impl<T: Float> NsgaII<T> {
         rng: &mut ThreadRng,
     ) -> &'a Individual<T> {
         let tournament_size = 2;
-        let mut best = &population[rng.gen_range(0..population.len())];
+        let mut best = &population[rng.random_range(0..population.len())];
 
         for _ in 1..tournament_size {
-            let candidate = &population[rng.gen_range(0..population.len())];
+            let candidate = &population[rng.random_range(0..population.len())];
             if candidate.rank < best.rank
                 || (candidate.rank == best.rank
                     && candidate.crowding_distance > best.crowding_distance)
@@ -612,11 +612,11 @@ impl<T: Float> NsgaII<T> {
         let mut child2 = parent2.clone();
 
         for i in 0..parent1.variables.len() {
-            if rng.gen::<f64>() <= 0.5 {
+            if rng.random::<f64>() <= 0.5 {
                 let p1 = parent1.variables[i].to_f64().unwrap();
                 let p2 = parent2.variables[i].to_f64().unwrap();
 
-                let u = rng.gen::<f64>();
+                let u = rng.random::<f64>();
                 let beta = if u <= 0.5 {
                     (2.0 * u).powf(1.0 / (eta_c + 1.0))
                 } else {
@@ -646,7 +646,7 @@ impl<T: Float> NsgaII<T> {
         let num_variables = individual.variables.len();
 
         for (i, variable) in individual.variables.iter_mut().enumerate() {
-            if rng.gen::<f64>() <= (1.0 / num_variables as f64) {
+            if rng.random::<f64>() <= (1.0 / num_variables as f64) {
                 let (lower, upper) = bounds[i];
                 let x = variable.to_f64().unwrap();
                 let xl = lower.to_f64().unwrap();
@@ -655,7 +655,7 @@ impl<T: Float> NsgaII<T> {
                 let delta1 = (x - xl) / (xu - xl);
                 let delta2 = (xu - x) / (xu - xl);
 
-                let rnd = rng.gen::<f64>();
+                let rnd = rng.random::<f64>();
                 let deltaq = if rnd <= 0.5 {
                     let xy = 1.0 - delta1;
                     let val = 2.0 * rnd + (1.0 - 2.0 * rnd) * xy.powf(eta_m + 1.0);

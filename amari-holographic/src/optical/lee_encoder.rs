@@ -337,10 +337,10 @@ mod tests {
         // (amplitude 1.0 gives threshold cos(π) = -1, so everything passes)
         let phase: Vec<f32> = (0..128 * 128)
             .map(|i| {
-                use rand::Rng;
+                use rand::RngExt;
                 use rand::SeedableRng;
                 let mut rng = rand_chacha::ChaCha8Rng::seed_from_u64(42 + i as u64);
-                rng.gen::<f32>() * std::f32::consts::TAU
+                rng.random::<f32>() * std::f32::consts::TAU
             })
             .collect();
         let amplitude = vec![0.5; 128 * 128];

@@ -3,7 +3,8 @@
 //! Measures critical operations for simplicial complexes and homology.
 
 use amari_topology::{compute_homology, Simplex, SimplicialComplex};
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use criterion::{criterion_group, criterion_main, Criterion};
+use std::hint::black_box;
 
 /// Benchmark simplex creation
 fn bench_simplex_creation(c: &mut Criterion) {

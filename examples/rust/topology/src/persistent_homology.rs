@@ -21,7 +21,7 @@ use amari_topology::{
     simplex::Simplex,
     complex::SimplicialComplex,
 };
-use rand::Rng;
+use rand::{Rng, RngExt};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("═══════════════════════════════════════════════════════════════");

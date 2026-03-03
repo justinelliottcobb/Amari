@@ -4,7 +4,8 @@ use amari_relativistic::constants;
 use amari_relativistic::precision::*;
 use amari_relativistic::precision_geodesic::*;
 use amari_relativistic::spacetime::SpacetimeVector;
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use criterion::{criterion_group, criterion_main, Criterion};
+use std::hint::black_box;
 
 /// Benchmark basic precision arithmetic operations
 fn bench_precision_arithmetic(c: &mut Criterion) {

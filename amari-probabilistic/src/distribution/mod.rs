@@ -22,7 +22,7 @@
 //! );
 //!
 //! // Sample from the distribution
-//! let mut rng = rand::thread_rng();
+//! let mut rng = rand::rng();
 //! let sample: Multivector<3, 0, 0> = dist.sample(&mut rng);
 //!
 //! // Evaluate log probability
@@ -222,6 +222,7 @@ pub trait ConjugateTo<Likelihood>: Distribution<Likelihood> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use rand::RngExt;
 
     // Mock distribution for testing trait definitions
     struct MockDistribution {
@@ -230,7 +231,7 @@ mod tests {
 
     impl Distribution<f64> for MockDistribution {
         fn sample<R: Rng>(&self, rng: &mut R) -> f64 {
-            self.mean + rng.gen::<f64>() - 0.5
+            self.mean + rng.random::<f64>() - 0.5
         }
 
         fn log_prob(&self, x: &f64) -> Result<f64> {
@@ -247,7 +248,7 @@ mod tests {
     #[test]
     fn test_distribution_trait() {
         let dist = MockDistribution { mean: 5.0 };
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
 
         let sample = dist.sample(&mut rng);
         assert!((sample - 5.0).abs() <= 0.5);
@@ -262,7 +263,7 @@ mod tests {
     #[test]
     fn test_sample_n() {
         let dist = MockDistribution { mean: 0.0 };
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
 
         let samples = dist.sample_n(&mut rng, 100);
         assert_eq!(samples.len(), 100);

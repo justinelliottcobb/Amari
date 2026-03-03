@@ -274,7 +274,7 @@ fn test_natural_gradient_integration() {
 }
 
 // TODO: Re-enable this test after fixing non-deterministic flakiness
-// ISSUE: NSGA-II uses thread_rng() with no fixed seed, causing random test failures
+// ISSUE: NSGA-II uses rand::rng() with no fixed seed, causing random test failures
 // The algorithm occasionally produces values outside expected bounds due to stochastic nature
 // Example failure: "Second objective should be in reasonable range, got -2.036194341357172"
 //
