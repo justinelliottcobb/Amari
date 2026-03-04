@@ -9,7 +9,7 @@ use amari_core::Multivector;
 use std::marker::PhantomData;
 
 #[cfg(feature = "formal-verification")]
-use creusot_contracts::{ensures, requires};
+use creusot_contracts::macros::{ensures, requires};
 
 /// Phantom type encoding the metric signature of the underlying Clifford algebra
 /// - P: number of positive basis vectors (e_i² = +1)

@@ -169,10 +169,10 @@ impl GpuProbabilistic {
         mean: &[f64],
         std_dev: &[f64],
     ) -> GpuProbabilisticResult<Vec<f64>> {
-        use rand::Rng;
+        use rand::RngExt;
         use rand_distr::StandardNormal;
 
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         let mut result = Vec::with_capacity(num_samples * self.dimension);
 
         for _ in 0..num_samples {
@@ -197,10 +197,10 @@ impl GpuProbabilistic {
         let std_dev_f32: Vec<f32> = std_dev.iter().map(|&x| x as f32).collect();
 
         // Generate random seeds (Box-Muller needs pairs)
-        use rand::Rng;
-        let mut rng = rand::thread_rng();
+        use rand::RngExt;
+        let mut rng = rand::rng();
         let random_seeds: Vec<f32> = (0..num_samples * self.dimension * 2)
-            .map(|_| rng.gen::<f32>())
+            .map(|_| rng.random::<f32>())
             .collect();
 
         // Create buffers

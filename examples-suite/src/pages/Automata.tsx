@@ -229,7 +229,7 @@ visualization.forEach((row, y) => {
         ca.setCell(2, 1, [0.8, 0.3, 0.2, 0.0, 0.0, 0.0, 0.0, 0.0]);
         ca.setCell(3, 1, [1.2, 0.7, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
 
-        let result = [`Initial state:`, `Generation: ${ca.generation}`];
+        const result = [`Initial state:`, `Generation: ${ca.generation}`];
 
         for (let i = 0; i < 3; i++) {
           ca.evolve();
@@ -424,7 +424,7 @@ console.log("• Composition of rotations through rotor multiplication");`,
           rotorCA.rotors[i] = rotorCA.createRotor(angle, 0, 0, 1);
         }
 
-        let result = [];
+        const result = [];
         result.push("Rotor Cellular Automaton Evolution:");
         result.push(`Initial angles: [${rotorCA.getRotationAngles().map(a => (a * 180/Math.PI).toFixed(1)).join(', ')}°]`);
 
@@ -693,7 +693,7 @@ console.log("\\nSelf-assembly complete!");`,
 
         const assembly = new SelfAssemblySystem();
 
-        let result = ["Initializing self-assembly system..."];
+        const result = ["Initializing self-assembly system..."];
 
         assembly.addComponent('A', [0, 0, 0], [1, 0, 0, 0], [[1, 0, 0], [0, 1, 0]]);
         assembly.addComponent('B', [0.9, 0, 0], [1, 0, 0, 0], [[-0.1, 0, 0], [0.9, 0, 0]]);

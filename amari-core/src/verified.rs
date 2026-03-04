@@ -8,7 +8,7 @@ use num_traits::{Float, One, Zero};
 use std::marker::PhantomData;
 
 #[cfg(feature = "formal-verification")]
-use creusot_contracts::{ensures, requires};
+use creusot_contracts::macros::{ensures, requires};
 
 /// Phantom type encoding the metric signature of a Clifford algebra Cl(p,q,r)
 /// - P: number of positive basis vectors (e_i² = +1)

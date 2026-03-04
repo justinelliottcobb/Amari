@@ -21,12 +21,12 @@ thiserror = { workspace = true }
 num-traits = { workspace = true }
 nalgebra = { workspace = true }
 rand = { workspace = true, optional = true }
-rand_distr = { version = "0.4", optional = true }
+rand_distr = { version = "0.6", optional = true }
 
 # GPU acceleration dependencies
 wgpu = { version = "0.19", optional = true }
 bytemuck = { version = "1.14", optional = true, features = ["derive"] }
-pollster = { version = "0.3", optional = true }
+pollster = { version = "0.4", optional = true }
 futures = { version = "0.3", optional = true }
 tokio = { version = "1.0", optional = true, features = ["rt", "sync"] }
 
@@ -41,7 +41,7 @@ version = "1.8"
 optional = true
 
 [dependencies.creusot-contracts]
-version = "0.4"
+version = "0.8"
 optional = true
 
 [dev-dependencies]

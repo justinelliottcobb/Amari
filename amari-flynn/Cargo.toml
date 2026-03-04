@@ -14,11 +14,10 @@ categories = ["mathematics", "science", "development-tools"]
 amari-flynn-macros = { workspace = true }
 rand = { workspace = true }
 rand_distr = { workspace = true }
-statrs = "0.17"
 
 [dev-dependencies]
 approx = { workspace = true }
-criterion = "0.5"
+criterion = "0.8"
 proptest = "1.0"
 
 [features]

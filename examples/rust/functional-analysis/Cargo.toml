@@ -30,5 +30,5 @@ path = "src/distributions.rs"
 amari = { workspace = true, features = ["functional"] }
 amari-core = { workspace = true }
 amari-functional = { workspace = true }
-nalgebra = "0.33"
+nalgebra = "0.34"
 approx = "0.5"

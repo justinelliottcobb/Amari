@@ -2,7 +2,7 @@
 //!
 //! The core `Prob<T>` type wraps values with runtime probability tracking.
 
-use rand::Rng;
+use rand::{Rng, RngExt};
 
 /// A value with associated probability
 ///
@@ -132,12 +132,12 @@ impl<T> Prob<T> {
     /// use amari_flynn::prob::Prob;
     ///
     /// let coin = Prob::with_probability(0.5, "heads");
-    /// let result = coin.sample(&mut rand::thread_rng());
+    /// let result = coin.sample(&mut rand::rng());
     /// // result is either Some("heads") or None
     /// ```
     #[inline]
     pub fn sample<R: Rng>(self, rng: &mut R) -> Option<T> {
-        if rng.gen::<f64>() < self.probability {
+        if rng.random::<f64>() < self.probability {
             Some(self.value)
         } else {
             None

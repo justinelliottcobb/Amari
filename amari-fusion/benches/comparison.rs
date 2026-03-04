@@ -8,7 +8,8 @@ use amari_dual::{
 };
 use amari_fusion::TropicalDualClifford;
 use amari_tropical::{viterbi::TropicalViterbi, TropicalNumber};
-use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
+use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
+use std::hint::black_box;
 
 /// Benchmark tropical vs standard softmax computation
 fn benchmark_softmax_comparison(c: &mut Criterion) {

@@ -22,7 +22,7 @@
 //! let gaussian = GaussianMultivector::<3, 0, 0>::standard();
 //!
 //! // Sample and evaluate
-//! let mut rng = rand::thread_rng();
+//! let mut rng = rand::rng();
 //! let sample = gaussian.sample(&mut rng);
 //! let log_p = gaussian.log_prob(&sample)?;
 //! ```
@@ -358,7 +358,7 @@ impl<const P: usize, const Q: usize, const R: usize> Distribution<Multivector<P,
         let mut coeffs = Vec::with_capacity(Self::DIM);
 
         for i in 0..Self::DIM {
-            let uniform = Uniform::new(self.mins[i], self.maxs[i]);
+            let uniform = Uniform::new(self.mins[i], self.maxs[i]).unwrap();
             coeffs.push(uniform.sample(rng));
         }
 
@@ -545,7 +545,7 @@ mod tests {
     #[test]
     fn test_gaussian_standard() {
         let gaussian = GaussianMultivector::<2, 0, 0>::standard();
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
 
         // Sample and check dimensions
         let sample = gaussian.sample(&mut rng);
@@ -584,7 +584,7 @@ mod tests {
     #[test]
     fn test_uniform_hypercube() {
         let uniform = UniformMultivector::<1, 0, 0>::hypercube(-1.0, 1.0).unwrap();
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
 
         // Sample multiple times and check bounds
         for _ in 0..100 {
@@ -630,7 +630,7 @@ mod tests {
     #[test]
     fn test_sample_n() {
         let gaussian = GaussianMultivector::<2, 0, 0>::standard();
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
 
         let samples = gaussian.sample_n(&mut rng, 50);
         assert_eq!(samples.len(), 50);

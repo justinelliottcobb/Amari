@@ -11,7 +11,7 @@ use crate::constants::C;
 use nalgebra::Vector3;
 
 #[cfg(feature = "formal-verification")]
-use creusot_contracts::{ensures, requires};
+use creusot_contracts::macros::{ensures, requires};
 
 /// Verified Lorentz transformation with mathematical guarantees
 ///

@@ -17,7 +17,7 @@ use amari_topology::{
     tda::{PointCloud, VietorisRips, AlphaComplex, WassersteinDistance},
     statistics::{PersistenceLandscape, PersistenceImage, BottleneckStability},
 };
-use rand::Rng;
+use rand::{Rng, RngExt};
 use nalgebra::DVector;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -37,9 +37,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .map(|i| {
             let theta = 2.0 * std::f64::consts::PI * i as f64 / n_circle as f64;
             // Add small noise
-            let mut rng = rand::thread_rng();
-            let noise_r = 1.0 + 0.05 * rng.gen::<f64>();
-            let noise_theta = theta + 0.05 * rng.gen::<f64>();
+            let mut rng = rand::rng();
+            let noise_r = 1.0 + 0.05 * rng.random::<f64>();
+            let noise_theta = theta + 0.05 * rng.random::<f64>();
             DVector::from_vec(vec![noise_r * noise_theta.cos(), noise_r * noise_theta.sin()])
         })
         .collect();
@@ -78,9 +78,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .map(|i| {
             let t = 2.0 * std::f64::consts::PI * i as f64 / n_figure8 as f64;
             // Lemniscate of Bernoulli: (x,y) = (cos(t), sin(t)cos(t))
-            let mut rng = rand::thread_rng();
-            let x = t.cos() + 0.05 * rng.gen::<f64>();
-            let y = t.sin() * t.cos() + 0.05 * rng.gen::<f64>();
+            let mut rng = rand::rng();
+            let x = t.cos() + 0.05 * rng.random::<f64>();
+            let y = t.sin() * t.cos() + 0.05 * rng.random::<f64>();
             DVector::from_vec(vec![x, y])
         })
         .collect();
@@ -106,12 +106,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Generate 3 clusters
     let mut cluster_points = Vec::new();
     let centers = [(0.0, 0.0), (3.0, 0.0), (1.5, 2.5)];
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
 
     for (cx, cy) in centers.iter() {
         for _ in 0..20 {
-            let x = cx + 0.3 * rng.gen::<f64>() - 0.15;
-            let y = cy + 0.3 * rng.gen::<f64>() - 0.15;
+            let x = cx + 0.3 * rng.random::<f64>() - 0.15;
+            let y = cy + 0.3 * rng.random::<f64>() - 0.15;
             cluster_points.push(DVector::from_vec(vec![x, y]));
         }
     }
@@ -235,10 +235,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Create slightly perturbed circle
     let perturbed_circle: Vec<DVector<f64>> = circle_points.iter()
         .map(|p| {
-            let mut rng = rand::thread_rng();
+            let mut rng = rand::rng();
             let noise = DVector::from_vec(vec![
-                0.1 * rng.gen::<f64>() - 0.05,
-                0.1 * rng.gen::<f64>() - 0.05,
+                0.1 * rng.random::<f64>() - 0.05,
+                0.1 * rng.random::<f64>() - 0.05,
             ]);
             p + noise
         })
@@ -319,8 +319,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let noisy_circle: Vec<DVector<f64>> = (0..n_noisy)
         .map(|i| {
             let theta = 2.0 * std::f64::consts::PI * i as f64 / n_noisy as f64;
-            let mut rng = rand::thread_rng();
-            let r = 1.0 + 0.3 * (rng.gen::<f64>() - 0.5);  // Larger noise
+            let mut rng = rand::rng();
+            let r = 1.0 + 0.3 * (rng.random::<f64>() - 0.5);  // Larger noise
             DVector::from_vec(vec![r * theta.cos(), r * theta.sin()])
         })
         .collect();
