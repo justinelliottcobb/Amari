@@ -1,6 +1,7 @@
 import React, { ReactElement } from 'react';
 import { render, RenderOptions } from '@testing-library/react';
 import { MantineProvider, createTheme } from '@mantine/core';
+import { CodeHighlightAdapterProvider, plainTextAdapter } from '@mantine/code-highlight';
 import { MemoryRouter } from 'react-router-dom';
 
 const theme = createTheme({
@@ -16,7 +17,9 @@ function AllProviders({ children, initialEntries = ['/'] }: AllProvidersProps) {
   return (
     <MemoryRouter initialEntries={initialEntries}>
       <MantineProvider theme={theme} defaultColorScheme="dark">
-        {children}
+        <CodeHighlightAdapterProvider adapter={plainTextAdapter}>
+          {children}
+        </CodeHighlightAdapterProvider>
       </MantineProvider>
     </MemoryRouter>
   );
