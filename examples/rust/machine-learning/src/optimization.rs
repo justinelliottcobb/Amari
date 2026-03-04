@@ -6,7 +6,7 @@
 
 use amari_dual::{Dual, DualNumber};
 use amari_core::{Vector, Multivector};
-use rand::Rng;
+use rand::{Rng, RngExt};
 use std::f64::consts::PI;
 
 /// A general optimization problem using dual numbers
@@ -539,8 +539,8 @@ fn high_dimensional_demo() {
         let problem = OptimizationProblem::new("rastrigin", dim);
 
         // Random starting point
-        let mut rng = rand::thread_rng();
-        let initial_point: Vec<f64> = (0..dim).map(|_| rng.gen::<f64>() * 10.0 - 5.0).collect();
+        let mut rng = rand::rng();
+        let initial_point: Vec<f64> = (0..dim).map(|_| rng.random::<f64>() * 10.0 - 5.0).collect();
 
         let initial_value = problem.evaluate(&initial_point);
         let result = optimizer.optimize(&problem, initial_point);

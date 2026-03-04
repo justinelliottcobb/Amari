@@ -424,7 +424,7 @@ export function FisherVisualization() {
     if (!isAnimating) return;
     const interval = setInterval(() => {
       setProbabilities(prev => {
-        let newProbs = prev.map(p => Math.max(0.01, p + (Math.random() - 0.5) * 0.03));
+        const newProbs = prev.map(p => Math.max(0.01, p + (Math.random() - 0.5) * 0.03));
         const sum = newProbs.reduce((a, b) => a + b, 0);
         return newProbs.map(p => p / sum);
       });

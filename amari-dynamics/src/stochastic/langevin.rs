@@ -36,7 +36,7 @@
 //! let duffing = DuffingOscillator::double_well();
 //! let langevin = LangevinSystem::new(duffing, 0.1);
 //!
-//! let mut rng = rand::thread_rng();
+//! let mut rng = rand::rng();
 //! let trajectory = langevin.simulate(initial, 0.0, 100.0, 10000, &mut rng)?;
 //! ```
 

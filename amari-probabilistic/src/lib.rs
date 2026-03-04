@@ -24,7 +24,7 @@
 //! let gaussian = GaussianMultivector::<3, 0, 0>::standard();
 //!
 //! // Draw samples
-//! let mut rng = rand::thread_rng();
+//! let mut rng = rand::rng();
 //! let sample: Multivector<3, 0, 0> = gaussian.sample(&mut rng);
 //!
 //! // Evaluate log-probability
@@ -138,7 +138,7 @@ mod tests {
     fn test_crate_compiles() {
         // Basic smoke test
         let gaussian = GaussianMultivector::<2, 0, 0>::standard();
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         let _ = gaussian.sample(&mut rng);
     }
 

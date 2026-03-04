@@ -13,7 +13,8 @@
 //! cargo bench
 //! ```
 
-use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
+use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
+use std::hint::black_box;
 
 // Note: These benchmarks are conceptual as the actual integration module
 // is a trait-based framework without concrete numerical integration implementations.

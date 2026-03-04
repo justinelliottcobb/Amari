@@ -119,7 +119,7 @@ for (const face of boundary) {
         const boundary = computeBoundary(triangle);
 
         // Compute boundary of boundary
-        let boundaryOfBoundary: Map<string, number> = new Map();
+        const boundaryOfBoundary: Map<string, number> = new Map();
         for (const { face, sign } of boundary) {
           const subBoundary = computeBoundary(face);
           for (const { face: subFace, sign: subSign } of subBoundary) {

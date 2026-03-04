@@ -68,7 +68,7 @@
 //! let langevin = LangevinSystem::new(duffing, 0.1);
 //!
 //! // Simulate an ensemble of trajectories
-//! let mut rng = rand::thread_rng();
+//! let mut rng = rand::rng();
 //! let ensemble = langevin.ensemble(initial, 0.0, 100.0, 10000, 100, &mut rng)?;
 //!
 //! // Solve the corresponding Fokker-Planck equation

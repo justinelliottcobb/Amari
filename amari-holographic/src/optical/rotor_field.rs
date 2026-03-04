@@ -93,13 +93,13 @@ impl OpticalRotorField {
     /// * `dimensions` - Grid dimensions (width, height)
     /// * `seed` - Random seed for deterministic generation
     pub fn random(dimensions: (usize, usize), seed: u64) -> Self {
-        use rand::Rng;
+        use rand::RngExt;
 
         let mut rng = ChaCha8Rng::seed_from_u64(seed);
         let n = dimensions.0 * dimensions.1;
 
         let phase: Vec<f32> = (0..n)
-            .map(|_| rng.gen::<f32>() * std::f32::consts::TAU)
+            .map(|_| rng.random::<f32>() * std::f32::consts::TAU)
             .collect();
 
         Self::from_phase(phase, dimensions)

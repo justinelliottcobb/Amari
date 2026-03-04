@@ -58,7 +58,7 @@ impl<const P: usize, const Q: usize, const R: usize> StochasticProcess<P, Q, R>
     ) -> Result<Vec<(f64, Multivector<P, Q, R>)>> {
         let solver = EulerMaruyama::new();
         let initial = Multivector::zero();
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         solver.solve(self, initial, t0, t1, steps, &mut rng)
     }
 }
@@ -149,7 +149,7 @@ impl<const P: usize, const Q: usize, const R: usize> StochasticProcess<P, Q, R>
         // Start from (1, 1, ..., 1) to avoid trivial zero solution
         let dim = 1 << (P + Q + R);
         let initial = Multivector::from_coefficients(vec![1.0; dim]);
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         solver.solve(self, initial, t0, t1, steps, &mut rng)
     }
 }
@@ -244,7 +244,7 @@ impl<const P: usize, const Q: usize, const R: usize> StochasticProcess<P, Q, R>
     ) -> Result<Vec<(f64, Multivector<P, Q, R>)>> {
         let solver = EulerMaruyama::new();
         let initial = self.mean.clone();
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         solver.solve(self, initial, t0, t1, steps, &mut rng)
     }
 }
@@ -287,7 +287,7 @@ mod tests {
     fn test_gbm_exact_solution() {
         let gbm = GeometricBrownianMotion::<2, 0, 0>::new(0.05, 0.1);
         let initial = Multivector::from_coefficients(vec![1.0, 1.0, 1.0, 1.0]);
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
 
         let solution = gbm.exact_solution(&initial, 1.0, &mut rng);
 
@@ -317,7 +317,7 @@ mod tests {
         // Start far from mean
         let initial = Multivector::scalar(10.0);
         let solver = EulerMaruyama::new();
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
 
         let path = solver.solve(&ou, initial, 0.0, 5.0, 500, &mut rng).unwrap();
 

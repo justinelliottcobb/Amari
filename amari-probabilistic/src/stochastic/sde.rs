@@ -328,7 +328,7 @@ mod tests {
         ) -> Result<Vec<(f64, Multivector<P, Q, R>)>> {
             let solver = EulerMaruyama::new();
             let initial = Multivector::zero();
-            let mut rng = rand::thread_rng();
+            let mut rng = rand::rng();
             solver.solve(self, initial, t0, t1, steps, &mut rng)
         }
     }
@@ -341,7 +341,7 @@ mod tests {
         };
         let solver = EulerMaruyama::new();
         let initial = Multivector::scalar(1.0);
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
 
         let path = solver.solve(&ou, initial, 0.0, 1.0, 100, &mut rng).unwrap();
 
@@ -358,7 +358,7 @@ mod tests {
         };
         let solver = Milstein::new();
         let initial = Multivector::scalar(1.0);
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
 
         let path = solver.solve(&ou, initial, 0.0, 1.0, 100, &mut rng).unwrap();
 

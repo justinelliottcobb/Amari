@@ -525,15 +525,15 @@ impl GpuMultiObjectiveOptimizer {
         population_size: usize,
         generations: usize,
     ) -> Result<Vec<OptimizationSolution>, OptimizationError> {
-        use rand::Rng;
-        let mut rng = rand::thread_rng();
+        use rand::RngExt;
+        let mut rng = rand::rng();
 
         // Initialize random population
         let mut population: Vec<Vec<f64>> = Vec::with_capacity(population_size);
         for _ in 0..population_size {
             let individual: Vec<f64> = bounds
                 .iter()
-                .map(|(min, max)| rng.gen_range(*min..=*max))
+                .map(|(min, max)| rng.random_range(*min..=*max))
                 .collect();
             population.push(individual);
         }
@@ -553,14 +553,14 @@ impl GpuMultiObjectiveOptimizer {
 
             // Generate offspring (simplified)
             while population.len() < population_size {
-                let parent = population[rng.gen_range(0..population.len())].clone();
+                let parent = population[rng.random_range(0..population.len())].clone();
                 let mut offspring = parent;
 
                 // Simple mutation
                 for (i, (min, max)) in bounds.iter().enumerate() {
-                    if rng.gen_bool(0.1) {
+                    if rng.random_bool(0.1) {
                         // 10% mutation rate
-                        offspring[i] = rng.gen_range(*min..=*max);
+                        offspring[i] = rng.random_range(*min..=*max);
                     }
                 }
 

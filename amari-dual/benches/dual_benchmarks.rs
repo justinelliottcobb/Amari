@@ -3,7 +3,8 @@
 //! Measures critical operations for dual number and automatic differentiation.
 
 use amari_dual::{DualNumber, MultiDualNumber};
-use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
+use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
+use std::hint::black_box;
 
 /// Benchmark basic dual number arithmetic
 fn bench_dual_arithmetic(c: &mut Criterion) {

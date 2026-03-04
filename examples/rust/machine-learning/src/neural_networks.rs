@@ -6,7 +6,7 @@
 
 use amari_dual::{Dual, DualNumber};
 use amari_core::{Vector, Multivector};
-use rand::Rng;
+use rand::{Rng, RngExt};
 use std::f64::consts::E;
 
 /// A neural network layer implemented with dual numbers for exact gradients
@@ -25,7 +25,7 @@ pub struct Layer {
 impl Layer {
     /// Create a new layer with random initialization
     pub fn new(input_size: usize, output_size: usize) -> Self {
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
 
         // Xavier initialization: scale weights by sqrt(6/(fan_in + fan_out))
         let fan_in = input_size as f64;
@@ -33,11 +33,11 @@ impl Layer {
         let scale = (6.0 / (fan_in + fan_out)).sqrt();
 
         let weights: Vec<f64> = (0..input_size * output_size)
-            .map(|_| (rng.gen::<f64>() - 0.5) * 2.0 * scale)
+            .map(|_| (rng.random::<f64>() - 0.5) * 2.0 * scale)
             .collect();
 
         let biases: Vec<f64> = (0..output_size)
-            .map(|_| (rng.gen::<f64>() - 0.5) * 0.1)
+            .map(|_| (rng.random::<f64>() - 0.5) * 0.1)
             .collect();
 
         Self {
@@ -314,11 +314,11 @@ fn generate_xor_data() -> Vec<(Vec<f64>, Vec<f64>)> {
 
 /// Generate synthetic training data for function approximation
 fn generate_function_data(num_samples: usize) -> Vec<(Vec<f64>, Vec<f64>)> {
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     let mut data = Vec::new();
 
     for _ in 0..num_samples {
-        let x = rng.gen::<f64>() * 4.0 - 2.0; // Random x in [-2, 2]
+        let x = rng.random::<f64>() * 4.0 - 2.0; // Random x in [-2, 2]
         let y = (x * x * 0.5 - x + 0.5).sin(); // Target function: sin(0.5x² - x + 0.5)
         data.push((vec![x], vec![y]));
     }
