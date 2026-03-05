@@ -2,6 +2,8 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import { MantineProvider, createTheme } from '@mantine/core'
+import { CodeHighlightAdapterProvider, createShikiAdapter } from '@mantine/code-highlight'
+import { createHighlighter } from 'shiki'
 import '@mantine/core/styles.css'
 import '@mantine/code-highlight/styles.css'
 
@@ -163,10 +165,20 @@ const router = createBrowserRouter([
   },
 ])
 
+const shikiAdapter = createShikiAdapter(async () => {
+  const highlighter = await createHighlighter({
+    langs: ['javascript', 'typescript', 'rust'],
+    themes: [],
+  })
+  return highlighter
+})
+
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <MantineProvider theme={theme} defaultColorScheme="dark">
-      <RouterProvider router={router} />
+      <CodeHighlightAdapterProvider adapter={shikiAdapter}>
+        <RouterProvider router={router} />
+      </CodeHighlightAdapterProvider>
     </MantineProvider>
   </React.StrictMode>,
 )

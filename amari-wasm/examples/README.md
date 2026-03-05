@@ -86,7 +86,7 @@ npx ts-node examples/typescript/complete-demo.ts
 - Solar sail dynamics with relativistic effects
 
 ### 8. Probabilistic Contracts (`probabilistic-contracts.ts`)
-**Formal Verification & Statistical Testing** *(New in v0.19.0)*
+**Formal Verification & Statistical Testing** *(New in v0.19.1)*
 - SMT-LIB2 proof obligation generation (Hoeffding, precondition, postcondition, expected value)
 - Custom proof obligations with variables and assertions
 - Monte Carlo statistical verification with confidence intervals
@@ -95,7 +95,7 @@ npx ts-node examples/typescript/complete-demo.ts
 - Practical game balance verification example
 
 ### 10. GF(2) Algebra & Coding Theory (`gf2-algebra.ts`)
-**Finite Fields & Error-Correcting Codes** *(New in v0.19.0)*
+**Finite Fields & Error-Correcting Codes** *(New in v0.19.1)*
 - GF(2) vector and matrix arithmetic (XOR/AND)
 - Binary Clifford algebra Cl(N,R; F₂)
 - Binary linear codes: Hamming, Reed-Muller, Golay

@@ -31,7 +31,7 @@ Add to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-amari-enumerative = "0.19.0"
+amari-enumerative = "0.19.1"
 ```
 
 ### Feature Flags
@@ -39,22 +39,22 @@ amari-enumerative = "0.19.0"
 ```toml
 [dependencies]
 # Default features
-amari-enumerative = "0.19.0"
+amari-enumerative = "0.19.1"
 
 # With serialization
-amari-enumerative = { version = "0.19.0", features = ["serde"] }
+amari-enumerative = { version = "0.19.1", features = ["serde"] }
 
 # With parallel computation (Rayon)
-amari-enumerative = { version = "0.19.0", features = ["parallel"] }
+amari-enumerative = { version = "0.19.1", features = ["parallel"] }
 
 # With tropical Schubert calculus
-amari-enumerative = { version = "0.19.0", features = ["tropical-schubert"] }
+amari-enumerative = { version = "0.19.1", features = ["tropical-schubert"] }
 
 # For WASM targets
-amari-enumerative = { version = "0.19.0", features = ["wasm"] }
+amari-enumerative = { version = "0.19.1", features = ["wasm"] }
 
 # All performance features
-amari-enumerative = { version = "0.19.0", features = ["parallel", "tropical-schubert"] }
+amari-enumerative = { version = "0.19.1", features = ["parallel", "tropical-schubert"] }
 ```
 
 ## Quick Start
