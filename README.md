@@ -4,7 +4,7 @@
 
 A unified mathematical computing library featuring geometric algebra, differential calculus, measure theory, probability theory on geometric spaces, functional analysis (Hilbert spaces, operators, spectral theory), algebraic topology (homology, persistent homology, Morse theory), dynamical systems analysis (ODE solvers, stability, bifurcations, chaos, Lyapunov exponents), relativistic physics, tropical algebra, automatic differentiation, holographic associative memory (Vector Symbolic Architectures), optical field operations for holographic displays, term rewriting (ARS/TRS), and information geometry. The library provides multi-GPU infrastructure with intelligent workload distribution and complete WebAssembly support for browser deployment. The 0.24.0 cycle adds the agent-first `amari-discovery` runtime and canonical additive holographic `superpose`/`scale` operations while preserving the 0.23 exact rational, surcomplex, arbitrary-signature WASM, and rewrite foundations.
 
-[![Rust](https://img.shields.io/badge/Rust-1.75+-orange.svg)](https://www.rust-lang.org/)
+[![Rust](https://img.shields.io/badge/Rust-1.89+-orange.svg)](https://www.rust-lang.org/)
 [![WebAssembly](https://img.shields.io/badge/WebAssembly-Ready-blue.svg)](https://webassembly.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue.svg)](https://www.typescriptlang.org/)
 [![License](https://img.shields.io/badge/License-MIT%20OR%20Apache--2.0-green.svg)](LICENSE)
@@ -983,7 +983,7 @@ The `holographic` feature includes GPU-accelerated optical field operations:
 
 ### Prerequisites
 
-- Rust 1.75+ with `cargo`
+- Rust 1.89+ with `cargo`
 - Node.js 16+ (for TypeScript bindings)
 - `wasm-pack` (for WASM builds)
 

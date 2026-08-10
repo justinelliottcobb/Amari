@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
   "version": "0.24.1",
-  "description": "Generated structural catalog for Amari 0.24.1: 27 crates, 104 dependency edges",
-  "content_hash": "97684d902767a412e740b2e83d30ebec40e56dec61a35008766bf922f06ed5db",
+  "description": "Generated structural catalog for Amari 0.24.1: 27 crates, 105 dependency edges",
+  "content_hash": "3ddfd8f3f9616cc28ef085916868813533b003c13347bfb8cb272a95db5f5a58",
   "crates": [
     {
       "name": "amari",
@@ -373728,17 +373728,30 @@
           ]
         },
         {
+          "name": "holographic-guidance",
+          "enables": [
+            "dep:amari-holographic",
+            "std"
+          ]
+        },
+        {
           "name": "macros"
         },
         {
           "name": "network",
           "enables": [
             "dep:amari-network",
-            "neural"
+            "neural",
+            "std"
           ]
         },
         {
-          "name": "neural"
+          "name": "neural",
+          "enables": [
+            "dep:candle-core",
+            "dep:candle-nn",
+            "std"
+          ]
         },
         {
           "name": "serialize",
@@ -373747,7 +373760,11 @@
           ]
         },
         {
-          "name": "smt"
+          "name": "smt",
+          "enables": [
+            "dep:z3",
+            "std"
+          ]
         },
         {
           "name": "std"
@@ -373755,11 +373772,36 @@
       ],
       "dependencies": [
         {
+          "alias": "amari-holographic",
+          "package": "amari-holographic",
+          "kind": "normal",
+          "version": "0.24.1",
+          "path": "amari-holographic",
+          "optional": true,
+          "default_features": true
+        },
+        {
           "alias": "amari-network",
           "package": "amari-network",
           "kind": "normal",
           "version": "0.24.1",
           "path": "amari-network",
+          "optional": true,
+          "default_features": true
+        },
+        {
+          "alias": "candle-core",
+          "package": "candle-core",
+          "kind": "normal",
+          "version": "=0.11.0",
+          "optional": true,
+          "default_features": true
+        },
+        {
+          "alias": "candle-nn",
+          "package": "candle-nn",
+          "kind": "normal",
+          "version": "=0.11.0",
           "optional": true,
           "default_features": true
         },
@@ -373775,12 +373817,31 @@
           ]
         },
         {
+          "alias": "sha2",
+          "package": "sha2",
+          "kind": "normal",
+          "version": "0.10",
+          "optional": false,
+          "default_features": false
+        },
+        {
           "alias": "thiserror",
           "package": "thiserror",
           "kind": "normal",
           "version": "2.0",
           "optional": false,
           "default_features": true
+        },
+        {
+          "alias": "z3",
+          "package": "z3",
+          "kind": "normal",
+          "version": "=0.20.2",
+          "optional": true,
+          "default_features": false,
+          "features": [
+            "vendored"
+          ]
         }
       ],
       "targets": [
@@ -465273,6 +465334,10 @@
     {
       "from": "amari-relativistic",
       "to": "amari-core"
+    },
+    {
+      "from": "amari-rewrite",
+      "to": "amari-holographic"
     },
     {
       "from": "amari-rewrite",
