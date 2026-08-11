@@ -76,7 +76,7 @@ pub struct MCMCDiagnostics {
 impl MCMCDiagnostics {
     /// Check if the sampler has converged (R-hat < 1.1)
     pub fn is_converged(&self) -> bool {
-        self.r_hat.map_or(true, |r| r < 1.1)
+        self.r_hat.is_none_or(|r| r < 1.1)
     }
 }
 

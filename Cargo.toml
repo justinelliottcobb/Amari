@@ -82,7 +82,7 @@ version = "0.24.1"
 authors = ["Amari Contributors"]
 edition = "2021"
 license = "MIT OR Apache-2.0"
-rust-version = "1.75"
+rust-version = "1.89"
 
 [workspace.dependencies]
 # Amari crates (internal dependencies)
@@ -133,7 +133,7 @@ serde_json = "1"
 schemars = "1"
 toml = "0.8"
 walkdir = "2"
-sha2 = "0.10"
+sha2 = { version = "0.10", default-features = false }
 hex = "0.4"
 
 [profile.release]

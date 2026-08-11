@@ -24,3 +24,4 @@ wasm-pack.log
 # Allow checked-in .d.ts test fixtures (overrides *.d.ts above)
 !amari-discovery/tests/fixtures/wasm-surface/*.d.ts
 
+.z3-trace

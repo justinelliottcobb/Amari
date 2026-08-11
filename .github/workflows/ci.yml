@@ -238,6 +238,59 @@ jobs:
           fi
           echo "==> WASM surface catalog is up to date"
 
+  msrv:
+    name: MSRV Check (1.89)
+    runs-on: ubuntu-latest
+    env:
+      RUSTUP_TOOLCHAIN: 1.89.0
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@1.89.0
+
+      - name: Cache cargo registry
+        uses: actions/cache@v5
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-msrv-${{ hashFiles('**/Cargo.lock') }}
+
+      # Compile-only floor: nalgebra 0.35 / safe_arch 1.1 / wide 1.6.1 require
+      # rustc 1.89, so the workspace rust-version is 1.89 (raised from the
+      # unenforced 1.75 declaration in the 0.25 rewrite baseline).
+      - name: Check workspace at MSRV
+        run: cargo check --workspace
+
+  test-z3-vendored:
+    name: Rewrite SMT (Vendored Z3)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      RUSTUP_TOOLCHAIN: stable
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo registry
+        uses: actions/cache@v5
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-z3-${{ hashFiles('**/Cargo.lock') }}
+
+      # Vendored Z3 compiles the solver from source via CMake into target/;
+      # cache the full build output keyed by compiler and lockfile so only
+      # lockfile changes rebuild Z3 (cold build ~4-5 min on hosted runners).
+      - name: Cache vendored Z3 build
+        uses: actions/cache@v5
+        with:
+          path: target
+          key: ${{ runner.os }}-z3-vendored-${{ hashFiles('**/Cargo.lock') }}-v1
+
+      - name: Test rewrite smt feature
+        run: cargo test -p amari-rewrite --features smt
+
   benchmark:
     name: Performance Benchmarks
     runs-on: ubuntu-latest

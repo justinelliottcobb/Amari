@@ -143,7 +143,7 @@ where
         )));
     }
 
-    if num_intervals == 0 || num_intervals % 2 != 0 {
+    if num_intervals == 0 || !num_intervals.is_multiple_of(2) {
         return Err(MeasureError::computation(
             "Number of intervals must be positive and even".to_string(),
         ));

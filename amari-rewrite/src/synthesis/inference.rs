@@ -1,6 +1,6 @@
 //! Rule inference from example rewrite steps.
 
-use alloc::{collections::BTreeMap, string::String, vec::Vec};
+use alloc::{collections::BTreeMap, string::String, string::ToString, vec, vec::Vec};
 
 use crate::{
     trs::{Rule, Term, Variable},
