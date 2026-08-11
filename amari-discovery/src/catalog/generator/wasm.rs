@@ -1369,7 +1369,7 @@ impl WasmSurfaceParser {
             && (remaining[keyword.len()..]
                 .chars()
                 .next()
-                .map_or(true, |c| !c.is_ascii_alphanumeric() && c != '_'))
+                .is_none_or(|c| !c.is_ascii_alphanumeric() && c != '_'))
     }
 
     fn read_method_from_name(&mut self, _name: &str, _is_static: bool) -> Option<String> {

@@ -140,7 +140,7 @@ fn classify_file(rel_path: &str, pkg_dir: &str, package_name: &str) -> RustFileK
     let p = Path::new(&pkg_rel);
 
     if p.file_name().is_some_and(|n| n == "build.rs")
-        && p.parent().map_or(true, |par| par.as_os_str().is_empty())
+        && p.parent().is_none_or(|par| par.as_os_str().is_empty())
     {
         return RustFileKind::BuildScript {
             package: package_name.to_string(),
