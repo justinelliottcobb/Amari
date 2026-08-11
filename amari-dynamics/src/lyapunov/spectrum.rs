@@ -218,7 +218,7 @@ impl LyapunovSpectrum {
     /// Check if exponents come in ± pairs (symplectic structure)
     pub fn is_symplectic(&self, tolerance: f64) -> bool {
         let n = self.exponents.len();
-        if n % 2 != 0 {
+        if !n.is_multiple_of(2) {
             return false;
         }
 

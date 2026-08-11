@@ -161,7 +161,7 @@ impl BarcodeInterval {
 
     /// Check if the feature is still alive at the given time.
     pub fn is_alive_at(&self, time: f64) -> bool {
-        time >= self.birth && self.death.map_or(true, |d| time < d)
+        time >= self.birth && self.death.is_none_or(|d| time < d)
     }
 
     /// Check if this is an essential feature (never dies).
