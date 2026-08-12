@@ -19,6 +19,7 @@ fn canonical_json(catalog: &StructuralCatalog) -> serde_json::Result<Vec<u8>> {
 /// Crates that legitimately have zero declared Cargo features.
 const ALLOWED_NO_FEATURES: &[&str] = &[
     "amari-discovery-macros",
+    "amari-rewrite-macros",
     "amari-flynn-macros",
     "amari-surcomplex",
     "amari-wasm",
@@ -66,7 +67,7 @@ fn generate_twice_produces_identical_results() {
 }
 
 #[test]
-fn generated_catalog_has_27_packages_excluding_discovery() {
+fn generated_catalog_has_28_packages_excluding_discovery() {
     let catalog = generate_workspace_catalog(workspace_root()).unwrap();
 
     let names: BTreeSet<&str> = catalog.crates.iter().map(|c| c.name.as_str()).collect();
@@ -74,7 +75,7 @@ fn generated_catalog_has_27_packages_excluding_discovery() {
         !names.contains("amari-discovery"),
         "amari-discovery must be excluded"
     );
-    assert_eq!(catalog.crates.len(), 27, "expected 27 workspace packages");
+    assert_eq!(catalog.crates.len(), 28, "expected 28 workspace packages");
 
     // Verify known packages are present.
     for expected in &[
@@ -83,6 +84,7 @@ fn generated_catalog_has_27_packages_excluding_discovery() {
         "amari-tropical",
         "amari-dual",
         "amari-network",
+        "amari-rewrite-macros",
         "amari-optimization",
         "amari-holographic",
         "amari-cgt",

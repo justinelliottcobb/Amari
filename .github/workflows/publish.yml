@@ -136,7 +136,7 @@ jobs:
           # IMPORTANT: add new crates to the earliest tier after all of their
           # published internal dependencies; keep amari last (aggregate).
           TIERS=(
-            "amari-core amari-cgt amari-flynn-macros amari-discovery-macros"
+            "amari-core amari-cgt amari-flynn-macros amari-discovery-macros amari-rewrite-macros"
             "amari-tropical amari-dual amari-info-geom amari-relativistic amari-holographic amari-surreal amari-enumerative amari-flynn"
             "amari-network amari-fusion amari-automata amari-surcomplex amari-measure"
             "amari-calculus amari-probabilistic amari-rewrite"

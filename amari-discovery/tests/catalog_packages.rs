@@ -85,6 +85,7 @@ fn real_inventory_includes_root_and_wasm_but_excludes_discovery() {
             "amari-probabilistic",
             "amari-relativistic",
             "amari-rewrite",
+            "amari-rewrite-macros",
             "amari-surcomplex",
             "amari-surreal",
             "amari-topology",
@@ -127,7 +128,7 @@ fn real_inventory_includes_root_and_wasm_but_excludes_discovery() {
     for package in &inventory.packages {
         if !matches!(
             package.name.as_str(),
-            "amari-wasm" | "amari-flynn-macros" | "amari-discovery-macros"
+            "amari-wasm" | "amari-flynn-macros" | "amari-discovery-macros" | "amari-rewrite-macros"
         ) {
             assert_eq!(package.library_outputs, ["lib"], "{} targets", package.name);
         }

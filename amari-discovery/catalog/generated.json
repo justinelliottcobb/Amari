@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
   "version": "0.24.1",
-  "description": "Generated structural catalog for Amari 0.24.1: 27 crates, 105 dependency edges",
-  "content_hash": "3ddfd8f3f9616cc28ef085916868813533b003c13347bfb8cb272a95db5f5a58",
+  "description": "Generated structural catalog for Amari 0.24.1: 28 crates, 106 dependency edges",
+  "content_hash": "334b1b19cde09b1b2a7544f819de3385ead52a98e53800ae3c01807b325b2de0",
   "crates": [
     {
       "name": "amari",
@@ -373735,7 +373735,10 @@
           ]
         },
         {
-          "name": "macros"
+          "name": "macros",
+          "enables": [
+            "dep:amari-rewrite-macros"
+          ]
         },
         {
           "name": "network",
@@ -373786,6 +373789,15 @@
           "kind": "normal",
           "version": "0.24.1",
           "path": "amari-network",
+          "optional": true,
+          "default_features": true
+        },
+        {
+          "alias": "amari-rewrite-macros",
+          "package": "amari-rewrite-macros",
+          "kind": "normal",
+          "version": "0.24.1",
+          "path": "amari-rewrite-macros",
           "optional": true,
           "default_features": true
         },
@@ -375252,158 +375264,6 @@
               "is_reexport": true,
               "declaration_module": "amari_rewrite::rewritable",
               "declaration_ident": "Path::root"
-            }
-          ]
-        },
-        {
-          "path": "amari_rewrite::prelude::Rewritable",
-          "kind": "trait",
-          "signature": "pub trait Rewritable : Clone + PartialEq + Debug",
-          "source_path": "amari-rewrite/src/rewritable.rs",
-          "is_reexport": true,
-          "source_module": "amari_rewrite::rewritable",
-          "variants": [
-            {
-              "kind": "trait",
-              "signature": "pub trait Rewritable : Clone + PartialEq + Debug",
-              "source_path": "amari-rewrite/src/rewritable.rs",
-              "source_module": "amari_rewrite::rewritable",
-              "is_reexport": true,
-              "declaration_module": "amari_rewrite::rewritable",
-              "declaration_ident": "Rewritable"
-            }
-          ]
-        },
-        {
-          "path": "amari_rewrite::prelude::Rewritable::child",
-          "kind": "method",
-          "signature": "fn child (& self , index : usize) -> Option < & Self >",
-          "source_path": "amari-rewrite/src/rewritable.rs",
-          "is_reexport": true,
-          "source_module": "amari_rewrite::rewritable",
-          "variants": [
-            {
-              "kind": "method",
-              "signature": "fn child (& self , index : usize) -> Option < & Self >",
-              "source_path": "amari-rewrite/src/rewritable.rs",
-              "source_module": "amari_rewrite::rewritable",
-              "is_reexport": true,
-              "declaration_module": "amari_rewrite::rewritable",
-              "declaration_ident": "Rewritable::child"
-            }
-          ]
-        },
-        {
-          "path": "amari_rewrite::prelude::Rewritable::child_count",
-          "kind": "method",
-          "signature": "fn child_count (& self) -> usize",
-          "source_path": "amari-rewrite/src/rewritable.rs",
-          "is_reexport": true,
-          "source_module": "amari_rewrite::rewritable",
-          "variants": [
-            {
-              "kind": "method",
-              "signature": "fn child_count (& self) -> usize",
-              "source_path": "amari-rewrite/src/rewritable.rs",
-              "source_module": "amari_rewrite::rewritable",
-              "is_reexport": true,
-              "declaration_module": "amari_rewrite::rewritable",
-              "declaration_ident": "Rewritable::child_count"
-            }
-          ]
-        },
-        {
-          "path": "amari_rewrite::prelude::Rewritable::positions",
-          "kind": "method",
-          "signature": "fn positions (& self) -> Vec < Path >",
-          "source_path": "amari-rewrite/src/rewritable.rs",
-          "is_reexport": true,
-          "source_module": "amari_rewrite::rewritable",
-          "variants": [
-            {
-              "kind": "method",
-              "signature": "fn positions (& self) -> Vec < Path >",
-              "source_path": "amari-rewrite/src/rewritable.rs",
-              "source_module": "amari_rewrite::rewritable",
-              "is_reexport": true,
-              "declaration_module": "amari_rewrite::rewritable",
-              "declaration_ident": "Rewritable::positions"
-            }
-          ]
-        },
-        {
-          "path": "amari_rewrite::prelude::Rewritable::replace_at",
-          "kind": "method",
-          "signature": "fn replace_at (& self , path : & Path , replacement : Self) -> RewriteResult < Self >",
-          "source_path": "amari-rewrite/src/rewritable.rs",
-          "is_reexport": true,
-          "source_module": "amari_rewrite::rewritable",
-          "variants": [
-            {
-              "kind": "method",
-              "signature": "fn replace_at (& self , path : & Path , replacement : Self) -> RewriteResult < Self >",
-              "source_path": "amari-rewrite/src/rewritable.rs",
-              "source_module": "amari_rewrite::rewritable",
-              "is_reexport": true,
-              "declaration_module": "amari_rewrite::rewritable",
-              "declaration_ident": "Rewritable::replace_at"
-            }
-          ]
-        },
-        {
-          "path": "amari_rewrite::prelude::Rewritable::replace_at_slice",
-          "kind": "method",
-          "signature": "fn replace_at_slice (& self , path : & [usize] , replacement : Self) -> RewriteResult < Self >",
-          "source_path": "amari-rewrite/src/rewritable.rs",
-          "is_reexport": true,
-          "source_module": "amari_rewrite::rewritable",
-          "variants": [
-            {
-              "kind": "method",
-              "signature": "fn replace_at_slice (& self , path : & [usize] , replacement : Self) -> RewriteResult < Self >",
-              "source_path": "amari-rewrite/src/rewritable.rs",
-              "source_module": "amari_rewrite::rewritable",
-              "is_reexport": true,
-              "declaration_module": "amari_rewrite::rewritable",
-              "declaration_ident": "Rewritable::replace_at_slice"
-            }
-          ]
-        },
-        {
-          "path": "amari_rewrite::prelude::Rewritable::replace_child",
-          "kind": "method",
-          "signature": "fn replace_child (& self , index : usize , replacement : Self) -> RewriteResult < Self >",
-          "source_path": "amari-rewrite/src/rewritable.rs",
-          "is_reexport": true,
-          "source_module": "amari_rewrite::rewritable",
-          "variants": [
-            {
-              "kind": "method",
-              "signature": "fn replace_child (& self , index : usize , replacement : Self) -> RewriteResult < Self >",
-              "source_path": "amari-rewrite/src/rewritable.rs",
-              "source_module": "amari_rewrite::rewritable",
-              "is_reexport": true,
-              "declaration_module": "amari_rewrite::rewritable",
-              "declaration_ident": "Rewritable::replace_child"
-            }
-          ]
-        },
-        {
-          "path": "amari_rewrite::prelude::Rewritable::subterm",
-          "kind": "method",
-          "signature": "fn subterm (& self , path : & Path) -> Option < & Self >",
-          "source_path": "amari-rewrite/src/rewritable.rs",
-          "is_reexport": true,
-          "source_module": "amari_rewrite::rewritable",
-          "variants": [
-            {
-              "kind": "method",
-              "signature": "fn subterm (& self , path : & Path) -> Option < & Self >",
-              "source_path": "amari-rewrite/src/rewritable.rs",
-              "source_module": "amari_rewrite::rewritable",
-              "is_reexport": true,
-              "declaration_module": "amari_rewrite::rewritable",
-              "declaration_ident": "Rewritable::subterm"
             }
           ]
         },
@@ -378255,82 +378115,6 @@
           ]
         },
         {
-          "export_path": "amari_rewrite::prelude::Rewritable",
-          "source_path": "amari-rewrite/src/rewritable.rs",
-          "source_ordinal": 4,
-          "trait_endpoint": {
-            "kind": "local",
-            "module": "amari_rewrite::rewritable",
-            "ident": "Rewritable"
-          },
-          "supertraits": [
-            {
-              "endpoint": {
-                "kind": "external",
-                "path": "Clone"
-              }
-            },
-            {
-              "endpoint": {
-                "kind": "external",
-                "path": "PartialEq"
-              }
-            },
-            {
-              "endpoint": {
-                "kind": "external",
-                "path": "Debug"
-              }
-            }
-          ],
-          "required_items": [
-            {
-              "name": "child_count",
-              "kind": "method",
-              "signature": "fn child_count (& self) -> usize",
-              "status": "required"
-            },
-            {
-              "name": "child",
-              "kind": "method",
-              "signature": "fn child (& self , index : usize) -> Option < & Self >",
-              "status": "required"
-            },
-            {
-              "name": "replace_child",
-              "kind": "method",
-              "signature": "fn replace_child (& self , index : usize , replacement : Self) -> RewriteResult < Self >",
-              "status": "required"
-            }
-          ],
-          "provided_items": [
-            {
-              "name": "subterm",
-              "kind": "method",
-              "signature": "fn subterm (& self , path : & Path) -> Option < & Self >",
-              "status": "provided"
-            },
-            {
-              "name": "replace_at",
-              "kind": "method",
-              "signature": "fn replace_at (& self , path : & Path , replacement : Self) -> RewriteResult < Self >",
-              "status": "provided"
-            },
-            {
-              "name": "positions",
-              "kind": "method",
-              "signature": "fn positions (& self) -> Vec < Path >",
-              "status": "provided"
-            },
-            {
-              "name": "replace_at_slice",
-              "kind": "method",
-              "signature": "fn replace_at_slice (& self , path : & [usize] , replacement : Self) -> RewriteResult < Self >",
-              "status": "provided"
-            }
-          ]
-        },
-        {
           "export_path": "amari_rewrite::rewritable::Rewritable",
           "source_path": "amari-rewrite/src/rewritable.rs",
           "source_ordinal": 4,
@@ -380902,44 +380686,6 @@
           "is_derived": false
         },
         {
-          "trait_path": "amari_rewrite::prelude::Rewritable",
-          "impl_type_path": "amari_rewrite::prelude::Term",
-          "source_path": "amari-rewrite/src/trs/term.rs",
-          "source_ordinal": 12,
-          "trait_endpoint": {
-            "kind": "local",
-            "module": "amari_rewrite::rewritable",
-            "ident": "Rewritable"
-          },
-          "impl_type_endpoint": {
-            "kind": "local",
-            "module": "amari_rewrite::trs::term",
-            "ident": "Term"
-          },
-          "unsafe_trait": false,
-          "negative": false,
-          "is_derived": false
-        },
-        {
-          "trait_path": "amari_rewrite::prelude::Rewritable",
-          "impl_type_path": "amari_rewrite::trs::Term",
-          "source_path": "amari-rewrite/src/trs/term.rs",
-          "source_ordinal": 12,
-          "trait_endpoint": {
-            "kind": "local",
-            "module": "amari_rewrite::rewritable",
-            "ident": "Rewritable"
-          },
-          "impl_type_endpoint": {
-            "kind": "local",
-            "module": "amari_rewrite::trs::term",
-            "ident": "Term"
-          },
-          "unsafe_trait": false,
-          "negative": false,
-          "is_derived": false
-        },
-        {
           "trait_path": "amari_rewrite::rewritable::Rewritable",
           "impl_type_path": "amari_rewrite::prelude::Term",
           "source_path": "amari-rewrite/src/trs/term.rs",
@@ -381059,64 +380805,64 @@
           "path": "amari_rewrite::Rewritable",
           "source_path": "amari-rewrite/src/rewritable.rs",
           "source_ordinal": 4,
-          "gate": "always",
-          "status": "enabled",
+          "gate": "feature(\"macros\")",
+          "status": "disabled",
           "surface_kind": "top_level"
         },
         {
           "path": "amari_rewrite::Rewritable::child",
           "source_path": "amari-rewrite/src/rewritable.rs",
           "source_ordinal": 1,
-          "gate": "always",
-          "status": "enabled",
+          "gate": "feature(\"macros\")",
+          "status": "disabled",
           "surface_kind": "trait_method"
         },
         {
           "path": "amari_rewrite::Rewritable::child_count",
           "source_path": "amari-rewrite/src/rewritable.rs",
           "source_ordinal": 0,
-          "gate": "always",
-          "status": "enabled",
+          "gate": "feature(\"macros\")",
+          "status": "disabled",
           "surface_kind": "trait_method"
         },
         {
           "path": "amari_rewrite::Rewritable::positions",
           "source_path": "amari-rewrite/src/rewritable.rs",
           "source_ordinal": 5,
-          "gate": "always",
-          "status": "enabled",
+          "gate": "feature(\"macros\")",
+          "status": "disabled",
           "surface_kind": "trait_method"
         },
         {
           "path": "amari_rewrite::Rewritable::replace_at",
           "source_path": "amari-rewrite/src/rewritable.rs",
           "source_ordinal": 4,
-          "gate": "always",
-          "status": "enabled",
+          "gate": "feature(\"macros\")",
+          "status": "disabled",
           "surface_kind": "trait_method"
         },
         {
           "path": "amari_rewrite::Rewritable::replace_at_slice",
           "source_path": "amari-rewrite/src/rewritable.rs",
           "source_ordinal": 6,
-          "gate": "always",
-          "status": "enabled",
+          "gate": "feature(\"macros\")",
+          "status": "disabled",
           "surface_kind": "trait_method"
         },
         {
           "path": "amari_rewrite::Rewritable::replace_child",
           "source_path": "amari-rewrite/src/rewritable.rs",
           "source_ordinal": 2,
-          "gate": "always",
-          "status": "enabled",
+          "gate": "feature(\"macros\")",
+          "status": "disabled",
           "surface_kind": "trait_method"
         },
         {
           "path": "amari_rewrite::Rewritable::subterm",
           "source_path": "amari-rewrite/src/rewritable.rs",
           "source_ordinal": 3,
-          "gate": "always",
-          "status": "enabled",
+          "gate": "feature(\"macros\")",
+          "status": "disabled",
           "surface_kind": "trait_method"
         },
         {
@@ -381494,70 +381240,6 @@
           "gate": "always",
           "status": "enabled",
           "surface_kind": "inherent_method"
-        },
-        {
-          "path": "amari_rewrite::prelude::Rewritable",
-          "source_path": "amari-rewrite/src/rewritable.rs",
-          "source_ordinal": 4,
-          "gate": "always",
-          "status": "enabled",
-          "surface_kind": "top_level"
-        },
-        {
-          "path": "amari_rewrite::prelude::Rewritable::child",
-          "source_path": "amari-rewrite/src/rewritable.rs",
-          "source_ordinal": 1,
-          "gate": "always",
-          "status": "enabled",
-          "surface_kind": "trait_method"
-        },
-        {
-          "path": "amari_rewrite::prelude::Rewritable::child_count",
-          "source_path": "amari-rewrite/src/rewritable.rs",
-          "source_ordinal": 0,
-          "gate": "always",
-          "status": "enabled",
-          "surface_kind": "trait_method"
-        },
-        {
-          "path": "amari_rewrite::prelude::Rewritable::positions",
-          "source_path": "amari-rewrite/src/rewritable.rs",
-          "source_ordinal": 5,
-          "gate": "always",
-          "status": "enabled",
-          "surface_kind": "trait_method"
-        },
-        {
-          "path": "amari_rewrite::prelude::Rewritable::replace_at",
-          "source_path": "amari-rewrite/src/rewritable.rs",
-          "source_ordinal": 4,
-          "gate": "always",
-          "status": "enabled",
-          "surface_kind": "trait_method"
-        },
-        {
-          "path": "amari_rewrite::prelude::Rewritable::replace_at_slice",
-          "source_path": "amari-rewrite/src/rewritable.rs",
-          "source_ordinal": 6,
-          "gate": "always",
-          "status": "enabled",
-          "surface_kind": "trait_method"
-        },
-        {
-          "path": "amari_rewrite::prelude::Rewritable::replace_child",
-          "source_path": "amari-rewrite/src/rewritable.rs",
-          "source_ordinal": 2,
-          "gate": "always",
-          "status": "enabled",
-          "surface_kind": "trait_method"
-        },
-        {
-          "path": "amari_rewrite::prelude::Rewritable::subterm",
-          "source_path": "amari-rewrite/src/rewritable.rs",
-          "source_ordinal": 3,
-          "gate": "always",
-          "status": "enabled",
-          "surface_kind": "trait_method"
         },
         {
           "path": "amari_rewrite::prelude::RewriteError",
@@ -382633,6 +382315,222 @@
         "amari_rewrite::trs"
       ],
       "readme": "amari-rewrite/README.md"
+    },
+    {
+      "name": "amari-rewrite-macros",
+      "version": "0.24.1",
+      "description": "Checked procedural macros for amari-rewrite: derive(Rewritable), term!/rule!/relation! constructors",
+      "license": "MIT OR Apache-2.0",
+      "edition": "2021",
+      "manifest_path": "amari-rewrite-macros/Cargo.toml",
+      "library_outputs": [
+        "proc-macro"
+      ],
+      "features": [],
+      "dependencies": [
+        {
+          "alias": "proc-macro-crate",
+          "package": "proc-macro-crate",
+          "kind": "normal",
+          "version": "3",
+          "optional": false,
+          "default_features": true
+        },
+        {
+          "alias": "proc-macro2",
+          "package": "proc-macro2",
+          "kind": "normal",
+          "version": "1.0",
+          "optional": false,
+          "default_features": true
+        },
+        {
+          "alias": "quote",
+          "package": "quote",
+          "kind": "normal",
+          "version": "1.0",
+          "optional": false,
+          "default_features": true
+        },
+        {
+          "alias": "syn",
+          "package": "syn",
+          "kind": "normal",
+          "version": "2.0",
+          "optional": false,
+          "default_features": true,
+          "features": [
+            "full"
+          ]
+        },
+        {
+          "alias": "trybuild",
+          "package": "trybuild",
+          "kind": "development",
+          "version": "1",
+          "optional": false,
+          "default_features": true
+        }
+      ],
+      "targets": [
+        {
+          "name": "amari_rewrite_macros",
+          "kind": "library",
+          "path": "amari-rewrite-macros/src/lib.rs",
+          "crate_types": [
+            "proc-macro"
+          ]
+        }
+      ],
+      "items": [
+        {
+          "path": "amari_rewrite_macros::derive_rewritable",
+          "kind": "fn",
+          "signature": "pub fn derive_rewritable (_input : TokenStream) -> TokenStream",
+          "source_path": "amari-rewrite-macros/src/lib.rs",
+          "is_reexport": false,
+          "source_module": "amari_rewrite_macros",
+          "variants": [
+            {
+              "kind": "fn",
+              "signature": "pub fn derive_rewritable (_input : TokenStream) -> TokenStream",
+              "source_path": "amari-rewrite-macros/src/lib.rs",
+              "source_module": "amari_rewrite_macros",
+              "is_reexport": false,
+              "declaration_module": "amari_rewrite_macros",
+              "declaration_ident": "derive_rewritable"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite_macros::relation",
+          "kind": "fn",
+          "signature": "pub fn relation (_input : TokenStream) -> TokenStream",
+          "source_path": "amari-rewrite-macros/src/lib.rs",
+          "is_reexport": false,
+          "source_module": "amari_rewrite_macros",
+          "variants": [
+            {
+              "kind": "fn",
+              "signature": "pub fn relation (_input : TokenStream) -> TokenStream",
+              "source_path": "amari-rewrite-macros/src/lib.rs",
+              "source_module": "amari_rewrite_macros",
+              "is_reexport": false,
+              "declaration_module": "amari_rewrite_macros",
+              "declaration_ident": "relation"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite_macros::rule",
+          "kind": "fn",
+          "signature": "pub fn rule (_input : TokenStream) -> TokenStream",
+          "source_path": "amari-rewrite-macros/src/lib.rs",
+          "is_reexport": false,
+          "source_module": "amari_rewrite_macros",
+          "variants": [
+            {
+              "kind": "fn",
+              "signature": "pub fn rule (_input : TokenStream) -> TokenStream",
+              "source_path": "amari-rewrite-macros/src/lib.rs",
+              "source_module": "amari_rewrite_macros",
+              "is_reexport": false,
+              "declaration_module": "amari_rewrite_macros",
+              "declaration_ident": "rule"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite_macros::term",
+          "kind": "fn",
+          "signature": "pub fn term (_input : TokenStream) -> TokenStream",
+          "source_path": "amari-rewrite-macros/src/lib.rs",
+          "is_reexport": false,
+          "source_module": "amari_rewrite_macros",
+          "variants": [
+            {
+              "kind": "fn",
+              "signature": "pub fn term (_input : TokenStream) -> TokenStream",
+              "source_path": "amari-rewrite-macros/src/lib.rs",
+              "source_module": "amari_rewrite_macros",
+              "is_reexport": false,
+              "declaration_module": "amari_rewrite_macros",
+              "declaration_ident": "term"
+            }
+          ]
+        }
+      ],
+      "macros": [
+        {
+          "path": "amari_rewrite_macros::Rewritable",
+          "name": "Rewritable",
+          "kind": "proc_macro_derive",
+          "source_path": "amari-rewrite-macros/src/lib.rs",
+          "signature": "pub fn derive_rewritable (_input : TokenStream) -> TokenStream",
+          "helpers": [
+            "rewritable"
+          ]
+        },
+        {
+          "path": "amari_rewrite_macros::relation",
+          "name": "relation",
+          "kind": "proc_macro",
+          "source_path": "amari-rewrite-macros/src/lib.rs",
+          "signature": "pub fn relation (_input : TokenStream) -> TokenStream"
+        },
+        {
+          "path": "amari_rewrite_macros::rule",
+          "name": "rule",
+          "kind": "proc_macro",
+          "source_path": "amari-rewrite-macros/src/lib.rs",
+          "signature": "pub fn rule (_input : TokenStream) -> TokenStream"
+        },
+        {
+          "path": "amari_rewrite_macros::term",
+          "name": "term",
+          "kind": "proc_macro",
+          "source_path": "amari-rewrite-macros/src/lib.rs",
+          "signature": "pub fn term (_input : TokenStream) -> TokenStream"
+        }
+      ],
+      "cfg_gates": [
+        {
+          "path": "amari_rewrite_macros::derive_rewritable",
+          "source_path": "amari-rewrite-macros/src/lib.rs",
+          "source_ordinal": 1,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "top_level"
+        },
+        {
+          "path": "amari_rewrite_macros::relation",
+          "source_path": "amari-rewrite-macros/src/lib.rs",
+          "source_ordinal": 4,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "top_level"
+        },
+        {
+          "path": "amari_rewrite_macros::rule",
+          "source_path": "amari-rewrite-macros/src/lib.rs",
+          "source_ordinal": 3,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "top_level"
+        },
+        {
+          "path": "amari_rewrite_macros::term",
+          "source_path": "amari-rewrite-macros/src/lib.rs",
+          "source_ordinal": 2,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "top_level"
+        }
+      ],
+      "examples": [],
+      "modules": [
+        "amari_rewrite_macros"
+      ]
     },
     {
       "name": "amari-surcomplex",
@@ -465342,6 +465240,10 @@
     {
       "from": "amari-rewrite",
       "to": "amari-network"
+    },
+    {
+      "from": "amari-rewrite",
+      "to": "amari-rewrite-macros"
     },
     {
       "from": "amari-surcomplex",

@@ -27,3 +27,6 @@ pub mod smt;
 
 #[cfg(feature = "network")]
 pub mod network;
+
+#[cfg(feature = "macros")]
+pub use amari_rewrite_macros::{relation, rule, term, Rewritable};
