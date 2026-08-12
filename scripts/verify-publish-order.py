@@ -46,6 +46,12 @@ for name in published:
         errors.append(f"{name}: not a workspace package")
         continue
     for dependency in packages[name]["dependencies"]:
+        # Dev-dependencies do not constrain publish order: path-only
+        # dev-deps are stripped at package time, and versioned dev-deps
+        # never affect downstream resolution of the published crate.
+        # Build dependencies stay (they compile the published crate).
+        if dependency.get("kind") == "dev":
+            continue
         dependency_name = dependency["name"]
         if dependency_name not in tier_of or dependency_name == name:
             continue

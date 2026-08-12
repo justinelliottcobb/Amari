@@ -8,6 +8,11 @@
 
 extern crate alloc;
 
+// Lets derive-generated `::amari_rewrite::...` paths resolve inside this
+// crate's own targets (unit tests, examples) where proc-macro-crate
+// reports `Itself`.
+extern crate self as amari_rewrite;
+
 pub mod ars;
 pub mod error;
 pub mod inverse;

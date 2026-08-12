@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
   "version": "0.24.1",
-  "description": "Generated structural catalog for Amari 0.24.1: 28 crates, 106 dependency edges",
-  "content_hash": "334b1b19cde09b1b2a7544f819de3385ead52a98e53800ae3c01807b325b2de0",
+  "description": "Generated structural catalog for Amari 0.24.1: 28 crates, 107 dependency edges",
+  "content_hash": "a7d6a0b5981f558315dc1f16871da1410f789b53a8a658ef2527623f14bd7bb6",
   "crates": [
     {
       "name": "amari",
@@ -382364,6 +382364,14 @@
           ]
         },
         {
+          "alias": "amari-rewrite",
+          "package": "amari-rewrite",
+          "kind": "development",
+          "path": "../amari-rewrite",
+          "optional": false,
+          "default_features": true
+        },
+        {
           "alias": "trybuild",
           "package": "trybuild",
           "kind": "development",
@@ -382386,14 +382394,14 @@
         {
           "path": "amari_rewrite_macros::derive_rewritable",
           "kind": "fn",
-          "signature": "pub fn derive_rewritable (_input : TokenStream) -> TokenStream",
+          "signature": "pub fn derive_rewritable (input : TokenStream) -> TokenStream",
           "source_path": "amari-rewrite-macros/src/lib.rs",
           "is_reexport": false,
           "source_module": "amari_rewrite_macros",
           "variants": [
             {
               "kind": "fn",
-              "signature": "pub fn derive_rewritable (_input : TokenStream) -> TokenStream",
+              "signature": "pub fn derive_rewritable (input : TokenStream) -> TokenStream",
               "source_path": "amari-rewrite-macros/src/lib.rs",
               "source_module": "amari_rewrite_macros",
               "is_reexport": false,
@@ -382466,7 +382474,7 @@
           "name": "Rewritable",
           "kind": "proc_macro_derive",
           "source_path": "amari-rewrite-macros/src/lib.rs",
-          "signature": "pub fn derive_rewritable (_input : TokenStream) -> TokenStream",
+          "signature": "pub fn derive_rewritable (input : TokenStream) -> TokenStream",
           "helpers": [
             "rewritable"
           ]
@@ -465244,6 +465252,10 @@
     {
       "from": "amari-rewrite",
       "to": "amari-rewrite-macros"
+    },
+    {
+      "from": "amari-rewrite-macros",
+      "to": "amari-rewrite"
     },
     {
       "from": "amari-surcomplex",

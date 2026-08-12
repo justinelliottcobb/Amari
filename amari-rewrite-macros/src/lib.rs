@@ -7,19 +7,19 @@
 //! generation only, so the macro crate never depends on the library crate
 //! and always publishes before it.
 //!
-//! # Surface (0.25 scaffold)
+//! - `#[derive(Rewritable)]` — generates `Rewritable` implementations
+//!   for structs and enums with explicit `#[rewritable(child)]` fields.
+//! - `term!(f(a, X))` — checked `trs::Term` construction (Task 5).
+//! - `rule!(lhs => rhs)` — checked `trs::Rule` construction (Task 5).
+//! - `relation!(lhs <=> rhs)` — checked relational construction
+//!   (Cohort 2).
 //!
-//! - `#[derive(Rewritable)]` — generates `Rewritable` implementations for
-//!   enum expression trees with explicit `#[rewritable(child)]` fields.
-//! - `term!(f(a, X))` — checked `trs::Term` construction.
-//! - `rule!(lhs => rhs)` — checked `trs::Rule` construction.
-//! - `relation!(lhs <=> rhs)` — checked relational construction.
-//!
-//! Entry points currently expand to stable `compile_error!` diagnostics
-//! naming the implementing task; checked expansion lands in Tasks 4–5 of the
-//! 0.25 inverse-rewrite expansion plan.
+//! Entry points marked with a task expand to stable `compile_error!`
+//! diagnostics naming the implementing task until they land.
 
 use proc_macro::TokenStream;
+
+mod rewritable_derive;
 
 fn not_yet(implemented_in: &str) -> TokenStream {
     let message = format!(
@@ -32,14 +32,19 @@ fn not_yet(implemented_in: &str) -> TokenStream {
     diagnostic.into()
 }
 
-/// Derive `Rewritable` for an enum expression tree.
+/// Derive `Rewritable` for an expression tree.
 ///
-/// Only named-field enums with explicit `#[rewritable(child)]` annotations
-/// will be supported; unsupported shapes will fail at compile time so term
-/// structure cannot silently drift from the checked contract.
+/// Children are exactly the fields marked `#[rewritable(child)]`, in
+/// declaration order; recursion is never inferred. A child field's type
+/// must deref to `Self` and rebuild from `Self` (`Box<Self>`,
+/// `Rc<Self>`, `Arc<Self>`); unmarked fields are cloned through
+/// replacement and must be `Clone`. Unions, generics, collections as
+/// children, and malformed attributes are compile errors at precise
+/// spans.
 #[proc_macro_derive(Rewritable, attributes(rewritable))]
-pub fn derive_rewritable(_input: TokenStream) -> TokenStream {
-    not_yet("Task 4")
+pub fn derive_rewritable(input: TokenStream) -> TokenStream {
+    let input = syn::parse_macro_input!(input as syn::DeriveInput);
+    rewritable_derive::expand(input).into()
 }
 
 /// Checked `trs::Term` construction: `term!(add(zero, X))`.

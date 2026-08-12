@@ -1,0 +1,5 @@
+error: unsupported rewritable argument; expected `child`
+ --> tests/ui/fail_unknown_attribute.rs:8:23
+  |
+8 |     Succ(#[rewritable(children)] Box<Expr>),
+  |                       ^^^^^^^^

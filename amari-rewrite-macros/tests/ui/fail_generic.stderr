@@ -1,0 +1,5 @@
+error: derive(Rewritable) does not support generic parameters
+ --> tests/ui/fail_generic.rs:6:16
+  |
+6 | struct Wrapper<T> {
+  |                ^
