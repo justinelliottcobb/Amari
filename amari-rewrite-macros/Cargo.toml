@@ -21,3 +21,4 @@ proc-macro-crate = { workspace = true }
 
 [dev-dependencies]
 trybuild = "1"
+amari-rewrite = { path = "../amari-rewrite" }

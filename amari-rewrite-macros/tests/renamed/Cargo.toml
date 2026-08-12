@@ -1,0 +1,15 @@
+# Renamed-crate fixture: depends on amari-rewrite under the alias
+# `rewrite_lib` so generated `::rewrite_lib::...` paths are exercised.
+# Detached from the Amari workspace by the empty [workspace] table.
+
+[package]
+name = "amari-rewrite-renamed-fixture"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[workspace]
+
+[dependencies]
+amari-rewrite-macros = { path = "../.." }
+rewrite_lib = { package = "amari-rewrite", path = "../../../amari-rewrite" }

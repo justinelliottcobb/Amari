@@ -1,0 +1,5 @@
+error: collection-typed children are not supported by derive(Rewritable); use one child field per position
+ --> tests/ui/fail_collection_child.rs:8:31
+  |
+8 |     Many(#[rewritable(child)] Vec<Expr>),
+  |                               ^^^^^^^^^

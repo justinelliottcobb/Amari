@@ -1,0 +1,5 @@
+error: duplicate `#[rewritable(child)]` on one field
+  --> tests/ui/fail_duplicate_child.rs:10:9
+   |
+10 |         #[rewritable(child)]
+   |         ^^^^^^^^^^^^^^^^^^^^
