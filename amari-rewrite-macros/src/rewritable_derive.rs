@@ -41,8 +41,17 @@ struct FieldPlan {
 
 fn plan(input: &DeriveInput) -> Result<Vec<Constructor>, Error> {
     if !input.generics.params.is_empty() {
+        // Single-token span: trybuild .stderr files must render
+        // identically across rustc patch versions (joined spans render
+        // first-token-only on some toolchains).
+        let span = input
+            .generics
+            .params
+            .first()
+            .map(Spanned::span)
+            .unwrap_or_else(|| input.generics.span());
         return Err(Error::new(
-            input.generics.span(),
+            span,
             "derive(Rewritable) does not support generic parameters",
         ));
     }
@@ -117,7 +126,7 @@ fn child_attribute(field: &syn::Field) -> Result<bool, Error> {
         if seen_here {
             if child {
                 return Err(Error::new(
-                    attr.span(),
+                    attr.path().span(),
                     "duplicate `#[rewritable(child)]` on one field",
                 ));
             }
@@ -148,7 +157,7 @@ fn reject_collection(ty: &Type) -> Result<(), Error> {
     ];
     if COLLECTIONS.iter().any(|c| segment.ident == c) {
         return Err(Error::new(
-            ty.span(),
+            segment.ident.span(),
             "collection-typed children are not supported by \
              derive(Rewritable); use one child field per position",
         ));
