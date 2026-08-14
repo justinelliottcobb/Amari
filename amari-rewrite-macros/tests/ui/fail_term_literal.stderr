@@ -1,0 +1,5 @@
+error: expected identifier or string literal
+ --> tests/ui/fail_term_literal.rs:6:19
+  |
+6 |     let _ = term!(42);
+  |                   ^^

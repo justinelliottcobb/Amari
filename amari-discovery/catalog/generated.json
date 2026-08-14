@@ -2,7 +2,7 @@
   "schema_version": 2,
   "version": "0.24.1",
   "description": "Generated structural catalog for Amari 0.24.1: 28 crates, 107 dependency edges",
-  "content_hash": "a7d6a0b5981f558315dc1f16871da1410f789b53a8a658ef2527623f14bd7bb6",
+  "content_hash": "b496634333b2a8a4359f7c045db8328c969540277b7e24850dfd17ad9b98fad2",
   "crates": [
     {
       "name": "amari",
@@ -382432,14 +382432,14 @@
         {
           "path": "amari_rewrite_macros::rule",
           "kind": "fn",
-          "signature": "pub fn rule (_input : TokenStream) -> TokenStream",
+          "signature": "pub fn rule (input : TokenStream) -> TokenStream",
           "source_path": "amari-rewrite-macros/src/lib.rs",
           "is_reexport": false,
           "source_module": "amari_rewrite_macros",
           "variants": [
             {
               "kind": "fn",
-              "signature": "pub fn rule (_input : TokenStream) -> TokenStream",
+              "signature": "pub fn rule (input : TokenStream) -> TokenStream",
               "source_path": "amari-rewrite-macros/src/lib.rs",
               "source_module": "amari_rewrite_macros",
               "is_reexport": false,
@@ -382451,14 +382451,14 @@
         {
           "path": "amari_rewrite_macros::term",
           "kind": "fn",
-          "signature": "pub fn term (_input : TokenStream) -> TokenStream",
+          "signature": "pub fn term (input : TokenStream) -> TokenStream",
           "source_path": "amari-rewrite-macros/src/lib.rs",
           "is_reexport": false,
           "source_module": "amari_rewrite_macros",
           "variants": [
             {
               "kind": "fn",
-              "signature": "pub fn term (_input : TokenStream) -> TokenStream",
+              "signature": "pub fn term (input : TokenStream) -> TokenStream",
               "source_path": "amari-rewrite-macros/src/lib.rs",
               "source_module": "amari_rewrite_macros",
               "is_reexport": false,
@@ -382491,14 +382491,14 @@
           "name": "rule",
           "kind": "proc_macro",
           "source_path": "amari-rewrite-macros/src/lib.rs",
-          "signature": "pub fn rule (_input : TokenStream) -> TokenStream"
+          "signature": "pub fn rule (input : TokenStream) -> TokenStream"
         },
         {
           "path": "amari_rewrite_macros::term",
           "name": "term",
           "kind": "proc_macro",
           "source_path": "amari-rewrite-macros/src/lib.rs",
-          "signature": "pub fn term (_input : TokenStream) -> TokenStream"
+          "signature": "pub fn term (input : TokenStream) -> TokenStream"
         }
       ],
       "cfg_gates": [

@@ -15,6 +15,8 @@
 
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
+
+use crate::paths::rewrite_path;
 use syn::spanned::Spanned;
 use syn::{Data, DeriveInput, Error, Fields, Ident, Index, Member, Type};
 
@@ -163,21 +165,6 @@ fn reject_collection(ty: &Type) -> Result<(), Error> {
         ));
     }
     Ok(())
-}
-
-/// Resolve `amari-rewrite` for hygienic generated paths. `Itself`
-/// (expansion inside amari-rewrite's own targets) still uses
-/// `::amari_rewrite`, valid through `extern crate self as amari_rewrite`
-/// plus the implicit extern in integration/doc targets.
-fn rewrite_path() -> TokenStream {
-    let found = proc_macro_crate::crate_name("amari-rewrite");
-    match found {
-        Ok(proc_macro_crate::FoundCrate::Name(name)) => {
-            let ident = Ident::new(&name, proc_macro2::Span::call_site());
-            quote!(::#ident)
-        }
-        _ => quote!(::amari_rewrite),
-    }
 }
 
 fn generate(input: &DeriveInput, constructors: &[Constructor]) -> Result<TokenStream, Error> {
