@@ -16,6 +16,7 @@ The sequence is now:
 2. 0.25.0 — comprehensive rewrite research, including first-class inverse
    rewriting;
 3. 0.26.0 — GPU/current-`wgpu`/Borsalino modernization.
+   (See also [`INSUM_INDIRECT_EINSUM_FUTURE_RESEARCH.md`](INSUM_INDIRECT_EINSUM_FUTURE_RESEARCH.md) — a parked research thread on indirect-Einsum sparse GPU kernels, to be evaluated as part of the v0.26.0 GPU strategy.)
 
 Explicitly sequenced later minor milestones move one version later unless a
 future decision record says otherwise.
