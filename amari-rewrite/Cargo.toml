@@ -13,7 +13,10 @@ categories = ["mathematics", "science", "algorithms"]
 
 [dependencies]
 thiserror = { workspace = true }
-serde = { workspace = true, optional = true }
+# serde is declared directly (not workspace-inherited) so `serialize`
+# stays no_std-correct: the workspace serde enables std, which would
+# defeat no-default builds.
+serde = { version = "1.0", optional = true, default-features = false, features = ["derive", "alloc"] }
 sha2 = { workspace = true }
 amari-network = { workspace = true, optional = true }
 amari-holographic = { workspace = true, optional = true }
@@ -31,3 +34,6 @@ smt = ["std", "dep:z3"]
 neural = ["std", "dep:candle-core", "dep:candle-nn"]
 network = ["std", "neural", "dep:amari-network"]
 holographic-guidance = ["std", "dep:amari-holographic"]
+
+[dev-dependencies]
+serde_json = { workspace = true }

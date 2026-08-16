@@ -17,6 +17,7 @@ pub mod ars;
 pub mod error;
 pub mod inverse;
 pub mod prelude;
+pub mod relation;
 pub mod rewritable;
 pub mod synthesis;
 pub mod trs;
