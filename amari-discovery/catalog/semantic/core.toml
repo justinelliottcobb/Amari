@@ -183,6 +183,34 @@ stability = "stable"
 cost = "moderate"
 
 [[capabilities]]
+id = "amari:amari-rewrite:macros:term-rule-constructors"
+name = "Checked rewrite term and rule syntax"
+description = "Build TRS terms and rules with term!/rule! macros that expand to checked constructors."
+aliases = ["term macro", "rule macro", "rewrite syntax"]
+concepts = ["term rewriting system", "procedural macros", "syntax"]
+crate_refs = ["amari-rewrite"]
+feature_refs = ["amari-rewrite:macros"]
+symbol_refs = ["amari_rewrite_macros::term", "amari_rewrite_macros::rule"]
+example_refs = []
+probe_refs = []
+stability = "experimental"
+cost = "low"
+
+[[capabilities]]
+id = "amari:amari-rewrite:macros:derive-rewritable"
+name = "Derive Rewritable for expression trees"
+description = "Derive child traversal and checked replacement for structs and enums with explicit child fields."
+aliases = ["rewritable derive", "rewritable macro"]
+concepts = ["term rewriting system", "procedural macros", "abstract syntax tree"]
+crate_refs = ["amari-rewrite"]
+feature_refs = ["amari-rewrite:macros"]
+symbol_refs = ["amari_rewrite_macros::derive_rewritable"]
+example_refs = []
+probe_refs = []
+stability = "experimental"
+cost = "low"
+
+[[capabilities]]
 id = "amari:amari-rewrite:inverse:predecessors"
 name = "Bounded predecessor search"
 description = "Enumerate deterministic inverse-rewrite predecessors under explicit depth, frontier, node, and byte limits."
@@ -239,3 +267,13 @@ kind = "supports"
 from = "amari:amari-rewrite:synthesis:infer-rule"
 to = "amari:amari-rewrite:trs:normalization"
 kind = "produces_input_for"
+
+[[relations]]
+from = "amari:amari-rewrite:macros:term-rule-constructors"
+to = "amari:amari-rewrite:trs:normalization"
+kind = "supports"
+
+[[relations]]
+from = "amari:amari-rewrite:macros:derive-rewritable"
+to = "amari:amari-rewrite:macros:term-rule-constructors"
+kind = "composes_with"

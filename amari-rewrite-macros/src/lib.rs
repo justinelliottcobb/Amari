@@ -19,7 +19,9 @@
 
 use proc_macro::TokenStream;
 
+mod paths;
 mod rewritable_derive;
+mod syntax;
 
 fn not_yet(implemented_in: &str) -> TokenStream {
     let message = format!(
@@ -49,19 +51,24 @@ pub fn derive_rewritable(input: TokenStream) -> TokenStream {
 
 /// Checked `trs::Term` construction: `term!(add(zero, X))`.
 ///
-/// Identifier and string symbol spellings are equivalent. Expansion is to
-/// checked constructors; malformed terms are compile errors.
+/// Lowercase-leading identifiers and string literals are symbols
+/// (`term!(f)` == `term!("f")`); uppercase-leading identifiers are
+/// variables. A bare symbol (or empty parentheses) is a constant;
+/// variables never take arguments. Malformed terms are compile errors.
 #[proc_macro]
-pub fn term(_input: TokenStream) -> TokenStream {
-    not_yet("Task 5")
+pub fn term(input: TokenStream) -> TokenStream {
+    syntax::expand_term(input.into()).into()
 }
 
 /// Checked `trs::Rule` construction: `rule!(add(zero, X) => X)`.
 ///
-/// Resolves the fully qualified TRS rule, not the ARS `Rule` type.
+/// Expands to fully qualified `amari_rewrite::trs::Rule::new` — checked
+/// construction returning `RewriteResult<trs::Rule>` (right-hand-side
+/// variables must occur on the left), never the ARS `Rule` type and
+/// never unchecked construction.
 #[proc_macro]
-pub fn rule(_input: TokenStream) -> TokenStream {
-    not_yet("Task 5")
+pub fn rule(input: TokenStream) -> TokenStream {
+    syntax::expand_rule(input.into()).into()
 }
 
 /// Checked relational construction: `relation!(add(zero, X) <=> X)`.

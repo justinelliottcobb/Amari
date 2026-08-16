@@ -18,4 +18,10 @@ fn main() {
         rewrite_lib::Rewritable::child(&one, 0),
         Some(&Expr::Zero)
     );
+
+    // term!/rule! must resolve through the renamed crate as well.
+    let lhs = amari_rewrite_macros::term!(add(zero, X));
+    let built = amari_rewrite_macros::rule!(add(zero, X) => X).unwrap();
+    assert_eq!(built.lhs(), &lhs);
+    assert_eq!(built.rhs(), &amari_rewrite_macros::term!(X));
 }

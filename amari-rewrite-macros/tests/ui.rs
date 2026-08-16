@@ -8,11 +8,16 @@ fn rewritable_ui() {
     let cases = trybuild::TestCases::new();
     cases.pass("tests/ui/pass_enum.rs");
     cases.pass("tests/ui/pass_struct_children.rs");
+    cases.pass("tests/ui/pass_term_rule.rs");
     cases.compile_fail("tests/ui/fail_union.rs");
     cases.compile_fail("tests/ui/fail_generic.rs");
     cases.compile_fail("tests/ui/fail_duplicate_child.rs");
     cases.compile_fail("tests/ui/fail_unknown_attribute.rs");
     cases.compile_fail("tests/ui/fail_collection_child.rs");
+    cases.compile_fail("tests/ui/fail_term_variable_arguments.rs");
+    cases.compile_fail("tests/ui/fail_term_literal.rs");
+    cases.compile_fail("tests/ui/fail_rule_arrow.rs");
+    cases.compile_fail("tests/ui/fail_rule_trailing.rs");
 }
 
 /// Renamed-crate support: the fixture under `tests/renamed` depends on

@@ -1,0 +1,5 @@
+error: unexpected tokens after rule right-hand side
+ --> tests/ui/fail_rule_trailing.rs:6:32
+  |
+6 |     let _ = rule!(f(X) => g(X) extra);
+  |                                ^^^^^

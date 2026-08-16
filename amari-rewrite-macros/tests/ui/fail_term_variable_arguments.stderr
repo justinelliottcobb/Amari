@@ -1,0 +1,5 @@
+error: variables cannot have arguments
+ --> tests/ui/fail_term_variable_arguments.rs:6:19
+  |
+6 |     let _ = term!(X(zero));
+  |                   ^

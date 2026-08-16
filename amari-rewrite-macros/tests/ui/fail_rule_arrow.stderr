@@ -1,0 +1,5 @@
+error: expected `=>`
+ --> tests/ui/fail_rule_arrow.rs:6:24
+  |
+6 |     let _ = rule!(f(X) -> g(X));
+  |                        ^
