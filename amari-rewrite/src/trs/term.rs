@@ -7,6 +7,7 @@ use crate::{Path, Rewritable, RewriteError, RewriteResult};
 
 /// A first-order pattern variable.
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize, serde::Deserialize))]
 pub struct Variable(String);
 
 impl Variable {
@@ -41,6 +42,7 @@ impl From<String> for Variable {
 
 /// A first-order function or constant symbol.
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize, serde::Deserialize))]
 pub struct Symbol(String);
 
 impl Symbol {
@@ -75,6 +77,7 @@ impl From<String> for Symbol {
 
 /// A first-order term.
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize, serde::Deserialize))]
 pub enum Term {
     /// Pattern variable.
     Var(Variable),
