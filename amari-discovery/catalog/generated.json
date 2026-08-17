@@ -2,7 +2,7 @@
   "schema_version": 2,
   "version": "0.24.1",
   "description": "Generated structural catalog for Amari 0.24.1: 28 crates, 107 dependency edges",
-  "content_hash": "b496634333b2a8a4359f7c045db8328c969540277b7e24850dfd17ad9b98fad2",
+  "content_hash": "fcfd3cac25693b586dde8cfa9dc97843a56700e08f0f8dabfe5cfab3a833a606",
   "crates": [
     {
       "name": "amari",
@@ -373823,8 +373823,9 @@
           "kind": "normal",
           "version": "1.0",
           "optional": true,
-          "default_features": true,
+          "default_features": false,
           "features": [
+            "alloc",
             "derive"
           ]
         },
@@ -373854,6 +373855,14 @@
           "features": [
             "vendored"
           ]
+        },
+        {
+          "alias": "serde_json",
+          "package": "serde_json",
+          "kind": "development",
+          "version": "1",
+          "optional": false,
+          "default_features": true
         }
       ],
       "targets": [
@@ -374190,6 +374199,54 @@
                     }
                   ]
                 }
+              },
+              {
+                "name": "InvalidLimit",
+                "data": {
+                  "kind": "struct",
+                  "fields": [
+                    {
+                      "name": "resource",
+                      "ty": "& 'static str"
+                    },
+                    {
+                      "name": "value",
+                      "ty": "usize"
+                    },
+                    {
+                      "name": "ceiling",
+                      "ty": "usize"
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "RelationLimitExceeded",
+                "data": {
+                  "kind": "struct",
+                  "fields": [
+                    {
+                      "name": "resource",
+                      "ty": "& 'static str"
+                    },
+                    {
+                      "name": "limit",
+                      "ty": "usize"
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "InvalidDigest",
+                "data": {
+                  "kind": "struct",
+                  "fields": [
+                    {
+                      "name": "message",
+                      "ty": "String"
+                    }
+                  ]
+                }
               }
             ]
           },
@@ -374235,6 +374292,54 @@
                   },
                   {
                     "name": "InvalidRule",
+                    "data": {
+                      "kind": "struct",
+                      "fields": [
+                        {
+                          "name": "message",
+                          "ty": "String"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "InvalidLimit",
+                    "data": {
+                      "kind": "struct",
+                      "fields": [
+                        {
+                          "name": "resource",
+                          "ty": "& 'static str"
+                        },
+                        {
+                          "name": "value",
+                          "ty": "usize"
+                        },
+                        {
+                          "name": "ceiling",
+                          "ty": "usize"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "RelationLimitExceeded",
+                    "data": {
+                      "kind": "struct",
+                      "fields": [
+                        {
+                          "name": "resource",
+                          "ty": "& 'static str"
+                        },
+                        {
+                          "name": "limit",
+                          "ty": "usize"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "InvalidDigest",
                     "data": {
                       "kind": "struct",
                       "fields": [
@@ -374696,6 +374801,54 @@
                     }
                   ]
                 }
+              },
+              {
+                "name": "InvalidLimit",
+                "data": {
+                  "kind": "struct",
+                  "fields": [
+                    {
+                      "name": "resource",
+                      "ty": "& 'static str"
+                    },
+                    {
+                      "name": "value",
+                      "ty": "usize"
+                    },
+                    {
+                      "name": "ceiling",
+                      "ty": "usize"
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "RelationLimitExceeded",
+                "data": {
+                  "kind": "struct",
+                  "fields": [
+                    {
+                      "name": "resource",
+                      "ty": "& 'static str"
+                    },
+                    {
+                      "name": "limit",
+                      "ty": "usize"
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "InvalidDigest",
+                "data": {
+                  "kind": "struct",
+                  "fields": [
+                    {
+                      "name": "message",
+                      "ty": "String"
+                    }
+                  ]
+                }
               }
             ]
           },
@@ -374741,6 +374894,54 @@
                   },
                   {
                     "name": "InvalidRule",
+                    "data": {
+                      "kind": "struct",
+                      "fields": [
+                        {
+                          "name": "message",
+                          "ty": "String"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "InvalidLimit",
+                    "data": {
+                      "kind": "struct",
+                      "fields": [
+                        {
+                          "name": "resource",
+                          "ty": "& 'static str"
+                        },
+                        {
+                          "name": "value",
+                          "ty": "usize"
+                        },
+                        {
+                          "name": "ceiling",
+                          "ty": "usize"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "RelationLimitExceeded",
+                    "data": {
+                      "kind": "struct",
+                      "fields": [
+                        {
+                          "name": "resource",
+                          "ty": "& 'static str"
+                        },
+                        {
+                          "name": "limit",
+                          "ty": "usize"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "InvalidDigest",
                     "data": {
                       "kind": "struct",
                       "fields": [
@@ -375315,6 +375516,54 @@
                     }
                   ]
                 }
+              },
+              {
+                "name": "InvalidLimit",
+                "data": {
+                  "kind": "struct",
+                  "fields": [
+                    {
+                      "name": "resource",
+                      "ty": "& 'static str"
+                    },
+                    {
+                      "name": "value",
+                      "ty": "usize"
+                    },
+                    {
+                      "name": "ceiling",
+                      "ty": "usize"
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "RelationLimitExceeded",
+                "data": {
+                  "kind": "struct",
+                  "fields": [
+                    {
+                      "name": "resource",
+                      "ty": "& 'static str"
+                    },
+                    {
+                      "name": "limit",
+                      "ty": "usize"
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "InvalidDigest",
+                "data": {
+                  "kind": "struct",
+                  "fields": [
+                    {
+                      "name": "message",
+                      "ty": "String"
+                    }
+                  ]
+                }
               }
             ]
           },
@@ -375360,6 +375609,54 @@
                   },
                   {
                     "name": "InvalidRule",
+                    "data": {
+                      "kind": "struct",
+                      "fields": [
+                        {
+                          "name": "message",
+                          "ty": "String"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "InvalidLimit",
+                    "data": {
+                      "kind": "struct",
+                      "fields": [
+                        {
+                          "name": "resource",
+                          "ty": "& 'static str"
+                        },
+                        {
+                          "name": "value",
+                          "ty": "usize"
+                        },
+                        {
+                          "name": "ceiling",
+                          "ty": "usize"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "RelationLimitExceeded",
+                    "data": {
+                      "kind": "struct",
+                      "fields": [
+                        {
+                          "name": "resource",
+                          "ty": "& 'static str"
+                        },
+                        {
+                          "name": "limit",
+                          "ty": "usize"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "InvalidDigest",
                     "data": {
                       "kind": "struct",
                       "fields": [
@@ -376614,6 +376911,654 @@
               "is_reexport": true,
               "declaration_module": "amari_rewrite::synthesis::inference",
               "declaration_ident": "infer_rules"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::relation::LogicVar",
+          "kind": "struct",
+          "signature": "pub struct LogicVar",
+          "shape": {
+            "kind": "struct",
+            "fields": []
+          },
+          "source_path": "amari-rewrite/src/relation/variable.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::relation::variable",
+          "variants": [
+            {
+              "kind": "struct",
+              "signature": "pub struct LogicVar",
+              "shape": {
+                "kind": "struct",
+                "fields": []
+              },
+              "source_path": "amari-rewrite/src/relation/variable.rs",
+              "source_module": "amari_rewrite::relation::variable",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::relation::variable",
+              "declaration_ident": "LogicVar"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::relation::LogicVar::index",
+          "kind": "method",
+          "signature": "pub fn index (& self) -> u32",
+          "source_path": "amari-rewrite/src/relation/variable.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::relation::variable",
+          "variants": [
+            {
+              "kind": "method",
+              "signature": "pub fn index (& self) -> u32",
+              "source_path": "amari-rewrite/src/relation/variable.rs",
+              "source_module": "amari_rewrite::relation::variable",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::relation::variable",
+              "declaration_ident": "LogicVar::index"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::relation::LogicVar::new",
+          "kind": "method",
+          "signature": "pub fn new (scope : u32 , index : u32) -> Self",
+          "source_path": "amari-rewrite/src/relation/variable.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::relation::variable",
+          "variants": [
+            {
+              "kind": "method",
+              "signature": "pub fn new (scope : u32 , index : u32) -> Self",
+              "source_path": "amari-rewrite/src/relation/variable.rs",
+              "source_module": "amari_rewrite::relation::variable",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::relation::variable",
+              "declaration_ident": "LogicVar::new"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::relation::LogicVar::scope",
+          "kind": "method",
+          "signature": "pub fn scope (& self) -> u32",
+          "source_path": "amari-rewrite/src/relation/variable.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::relation::variable",
+          "variants": [
+            {
+              "kind": "method",
+              "signature": "pub fn scope (& self) -> u32",
+              "source_path": "amari-rewrite/src/relation/variable.rs",
+              "source_module": "amari_rewrite::relation::variable",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::relation::variable",
+              "declaration_ident": "LogicVar::scope"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::relation::LogicVarNamespace",
+          "kind": "struct",
+          "signature": "pub struct LogicVarNamespace",
+          "shape": {
+            "kind": "struct",
+            "fields": []
+          },
+          "source_path": "amari-rewrite/src/relation/variable.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::relation::variable",
+          "variants": [
+            {
+              "kind": "struct",
+              "signature": "pub struct LogicVarNamespace",
+              "shape": {
+                "kind": "struct",
+                "fields": []
+              },
+              "source_path": "amari-rewrite/src/relation/variable.rs",
+              "source_module": "amari_rewrite::relation::variable",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::relation::variable",
+              "declaration_ident": "LogicVarNamespace"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::relation::LogicVarNamespace::allocated",
+          "kind": "method",
+          "signature": "pub fn allocated (& self) -> u32",
+          "source_path": "amari-rewrite/src/relation/variable.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::relation::variable",
+          "variants": [
+            {
+              "kind": "method",
+              "signature": "pub fn allocated (& self) -> u32",
+              "source_path": "amari-rewrite/src/relation/variable.rs",
+              "source_module": "amari_rewrite::relation::variable",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::relation::variable",
+              "declaration_ident": "LogicVarNamespace::allocated"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::relation::LogicVarNamespace::fresh",
+          "kind": "method",
+          "signature": "pub fn fresh (& mut self) -> LogicVar",
+          "source_path": "amari-rewrite/src/relation/variable.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::relation::variable",
+          "variants": [
+            {
+              "kind": "method",
+              "signature": "pub fn fresh (& mut self) -> LogicVar",
+              "source_path": "amari-rewrite/src/relation/variable.rs",
+              "source_module": "amari_rewrite::relation::variable",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::relation::variable",
+              "declaration_ident": "LogicVarNamespace::fresh"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::relation::LogicVarNamespace::new",
+          "kind": "method",
+          "signature": "pub fn new (scope : u32) -> Self",
+          "source_path": "amari-rewrite/src/relation/variable.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::relation::variable",
+          "variants": [
+            {
+              "kind": "method",
+              "signature": "pub fn new (scope : u32) -> Self",
+              "source_path": "amari-rewrite/src/relation/variable.rs",
+              "source_module": "amari_rewrite::relation::variable",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::relation::variable",
+              "declaration_ident": "LogicVarNamespace::new"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::relation::RelationLimits",
+          "kind": "struct",
+          "signature": "pub struct RelationLimits",
+          "shape": {
+            "kind": "struct",
+            "fields": []
+          },
+          "source_path": "amari-rewrite/src/relation/limits.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::relation::limits",
+          "variants": [
+            {
+              "kind": "struct",
+              "signature": "pub struct RelationLimits",
+              "shape": {
+                "kind": "struct",
+                "fields": []
+              },
+              "source_path": "amari-rewrite/src/relation/limits.rs",
+              "source_module": "amari_rewrite::relation::limits",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::relation::limits",
+              "declaration_ident": "RelationLimits"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::relation::RelationLimits::MAX_CONSTRAINTS",
+          "kind": "const",
+          "signature": "pub const MAX_CONSTRAINTS : usize",
+          "source_path": "amari-rewrite/src/relation/limits.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::relation::limits",
+          "variants": [
+            {
+              "kind": "const",
+              "signature": "pub const MAX_CONSTRAINTS : usize",
+              "source_path": "amari-rewrite/src/relation/limits.rs",
+              "source_module": "amari_rewrite::relation::limits",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::relation::limits",
+              "declaration_ident": "RelationLimits::MAX_CONSTRAINTS"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::relation::RelationLimits::MAX_OPERATIONS",
+          "kind": "const",
+          "signature": "pub const MAX_OPERATIONS : usize",
+          "source_path": "amari-rewrite/src/relation/limits.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::relation::limits",
+          "variants": [
+            {
+              "kind": "const",
+              "signature": "pub const MAX_OPERATIONS : usize",
+              "source_path": "amari-rewrite/src/relation/limits.rs",
+              "source_module": "amari_rewrite::relation::limits",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::relation::limits",
+              "declaration_ident": "RelationLimits::MAX_OPERATIONS"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::relation::RelationLimits::MAX_TERM_DEPTH",
+          "kind": "const",
+          "signature": "pub const MAX_TERM_DEPTH : usize",
+          "source_path": "amari-rewrite/src/relation/limits.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::relation::limits",
+          "variants": [
+            {
+              "kind": "const",
+              "signature": "pub const MAX_TERM_DEPTH : usize",
+              "source_path": "amari-rewrite/src/relation/limits.rs",
+              "source_module": "amari_rewrite::relation::limits",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::relation::limits",
+              "declaration_ident": "RelationLimits::MAX_TERM_DEPTH"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::relation::RelationLimits::MAX_TERM_NODES",
+          "kind": "const",
+          "signature": "pub const MAX_TERM_NODES : usize",
+          "source_path": "amari-rewrite/src/relation/limits.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::relation::limits",
+          "variants": [
+            {
+              "kind": "const",
+              "signature": "pub const MAX_TERM_NODES : usize",
+              "source_path": "amari-rewrite/src/relation/limits.rs",
+              "source_module": "amari_rewrite::relation::limits",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::relation::limits",
+              "declaration_ident": "RelationLimits::MAX_TERM_NODES"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::relation::RelationLimits::max_constraints",
+          "kind": "method",
+          "signature": "pub fn max_constraints (& self) -> usize",
+          "source_path": "amari-rewrite/src/relation/limits.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::relation::limits",
+          "variants": [
+            {
+              "kind": "method",
+              "signature": "pub fn max_constraints (& self) -> usize",
+              "source_path": "amari-rewrite/src/relation/limits.rs",
+              "source_module": "amari_rewrite::relation::limits",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::relation::limits",
+              "declaration_ident": "RelationLimits::max_constraints"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::relation::RelationLimits::max_operations",
+          "kind": "method",
+          "signature": "pub fn max_operations (& self) -> usize",
+          "source_path": "amari-rewrite/src/relation/limits.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::relation::limits",
+          "variants": [
+            {
+              "kind": "method",
+              "signature": "pub fn max_operations (& self) -> usize",
+              "source_path": "amari-rewrite/src/relation/limits.rs",
+              "source_module": "amari_rewrite::relation::limits",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::relation::limits",
+              "declaration_ident": "RelationLimits::max_operations"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::relation::RelationLimits::max_term_depth",
+          "kind": "method",
+          "signature": "pub fn max_term_depth (& self) -> usize",
+          "source_path": "amari-rewrite/src/relation/limits.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::relation::limits",
+          "variants": [
+            {
+              "kind": "method",
+              "signature": "pub fn max_term_depth (& self) -> usize",
+              "source_path": "amari-rewrite/src/relation/limits.rs",
+              "source_module": "amari_rewrite::relation::limits",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::relation::limits",
+              "declaration_ident": "RelationLimits::max_term_depth"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::relation::RelationLimits::max_term_nodes",
+          "kind": "method",
+          "signature": "pub fn max_term_nodes (& self) -> usize",
+          "source_path": "amari-rewrite/src/relation/limits.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::relation::limits",
+          "variants": [
+            {
+              "kind": "method",
+              "signature": "pub fn max_term_nodes (& self) -> usize",
+              "source_path": "amari-rewrite/src/relation/limits.rs",
+              "source_module": "amari_rewrite::relation::limits",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::relation::limits",
+              "declaration_ident": "RelationLimits::max_term_nodes"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::relation::RelationLimits::new",
+          "kind": "method",
+          "signature": "pub fn new (max_term_nodes : usize , max_term_depth : usize , max_constraints : usize , max_operations : usize ,) -> RewriteResult < Self >",
+          "source_path": "amari-rewrite/src/relation/limits.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::relation::limits",
+          "variants": [
+            {
+              "kind": "method",
+              "signature": "pub fn new (max_term_nodes : usize , max_term_depth : usize , max_constraints : usize , max_operations : usize ,) -> RewriteResult < Self >",
+              "source_path": "amari-rewrite/src/relation/limits.rs",
+              "source_module": "amari_rewrite::relation::limits",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::relation::limits",
+              "declaration_ident": "RelationLimits::new"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::relation::RelationResources",
+          "kind": "struct",
+          "signature": "pub struct RelationResources",
+          "shape": {
+            "kind": "struct",
+            "fields": []
+          },
+          "source_path": "amari-rewrite/src/relation/limits.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::relation::limits",
+          "variants": [
+            {
+              "kind": "struct",
+              "signature": "pub struct RelationResources",
+              "shape": {
+                "kind": "struct",
+                "fields": []
+              },
+              "source_path": "amari-rewrite/src/relation/limits.rs",
+              "source_module": "amari_rewrite::relation::limits",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::relation::limits",
+              "declaration_ident": "RelationResources"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::relation::RelationResources::constraints",
+          "kind": "method",
+          "signature": "pub fn constraints (& self) -> usize",
+          "source_path": "amari-rewrite/src/relation/limits.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::relation::limits",
+          "variants": [
+            {
+              "kind": "method",
+              "signature": "pub fn constraints (& self) -> usize",
+              "source_path": "amari-rewrite/src/relation/limits.rs",
+              "source_module": "amari_rewrite::relation::limits",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::relation::limits",
+              "declaration_ident": "RelationResources::constraints"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::relation::RelationResources::new",
+          "kind": "method",
+          "signature": "pub fn new (limits : & RelationLimits) -> Self",
+          "source_path": "amari-rewrite/src/relation/limits.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::relation::limits",
+          "variants": [
+            {
+              "kind": "method",
+              "signature": "pub fn new (limits : & RelationLimits) -> Self",
+              "source_path": "amari-rewrite/src/relation/limits.rs",
+              "source_module": "amari_rewrite::relation::limits",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::relation::limits",
+              "declaration_ident": "RelationResources::new"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::relation::RelationResources::operations",
+          "kind": "method",
+          "signature": "pub fn operations (& self) -> usize",
+          "source_path": "amari-rewrite/src/relation/limits.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::relation::limits",
+          "variants": [
+            {
+              "kind": "method",
+              "signature": "pub fn operations (& self) -> usize",
+              "source_path": "amari-rewrite/src/relation/limits.rs",
+              "source_module": "amari_rewrite::relation::limits",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::relation::limits",
+              "declaration_ident": "RelationResources::operations"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::relation::RelationResources::record_constraints",
+          "kind": "method",
+          "signature": "pub fn record_constraints (& mut self , additional : usize) -> RewriteResult < () >",
+          "source_path": "amari-rewrite/src/relation/limits.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::relation::limits",
+          "variants": [
+            {
+              "kind": "method",
+              "signature": "pub fn record_constraints (& mut self , additional : usize) -> RewriteResult < () >",
+              "source_path": "amari-rewrite/src/relation/limits.rs",
+              "source_module": "amari_rewrite::relation::limits",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::relation::limits",
+              "declaration_ident": "RelationResources::record_constraints"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::relation::RelationResources::record_operations",
+          "kind": "method",
+          "signature": "pub fn record_operations (& mut self , additional : usize) -> RewriteResult < () >",
+          "source_path": "amari-rewrite/src/relation/limits.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::relation::limits",
+          "variants": [
+            {
+              "kind": "method",
+              "signature": "pub fn record_operations (& mut self , additional : usize) -> RewriteResult < () >",
+              "source_path": "amari-rewrite/src/relation/limits.rs",
+              "source_module": "amari_rewrite::relation::limits",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::relation::limits",
+              "declaration_ident": "RelationResources::record_operations"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::relation::RelationResources::record_term",
+          "kind": "method",
+          "signature": "pub fn record_term (& mut self , nodes : usize , depth : usize) -> RewriteResult < () >",
+          "source_path": "amari-rewrite/src/relation/limits.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::relation::limits",
+          "variants": [
+            {
+              "kind": "method",
+              "signature": "pub fn record_term (& mut self , nodes : usize , depth : usize) -> RewriteResult < () >",
+              "source_path": "amari-rewrite/src/relation/limits.rs",
+              "source_module": "amari_rewrite::relation::limits",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::relation::limits",
+              "declaration_ident": "RelationResources::record_term"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::relation::Sha256Digest",
+          "kind": "struct",
+          "signature": "pub struct Sha256Digest",
+          "shape": {
+            "kind": "struct",
+            "fields": []
+          },
+          "source_path": "amari-rewrite/src/relation/digest.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::relation::digest",
+          "variants": [
+            {
+              "kind": "struct",
+              "signature": "pub struct Sha256Digest",
+              "shape": {
+                "kind": "struct",
+                "fields": []
+              },
+              "source_path": "amari-rewrite/src/relation/digest.rs",
+              "source_module": "amari_rewrite::relation::digest",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::relation::digest",
+              "declaration_ident": "Sha256Digest"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::relation::Sha256Digest::as_bytes",
+          "kind": "method",
+          "signature": "pub fn as_bytes (& self) -> & [u8 ; 32]",
+          "source_path": "amari-rewrite/src/relation/digest.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::relation::digest",
+          "variants": [
+            {
+              "kind": "method",
+              "signature": "pub fn as_bytes (& self) -> & [u8 ; 32]",
+              "source_path": "amari-rewrite/src/relation/digest.rs",
+              "source_module": "amari_rewrite::relation::digest",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::relation::digest",
+              "declaration_ident": "Sha256Digest::as_bytes"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::relation::Sha256Digest::canonical_term",
+          "kind": "method",
+          "signature": "pub fn canonical_term (frame : & str , term : & Term) -> Self",
+          "source_path": "amari-rewrite/src/relation/digest.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::relation::digest",
+          "variants": [
+            {
+              "kind": "method",
+              "signature": "pub fn canonical_term (frame : & str , term : & Term) -> Self",
+              "source_path": "amari-rewrite/src/relation/digest.rs",
+              "source_module": "amari_rewrite::relation::digest",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::relation::digest",
+              "declaration_ident": "Sha256Digest::canonical_term"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::relation::Sha256Digest::framed",
+          "kind": "method",
+          "signature": "pub fn framed (frame : & str , payload : & [u8]) -> Self",
+          "source_path": "amari-rewrite/src/relation/digest.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::relation::digest",
+          "variants": [
+            {
+              "kind": "method",
+              "signature": "pub fn framed (frame : & str , payload : & [u8]) -> Self",
+              "source_path": "amari-rewrite/src/relation/digest.rs",
+              "source_module": "amari_rewrite::relation::digest",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::relation::digest",
+              "declaration_ident": "Sha256Digest::framed"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::relation::Sha256Digest::from_bytes",
+          "kind": "method",
+          "signature": "pub fn from_bytes (bytes : [u8 ; 32]) -> Self",
+          "source_path": "amari-rewrite/src/relation/digest.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::relation::digest",
+          "variants": [
+            {
+              "kind": "method",
+              "signature": "pub fn from_bytes (bytes : [u8 ; 32]) -> Self",
+              "source_path": "amari-rewrite/src/relation/digest.rs",
+              "source_module": "amari_rewrite::relation::digest",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::relation::digest",
+              "declaration_ident": "Sha256Digest::from_bytes"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::relation::Sha256Digest::parse_hex",
+          "kind": "method",
+          "signature": "pub fn parse_hex (text : & str) -> RewriteResult < Self >",
+          "source_path": "amari-rewrite/src/relation/digest.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::relation::digest",
+          "variants": [
+            {
+              "kind": "method",
+              "signature": "pub fn parse_hex (text : & str) -> RewriteResult < Self >",
+              "source_path": "amari-rewrite/src/relation/digest.rs",
+              "source_module": "amari_rewrite::relation::digest",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::relation::digest",
+              "declaration_ident": "Sha256Digest::parse_hex"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::relation::Sha256Digest::to_hex",
+          "kind": "method",
+          "signature": "pub fn to_hex (& self) -> String",
+          "source_path": "amari-rewrite/src/relation/digest.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::relation::digest",
+          "variants": [
+            {
+              "kind": "method",
+              "signature": "pub fn to_hex (& self) -> String",
+              "source_path": "amari-rewrite/src/relation/digest.rs",
+              "source_module": "amari_rewrite::relation::digest",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::relation::digest",
+              "declaration_ident": "Sha256Digest::to_hex"
             }
           ]
         },
@@ -378483,6 +379428,96 @@
         },
         {
           "trait_path": "Clone",
+          "impl_type_path": "amari_rewrite::relation::LogicVar",
+          "source_path": "amari-rewrite/src/relation/variable.rs",
+          "source_ordinal": 0,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Clone"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::variable",
+            "ident": "LogicVar"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Clone",
+          "impl_type_path": "amari_rewrite::relation::LogicVarNamespace",
+          "source_path": "amari-rewrite/src/relation/variable.rs",
+          "source_ordinal": 3,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Clone"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::variable",
+            "ident": "LogicVarNamespace"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Clone",
+          "impl_type_path": "amari_rewrite::relation::RelationLimits",
+          "source_path": "amari-rewrite/src/relation/limits.rs",
+          "source_ordinal": 0,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Clone"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::limits",
+            "ident": "RelationLimits"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Clone",
+          "impl_type_path": "amari_rewrite::relation::RelationResources",
+          "source_path": "amari-rewrite/src/relation/limits.rs",
+          "source_ordinal": 3,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Clone"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::limits",
+            "ident": "RelationResources"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Clone",
+          "impl_type_path": "amari_rewrite::relation::Sha256Digest",
+          "source_path": "amari-rewrite/src/relation/digest.rs",
+          "source_ordinal": 0,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Clone"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::digest",
+            "ident": "Sha256Digest"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Clone",
           "impl_type_path": "amari_rewrite::rewritable::Path",
           "source_path": "amari-rewrite/src/rewritable.rs",
           "source_ordinal": 0,
@@ -378674,6 +379709,60 @@
             "kind": "local",
             "module": "amari_rewrite::ars",
             "ident": "Strategy"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Copy",
+          "impl_type_path": "amari_rewrite::relation::LogicVar",
+          "source_path": "amari-rewrite/src/relation/variable.rs",
+          "source_ordinal": 0,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Copy"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::variable",
+            "ident": "LogicVar"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Copy",
+          "impl_type_path": "amari_rewrite::relation::RelationLimits",
+          "source_path": "amari-rewrite/src/relation/limits.rs",
+          "source_ordinal": 0,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Copy"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::limits",
+            "ident": "RelationLimits"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Copy",
+          "impl_type_path": "amari_rewrite::relation::Sha256Digest",
+          "source_path": "amari-rewrite/src/relation/digest.rs",
+          "source_ordinal": 0,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Copy"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::digest",
+            "ident": "Sha256Digest"
           },
           "unsafe_trait": false,
           "negative": false,
@@ -378934,6 +380023,78 @@
         },
         {
           "trait_path": "Debug",
+          "impl_type_path": "amari_rewrite::relation::LogicVar",
+          "source_path": "amari-rewrite/src/relation/variable.rs",
+          "source_ordinal": 0,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Debug"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::variable",
+            "ident": "LogicVar"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Debug",
+          "impl_type_path": "amari_rewrite::relation::LogicVarNamespace",
+          "source_path": "amari-rewrite/src/relation/variable.rs",
+          "source_ordinal": 3,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Debug"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::variable",
+            "ident": "LogicVarNamespace"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Debug",
+          "impl_type_path": "amari_rewrite::relation::RelationLimits",
+          "source_path": "amari-rewrite/src/relation/limits.rs",
+          "source_ordinal": 0,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Debug"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::limits",
+            "ident": "RelationLimits"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Debug",
+          "impl_type_path": "amari_rewrite::relation::RelationResources",
+          "source_path": "amari-rewrite/src/relation/limits.rs",
+          "source_ordinal": 3,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Debug"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::limits",
+            "ident": "RelationResources"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Debug",
           "impl_type_path": "amari_rewrite::rewritable::Path",
           "source_path": "amari-rewrite/src/rewritable.rs",
           "source_ordinal": 0,
@@ -379201,6 +380362,24 @@
           "unsafe_trait": false,
           "negative": false,
           "is_derived": true
+        },
+        {
+          "trait_path": "Default",
+          "impl_type_path": "amari_rewrite::relation::RelationLimits",
+          "source_path": "amari-rewrite/src/relation/limits.rs",
+          "source_ordinal": 2,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Default"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::limits",
+            "ident": "RelationLimits"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": false
         },
         {
           "trait_path": "Default",
@@ -379504,6 +380683,96 @@
             "kind": "local",
             "module": "amari_rewrite::trs::rule",
             "ident": "Rule"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Eq",
+          "impl_type_path": "amari_rewrite::relation::LogicVar",
+          "source_path": "amari-rewrite/src/relation/variable.rs",
+          "source_ordinal": 0,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Eq"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::variable",
+            "ident": "LogicVar"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Eq",
+          "impl_type_path": "amari_rewrite::relation::LogicVarNamespace",
+          "source_path": "amari-rewrite/src/relation/variable.rs",
+          "source_ordinal": 3,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Eq"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::variable",
+            "ident": "LogicVarNamespace"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Eq",
+          "impl_type_path": "amari_rewrite::relation::RelationLimits",
+          "source_path": "amari-rewrite/src/relation/limits.rs",
+          "source_ordinal": 0,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Eq"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::limits",
+            "ident": "RelationLimits"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Eq",
+          "impl_type_path": "amari_rewrite::relation::RelationResources",
+          "source_path": "amari-rewrite/src/relation/limits.rs",
+          "source_ordinal": 3,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Eq"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::limits",
+            "ident": "RelationResources"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Eq",
+          "impl_type_path": "amari_rewrite::relation::Sha256Digest",
+          "source_path": "amari-rewrite/src/relation/digest.rs",
+          "source_ordinal": 0,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Eq"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::digest",
+            "ident": "Sha256Digest"
           },
           "unsafe_trait": false,
           "negative": false,
@@ -379928,6 +381197,42 @@
         },
         {
           "trait_path": "Hash",
+          "impl_type_path": "amari_rewrite::relation::LogicVar",
+          "source_path": "amari-rewrite/src/relation/variable.rs",
+          "source_ordinal": 0,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Hash"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::variable",
+            "ident": "LogicVar"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Hash",
+          "impl_type_path": "amari_rewrite::relation::Sha256Digest",
+          "source_path": "amari-rewrite/src/relation/digest.rs",
+          "source_ordinal": 0,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Hash"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::digest",
+            "ident": "Sha256Digest"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Hash",
           "impl_type_path": "amari_rewrite::rewritable::Path",
           "source_path": "amari-rewrite/src/rewritable.rs",
           "source_ordinal": 0,
@@ -380083,6 +381388,42 @@
             "kind": "local",
             "module": "amari_rewrite::trs::term",
             "ident": "Term"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Ord",
+          "impl_type_path": "amari_rewrite::relation::LogicVar",
+          "source_path": "amari-rewrite/src/relation/variable.rs",
+          "source_ordinal": 0,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Ord"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::variable",
+            "ident": "LogicVar"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Ord",
+          "impl_type_path": "amari_rewrite::relation::Sha256Digest",
+          "source_path": "amari-rewrite/src/relation/digest.rs",
+          "source_ordinal": 0,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Ord"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::digest",
+            "ident": "Sha256Digest"
           },
           "unsafe_trait": false,
           "negative": false,
@@ -380397,6 +381738,96 @@
         },
         {
           "trait_path": "PartialEq",
+          "impl_type_path": "amari_rewrite::relation::LogicVar",
+          "source_path": "amari-rewrite/src/relation/variable.rs",
+          "source_ordinal": 0,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "PartialEq"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::variable",
+            "ident": "LogicVar"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "PartialEq",
+          "impl_type_path": "amari_rewrite::relation::LogicVarNamespace",
+          "source_path": "amari-rewrite/src/relation/variable.rs",
+          "source_ordinal": 3,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "PartialEq"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::variable",
+            "ident": "LogicVarNamespace"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "PartialEq",
+          "impl_type_path": "amari_rewrite::relation::RelationLimits",
+          "source_path": "amari-rewrite/src/relation/limits.rs",
+          "source_ordinal": 0,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "PartialEq"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::limits",
+            "ident": "RelationLimits"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "PartialEq",
+          "impl_type_path": "amari_rewrite::relation::RelationResources",
+          "source_path": "amari-rewrite/src/relation/limits.rs",
+          "source_ordinal": 3,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "PartialEq"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::limits",
+            "ident": "RelationResources"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "PartialEq",
+          "impl_type_path": "amari_rewrite::relation::Sha256Digest",
+          "source_path": "amari-rewrite/src/relation/digest.rs",
+          "source_ordinal": 0,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "PartialEq"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::digest",
+            "ident": "Sha256Digest"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "PartialEq",
           "impl_type_path": "amari_rewrite::rewritable::Path",
           "source_path": "amari-rewrite/src/rewritable.rs",
           "source_ordinal": 0,
@@ -380577,6 +382008,42 @@
         },
         {
           "trait_path": "PartialOrd",
+          "impl_type_path": "amari_rewrite::relation::LogicVar",
+          "source_path": "amari-rewrite/src/relation/variable.rs",
+          "source_ordinal": 0,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "PartialOrd"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::variable",
+            "ident": "LogicVar"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "PartialOrd",
+          "impl_type_path": "amari_rewrite::relation::Sha256Digest",
+          "source_path": "amari-rewrite/src/relation/digest.rs",
+          "source_ordinal": 0,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "PartialOrd"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::digest",
+            "ident": "Sha256Digest"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "PartialOrd",
           "impl_type_path": "amari_rewrite::rewritable::Path",
           "source_path": "amari-rewrite/src/rewritable.rs",
           "source_ordinal": 0,
@@ -380718,6 +382185,60 @@
             "kind": "local",
             "module": "amari_rewrite::trs::term",
             "ident": "Term"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": false
+        },
+        {
+          "trait_path": "fmt::Debug",
+          "impl_type_path": "amari_rewrite::relation::Sha256Digest",
+          "source_path": "amari-rewrite/src/relation/digest.rs",
+          "source_ordinal": 6,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "fmt::Debug"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::digest",
+            "ident": "Sha256Digest"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": false
+        },
+        {
+          "trait_path": "fmt::Display",
+          "impl_type_path": "amari_rewrite::relation::LogicVar",
+          "source_path": "amari-rewrite/src/relation/variable.rs",
+          "source_ordinal": 2,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "fmt::Display"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::variable",
+            "ident": "LogicVar"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": false
+        },
+        {
+          "trait_path": "fmt::Display",
+          "impl_type_path": "amari_rewrite::relation::Sha256Digest",
+          "source_path": "amari-rewrite/src/relation/digest.rs",
+          "source_ordinal": 5,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "fmt::Display"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::digest",
+            "ident": "Sha256Digest"
           },
           "unsafe_trait": false,
           "negative": false,
@@ -381714,6 +383235,270 @@
           "surface_kind": "top_level"
         },
         {
+          "path": "amari_rewrite::relation",
+          "source_path": "amari-rewrite/src/relation/mod.rs",
+          "source_ordinal": 0,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "module"
+        },
+        {
+          "path": "amari_rewrite::relation::LogicVar",
+          "source_path": "amari-rewrite/src/relation/variable.rs",
+          "source_ordinal": 0,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "top_level"
+        },
+        {
+          "path": "amari_rewrite::relation::LogicVar::index",
+          "source_path": "amari-rewrite/src/relation/variable.rs",
+          "source_ordinal": 2,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_method"
+        },
+        {
+          "path": "amari_rewrite::relation::LogicVar::new",
+          "source_path": "amari-rewrite/src/relation/variable.rs",
+          "source_ordinal": 0,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_method"
+        },
+        {
+          "path": "amari_rewrite::relation::LogicVar::scope",
+          "source_path": "amari-rewrite/src/relation/variable.rs",
+          "source_ordinal": 1,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_method"
+        },
+        {
+          "path": "amari_rewrite::relation::LogicVarNamespace",
+          "source_path": "amari-rewrite/src/relation/variable.rs",
+          "source_ordinal": 3,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "top_level"
+        },
+        {
+          "path": "amari_rewrite::relation::LogicVarNamespace::allocated",
+          "source_path": "amari-rewrite/src/relation/variable.rs",
+          "source_ordinal": 2,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_method"
+        },
+        {
+          "path": "amari_rewrite::relation::LogicVarNamespace::fresh",
+          "source_path": "amari-rewrite/src/relation/variable.rs",
+          "source_ordinal": 1,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_method"
+        },
+        {
+          "path": "amari_rewrite::relation::LogicVarNamespace::new",
+          "source_path": "amari-rewrite/src/relation/variable.rs",
+          "source_ordinal": 0,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_method"
+        },
+        {
+          "path": "amari_rewrite::relation::RelationLimits",
+          "source_path": "amari-rewrite/src/relation/limits.rs",
+          "source_ordinal": 0,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "top_level"
+        },
+        {
+          "path": "amari_rewrite::relation::RelationLimits::MAX_CONSTRAINTS",
+          "source_path": "amari-rewrite/src/relation/limits.rs",
+          "source_ordinal": 2,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_const"
+        },
+        {
+          "path": "amari_rewrite::relation::RelationLimits::MAX_OPERATIONS",
+          "source_path": "amari-rewrite/src/relation/limits.rs",
+          "source_ordinal": 3,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_const"
+        },
+        {
+          "path": "amari_rewrite::relation::RelationLimits::MAX_TERM_DEPTH",
+          "source_path": "amari-rewrite/src/relation/limits.rs",
+          "source_ordinal": 1,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_const"
+        },
+        {
+          "path": "amari_rewrite::relation::RelationLimits::MAX_TERM_NODES",
+          "source_path": "amari-rewrite/src/relation/limits.rs",
+          "source_ordinal": 0,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_const"
+        },
+        {
+          "path": "amari_rewrite::relation::RelationLimits::max_constraints",
+          "source_path": "amari-rewrite/src/relation/limits.rs",
+          "source_ordinal": 8,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_method"
+        },
+        {
+          "path": "amari_rewrite::relation::RelationLimits::max_operations",
+          "source_path": "amari-rewrite/src/relation/limits.rs",
+          "source_ordinal": 9,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_method"
+        },
+        {
+          "path": "amari_rewrite::relation::RelationLimits::max_term_depth",
+          "source_path": "amari-rewrite/src/relation/limits.rs",
+          "source_ordinal": 7,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_method"
+        },
+        {
+          "path": "amari_rewrite::relation::RelationLimits::max_term_nodes",
+          "source_path": "amari-rewrite/src/relation/limits.rs",
+          "source_ordinal": 6,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_method"
+        },
+        {
+          "path": "amari_rewrite::relation::RelationLimits::new",
+          "source_path": "amari-rewrite/src/relation/limits.rs",
+          "source_ordinal": 4,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_method"
+        },
+        {
+          "path": "amari_rewrite::relation::RelationResources",
+          "source_path": "amari-rewrite/src/relation/limits.rs",
+          "source_ordinal": 3,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "top_level"
+        },
+        {
+          "path": "amari_rewrite::relation::RelationResources::constraints",
+          "source_path": "amari-rewrite/src/relation/limits.rs",
+          "source_ordinal": 4,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_method"
+        },
+        {
+          "path": "amari_rewrite::relation::RelationResources::new",
+          "source_path": "amari-rewrite/src/relation/limits.rs",
+          "source_ordinal": 0,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_method"
+        },
+        {
+          "path": "amari_rewrite::relation::RelationResources::operations",
+          "source_path": "amari-rewrite/src/relation/limits.rs",
+          "source_ordinal": 5,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_method"
+        },
+        {
+          "path": "amari_rewrite::relation::RelationResources::record_constraints",
+          "source_path": "amari-rewrite/src/relation/limits.rs",
+          "source_ordinal": 2,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_method"
+        },
+        {
+          "path": "amari_rewrite::relation::RelationResources::record_operations",
+          "source_path": "amari-rewrite/src/relation/limits.rs",
+          "source_ordinal": 3,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_method"
+        },
+        {
+          "path": "amari_rewrite::relation::RelationResources::record_term",
+          "source_path": "amari-rewrite/src/relation/limits.rs",
+          "source_ordinal": 1,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_method"
+        },
+        {
+          "path": "amari_rewrite::relation::Sha256Digest",
+          "source_path": "amari-rewrite/src/relation/digest.rs",
+          "source_ordinal": 0,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "top_level"
+        },
+        {
+          "path": "amari_rewrite::relation::Sha256Digest::as_bytes",
+          "source_path": "amari-rewrite/src/relation/digest.rs",
+          "source_ordinal": 1,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_method"
+        },
+        {
+          "path": "amari_rewrite::relation::Sha256Digest::canonical_term",
+          "source_path": "amari-rewrite/src/relation/digest.rs",
+          "source_ordinal": 3,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_method"
+        },
+        {
+          "path": "amari_rewrite::relation::Sha256Digest::framed",
+          "source_path": "amari-rewrite/src/relation/digest.rs",
+          "source_ordinal": 2,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_method"
+        },
+        {
+          "path": "amari_rewrite::relation::Sha256Digest::from_bytes",
+          "source_path": "amari-rewrite/src/relation/digest.rs",
+          "source_ordinal": 0,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_method"
+        },
+        {
+          "path": "amari_rewrite::relation::Sha256Digest::parse_hex",
+          "source_path": "amari-rewrite/src/relation/digest.rs",
+          "source_ordinal": 5,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_method"
+        },
+        {
+          "path": "amari_rewrite::relation::Sha256Digest::to_hex",
+          "source_path": "amari-rewrite/src/relation/digest.rs",
+          "source_ordinal": 4,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_method"
+        },
+        {
           "path": "amari_rewrite::rewritable",
           "source_path": "amari-rewrite/src/rewritable.rs",
           "source_ordinal": 0,
@@ -382309,6 +384094,7 @@
         "amari_rewrite::neural",
         "amari_rewrite::prelude",
         "amari_rewrite::prelude::anti_unify",
+        "amari_rewrite::relation",
         "amari_rewrite::rewritable",
         "amari_rewrite::smt",
         "amari_rewrite::synthesis",

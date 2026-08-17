@@ -19,6 +19,30 @@ pub enum RewriteError {
     /// A rewrite rule failed validation.
     #[error("invalid rule: {message}")]
     InvalidRule { message: String },
+    /// A relation limit was zero or exceeded its fixed ceiling.
+    #[error("invalid relation limit {resource}: {value} (ceiling {ceiling})")]
+    InvalidLimit {
+        /// The limit being set.
+        resource: &'static str,
+        /// The rejected value.
+        value: usize,
+        /// The fixed ceiling.
+        ceiling: usize,
+    },
+    /// A relation resource budget was exhausted.
+    #[error("relation resource exhausted: {resource} (limit {limit})")]
+    RelationLimitExceeded {
+        /// The exhausted resource.
+        resource: &'static str,
+        /// The configured limit.
+        limit: usize,
+    },
+    /// A SHA-256 digest failed validation.
+    #[error("invalid sha-256 digest: {message}")]
+    InvalidDigest {
+        /// Validation failure detail.
+        message: String,
+    },
 }
 
 /// Result type used throughout `amari-rewrite`.
