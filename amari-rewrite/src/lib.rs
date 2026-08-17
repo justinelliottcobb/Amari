@@ -13,6 +13,7 @@ extern crate alloc;
 // reports `Itself`.
 extern crate self as amari_rewrite;
 
+pub mod analysis;
 pub mod ars;
 pub mod error;
 pub mod inverse;

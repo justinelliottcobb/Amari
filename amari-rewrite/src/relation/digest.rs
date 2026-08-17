@@ -97,8 +97,8 @@ fn hex_value(byte: u8) -> Option<u8> {
 
 /// Preorder canonical encoding with alpha-renaming: variables become
 /// indices by first occurrence; structure, arities, and symbol names
-/// are explicit.
-fn encode_term(term: &Term, variables: &mut Vec<String>, out: &mut Vec<u8>) {
+/// are explicit. Shared with constraint canonicalization.
+pub(crate) fn encode_term(term: &Term, variables: &mut Vec<String>, out: &mut Vec<u8>) {
     match term {
         Term::Var(variable) => {
             let name = variable.to_string();

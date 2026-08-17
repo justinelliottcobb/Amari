@@ -43,6 +43,19 @@ pub enum RewriteError {
         /// Validation failure detail.
         message: String,
     },
+    /// First-order unification failed (clash, arity mismatch, or
+    /// occurs-check violation).
+    #[error("unification failed: {reason}")]
+    UnificationFailure {
+        /// Failure detail.
+        reason: String,
+    },
+    /// A substitution failed checked composition or validation.
+    #[error("invalid substitution: {message}")]
+    InvalidSubstitution {
+        /// Validation failure detail.
+        message: String,
+    },
 }
 
 /// Result type used throughout `amari-rewrite`.

@@ -2,7 +2,7 @@
   "schema_version": 2,
   "version": "0.24.1",
   "description": "Generated structural catalog for Amari 0.24.1: 28 crates, 107 dependency edges",
-  "content_hash": "fcfd3cac25693b586dde8cfa9dc97843a56700e08f0f8dabfe5cfab3a833a606",
+  "content_hash": "b7954384c9d1a5bae3d6ebd94a464dee961523052651338510e48bd77286597a",
   "crates": [
     {
       "name": "amari",
@@ -374247,6 +374247,30 @@
                     }
                   ]
                 }
+              },
+              {
+                "name": "UnificationFailure",
+                "data": {
+                  "kind": "struct",
+                  "fields": [
+                    {
+                      "name": "reason",
+                      "ty": "String"
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "InvalidSubstitution",
+                "data": {
+                  "kind": "struct",
+                  "fields": [
+                    {
+                      "name": "message",
+                      "ty": "String"
+                    }
+                  ]
+                }
               }
             ]
           },
@@ -374349,6 +374373,30 @@
                         }
                       ]
                     }
+                  },
+                  {
+                    "name": "UnificationFailure",
+                    "data": {
+                      "kind": "struct",
+                      "fields": [
+                        {
+                          "name": "reason",
+                          "ty": "String"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "InvalidSubstitution",
+                    "data": {
+                      "kind": "struct",
+                      "fields": [
+                        {
+                          "name": "message",
+                          "ty": "String"
+                        }
+                      ]
+                    }
                   }
                 ]
               },
@@ -374376,6 +374424,44 @@
               "is_reexport": true,
               "declaration_module": "amari_rewrite::error",
               "declaration_ident": "RewriteResult"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::analysis::unify",
+          "kind": "fn",
+          "signature": "pub fn unify (left : & Term , right : & Term , resources : & mut RelationResources ,) -> RewriteResult < Substitution >",
+          "source_path": "amari-rewrite/src/analysis/unify.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::analysis::unify",
+          "variants": [
+            {
+              "kind": "fn",
+              "signature": "pub fn unify (left : & Term , right : & Term , resources : & mut RelationResources ,) -> RewriteResult < Substitution >",
+              "source_path": "amari-rewrite/src/analysis/unify.rs",
+              "source_module": "amari_rewrite::analysis::unify",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::analysis::unify",
+              "declaration_ident": "unify"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::analysis::unify_with",
+          "kind": "fn",
+          "signature": "pub fn unify_with (substitution : & mut Substitution , left : & Term , right : & Term , resources : & mut RelationResources ,) -> RewriteResult < () >",
+          "source_path": "amari-rewrite/src/analysis/unify.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::analysis::unify",
+          "variants": [
+            {
+              "kind": "fn",
+              "signature": "pub fn unify_with (substitution : & mut Substitution , left : & Term , right : & Term , resources : & mut RelationResources ,) -> RewriteResult < () >",
+              "source_path": "amari-rewrite/src/analysis/unify.rs",
+              "source_module": "amari_rewrite::analysis::unify",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::analysis::unify",
+              "declaration_ident": "unify_with"
             }
           ]
         },
@@ -374849,6 +374935,30 @@
                     }
                   ]
                 }
+              },
+              {
+                "name": "UnificationFailure",
+                "data": {
+                  "kind": "struct",
+                  "fields": [
+                    {
+                      "name": "reason",
+                      "ty": "String"
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "InvalidSubstitution",
+                "data": {
+                  "kind": "struct",
+                  "fields": [
+                    {
+                      "name": "message",
+                      "ty": "String"
+                    }
+                  ]
+                }
               }
             ]
           },
@@ -374942,6 +375052,30 @@
                   },
                   {
                     "name": "InvalidDigest",
+                    "data": {
+                      "kind": "struct",
+                      "fields": [
+                        {
+                          "name": "message",
+                          "ty": "String"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "UnificationFailure",
+                    "data": {
+                      "kind": "struct",
+                      "fields": [
+                        {
+                          "name": "reason",
+                          "ty": "String"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "InvalidSubstitution",
                     "data": {
                       "kind": "struct",
                       "fields": [
@@ -375564,6 +375698,30 @@
                     }
                   ]
                 }
+              },
+              {
+                "name": "UnificationFailure",
+                "data": {
+                  "kind": "struct",
+                  "fields": [
+                    {
+                      "name": "reason",
+                      "ty": "String"
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "InvalidSubstitution",
+                "data": {
+                  "kind": "struct",
+                  "fields": [
+                    {
+                      "name": "message",
+                      "ty": "String"
+                    }
+                  ]
+                }
               }
             ]
           },
@@ -375657,6 +375815,30 @@
                   },
                   {
                     "name": "InvalidDigest",
+                    "data": {
+                      "kind": "struct",
+                      "fields": [
+                        {
+                          "name": "message",
+                          "ty": "String"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "UnificationFailure",
+                    "data": {
+                      "kind": "struct",
+                      "fields": [
+                        {
+                          "name": "reason",
+                          "ty": "String"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "InvalidSubstitution",
                     "data": {
                       "kind": "struct",
                       "fields": [
@@ -375904,6 +376086,25 @@
           ]
         },
         {
+          "path": "amari_rewrite::prelude::Substitution::compose",
+          "kind": "method",
+          "signature": "pub fn compose (& self , inner : & Self) -> crate :: error :: RewriteResult < Self >",
+          "source_path": "amari-rewrite/src/trs/substitution.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::trs::substitution",
+          "variants": [
+            {
+              "kind": "method",
+              "signature": "pub fn compose (& self , inner : & Self) -> crate :: error :: RewriteResult < Self >",
+              "source_path": "amari-rewrite/src/trs/substitution.rs",
+              "source_module": "amari_rewrite::trs::substitution",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::trs::substitution",
+              "declaration_ident": "Substitution::compose"
+            }
+          ]
+        },
+        {
           "path": "amari_rewrite::prelude::Substitution::get",
           "kind": "method",
           "signature": "pub fn get (& self , variable : & str) -> Option < & Term >",
@@ -375961,6 +376162,25 @@
           ]
         },
         {
+          "path": "amari_rewrite::prelude::Substitution::is_empty",
+          "kind": "method",
+          "signature": "pub fn is_empty (& self) -> bool",
+          "source_path": "amari-rewrite/src/trs/substitution.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::trs::substitution",
+          "variants": [
+            {
+              "kind": "method",
+              "signature": "pub fn is_empty (& self) -> bool",
+              "source_path": "amari-rewrite/src/trs/substitution.rs",
+              "source_module": "amari_rewrite::trs::substitution",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::trs::substitution",
+              "declaration_ident": "Substitution::is_empty"
+            }
+          ]
+        },
+        {
           "path": "amari_rewrite::prelude::Substitution::iter",
           "kind": "method",
           "signature": "pub fn iter (& self) -> impl Iterator < Item = (& Variable , & Term) >",
@@ -375976,6 +376196,25 @@
               "is_reexport": true,
               "declaration_module": "amari_rewrite::trs::substitution",
               "declaration_ident": "Substitution::iter"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::prelude::Substitution::len",
+          "kind": "method",
+          "signature": "pub fn len (& self) -> usize",
+          "source_path": "amari-rewrite/src/trs/substitution.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::trs::substitution",
+          "variants": [
+            {
+              "kind": "method",
+              "signature": "pub fn len (& self) -> usize",
+              "source_path": "amari-rewrite/src/trs/substitution.rs",
+              "source_module": "amari_rewrite::trs::substitution",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::trs::substitution",
+              "declaration_ident": "Substitution::len"
             }
           ]
         },
@@ -376915,6 +377154,232 @@
           ]
         },
         {
+          "path": "amari_rewrite::relation::ConstraintOutcome",
+          "kind": "enum",
+          "signature": "pub enum ConstraintOutcome",
+          "shape": {
+            "kind": "enum",
+            "variants": [
+              {
+                "name": "Satisfiable",
+                "data": {
+                  "kind": "struct",
+                  "fields": [
+                    {
+                      "name": "substitution",
+                      "ty": "Substitution"
+                    },
+                    {
+                      "name": "residuals",
+                      "ty": "Vec < TermConstraint >"
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "Unsatisfiable",
+                "data": {
+                  "kind": "unit"
+                }
+              },
+              {
+                "name": "UnsupportedTheory",
+                "data": {
+                  "kind": "unit"
+                }
+              }
+            ]
+          },
+          "source_path": "amari-rewrite/src/relation/constraints.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::relation::constraints",
+          "variants": [
+            {
+              "kind": "enum",
+              "signature": "pub enum ConstraintOutcome",
+              "shape": {
+                "kind": "enum",
+                "variants": [
+                  {
+                    "name": "Satisfiable",
+                    "data": {
+                      "kind": "struct",
+                      "fields": [
+                        {
+                          "name": "substitution",
+                          "ty": "Substitution"
+                        },
+                        {
+                          "name": "residuals",
+                          "ty": "Vec < TermConstraint >"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "Unsatisfiable",
+                    "data": {
+                      "kind": "unit"
+                    }
+                  },
+                  {
+                    "name": "UnsupportedTheory",
+                    "data": {
+                      "kind": "unit"
+                    }
+                  }
+                ]
+              },
+              "source_path": "amari-rewrite/src/relation/constraints.rs",
+              "source_module": "amari_rewrite::relation::constraints",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::relation::constraints",
+              "declaration_ident": "ConstraintOutcome"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::relation::ConstraintSet",
+          "kind": "struct",
+          "signature": "pub struct ConstraintSet",
+          "shape": {
+            "kind": "struct",
+            "fields": []
+          },
+          "source_path": "amari-rewrite/src/relation/constraints.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::relation::constraints",
+          "variants": [
+            {
+              "kind": "struct",
+              "signature": "pub struct ConstraintSet",
+              "shape": {
+                "kind": "struct",
+                "fields": []
+              },
+              "source_path": "amari-rewrite/src/relation/constraints.rs",
+              "source_module": "amari_rewrite::relation::constraints",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::relation::constraints",
+              "declaration_ident": "ConstraintSet"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::relation::ConstraintSet::constraints",
+          "kind": "method",
+          "signature": "pub fn constraints (& self) -> & [TermConstraint]",
+          "source_path": "amari-rewrite/src/relation/constraints.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::relation::constraints",
+          "variants": [
+            {
+              "kind": "method",
+              "signature": "pub fn constraints (& self) -> & [TermConstraint]",
+              "source_path": "amari-rewrite/src/relation/constraints.rs",
+              "source_module": "amari_rewrite::relation::constraints",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::relation::constraints",
+              "declaration_ident": "ConstraintSet::constraints"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::relation::ConstraintSet::insert",
+          "kind": "method",
+          "signature": "pub fn insert (& mut self , constraint : TermConstraint)",
+          "source_path": "amari-rewrite/src/relation/constraints.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::relation::constraints",
+          "variants": [
+            {
+              "kind": "method",
+              "signature": "pub fn insert (& mut self , constraint : TermConstraint)",
+              "source_path": "amari-rewrite/src/relation/constraints.rs",
+              "source_module": "amari_rewrite::relation::constraints",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::relation::constraints",
+              "declaration_ident": "ConstraintSet::insert"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::relation::ConstraintSet::is_empty",
+          "kind": "method",
+          "signature": "pub fn is_empty (& self) -> bool",
+          "source_path": "amari-rewrite/src/relation/constraints.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::relation::constraints",
+          "variants": [
+            {
+              "kind": "method",
+              "signature": "pub fn is_empty (& self) -> bool",
+              "source_path": "amari-rewrite/src/relation/constraints.rs",
+              "source_module": "amari_rewrite::relation::constraints",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::relation::constraints",
+              "declaration_ident": "ConstraintSet::is_empty"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::relation::ConstraintSet::len",
+          "kind": "method",
+          "signature": "pub fn len (& self) -> usize",
+          "source_path": "amari-rewrite/src/relation/constraints.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::relation::constraints",
+          "variants": [
+            {
+              "kind": "method",
+              "signature": "pub fn len (& self) -> usize",
+              "source_path": "amari-rewrite/src/relation/constraints.rs",
+              "source_module": "amari_rewrite::relation::constraints",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::relation::constraints",
+              "declaration_ident": "ConstraintSet::len"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::relation::ConstraintSet::new",
+          "kind": "method",
+          "signature": "pub fn new () -> Self",
+          "source_path": "amari-rewrite/src/relation/constraints.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::relation::constraints",
+          "variants": [
+            {
+              "kind": "method",
+              "signature": "pub fn new () -> Self",
+              "source_path": "amari-rewrite/src/relation/constraints.rs",
+              "source_module": "amari_rewrite::relation::constraints",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::relation::constraints",
+              "declaration_ident": "ConstraintSet::new"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::relation::ConstraintSet::normalize",
+          "kind": "method",
+          "signature": "pub fn normalize (& self , limits : & RelationLimits) -> RewriteResult < ConstraintOutcome >",
+          "source_path": "amari-rewrite/src/relation/constraints.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::relation::constraints",
+          "variants": [
+            {
+              "kind": "method",
+              "signature": "pub fn normalize (& self , limits : & RelationLimits) -> RewriteResult < ConstraintOutcome >",
+              "source_path": "amari-rewrite/src/relation/constraints.rs",
+              "source_module": "amari_rewrite::relation::constraints",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::relation::constraints",
+              "declaration_ident": "ConstraintSet::normalize"
+            }
+          ]
+        },
+        {
           "path": "amari_rewrite::relation::LogicVar",
           "kind": "struct",
           "signature": "pub struct LogicVar",
@@ -377559,6 +378024,94 @@
               "is_reexport": true,
               "declaration_module": "amari_rewrite::relation::digest",
               "declaration_ident": "Sha256Digest::to_hex"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::relation::TermConstraint",
+          "kind": "enum",
+          "signature": "pub enum TermConstraint",
+          "shape": {
+            "kind": "enum",
+            "variants": [
+              {
+                "name": "Equal",
+                "data": {
+                  "kind": "tuple",
+                  "types": [
+                    "Term",
+                    "Term"
+                  ]
+                }
+              },
+              {
+                "name": "NotEqual",
+                "data": {
+                  "kind": "tuple",
+                  "types": [
+                    "Term",
+                    "Term"
+                  ]
+                }
+              }
+            ]
+          },
+          "source_path": "amari-rewrite/src/relation/constraints.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::relation::constraints",
+          "variants": [
+            {
+              "kind": "enum",
+              "signature": "pub enum TermConstraint",
+              "shape": {
+                "kind": "enum",
+                "variants": [
+                  {
+                    "name": "Equal",
+                    "data": {
+                      "kind": "tuple",
+                      "types": [
+                        "Term",
+                        "Term"
+                      ]
+                    }
+                  },
+                  {
+                    "name": "NotEqual",
+                    "data": {
+                      "kind": "tuple",
+                      "types": [
+                        "Term",
+                        "Term"
+                      ]
+                    }
+                  }
+                ]
+              },
+              "source_path": "amari-rewrite/src/relation/constraints.rs",
+              "source_module": "amari_rewrite::relation::constraints",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::relation::constraints",
+              "declaration_ident": "TermConstraint"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::relation::TermConstraint::canonical_digest",
+          "kind": "method",
+          "signature": "pub fn canonical_digest (& self) -> Sha256Digest",
+          "source_path": "amari-rewrite/src/relation/constraints.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::relation::constraints",
+          "variants": [
+            {
+              "kind": "method",
+              "signature": "pub fn canonical_digest (& self) -> Sha256Digest",
+              "source_path": "amari-rewrite/src/relation/constraints.rs",
+              "source_module": "amari_rewrite::relation::constraints",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::relation::constraints",
+              "declaration_ident": "TermConstraint::canonical_digest"
             }
           ]
         },
@@ -378279,6 +378832,25 @@
           ]
         },
         {
+          "path": "amari_rewrite::trs::Substitution::compose",
+          "kind": "method",
+          "signature": "pub fn compose (& self , inner : & Self) -> crate :: error :: RewriteResult < Self >",
+          "source_path": "amari-rewrite/src/trs/substitution.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::trs::substitution",
+          "variants": [
+            {
+              "kind": "method",
+              "signature": "pub fn compose (& self , inner : & Self) -> crate :: error :: RewriteResult < Self >",
+              "source_path": "amari-rewrite/src/trs/substitution.rs",
+              "source_module": "amari_rewrite::trs::substitution",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::trs::substitution",
+              "declaration_ident": "Substitution::compose"
+            }
+          ]
+        },
+        {
           "path": "amari_rewrite::trs::Substitution::get",
           "kind": "method",
           "signature": "pub fn get (& self , variable : & str) -> Option < & Term >",
@@ -378336,6 +378908,25 @@
           ]
         },
         {
+          "path": "amari_rewrite::trs::Substitution::is_empty",
+          "kind": "method",
+          "signature": "pub fn is_empty (& self) -> bool",
+          "source_path": "amari-rewrite/src/trs/substitution.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::trs::substitution",
+          "variants": [
+            {
+              "kind": "method",
+              "signature": "pub fn is_empty (& self) -> bool",
+              "source_path": "amari-rewrite/src/trs/substitution.rs",
+              "source_module": "amari_rewrite::trs::substitution",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::trs::substitution",
+              "declaration_ident": "Substitution::is_empty"
+            }
+          ]
+        },
+        {
           "path": "amari_rewrite::trs::Substitution::iter",
           "kind": "method",
           "signature": "pub fn iter (& self) -> impl Iterator < Item = (& Variable , & Term) >",
@@ -378351,6 +378942,25 @@
               "is_reexport": true,
               "declaration_module": "amari_rewrite::trs::substitution",
               "declaration_ident": "Substitution::iter"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::trs::Substitution::len",
+          "kind": "method",
+          "signature": "pub fn len (& self) -> usize",
+          "source_path": "amari-rewrite/src/trs/substitution.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::trs::substitution",
+          "variants": [
+            {
+              "kind": "method",
+              "signature": "pub fn len (& self) -> usize",
+              "source_path": "amari-rewrite/src/trs/substitution.rs",
+              "source_module": "amari_rewrite::trs::substitution",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::trs::substitution",
+              "declaration_ident": "Substitution::len"
             }
           ]
         },
@@ -379428,6 +380038,42 @@
         },
         {
           "trait_path": "Clone",
+          "impl_type_path": "amari_rewrite::relation::ConstraintOutcome",
+          "source_path": "amari-rewrite/src/relation/constraints.rs",
+          "source_ordinal": 2,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Clone"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::constraints",
+            "ident": "ConstraintOutcome"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Clone",
+          "impl_type_path": "amari_rewrite::relation::ConstraintSet",
+          "source_path": "amari-rewrite/src/relation/constraints.rs",
+          "source_ordinal": 3,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Clone"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::constraints",
+            "ident": "ConstraintSet"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Clone",
           "impl_type_path": "amari_rewrite::relation::LogicVar",
           "source_path": "amari-rewrite/src/relation/variable.rs",
           "source_ordinal": 0,
@@ -379511,6 +380157,24 @@
             "kind": "local",
             "module": "amari_rewrite::relation::digest",
             "ident": "Sha256Digest"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Clone",
+          "impl_type_path": "amari_rewrite::relation::TermConstraint",
+          "source_path": "amari-rewrite/src/relation/constraints.rs",
+          "source_ordinal": 0,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Clone"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::constraints",
+            "ident": "TermConstraint"
           },
           "unsafe_trait": false,
           "negative": false,
@@ -380023,6 +380687,42 @@
         },
         {
           "trait_path": "Debug",
+          "impl_type_path": "amari_rewrite::relation::ConstraintOutcome",
+          "source_path": "amari-rewrite/src/relation/constraints.rs",
+          "source_ordinal": 2,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Debug"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::constraints",
+            "ident": "ConstraintOutcome"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Debug",
+          "impl_type_path": "amari_rewrite::relation::ConstraintSet",
+          "source_path": "amari-rewrite/src/relation/constraints.rs",
+          "source_ordinal": 3,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Debug"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::constraints",
+            "ident": "ConstraintSet"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Debug",
           "impl_type_path": "amari_rewrite::relation::LogicVar",
           "source_path": "amari-rewrite/src/relation/variable.rs",
           "source_ordinal": 0,
@@ -380088,6 +380788,24 @@
             "kind": "local",
             "module": "amari_rewrite::relation::limits",
             "ident": "RelationResources"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Debug",
+          "impl_type_path": "amari_rewrite::relation::TermConstraint",
+          "source_path": "amari-rewrite/src/relation/constraints.rs",
+          "source_ordinal": 0,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Debug"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::constraints",
+            "ident": "TermConstraint"
           },
           "unsafe_trait": false,
           "negative": false,
@@ -380358,6 +381076,24 @@
             "kind": "local",
             "module": "amari_rewrite::synthesis::anti_unify",
             "ident": "VarGen"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Default",
+          "impl_type_path": "amari_rewrite::relation::ConstraintSet",
+          "source_path": "amari-rewrite/src/relation/constraints.rs",
+          "source_ordinal": 3,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Default"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::constraints",
+            "ident": "ConstraintSet"
           },
           "unsafe_trait": false,
           "negative": false,
@@ -380690,6 +381426,42 @@
         },
         {
           "trait_path": "Eq",
+          "impl_type_path": "amari_rewrite::relation::ConstraintOutcome",
+          "source_path": "amari-rewrite/src/relation/constraints.rs",
+          "source_ordinal": 2,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Eq"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::constraints",
+            "ident": "ConstraintOutcome"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Eq",
+          "impl_type_path": "amari_rewrite::relation::ConstraintSet",
+          "source_path": "amari-rewrite/src/relation/constraints.rs",
+          "source_ordinal": 3,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Eq"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::constraints",
+            "ident": "ConstraintSet"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Eq",
           "impl_type_path": "amari_rewrite::relation::LogicVar",
           "source_path": "amari-rewrite/src/relation/variable.rs",
           "source_ordinal": 0,
@@ -380773,6 +381545,24 @@
             "kind": "local",
             "module": "amari_rewrite::relation::digest",
             "ident": "Sha256Digest"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Eq",
+          "impl_type_path": "amari_rewrite::relation::TermConstraint",
+          "source_path": "amari-rewrite/src/relation/constraints.rs",
+          "source_ordinal": 0,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Eq"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::constraints",
+            "ident": "TermConstraint"
           },
           "unsafe_trait": false,
           "negative": false,
@@ -381738,6 +382528,42 @@
         },
         {
           "trait_path": "PartialEq",
+          "impl_type_path": "amari_rewrite::relation::ConstraintOutcome",
+          "source_path": "amari-rewrite/src/relation/constraints.rs",
+          "source_ordinal": 2,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "PartialEq"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::constraints",
+            "ident": "ConstraintOutcome"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "PartialEq",
+          "impl_type_path": "amari_rewrite::relation::ConstraintSet",
+          "source_path": "amari-rewrite/src/relation/constraints.rs",
+          "source_ordinal": 3,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "PartialEq"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::constraints",
+            "ident": "ConstraintSet"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "PartialEq",
           "impl_type_path": "amari_rewrite::relation::LogicVar",
           "source_path": "amari-rewrite/src/relation/variable.rs",
           "source_ordinal": 0,
@@ -381821,6 +382647,24 @@
             "kind": "local",
             "module": "amari_rewrite::relation::digest",
             "ident": "Sha256Digest"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "PartialEq",
+          "impl_type_path": "amari_rewrite::relation::TermConstraint",
+          "source_path": "amari-rewrite/src/relation/constraints.rs",
+          "source_ordinal": 0,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "PartialEq"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::constraints",
+            "ident": "TermConstraint"
           },
           "unsafe_trait": false,
           "negative": false,
@@ -382403,6 +383247,30 @@
           "surface_kind": "top_level"
         },
         {
+          "path": "amari_rewrite::analysis",
+          "source_path": "amari-rewrite/src/analysis/mod.rs",
+          "source_ordinal": 0,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "module"
+        },
+        {
+          "path": "amari_rewrite::analysis::unify",
+          "source_path": "amari-rewrite/src/analysis/unify.rs",
+          "source_ordinal": 0,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "top_level"
+        },
+        {
+          "path": "amari_rewrite::analysis::unify_with",
+          "source_path": "amari-rewrite/src/analysis/unify.rs",
+          "source_ordinal": 1,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "top_level"
+        },
+        {
           "path": "amari_rewrite::ars",
           "source_path": "amari-rewrite/src/ars/mod.rs",
           "source_ordinal": 0,
@@ -382835,6 +383703,14 @@
           "surface_kind": "inherent_method"
         },
         {
+          "path": "amari_rewrite::prelude::Substitution::compose",
+          "source_path": "amari-rewrite/src/trs/substitution.rs",
+          "source_ordinal": 9,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_method"
+        },
+        {
           "path": "amari_rewrite::prelude::Substitution::get",
           "source_path": "amari-rewrite/src/trs/substitution.rs",
           "source_ordinal": 3,
@@ -382859,9 +383735,25 @@
           "surface_kind": "inherent_method"
         },
         {
+          "path": "amari_rewrite::prelude::Substitution::is_empty",
+          "source_path": "amari-rewrite/src/trs/substitution.rs",
+          "source_ordinal": 8,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_method"
+        },
+        {
           "path": "amari_rewrite::prelude::Substitution::iter",
           "source_path": "amari-rewrite/src/trs/substitution.rs",
           "source_ordinal": 5,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_method"
+        },
+        {
+          "path": "amari_rewrite::prelude::Substitution::len",
+          "source_path": "amari-rewrite/src/trs/substitution.rs",
+          "source_ordinal": 7,
           "gate": "always",
           "status": "enabled",
           "surface_kind": "inherent_method"
@@ -383243,6 +384135,70 @@
           "surface_kind": "module"
         },
         {
+          "path": "amari_rewrite::relation::ConstraintOutcome",
+          "source_path": "amari-rewrite/src/relation/constraints.rs",
+          "source_ordinal": 2,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "top_level"
+        },
+        {
+          "path": "amari_rewrite::relation::ConstraintSet",
+          "source_path": "amari-rewrite/src/relation/constraints.rs",
+          "source_ordinal": 3,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "top_level"
+        },
+        {
+          "path": "amari_rewrite::relation::ConstraintSet::constraints",
+          "source_path": "amari-rewrite/src/relation/constraints.rs",
+          "source_ordinal": 2,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_method"
+        },
+        {
+          "path": "amari_rewrite::relation::ConstraintSet::insert",
+          "source_path": "amari-rewrite/src/relation/constraints.rs",
+          "source_ordinal": 1,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_method"
+        },
+        {
+          "path": "amari_rewrite::relation::ConstraintSet::is_empty",
+          "source_path": "amari-rewrite/src/relation/constraints.rs",
+          "source_ordinal": 4,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_method"
+        },
+        {
+          "path": "amari_rewrite::relation::ConstraintSet::len",
+          "source_path": "amari-rewrite/src/relation/constraints.rs",
+          "source_ordinal": 3,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_method"
+        },
+        {
+          "path": "amari_rewrite::relation::ConstraintSet::new",
+          "source_path": "amari-rewrite/src/relation/constraints.rs",
+          "source_ordinal": 0,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_method"
+        },
+        {
+          "path": "amari_rewrite::relation::ConstraintSet::normalize",
+          "source_path": "amari-rewrite/src/relation/constraints.rs",
+          "source_ordinal": 5,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_method"
+        },
+        {
           "path": "amari_rewrite::relation::LogicVar",
           "source_path": "amari-rewrite/src/relation/variable.rs",
           "source_ordinal": 0,
@@ -383494,6 +384450,22 @@
           "path": "amari_rewrite::relation::Sha256Digest::to_hex",
           "source_path": "amari-rewrite/src/relation/digest.rs",
           "source_ordinal": 4,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_method"
+        },
+        {
+          "path": "amari_rewrite::relation::TermConstraint",
+          "source_path": "amari-rewrite/src/relation/constraints.rs",
+          "source_ordinal": 0,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "top_level"
+        },
+        {
+          "path": "amari_rewrite::relation::TermConstraint::canonical_digest",
+          "source_path": "amari-rewrite/src/relation/constraints.rs",
+          "source_ordinal": 0,
           "gate": "always",
           "status": "enabled",
           "surface_kind": "inherent_method"
@@ -383819,6 +384791,14 @@
           "surface_kind": "inherent_method"
         },
         {
+          "path": "amari_rewrite::trs::Substitution::compose",
+          "source_path": "amari-rewrite/src/trs/substitution.rs",
+          "source_ordinal": 9,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_method"
+        },
+        {
           "path": "amari_rewrite::trs::Substitution::get",
           "source_path": "amari-rewrite/src/trs/substitution.rs",
           "source_ordinal": 3,
@@ -383843,9 +384823,25 @@
           "surface_kind": "inherent_method"
         },
         {
+          "path": "amari_rewrite::trs::Substitution::is_empty",
+          "source_path": "amari-rewrite/src/trs/substitution.rs",
+          "source_ordinal": 8,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_method"
+        },
+        {
           "path": "amari_rewrite::trs::Substitution::iter",
           "source_path": "amari-rewrite/src/trs/substitution.rs",
           "source_ordinal": 5,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_method"
+        },
+        {
+          "path": "amari_rewrite::trs::Substitution::len",
+          "source_path": "amari-rewrite/src/trs/substitution.rs",
+          "source_ordinal": 7,
           "gate": "always",
           "status": "enabled",
           "surface_kind": "inherent_method"
@@ -384087,6 +385083,7 @@
       ],
       "modules": [
         "amari_rewrite",
+        "amari_rewrite::analysis",
         "amari_rewrite::ars",
         "amari_rewrite::error",
         "amari_rewrite::inverse",
