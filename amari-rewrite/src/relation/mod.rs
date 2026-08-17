@@ -13,11 +13,15 @@
 mod clause;
 mod constraints;
 pub(crate) mod digest;
+mod ground;
 mod limits;
 mod variable;
 
 pub use clause::{BackwardClause, RuleId};
 pub use constraints::{ConstraintOutcome, ConstraintSet, TermConstraint};
 pub use digest::Sha256Digest;
+pub use ground::{
+    ground_predecessor, GroundedPredecessor, GroundingDomain, GroundingOutcome, RankedSymbol,
+};
 pub use limits::{RelationLimits, RelationResources};
 pub use variable::{LogicVar, LogicVarNamespace};

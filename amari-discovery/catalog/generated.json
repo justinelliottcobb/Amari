@@ -2,7 +2,7 @@
   "schema_version": 2,
   "version": "0.24.1",
   "description": "Generated structural catalog for Amari 0.24.1: 28 crates, 107 dependency edges",
-  "content_hash": "a282411d64763fef8500cb9073d5feb518ff35a13df842d445afd528dfe3e68b",
+  "content_hash": "4e6acc8d1eb14f3ecbfea2d8c96d42628a656bd260e5d8aa73b36a7774620095",
   "crates": [
     {
       "name": "amari",
@@ -377629,6 +377629,288 @@
           ]
         },
         {
+          "path": "amari_rewrite::relation::GroundedPredecessor",
+          "kind": "struct",
+          "signature": "pub struct GroundedPredecessor",
+          "shape": {
+            "kind": "struct",
+            "fields": [
+              {
+                "label": "substitution",
+                "ty": "Substitution"
+              },
+              {
+                "label": "term",
+                "ty": "Term"
+              }
+            ]
+          },
+          "source_path": "amari-rewrite/src/relation/ground.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::relation::ground",
+          "variants": [
+            {
+              "kind": "struct",
+              "signature": "pub struct GroundedPredecessor",
+              "shape": {
+                "kind": "struct",
+                "fields": [
+                  {
+                    "label": "substitution",
+                    "ty": "Substitution"
+                  },
+                  {
+                    "label": "term",
+                    "ty": "Term"
+                  }
+                ]
+              },
+              "source_path": "amari-rewrite/src/relation/ground.rs",
+              "source_module": "amari_rewrite::relation::ground",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::relation::ground",
+              "declaration_ident": "GroundedPredecessor"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::relation::GroundingDomain",
+          "kind": "struct",
+          "signature": "pub struct GroundingDomain",
+          "shape": {
+            "kind": "struct",
+            "fields": []
+          },
+          "source_path": "amari-rewrite/src/relation/ground.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::relation::ground",
+          "variants": [
+            {
+              "kind": "struct",
+              "signature": "pub struct GroundingDomain",
+              "shape": {
+                "kind": "struct",
+                "fields": []
+              },
+              "source_path": "amari-rewrite/src/relation/ground.rs",
+              "source_module": "amari_rewrite::relation::ground",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::relation::ground",
+              "declaration_ident": "GroundingDomain"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::relation::GroundingDomain::MAX_DEPTH",
+          "kind": "const",
+          "signature": "pub const MAX_DEPTH : usize",
+          "source_path": "amari-rewrite/src/relation/ground.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::relation::ground",
+          "variants": [
+            {
+              "kind": "const",
+              "signature": "pub const MAX_DEPTH : usize",
+              "source_path": "amari-rewrite/src/relation/ground.rs",
+              "source_module": "amari_rewrite::relation::ground",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::relation::ground",
+              "declaration_ident": "GroundingDomain::MAX_DEPTH"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::relation::GroundingDomain::MAX_RANK",
+          "kind": "const",
+          "signature": "pub const MAX_RANK : usize",
+          "source_path": "amari-rewrite/src/relation/ground.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::relation::ground",
+          "variants": [
+            {
+              "kind": "const",
+              "signature": "pub const MAX_RANK : usize",
+              "source_path": "amari-rewrite/src/relation/ground.rs",
+              "source_module": "amari_rewrite::relation::ground",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::relation::ground",
+              "declaration_ident": "GroundingDomain::MAX_RANK"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::relation::GroundingDomain::MAX_SYMBOLS",
+          "kind": "const",
+          "signature": "pub const MAX_SYMBOLS : usize",
+          "source_path": "amari-rewrite/src/relation/ground.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::relation::ground",
+          "variants": [
+            {
+              "kind": "const",
+              "signature": "pub const MAX_SYMBOLS : usize",
+              "source_path": "amari-rewrite/src/relation/ground.rs",
+              "source_module": "amari_rewrite::relation::ground",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::relation::ground",
+              "declaration_ident": "GroundingDomain::MAX_SYMBOLS"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::relation::GroundingDomain::MAX_TERMS",
+          "kind": "const",
+          "signature": "pub const MAX_TERMS : usize",
+          "source_path": "amari-rewrite/src/relation/ground.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::relation::ground",
+          "variants": [
+            {
+              "kind": "const",
+              "signature": "pub const MAX_TERMS : usize",
+              "source_path": "amari-rewrite/src/relation/ground.rs",
+              "source_module": "amari_rewrite::relation::ground",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::relation::ground",
+              "declaration_ident": "GroundingDomain::MAX_TERMS"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::relation::GroundingDomain::enumerate",
+          "kind": "method",
+          "signature": "pub fn enumerate (& self , resources : & mut RelationResources) -> RewriteResult < Vec < Term > >",
+          "source_path": "amari-rewrite/src/relation/ground.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::relation::ground",
+          "variants": [
+            {
+              "kind": "method",
+              "signature": "pub fn enumerate (& self , resources : & mut RelationResources) -> RewriteResult < Vec < Term > >",
+              "source_path": "amari-rewrite/src/relation/ground.rs",
+              "source_module": "amari_rewrite::relation::ground",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::relation::ground",
+              "declaration_ident": "GroundingDomain::enumerate"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::relation::GroundingDomain::new",
+          "kind": "method",
+          "signature": "pub fn new (symbols : Vec < RankedSymbol > , max_depth : usize , max_terms : usize ,) -> RewriteResult < Self >",
+          "source_path": "amari-rewrite/src/relation/ground.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::relation::ground",
+          "variants": [
+            {
+              "kind": "method",
+              "signature": "pub fn new (symbols : Vec < RankedSymbol > , max_depth : usize , max_terms : usize ,) -> RewriteResult < Self >",
+              "source_path": "amari-rewrite/src/relation/ground.rs",
+              "source_module": "amari_rewrite::relation::ground",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::relation::ground",
+              "declaration_ident": "GroundingDomain::new"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::relation::GroundingDomain::symbols",
+          "kind": "method",
+          "signature": "pub fn symbols (& self) -> & [RankedSymbol]",
+          "source_path": "amari-rewrite/src/relation/ground.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::relation::ground",
+          "variants": [
+            {
+              "kind": "method",
+              "signature": "pub fn symbols (& self) -> & [RankedSymbol]",
+              "source_path": "amari-rewrite/src/relation/ground.rs",
+              "source_module": "amari_rewrite::relation::ground",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::relation::ground",
+              "declaration_ident": "GroundingDomain::symbols"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::relation::GroundingOutcome",
+          "kind": "enum",
+          "signature": "pub enum GroundingOutcome",
+          "shape": {
+            "kind": "enum",
+            "variants": [
+              {
+                "name": "Complete",
+                "data": {
+                  "kind": "struct",
+                  "fields": [
+                    {
+                      "name": "grounded",
+                      "ty": "Vec < GroundedPredecessor >"
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "Partial",
+                "data": {
+                  "kind": "struct",
+                  "fields": [
+                    {
+                      "name": "grounded",
+                      "ty": "Vec < GroundedPredecessor >"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "source_path": "amari-rewrite/src/relation/ground.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::relation::ground",
+          "variants": [
+            {
+              "kind": "enum",
+              "signature": "pub enum GroundingOutcome",
+              "shape": {
+                "kind": "enum",
+                "variants": [
+                  {
+                    "name": "Complete",
+                    "data": {
+                      "kind": "struct",
+                      "fields": [
+                        {
+                          "name": "grounded",
+                          "ty": "Vec < GroundedPredecessor >"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "Partial",
+                    "data": {
+                      "kind": "struct",
+                      "fields": [
+                        {
+                          "name": "grounded",
+                          "ty": "Vec < GroundedPredecessor >"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              "source_path": "amari-rewrite/src/relation/ground.rs",
+              "source_module": "amari_rewrite::relation::ground",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::relation::ground",
+              "declaration_ident": "GroundingOutcome"
+            }
+          ]
+        },
+        {
           "path": "amari_rewrite::relation::LogicVar",
           "kind": "struct",
           "signature": "pub struct LogicVar",
@@ -377793,6 +378075,90 @@
               "is_reexport": true,
               "declaration_module": "amari_rewrite::relation::variable",
               "declaration_ident": "LogicVarNamespace::new"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::relation::RankedSymbol",
+          "kind": "struct",
+          "signature": "pub struct RankedSymbol",
+          "shape": {
+            "kind": "struct",
+            "fields": []
+          },
+          "source_path": "amari-rewrite/src/relation/ground.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::relation::ground",
+          "variants": [
+            {
+              "kind": "struct",
+              "signature": "pub struct RankedSymbol",
+              "shape": {
+                "kind": "struct",
+                "fields": []
+              },
+              "source_path": "amari-rewrite/src/relation/ground.rs",
+              "source_module": "amari_rewrite::relation::ground",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::relation::ground",
+              "declaration_ident": "RankedSymbol"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::relation::RankedSymbol::arity",
+          "kind": "method",
+          "signature": "pub fn arity (& self) -> usize",
+          "source_path": "amari-rewrite/src/relation/ground.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::relation::ground",
+          "variants": [
+            {
+              "kind": "method",
+              "signature": "pub fn arity (& self) -> usize",
+              "source_path": "amari-rewrite/src/relation/ground.rs",
+              "source_module": "amari_rewrite::relation::ground",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::relation::ground",
+              "declaration_ident": "RankedSymbol::arity"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::relation::RankedSymbol::name",
+          "kind": "method",
+          "signature": "pub fn name (& self) -> & str",
+          "source_path": "amari-rewrite/src/relation/ground.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::relation::ground",
+          "variants": [
+            {
+              "kind": "method",
+              "signature": "pub fn name (& self) -> & str",
+              "source_path": "amari-rewrite/src/relation/ground.rs",
+              "source_module": "amari_rewrite::relation::ground",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::relation::ground",
+              "declaration_ident": "RankedSymbol::name"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::relation::RankedSymbol::new",
+          "kind": "method",
+          "signature": "pub fn new (name : impl Into < String > , arity : usize) -> Self",
+          "source_path": "amari-rewrite/src/relation/ground.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::relation::ground",
+          "variants": [
+            {
+              "kind": "method",
+              "signature": "pub fn new (name : impl Into < String > , arity : usize) -> Self",
+              "source_path": "amari-rewrite/src/relation/ground.rs",
+              "source_module": "amari_rewrite::relation::ground",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::relation::ground",
+              "declaration_ident": "RankedSymbol::new"
             }
           ]
         },
@@ -378426,6 +378792,25 @@
               "is_reexport": true,
               "declaration_module": "amari_rewrite::relation::constraints",
               "declaration_ident": "TermConstraint::canonical_digest"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::relation::ground_predecessor",
+          "kind": "fn",
+          "signature": "pub fn ground_predecessor (system : & TermSystem , target : & Term , predecessor : & SymbolicPredecessor , domain : & GroundingDomain , limits : & RelationLimits ,) -> RewriteResult < GroundingOutcome >",
+          "source_path": "amari-rewrite/src/relation/ground.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::relation::ground",
+          "variants": [
+            {
+              "kind": "fn",
+              "signature": "pub fn ground_predecessor (system : & TermSystem , target : & Term , predecessor : & SymbolicPredecessor , domain : & GroundingDomain , limits : & RelationLimits ,) -> RewriteResult < GroundingOutcome >",
+              "source_path": "amari-rewrite/src/relation/ground.rs",
+              "source_module": "amari_rewrite::relation::ground",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::relation::ground",
+              "declaration_ident": "ground_predecessor"
             }
           ]
         },
@@ -380442,6 +380827,60 @@
         },
         {
           "trait_path": "Clone",
+          "impl_type_path": "amari_rewrite::relation::GroundedPredecessor",
+          "source_path": "amari-rewrite/src/relation/ground.rs",
+          "source_ordinal": 4,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Clone"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::ground",
+            "ident": "GroundedPredecessor"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Clone",
+          "impl_type_path": "amari_rewrite::relation::GroundingDomain",
+          "source_path": "amari-rewrite/src/relation/ground.rs",
+          "source_ordinal": 2,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Clone"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::ground",
+            "ident": "GroundingDomain"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Clone",
+          "impl_type_path": "amari_rewrite::relation::GroundingOutcome",
+          "source_path": "amari-rewrite/src/relation/ground.rs",
+          "source_ordinal": 5,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Clone"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::ground",
+            "ident": "GroundingOutcome"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Clone",
           "impl_type_path": "amari_rewrite::relation::LogicVar",
           "source_path": "amari-rewrite/src/relation/variable.rs",
           "source_ordinal": 0,
@@ -380471,6 +380910,24 @@
             "kind": "local",
             "module": "amari_rewrite::relation::variable",
             "ident": "LogicVarNamespace"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Clone",
+          "impl_type_path": "amari_rewrite::relation::RankedSymbol",
+          "source_path": "amari-rewrite/src/relation/ground.rs",
+          "source_ordinal": 0,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Clone"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::ground",
+            "ident": "RankedSymbol"
           },
           "unsafe_trait": false,
           "negative": false,
@@ -381181,6 +381638,60 @@
         },
         {
           "trait_path": "Debug",
+          "impl_type_path": "amari_rewrite::relation::GroundedPredecessor",
+          "source_path": "amari-rewrite/src/relation/ground.rs",
+          "source_ordinal": 4,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Debug"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::ground",
+            "ident": "GroundedPredecessor"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Debug",
+          "impl_type_path": "amari_rewrite::relation::GroundingDomain",
+          "source_path": "amari-rewrite/src/relation/ground.rs",
+          "source_ordinal": 2,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Debug"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::ground",
+            "ident": "GroundingDomain"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Debug",
+          "impl_type_path": "amari_rewrite::relation::GroundingOutcome",
+          "source_path": "amari-rewrite/src/relation/ground.rs",
+          "source_ordinal": 5,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Debug"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::ground",
+            "ident": "GroundingOutcome"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Debug",
           "impl_type_path": "amari_rewrite::relation::LogicVar",
           "source_path": "amari-rewrite/src/relation/variable.rs",
           "source_ordinal": 0,
@@ -381210,6 +381721,24 @@
             "kind": "local",
             "module": "amari_rewrite::relation::variable",
             "ident": "LogicVarNamespace"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Debug",
+          "impl_type_path": "amari_rewrite::relation::RankedSymbol",
+          "source_path": "amari-rewrite/src/relation/ground.rs",
+          "source_ordinal": 0,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Debug"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::ground",
+            "ident": "RankedSymbol"
           },
           "unsafe_trait": false,
           "negative": false,
@@ -381974,6 +382503,60 @@
         },
         {
           "trait_path": "Eq",
+          "impl_type_path": "amari_rewrite::relation::GroundedPredecessor",
+          "source_path": "amari-rewrite/src/relation/ground.rs",
+          "source_ordinal": 4,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Eq"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::ground",
+            "ident": "GroundedPredecessor"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Eq",
+          "impl_type_path": "amari_rewrite::relation::GroundingDomain",
+          "source_path": "amari-rewrite/src/relation/ground.rs",
+          "source_ordinal": 2,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Eq"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::ground",
+            "ident": "GroundingDomain"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Eq",
+          "impl_type_path": "amari_rewrite::relation::GroundingOutcome",
+          "source_path": "amari-rewrite/src/relation/ground.rs",
+          "source_ordinal": 5,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Eq"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::ground",
+            "ident": "GroundingOutcome"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Eq",
           "impl_type_path": "amari_rewrite::relation::LogicVar",
           "source_path": "amari-rewrite/src/relation/variable.rs",
           "source_ordinal": 0,
@@ -382003,6 +382586,24 @@
             "kind": "local",
             "module": "amari_rewrite::relation::variable",
             "ident": "LogicVarNamespace"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Eq",
+          "impl_type_path": "amari_rewrite::relation::RankedSymbol",
+          "source_path": "amari-rewrite/src/relation/ground.rs",
+          "source_ordinal": 0,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Eq"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::ground",
+            "ident": "RankedSymbol"
           },
           "unsafe_trait": false,
           "negative": false,
@@ -382535,6 +383136,24 @@
         },
         {
           "trait_path": "Hash",
+          "impl_type_path": "amari_rewrite::relation::RankedSymbol",
+          "source_path": "amari-rewrite/src/relation/ground.rs",
+          "source_ordinal": 0,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Hash"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::ground",
+            "ident": "RankedSymbol"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Hash",
           "impl_type_path": "amari_rewrite::relation::RuleId",
           "source_path": "amari-rewrite/src/relation/clause.rs",
           "source_ordinal": 0,
@@ -382744,6 +383363,24 @@
             "kind": "local",
             "module": "amari_rewrite::relation::variable",
             "ident": "LogicVar"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Ord",
+          "impl_type_path": "amari_rewrite::relation::RankedSymbol",
+          "source_path": "amari-rewrite/src/relation/ground.rs",
+          "source_ordinal": 0,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Ord"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::ground",
+            "ident": "RankedSymbol"
           },
           "unsafe_trait": false,
           "negative": false,
@@ -383184,6 +383821,60 @@
         },
         {
           "trait_path": "PartialEq",
+          "impl_type_path": "amari_rewrite::relation::GroundedPredecessor",
+          "source_path": "amari-rewrite/src/relation/ground.rs",
+          "source_ordinal": 4,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "PartialEq"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::ground",
+            "ident": "GroundedPredecessor"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "PartialEq",
+          "impl_type_path": "amari_rewrite::relation::GroundingDomain",
+          "source_path": "amari-rewrite/src/relation/ground.rs",
+          "source_ordinal": 2,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "PartialEq"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::ground",
+            "ident": "GroundingDomain"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "PartialEq",
+          "impl_type_path": "amari_rewrite::relation::GroundingOutcome",
+          "source_path": "amari-rewrite/src/relation/ground.rs",
+          "source_ordinal": 5,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "PartialEq"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::ground",
+            "ident": "GroundingOutcome"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "PartialEq",
           "impl_type_path": "amari_rewrite::relation::LogicVar",
           "source_path": "amari-rewrite/src/relation/variable.rs",
           "source_ordinal": 0,
@@ -383213,6 +383904,24 @@
             "kind": "local",
             "module": "amari_rewrite::relation::variable",
             "ident": "LogicVarNamespace"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "PartialEq",
+          "impl_type_path": "amari_rewrite::relation::RankedSymbol",
+          "source_path": "amari-rewrite/src/relation/ground.rs",
+          "source_ordinal": 0,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "PartialEq"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::ground",
+            "ident": "RankedSymbol"
           },
           "unsafe_trait": false,
           "negative": false,
@@ -383501,6 +384210,24 @@
             "kind": "local",
             "module": "amari_rewrite::relation::variable",
             "ident": "LogicVar"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "PartialOrd",
+          "impl_type_path": "amari_rewrite::relation::RankedSymbol",
+          "source_path": "amari-rewrite/src/relation/ground.rs",
+          "source_ordinal": 0,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "PartialOrd"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::ground",
+            "ident": "RankedSymbol"
           },
           "unsafe_trait": false,
           "negative": false,
@@ -384947,6 +385674,86 @@
           "surface_kind": "inherent_method"
         },
         {
+          "path": "amari_rewrite::relation::GroundedPredecessor",
+          "source_path": "amari-rewrite/src/relation/ground.rs",
+          "source_ordinal": 4,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "top_level"
+        },
+        {
+          "path": "amari_rewrite::relation::GroundingDomain",
+          "source_path": "amari-rewrite/src/relation/ground.rs",
+          "source_ordinal": 2,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "top_level"
+        },
+        {
+          "path": "amari_rewrite::relation::GroundingDomain::MAX_DEPTH",
+          "source_path": "amari-rewrite/src/relation/ground.rs",
+          "source_ordinal": 2,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_const"
+        },
+        {
+          "path": "amari_rewrite::relation::GroundingDomain::MAX_RANK",
+          "source_path": "amari-rewrite/src/relation/ground.rs",
+          "source_ordinal": 1,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_const"
+        },
+        {
+          "path": "amari_rewrite::relation::GroundingDomain::MAX_SYMBOLS",
+          "source_path": "amari-rewrite/src/relation/ground.rs",
+          "source_ordinal": 0,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_const"
+        },
+        {
+          "path": "amari_rewrite::relation::GroundingDomain::MAX_TERMS",
+          "source_path": "amari-rewrite/src/relation/ground.rs",
+          "source_ordinal": 3,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_const"
+        },
+        {
+          "path": "amari_rewrite::relation::GroundingDomain::enumerate",
+          "source_path": "amari-rewrite/src/relation/ground.rs",
+          "source_ordinal": 6,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_method"
+        },
+        {
+          "path": "amari_rewrite::relation::GroundingDomain::new",
+          "source_path": "amari-rewrite/src/relation/ground.rs",
+          "source_ordinal": 4,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_method"
+        },
+        {
+          "path": "amari_rewrite::relation::GroundingDomain::symbols",
+          "source_path": "amari-rewrite/src/relation/ground.rs",
+          "source_ordinal": 5,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_method"
+        },
+        {
+          "path": "amari_rewrite::relation::GroundingOutcome",
+          "source_path": "amari-rewrite/src/relation/ground.rs",
+          "source_ordinal": 5,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "top_level"
+        },
+        {
           "path": "amari_rewrite::relation::LogicVar",
           "source_path": "amari-rewrite/src/relation/variable.rs",
           "source_ordinal": 0,
@@ -385005,6 +385812,38 @@
         {
           "path": "amari_rewrite::relation::LogicVarNamespace::new",
           "source_path": "amari-rewrite/src/relation/variable.rs",
+          "source_ordinal": 0,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_method"
+        },
+        {
+          "path": "amari_rewrite::relation::RankedSymbol",
+          "source_path": "amari-rewrite/src/relation/ground.rs",
+          "source_ordinal": 0,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "top_level"
+        },
+        {
+          "path": "amari_rewrite::relation::RankedSymbol::arity",
+          "source_path": "amari-rewrite/src/relation/ground.rs",
+          "source_ordinal": 2,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_method"
+        },
+        {
+          "path": "amari_rewrite::relation::RankedSymbol::name",
+          "source_path": "amari-rewrite/src/relation/ground.rs",
+          "source_ordinal": 1,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_method"
+        },
+        {
+          "path": "amari_rewrite::relation::RankedSymbol::new",
+          "source_path": "amari-rewrite/src/relation/ground.rs",
           "source_ordinal": 0,
           "gate": "always",
           "status": "enabled",
@@ -385241,6 +386080,14 @@
           "gate": "always",
           "status": "enabled",
           "surface_kind": "inherent_method"
+        },
+        {
+          "path": "amari_rewrite::relation::ground_predecessor",
+          "source_path": "amari-rewrite/src/relation/ground.rs",
+          "source_ordinal": 6,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "top_level"
         },
         {
           "path": "amari_rewrite::rewritable",
