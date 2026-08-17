@@ -10,11 +10,13 @@
 //! constraint normalization, and backward clauses build on these in
 //! later tasks.
 
+mod clause;
 mod constraints;
 pub(crate) mod digest;
 mod limits;
 mod variable;
 
+pub use clause::{BackwardClause, RuleId};
 pub use constraints::{ConstraintOutcome, ConstraintSet, TermConstraint};
 pub use digest::Sha256Digest;
 pub use limits::{RelationLimits, RelationResources};
