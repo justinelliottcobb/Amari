@@ -28,6 +28,7 @@ Current release process documentation:
 Current planning and release-roadmap documentation:
 
 - **[0.20.0 → 0.26.0 Release Sequence](roadmap/V0_20_0_TO_V0_26_0_RELEASE_SEQUENCE.md)** - 0.24 discovery/holographic release, 0.25 comprehensive rewrite/inverse research, and 0.26 GPU/Borsalino modernization
+- **[0.25.0 → 1.0.0 Release Sequence](roadmap/V0_25_0_TO_V1_0_0_RELEASE_SEQUENCE.md)** - 0.25.x relativistic fixes, 0.26 GPU/catalog, 0.27 wasm decomposition + symplectic, 0.28 discovery-on-Lonis, 0.29 audit, 1.0.0 stable
 - **[v0.24.0 amari-discovery Design](plans/2026-07-09-amari-discovery-design.md)** - Agent-first discovery, planning, and bounded probe runtime installed as the `amari` command
 - **[v0.25.0 amari-rewrite Decision Record](plans/2026-07-24-amari-rewrite-0.25-decisions.md)** - Approved comprehensive bounded rewrite and inverse-rewrite scope
 - **[v0.25.0 amari-rewrite/Inverse Design](plans/2026-07-24-amari-rewrite-inverse-expansion-design.md)** - Relational inverses, residual reversibility, language preimages, analysis, learned guidance, SMT, and discovery boundaries
