@@ -4,6 +4,9 @@
 - Revised: 2026-07-24
 - Current baseline: 0.23.0 shipped; 0.24.0 is the next release
 
+> For 0.27.0 and later, see
+> [`V0_25_0_TO_V1_0_0_RELEASE_SEQUENCE.md`](V0_25_0_TO_V1_0_0_RELEASE_SEQUENCE.md).
+
 ## Release posture
 
 Each minor release has one coherent center of gravity. Patch releases remain
