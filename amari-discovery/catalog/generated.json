@@ -2,7 +2,7 @@
   "schema_version": 2,
   "version": "0.24.1",
   "description": "Generated structural catalog for Amari 0.24.1: 28 crates, 107 dependency edges",
-  "content_hash": "b7954384c9d1a5bae3d6ebd94a464dee961523052651338510e48bd77286597a",
+  "content_hash": "a282411d64763fef8500cb9073d5feb518ff35a13df842d445afd528dfe3e68b",
   "crates": [
     {
       "name": "amari",
@@ -375116,6 +375116,75 @@
           ]
         },
         {
+          "path": "amari_rewrite::inverse::BackwardProvenance",
+          "kind": "struct",
+          "signature": "pub struct BackwardProvenance",
+          "shape": {
+            "kind": "struct",
+            "fields": [
+              {
+                "label": "rule_id",
+                "ty": "RuleId"
+              },
+              {
+                "label": "position",
+                "ty": "Path"
+              },
+              {
+                "label": "scope",
+                "ty": "u32"
+              },
+              {
+                "label": "target_hash",
+                "ty": "Sha256Digest"
+              },
+              {
+                "label": "predecessor_hash",
+                "ty": "Sha256Digest"
+              }
+            ]
+          },
+          "source_path": "amari-rewrite/src/inverse/mod.rs",
+          "is_reexport": false,
+          "source_module": "amari_rewrite::inverse",
+          "variants": [
+            {
+              "kind": "struct",
+              "signature": "pub struct BackwardProvenance",
+              "shape": {
+                "kind": "struct",
+                "fields": [
+                  {
+                    "label": "rule_id",
+                    "ty": "RuleId"
+                  },
+                  {
+                    "label": "position",
+                    "ty": "Path"
+                  },
+                  {
+                    "label": "scope",
+                    "ty": "u32"
+                  },
+                  {
+                    "label": "target_hash",
+                    "ty": "Sha256Digest"
+                  },
+                  {
+                    "label": "predecessor_hash",
+                    "ty": "Sha256Digest"
+                  }
+                ]
+              },
+              "source_path": "amari-rewrite/src/inverse/mod.rs",
+              "source_module": "amari_rewrite::inverse",
+              "is_reexport": false,
+              "declaration_module": "amari_rewrite::inverse",
+              "declaration_ident": "BackwardProvenance"
+            }
+          ]
+        },
+        {
           "path": "amari_rewrite::inverse::BackwardSearch",
           "kind": "struct",
           "signature": "pub struct BackwardSearch < 'a >",
@@ -375200,6 +375269,83 @@
           ]
         },
         {
+          "path": "amari_rewrite::inverse::SymbolicPredecessor",
+          "kind": "struct",
+          "signature": "pub struct SymbolicPredecessor",
+          "shape": {
+            "kind": "struct",
+            "fields": [
+              {
+                "label": "term",
+                "ty": "Term"
+              },
+              {
+                "label": "existentials",
+                "ty": "Vec < LogicVar >"
+              },
+              {
+                "label": "constraints",
+                "ty": "ConstraintSet"
+              },
+              {
+                "label": "substitution",
+                "ty": "Substitution"
+              },
+              {
+                "label": "provenance",
+                "ty": "BackwardProvenance"
+              },
+              {
+                "label": "resources",
+                "ty": "RelationResources"
+              }
+            ]
+          },
+          "source_path": "amari-rewrite/src/inverse/mod.rs",
+          "is_reexport": false,
+          "source_module": "amari_rewrite::inverse",
+          "variants": [
+            {
+              "kind": "struct",
+              "signature": "pub struct SymbolicPredecessor",
+              "shape": {
+                "kind": "struct",
+                "fields": [
+                  {
+                    "label": "term",
+                    "ty": "Term"
+                  },
+                  {
+                    "label": "existentials",
+                    "ty": "Vec < LogicVar >"
+                  },
+                  {
+                    "label": "constraints",
+                    "ty": "ConstraintSet"
+                  },
+                  {
+                    "label": "substitution",
+                    "ty": "Substitution"
+                  },
+                  {
+                    "label": "provenance",
+                    "ty": "BackwardProvenance"
+                  },
+                  {
+                    "label": "resources",
+                    "ty": "RelationResources"
+                  }
+                ]
+              },
+              "source_path": "amari-rewrite/src/inverse/mod.rs",
+              "source_module": "amari_rewrite::inverse",
+              "is_reexport": false,
+              "declaration_module": "amari_rewrite::inverse",
+              "declaration_ident": "SymbolicPredecessor"
+            }
+          ]
+        },
+        {
           "path": "amari_rewrite::inverse::predecessors",
           "kind": "fn",
           "signature": "pub fn predecessors (system : & TermSystem , target : Term , max_depth : usize) -> alloc :: vec :: Vec < Term >",
@@ -375215,6 +375361,25 @@
               "is_reexport": false,
               "declaration_module": "amari_rewrite::inverse",
               "declaration_ident": "predecessors"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::inverse::symbolic_predecessors",
+          "kind": "fn",
+          "signature": "pub fn symbolic_predecessors (system : & TermSystem , target : & Term , limits : & RelationLimits , scope : u32 ,) -> RewriteResult < alloc :: vec :: Vec < SymbolicPredecessor > >",
+          "source_path": "amari-rewrite/src/inverse/mod.rs",
+          "is_reexport": false,
+          "source_module": "amari_rewrite::inverse",
+          "variants": [
+            {
+              "kind": "fn",
+              "signature": "pub fn symbolic_predecessors (system : & TermSystem , target : & Term , limits : & RelationLimits , scope : u32 ,) -> RewriteResult < alloc :: vec :: Vec < SymbolicPredecessor > >",
+              "source_path": "amari-rewrite/src/inverse/mod.rs",
+              "source_module": "amari_rewrite::inverse",
+              "is_reexport": false,
+              "declaration_module": "amari_rewrite::inverse",
+              "declaration_ident": "symbolic_predecessors"
             }
           ]
         },
@@ -377154,6 +377319,90 @@
           ]
         },
         {
+          "path": "amari_rewrite::relation::BackwardClause",
+          "kind": "struct",
+          "signature": "pub struct BackwardClause",
+          "shape": {
+            "kind": "struct",
+            "fields": []
+          },
+          "source_path": "amari-rewrite/src/relation/clause.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::relation::clause",
+          "variants": [
+            {
+              "kind": "struct",
+              "signature": "pub struct BackwardClause",
+              "shape": {
+                "kind": "struct",
+                "fields": []
+              },
+              "source_path": "amari-rewrite/src/relation/clause.rs",
+              "source_module": "amari_rewrite::relation::clause",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::relation::clause",
+              "declaration_ident": "BackwardClause"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::relation::BackwardClause::compile",
+          "kind": "method",
+          "signature": "pub fn compile (rule : & Rule) -> RewriteResult < Self >",
+          "source_path": "amari-rewrite/src/relation/clause.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::relation::clause",
+          "variants": [
+            {
+              "kind": "method",
+              "signature": "pub fn compile (rule : & Rule) -> RewriteResult < Self >",
+              "source_path": "amari-rewrite/src/relation/clause.rs",
+              "source_module": "amari_rewrite::relation::clause",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::relation::clause",
+              "declaration_ident": "BackwardClause::compile"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::relation::BackwardClause::erased_variables",
+          "kind": "method",
+          "signature": "pub fn erased_variables (& self) -> & [String]",
+          "source_path": "amari-rewrite/src/relation/clause.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::relation::clause",
+          "variants": [
+            {
+              "kind": "method",
+              "signature": "pub fn erased_variables (& self) -> & [String]",
+              "source_path": "amari-rewrite/src/relation/clause.rs",
+              "source_module": "amari_rewrite::relation::clause",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::relation::clause",
+              "declaration_ident": "BackwardClause::erased_variables"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::relation::BackwardClause::rule_id",
+          "kind": "method",
+          "signature": "pub fn rule_id (& self) -> RuleId",
+          "source_path": "amari-rewrite/src/relation/clause.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::relation::clause",
+          "variants": [
+            {
+              "kind": "method",
+              "signature": "pub fn rule_id (& self) -> RuleId",
+              "source_path": "amari-rewrite/src/relation/clause.rs",
+              "source_module": "amari_rewrite::relation::clause",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::relation::clause",
+              "declaration_ident": "BackwardClause::rule_id"
+            }
+          ]
+        },
+        {
           "path": "amari_rewrite::relation::ConstraintOutcome",
           "kind": "enum",
           "signature": "pub enum ConstraintOutcome",
@@ -377883,6 +378132,71 @@
               "is_reexport": true,
               "declaration_module": "amari_rewrite::relation::limits",
               "declaration_ident": "RelationResources::record_term"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::relation::RuleId",
+          "kind": "struct",
+          "signature": "pub struct RuleId",
+          "shape": {
+            "kind": "struct",
+            "fields": []
+          },
+          "source_path": "amari-rewrite/src/relation/clause.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::relation::clause",
+          "variants": [
+            {
+              "kind": "struct",
+              "signature": "pub struct RuleId",
+              "shape": {
+                "kind": "struct",
+                "fields": []
+              },
+              "source_path": "amari-rewrite/src/relation/clause.rs",
+              "source_module": "amari_rewrite::relation::clause",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::relation::clause",
+              "declaration_ident": "RuleId"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::relation::RuleId::digest",
+          "kind": "method",
+          "signature": "pub fn digest (& self) -> Sha256Digest",
+          "source_path": "amari-rewrite/src/relation/clause.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::relation::clause",
+          "variants": [
+            {
+              "kind": "method",
+              "signature": "pub fn digest (& self) -> Sha256Digest",
+              "source_path": "amari-rewrite/src/relation/clause.rs",
+              "source_module": "amari_rewrite::relation::clause",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::relation::clause",
+              "declaration_ident": "RuleId::digest"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::relation::RuleId::from_rule",
+          "kind": "method",
+          "signature": "pub fn from_rule (rule : & Rule) -> Self",
+          "source_path": "amari-rewrite/src/relation/clause.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::relation::clause",
+          "variants": [
+            {
+              "kind": "method",
+              "signature": "pub fn from_rule (rule : & Rule) -> Self",
+              "source_path": "amari-rewrite/src/relation/clause.rs",
+              "source_module": "amari_rewrite::relation::clause",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::relation::clause",
+              "declaration_ident": "RuleId::from_rule"
             }
           ]
         },
@@ -379876,6 +380190,42 @@
         },
         {
           "trait_path": "Clone",
+          "impl_type_path": "amari_rewrite::inverse::BackwardProvenance",
+          "source_path": "amari-rewrite/src/inverse/mod.rs",
+          "source_ordinal": 4,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Clone"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::inverse",
+            "ident": "BackwardProvenance"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Clone",
+          "impl_type_path": "amari_rewrite::inverse::SymbolicPredecessor",
+          "source_path": "amari-rewrite/src/inverse/mod.rs",
+          "source_ordinal": 5,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Clone"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::inverse",
+            "ident": "SymbolicPredecessor"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Clone",
           "impl_type_path": "amari_rewrite::network::RewriteGraphSummary",
           "source_path": "amari-rewrite/src/network/mod.rs",
           "source_ordinal": 0,
@@ -380038,6 +380388,24 @@
         },
         {
           "trait_path": "Clone",
+          "impl_type_path": "amari_rewrite::relation::BackwardClause",
+          "source_path": "amari-rewrite/src/relation/clause.rs",
+          "source_ordinal": 4,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Clone"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::clause",
+            "ident": "BackwardClause"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Clone",
           "impl_type_path": "amari_rewrite::relation::ConstraintOutcome",
           "source_path": "amari-rewrite/src/relation/constraints.rs",
           "source_ordinal": 2,
@@ -380139,6 +380507,24 @@
             "kind": "local",
             "module": "amari_rewrite::relation::limits",
             "ident": "RelationResources"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Clone",
+          "impl_type_path": "amari_rewrite::relation::RuleId",
+          "source_path": "amari-rewrite/src/relation/clause.rs",
+          "source_ordinal": 0,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Clone"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::clause",
+            "ident": "RuleId"
           },
           "unsafe_trait": false,
           "negative": false,
@@ -380416,6 +380802,24 @@
         },
         {
           "trait_path": "Copy",
+          "impl_type_path": "amari_rewrite::relation::RuleId",
+          "source_path": "amari-rewrite/src/relation/clause.rs",
+          "source_ordinal": 0,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Copy"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::clause",
+            "ident": "RuleId"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Copy",
           "impl_type_path": "amari_rewrite::relation::Sha256Digest",
           "source_path": "amari-rewrite/src/relation/digest.rs",
           "source_ordinal": 0,
@@ -380518,6 +380922,42 @@
             "kind": "local",
             "module": "amari_rewrite::error",
             "ident": "RewriteError"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Debug",
+          "impl_type_path": "amari_rewrite::inverse::BackwardProvenance",
+          "source_path": "amari-rewrite/src/inverse/mod.rs",
+          "source_ordinal": 4,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Debug"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::inverse",
+            "ident": "BackwardProvenance"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Debug",
+          "impl_type_path": "amari_rewrite::inverse::SymbolicPredecessor",
+          "source_path": "amari-rewrite/src/inverse/mod.rs",
+          "source_ordinal": 5,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Debug"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::inverse",
+            "ident": "SymbolicPredecessor"
           },
           "unsafe_trait": false,
           "negative": false,
@@ -380680,6 +381120,24 @@
             "kind": "local",
             "module": "amari_rewrite::synthesis::anti_unify",
             "ident": "VarGen"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Debug",
+          "impl_type_path": "amari_rewrite::relation::BackwardClause",
+          "source_path": "amari-rewrite/src/relation/clause.rs",
+          "source_ordinal": 4,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Debug"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::clause",
+            "ident": "BackwardClause"
           },
           "unsafe_trait": false,
           "negative": false,
@@ -381282,6 +381740,42 @@
         },
         {
           "trait_path": "Eq",
+          "impl_type_path": "amari_rewrite::inverse::BackwardProvenance",
+          "source_path": "amari-rewrite/src/inverse/mod.rs",
+          "source_ordinal": 4,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Eq"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::inverse",
+            "ident": "BackwardProvenance"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Eq",
+          "impl_type_path": "amari_rewrite::inverse::SymbolicPredecessor",
+          "source_path": "amari-rewrite/src/inverse/mod.rs",
+          "source_ordinal": 5,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Eq"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::inverse",
+            "ident": "SymbolicPredecessor"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Eq",
           "impl_type_path": "amari_rewrite::network::RewriteGraphSummary",
           "source_path": "amari-rewrite/src/network/mod.rs",
           "source_ordinal": 0,
@@ -381426,6 +381920,24 @@
         },
         {
           "trait_path": "Eq",
+          "impl_type_path": "amari_rewrite::relation::BackwardClause",
+          "source_path": "amari-rewrite/src/relation/clause.rs",
+          "source_ordinal": 4,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Eq"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::clause",
+            "ident": "BackwardClause"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Eq",
           "impl_type_path": "amari_rewrite::relation::ConstraintOutcome",
           "source_path": "amari-rewrite/src/relation/constraints.rs",
           "source_ordinal": 2,
@@ -381527,6 +382039,24 @@
             "kind": "local",
             "module": "amari_rewrite::relation::limits",
             "ident": "RelationResources"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Eq",
+          "impl_type_path": "amari_rewrite::relation::RuleId",
+          "source_path": "amari-rewrite/src/relation/clause.rs",
+          "source_ordinal": 0,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Eq"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::clause",
+            "ident": "RuleId"
           },
           "unsafe_trait": false,
           "negative": false,
@@ -382005,6 +382535,24 @@
         },
         {
           "trait_path": "Hash",
+          "impl_type_path": "amari_rewrite::relation::RuleId",
+          "source_path": "amari-rewrite/src/relation/clause.rs",
+          "source_ordinal": 0,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Hash"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::clause",
+            "ident": "RuleId"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Hash",
           "impl_type_path": "amari_rewrite::relation::Sha256Digest",
           "source_path": "amari-rewrite/src/relation/digest.rs",
           "source_ordinal": 0,
@@ -382203,6 +382751,24 @@
         },
         {
           "trait_path": "Ord",
+          "impl_type_path": "amari_rewrite::relation::RuleId",
+          "source_path": "amari-rewrite/src/relation/clause.rs",
+          "source_ordinal": 0,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Ord"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::clause",
+            "ident": "RuleId"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Ord",
           "impl_type_path": "amari_rewrite::relation::Sha256Digest",
           "source_path": "amari-rewrite/src/relation/digest.rs",
           "source_ordinal": 0,
@@ -382384,6 +382950,42 @@
         },
         {
           "trait_path": "PartialEq",
+          "impl_type_path": "amari_rewrite::inverse::BackwardProvenance",
+          "source_path": "amari-rewrite/src/inverse/mod.rs",
+          "source_ordinal": 4,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "PartialEq"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::inverse",
+            "ident": "BackwardProvenance"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "PartialEq",
+          "impl_type_path": "amari_rewrite::inverse::SymbolicPredecessor",
+          "source_path": "amari-rewrite/src/inverse/mod.rs",
+          "source_ordinal": 5,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "PartialEq"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::inverse",
+            "ident": "SymbolicPredecessor"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "PartialEq",
           "impl_type_path": "amari_rewrite::network::RewriteGraphSummary",
           "source_path": "amari-rewrite/src/network/mod.rs",
           "source_ordinal": 0,
@@ -382528,6 +383130,24 @@
         },
         {
           "trait_path": "PartialEq",
+          "impl_type_path": "amari_rewrite::relation::BackwardClause",
+          "source_path": "amari-rewrite/src/relation/clause.rs",
+          "source_ordinal": 4,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "PartialEq"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::clause",
+            "ident": "BackwardClause"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "PartialEq",
           "impl_type_path": "amari_rewrite::relation::ConstraintOutcome",
           "source_path": "amari-rewrite/src/relation/constraints.rs",
           "source_ordinal": 2,
@@ -382629,6 +383249,24 @@
             "kind": "local",
             "module": "amari_rewrite::relation::limits",
             "ident": "RelationResources"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "PartialEq",
+          "impl_type_path": "amari_rewrite::relation::RuleId",
+          "source_path": "amari-rewrite/src/relation/clause.rs",
+          "source_ordinal": 0,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "PartialEq"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::clause",
+            "ident": "RuleId"
           },
           "unsafe_trait": false,
           "negative": false,
@@ -382870,6 +383508,24 @@
         },
         {
           "trait_path": "PartialOrd",
+          "impl_type_path": "amari_rewrite::relation::RuleId",
+          "source_path": "amari-rewrite/src/relation/clause.rs",
+          "source_ordinal": 0,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "PartialOrd"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::clause",
+            "ident": "RuleId"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "PartialOrd",
           "impl_type_path": "amari_rewrite::relation::Sha256Digest",
           "source_path": "amari-rewrite/src/relation/digest.rs",
           "source_ordinal": 0,
@@ -383036,6 +383692,24 @@
         },
         {
           "trait_path": "fmt::Debug",
+          "impl_type_path": "amari_rewrite::relation::RuleId",
+          "source_path": "amari-rewrite/src/relation/clause.rs",
+          "source_ordinal": 3,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "fmt::Debug"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::clause",
+            "ident": "RuleId"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": false
+        },
+        {
+          "trait_path": "fmt::Debug",
           "impl_type_path": "amari_rewrite::relation::Sha256Digest",
           "source_path": "amari-rewrite/src/relation/digest.rs",
           "source_ordinal": 6,
@@ -383065,6 +383739,24 @@
             "kind": "local",
             "module": "amari_rewrite::relation::variable",
             "ident": "LogicVar"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": false
+        },
+        {
+          "trait_path": "fmt::Display",
+          "impl_type_path": "amari_rewrite::relation::RuleId",
+          "source_path": "amari-rewrite/src/relation/clause.rs",
+          "source_ordinal": 2,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "fmt::Display"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::relation::clause",
+            "ident": "RuleId"
           },
           "unsafe_trait": false,
           "negative": false,
@@ -383423,6 +384115,14 @@
           "surface_kind": "module"
         },
         {
+          "path": "amari_rewrite::inverse::BackwardProvenance",
+          "source_path": "amari-rewrite/src/inverse/mod.rs",
+          "source_ordinal": 4,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "top_level"
+        },
+        {
           "path": "amari_rewrite::inverse::BackwardSearch",
           "source_path": "amari-rewrite/src/inverse/mod.rs",
           "source_ordinal": 1,
@@ -383455,9 +384155,25 @@
           "surface_kind": "inherent_method"
         },
         {
+          "path": "amari_rewrite::inverse::SymbolicPredecessor",
+          "source_path": "amari-rewrite/src/inverse/mod.rs",
+          "source_ordinal": 5,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "top_level"
+        },
+        {
           "path": "amari_rewrite::inverse::predecessors",
           "source_path": "amari-rewrite/src/inverse/mod.rs",
           "source_ordinal": 0,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "top_level"
+        },
+        {
+          "path": "amari_rewrite::inverse::symbolic_predecessors",
+          "source_path": "amari-rewrite/src/inverse/mod.rs",
+          "source_ordinal": 6,
           "gate": "always",
           "status": "enabled",
           "surface_kind": "top_level"
@@ -384135,6 +384851,38 @@
           "surface_kind": "module"
         },
         {
+          "path": "amari_rewrite::relation::BackwardClause",
+          "source_path": "amari-rewrite/src/relation/clause.rs",
+          "source_ordinal": 4,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "top_level"
+        },
+        {
+          "path": "amari_rewrite::relation::BackwardClause::compile",
+          "source_path": "amari-rewrite/src/relation/clause.rs",
+          "source_ordinal": 0,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_method"
+        },
+        {
+          "path": "amari_rewrite::relation::BackwardClause::erased_variables",
+          "source_path": "amari-rewrite/src/relation/clause.rs",
+          "source_ordinal": 2,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_method"
+        },
+        {
+          "path": "amari_rewrite::relation::BackwardClause::rule_id",
+          "source_path": "amari-rewrite/src/relation/clause.rs",
+          "source_ordinal": 1,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_method"
+        },
+        {
           "path": "amari_rewrite::relation::ConstraintOutcome",
           "source_path": "amari-rewrite/src/relation/constraints.rs",
           "source_ordinal": 2,
@@ -384394,6 +385142,30 @@
           "path": "amari_rewrite::relation::RelationResources::record_term",
           "source_path": "amari-rewrite/src/relation/limits.rs",
           "source_ordinal": 1,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_method"
+        },
+        {
+          "path": "amari_rewrite::relation::RuleId",
+          "source_path": "amari-rewrite/src/relation/clause.rs",
+          "source_ordinal": 0,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "top_level"
+        },
+        {
+          "path": "amari_rewrite::relation::RuleId::digest",
+          "source_path": "amari-rewrite/src/relation/clause.rs",
+          "source_ordinal": 1,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_method"
+        },
+        {
+          "path": "amari_rewrite::relation::RuleId::from_rule",
+          "source_path": "amari-rewrite/src/relation/clause.rs",
+          "source_ordinal": 0,
           "gate": "always",
           "status": "enabled",
           "surface_kind": "inherent_method"

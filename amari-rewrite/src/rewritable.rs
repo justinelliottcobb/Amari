@@ -8,6 +8,7 @@ use crate::{RewriteError, RewriteResult};
 /// The empty path is the root. Each component is a child index at the current
 /// node.
 #[derive(Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize, serde::Deserialize))]
 pub struct Path(Vec<usize>);
 
 impl Path {
