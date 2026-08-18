@@ -19,6 +19,12 @@ pub enum RewriteError {
     /// A rewrite rule failed validation.
     #[error("invalid rule: {message}")]
     InvalidRule { message: String },
+    /// No rule applies at the requested position.
+    #[error("no rule applies: {rule_name}")]
+    NoRule {
+        /// The rule identity that failed to apply.
+        rule_name: String,
+    },
     /// A relation limit was zero or exceeded its fixed ceiling.
     #[error("invalid relation limit {resource}: {value} (ceiling {ceiling})")]
     InvalidLimit {
@@ -53,6 +59,14 @@ pub enum RewriteError {
     /// A substitution failed checked composition or validation.
     #[error("invalid substitution: {message}")]
     InvalidSubstitution {
+        /// Validation failure detail.
+        message: String,
+    },
+    /// A residual failed validation or its reconstructed source digest
+    /// did not match the recorded authority. Always a hard error: no
+    /// degraded or warning-only reconstruction is ever returned.
+    #[error("residual mismatch: {message}")]
+    ResidualMismatch {
         /// Validation failure detail.
         message: String,
     },
