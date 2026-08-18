@@ -2,7 +2,7 @@
   "schema_version": 2,
   "version": "0.24.1",
   "description": "Generated structural catalog for Amari 0.24.1: 28 crates, 107 dependency edges",
-  "content_hash": "f0ba1f4e71b8da93e366699a25eee9991229927e99acf06e5bea9a148b6521bd",
+  "content_hash": "83ccd175ab7e5cfe6e547084113cf5c9853c5b167f0473b42e0fe5f29a6c2665",
   "crates": [
     {
       "name": "amari",
@@ -374476,6 +374476,337 @@
           ]
         },
         {
+          "path": "amari_rewrite::analysis::BackwardKind",
+          "kind": "enum",
+          "signature": "pub enum BackwardKind",
+          "shape": {
+            "kind": "enum",
+            "variants": [
+              {
+                "name": "Lossless",
+                "data": {
+                  "kind": "unit"
+                }
+              },
+              {
+                "name": "Existential",
+                "data": {
+                  "kind": "unit"
+                }
+              }
+            ]
+          },
+          "source_path": "amari-rewrite/src/analysis/inverse.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::analysis::inverse",
+          "variants": [
+            {
+              "kind": "enum",
+              "signature": "pub enum BackwardKind",
+              "shape": {
+                "kind": "enum",
+                "variants": [
+                  {
+                    "name": "Lossless",
+                    "data": {
+                      "kind": "unit"
+                    }
+                  },
+                  {
+                    "name": "Existential",
+                    "data": {
+                      "kind": "unit"
+                    }
+                  }
+                ]
+              },
+              "source_path": "amari-rewrite/src/analysis/inverse.rs",
+              "source_module": "amari_rewrite::analysis::inverse",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::analysis::inverse",
+              "declaration_ident": "BackwardKind"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::analysis::BranchingEstimate",
+          "kind": "struct",
+          "signature": "pub struct BranchingEstimate",
+          "shape": {
+            "kind": "struct",
+            "fields": [
+              {
+                "label": "existentials",
+                "ty": "usize"
+              },
+              {
+                "label": "ambiguous_peers",
+                "ty": "usize"
+              }
+            ]
+          },
+          "source_path": "amari-rewrite/src/analysis/inverse.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::analysis::inverse",
+          "variants": [
+            {
+              "kind": "struct",
+              "signature": "pub struct BranchingEstimate",
+              "shape": {
+                "kind": "struct",
+                "fields": [
+                  {
+                    "label": "existentials",
+                    "ty": "usize"
+                  },
+                  {
+                    "label": "ambiguous_peers",
+                    "ty": "usize"
+                  }
+                ]
+              },
+              "source_path": "amari-rewrite/src/analysis/inverse.rs",
+              "source_module": "amari_rewrite::analysis::inverse",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::analysis::inverse",
+              "declaration_ident": "BranchingEstimate"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::analysis::InverseAnalyzer",
+          "kind": "struct",
+          "signature": "pub struct InverseAnalyzer",
+          "shape": {
+            "kind": "struct",
+            "fields": []
+          },
+          "source_path": "amari-rewrite/src/analysis/inverse.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::analysis::inverse",
+          "variants": [
+            {
+              "kind": "struct",
+              "signature": "pub struct InverseAnalyzer",
+              "shape": {
+                "kind": "struct",
+                "fields": []
+              },
+              "source_path": "amari-rewrite/src/analysis/inverse.rs",
+              "source_module": "amari_rewrite::analysis::inverse",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::analysis::inverse",
+              "declaration_ident": "InverseAnalyzer"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::analysis::InverseAnalyzer::analyze",
+          "kind": "method",
+          "signature": "pub fn analyze (system : & BidirectionalSystem) -> InverseReport",
+          "source_path": "amari-rewrite/src/analysis/inverse.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::analysis::inverse",
+          "variants": [
+            {
+              "kind": "method",
+              "signature": "pub fn analyze (system : & BidirectionalSystem) -> InverseReport",
+              "source_path": "amari-rewrite/src/analysis/inverse.rs",
+              "source_module": "amari_rewrite::analysis::inverse",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::analysis::inverse",
+              "declaration_ident": "InverseAnalyzer::analyze"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::analysis::InverseReport",
+          "kind": "struct",
+          "signature": "pub struct InverseReport",
+          "shape": {
+            "kind": "struct",
+            "fields": [
+              {
+                "label": "rules",
+                "ty": "Vec < RuleAnalysis >"
+              }
+            ]
+          },
+          "source_path": "amari-rewrite/src/analysis/inverse.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::analysis::inverse",
+          "variants": [
+            {
+              "kind": "struct",
+              "signature": "pub struct InverseReport",
+              "shape": {
+                "kind": "struct",
+                "fields": [
+                  {
+                    "label": "rules",
+                    "ty": "Vec < RuleAnalysis >"
+                  }
+                ]
+              },
+              "source_path": "amari-rewrite/src/analysis/inverse.rs",
+              "source_module": "amari_rewrite::analysis::inverse",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::analysis::inverse",
+              "declaration_ident": "InverseReport"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::analysis::ReversibilityClass",
+          "kind": "enum",
+          "signature": "pub enum ReversibilityClass",
+          "shape": {
+            "kind": "enum",
+            "variants": [
+              {
+                "name": "Reversible",
+                "data": {
+                  "kind": "unit"
+                }
+              },
+              {
+                "name": "Ambiguous",
+                "data": {
+                  "kind": "unit"
+                }
+              },
+              {
+                "name": "LossyResidual",
+                "data": {
+                  "kind": "unit"
+                }
+              }
+            ]
+          },
+          "source_path": "amari-rewrite/src/analysis/inverse.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::analysis::inverse",
+          "variants": [
+            {
+              "kind": "enum",
+              "signature": "pub enum ReversibilityClass",
+              "shape": {
+                "kind": "enum",
+                "variants": [
+                  {
+                    "name": "Reversible",
+                    "data": {
+                      "kind": "unit"
+                    }
+                  },
+                  {
+                    "name": "Ambiguous",
+                    "data": {
+                      "kind": "unit"
+                    }
+                  },
+                  {
+                    "name": "LossyResidual",
+                    "data": {
+                      "kind": "unit"
+                    }
+                  }
+                ]
+              },
+              "source_path": "amari-rewrite/src/analysis/inverse.rs",
+              "source_module": "amari_rewrite::analysis::inverse",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::analysis::inverse",
+              "declaration_ident": "ReversibilityClass"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::analysis::RuleAnalysis",
+          "kind": "struct",
+          "signature": "pub struct RuleAnalysis",
+          "shape": {
+            "kind": "struct",
+            "fields": [
+              {
+                "label": "rule_id",
+                "ty": "RuleId"
+              },
+              {
+                "label": "erased_variables",
+                "ty": "Vec < String >"
+              },
+              {
+                "label": "backward",
+                "ty": "BackwardKind"
+              },
+              {
+                "label": "rhs_ambiguity",
+                "ty": "Vec < RuleId >"
+              },
+              {
+                "label": "reversibility",
+                "ty": "ReversibilityClass"
+              },
+              {
+                "label": "branching",
+                "ty": "BranchingEstimate"
+              },
+              {
+                "label": "unsupported_reasons",
+                "ty": "Vec < String >"
+              }
+            ]
+          },
+          "source_path": "amari-rewrite/src/analysis/inverse.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::analysis::inverse",
+          "variants": [
+            {
+              "kind": "struct",
+              "signature": "pub struct RuleAnalysis",
+              "shape": {
+                "kind": "struct",
+                "fields": [
+                  {
+                    "label": "rule_id",
+                    "ty": "RuleId"
+                  },
+                  {
+                    "label": "erased_variables",
+                    "ty": "Vec < String >"
+                  },
+                  {
+                    "label": "backward",
+                    "ty": "BackwardKind"
+                  },
+                  {
+                    "label": "rhs_ambiguity",
+                    "ty": "Vec < RuleId >"
+                  },
+                  {
+                    "label": "reversibility",
+                    "ty": "ReversibilityClass"
+                  },
+                  {
+                    "label": "branching",
+                    "ty": "BranchingEstimate"
+                  },
+                  {
+                    "label": "unsupported_reasons",
+                    "ty": "Vec < String >"
+                  }
+                ]
+              },
+              "source_path": "amari-rewrite/src/analysis/inverse.rs",
+              "source_module": "amari_rewrite::analysis::inverse",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::analysis::inverse",
+              "declaration_ident": "RuleAnalysis"
+            }
+          ]
+        },
+        {
           "path": "amari_rewrite::analysis::unify",
           "kind": "fn",
           "signature": "pub fn unify (left : & Term , right : & Term , resources : & mut RelationResources ,) -> RewriteResult < Substitution >",
@@ -378959,6 +379290,322 @@
           ]
         },
         {
+          "path": "amari_rewrite::reversible::BidirectionalRule",
+          "kind": "struct",
+          "signature": "pub struct BidirectionalRule",
+          "shape": {
+            "kind": "struct",
+            "fields": []
+          },
+          "source_path": "amari-rewrite/src/reversible/system.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::reversible::system",
+          "variants": [
+            {
+              "kind": "struct",
+              "signature": "pub struct BidirectionalRule",
+              "shape": {
+                "kind": "struct",
+                "fields": []
+              },
+              "source_path": "amari-rewrite/src/reversible/system.rs",
+              "source_module": "amari_rewrite::reversible::system",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::reversible::system",
+              "declaration_ident": "BidirectionalRule"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::reversible::BidirectionalRule::clause",
+          "kind": "method",
+          "signature": "pub fn clause (& self) -> & BackwardClause",
+          "source_path": "amari-rewrite/src/reversible/system.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::reversible::system",
+          "variants": [
+            {
+              "kind": "method",
+              "signature": "pub fn clause (& self) -> & BackwardClause",
+              "source_path": "amari-rewrite/src/reversible/system.rs",
+              "source_module": "amari_rewrite::reversible::system",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::reversible::system",
+              "declaration_ident": "BidirectionalRule::clause"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::reversible::BidirectionalRule::compile",
+          "kind": "method",
+          "signature": "pub fn compile (rule : Rule) -> RewriteResult < Self >",
+          "source_path": "amari-rewrite/src/reversible/system.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::reversible::system",
+          "variants": [
+            {
+              "kind": "method",
+              "signature": "pub fn compile (rule : Rule) -> RewriteResult < Self >",
+              "source_path": "amari-rewrite/src/reversible/system.rs",
+              "source_module": "amari_rewrite::reversible::system",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::reversible::system",
+              "declaration_ident": "BidirectionalRule::compile"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::reversible::BidirectionalRule::forward",
+          "kind": "method",
+          "signature": "pub fn forward (& self) -> & Rule",
+          "source_path": "amari-rewrite/src/reversible/system.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::reversible::system",
+          "variants": [
+            {
+              "kind": "method",
+              "signature": "pub fn forward (& self) -> & Rule",
+              "source_path": "amari-rewrite/src/reversible/system.rs",
+              "source_module": "amari_rewrite::reversible::system",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::reversible::system",
+              "declaration_ident": "BidirectionalRule::forward"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::reversible::BidirectionalRule::rule_id",
+          "kind": "method",
+          "signature": "pub fn rule_id (& self) -> RuleId",
+          "source_path": "amari-rewrite/src/reversible/system.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::reversible::system",
+          "variants": [
+            {
+              "kind": "method",
+              "signature": "pub fn rule_id (& self) -> RuleId",
+              "source_path": "amari-rewrite/src/reversible/system.rs",
+              "source_module": "amari_rewrite::reversible::system",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::reversible::system",
+              "declaration_ident": "BidirectionalRule::rule_id"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::reversible::BidirectionalStep",
+          "kind": "struct",
+          "signature": "pub struct BidirectionalStep",
+          "shape": {
+            "kind": "struct",
+            "fields": [
+              {
+                "label": "target",
+                "ty": "Term"
+              },
+              {
+                "label": "transition",
+                "ty": "ForwardTransition"
+              },
+              {
+                "label": "residual",
+                "ty": "Option < RewriteResidual >"
+              }
+            ]
+          },
+          "source_path": "amari-rewrite/src/reversible/system.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::reversible::system",
+          "variants": [
+            {
+              "kind": "struct",
+              "signature": "pub struct BidirectionalStep",
+              "shape": {
+                "kind": "struct",
+                "fields": [
+                  {
+                    "label": "target",
+                    "ty": "Term"
+                  },
+                  {
+                    "label": "transition",
+                    "ty": "ForwardTransition"
+                  },
+                  {
+                    "label": "residual",
+                    "ty": "Option < RewriteResidual >"
+                  }
+                ]
+              },
+              "source_path": "amari-rewrite/src/reversible/system.rs",
+              "source_module": "amari_rewrite::reversible::system",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::reversible::system",
+              "declaration_ident": "BidirectionalStep"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::reversible::BidirectionalSystem",
+          "kind": "struct",
+          "signature": "pub struct BidirectionalSystem",
+          "shape": {
+            "kind": "struct",
+            "fields": []
+          },
+          "source_path": "amari-rewrite/src/reversible/system.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::reversible::system",
+          "variants": [
+            {
+              "kind": "struct",
+              "signature": "pub struct BidirectionalSystem",
+              "shape": {
+                "kind": "struct",
+                "fields": []
+              },
+              "source_path": "amari-rewrite/src/reversible/system.rs",
+              "source_module": "amari_rewrite::reversible::system",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::reversible::system",
+              "declaration_ident": "BidirectionalSystem"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::reversible::BidirectionalSystem::forward_step",
+          "kind": "method",
+          "signature": "pub fn forward_step (& self , source : & Term , rule_id : & RuleId , position : & Path , residual : bool , limits : & RelationLimits ,) -> RewriteResult < BidirectionalStep >",
+          "source_path": "amari-rewrite/src/reversible/system.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::reversible::system",
+          "variants": [
+            {
+              "kind": "method",
+              "signature": "pub fn forward_step (& self , source : & Term , rule_id : & RuleId , position : & Path , residual : bool , limits : & RelationLimits ,) -> RewriteResult < BidirectionalStep >",
+              "source_path": "amari-rewrite/src/reversible/system.rs",
+              "source_module": "amari_rewrite::reversible::system",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::reversible::system",
+              "declaration_ident": "BidirectionalSystem::forward_step"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::reversible::BidirectionalSystem::forward_system",
+          "kind": "method",
+          "signature": "pub fn forward_system (& self) -> & TermSystem",
+          "source_path": "amari-rewrite/src/reversible/system.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::reversible::system",
+          "variants": [
+            {
+              "kind": "method",
+              "signature": "pub fn forward_system (& self) -> & TermSystem",
+              "source_path": "amari-rewrite/src/reversible/system.rs",
+              "source_module": "amari_rewrite::reversible::system",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::reversible::system",
+              "declaration_ident": "BidirectionalSystem::forward_system"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::reversible::BidirectionalSystem::new",
+          "kind": "method",
+          "signature": "pub fn new (rules : Vec < Rule >) -> RewriteResult < Self >",
+          "source_path": "amari-rewrite/src/reversible/system.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::reversible::system",
+          "variants": [
+            {
+              "kind": "method",
+              "signature": "pub fn new (rules : Vec < Rule >) -> RewriteResult < Self >",
+              "source_path": "amari-rewrite/src/reversible/system.rs",
+              "source_module": "amari_rewrite::reversible::system",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::reversible::system",
+              "declaration_ident": "BidirectionalSystem::new"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::reversible::BidirectionalSystem::predecessors",
+          "kind": "method",
+          "signature": "pub fn predecessors (& self , target : & Term , limits : & RelationLimits , scope : u32 ,) -> RewriteResult < Vec < SymbolicPredecessor > >",
+          "source_path": "amari-rewrite/src/reversible/system.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::reversible::system",
+          "variants": [
+            {
+              "kind": "method",
+              "signature": "pub fn predecessors (& self , target : & Term , limits : & RelationLimits , scope : u32 ,) -> RewriteResult < Vec < SymbolicPredecessor > >",
+              "source_path": "amari-rewrite/src/reversible/system.rs",
+              "source_module": "amari_rewrite::reversible::system",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::reversible::system",
+              "declaration_ident": "BidirectionalSystem::predecessors"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::reversible::BidirectionalSystem::replay",
+          "kind": "method",
+          "signature": "pub fn replay (& self , residual : & RewriteResidual , target : & Term , limits : & RelationLimits ,) -> RewriteResult < Term >",
+          "source_path": "amari-rewrite/src/reversible/system.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::reversible::system",
+          "variants": [
+            {
+              "kind": "method",
+              "signature": "pub fn replay (& self , residual : & RewriteResidual , target : & Term , limits : & RelationLimits ,) -> RewriteResult < Term >",
+              "source_path": "amari-rewrite/src/reversible/system.rs",
+              "source_module": "amari_rewrite::reversible::system",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::reversible::system",
+              "declaration_ident": "BidirectionalSystem::replay"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::reversible::BidirectionalSystem::reversibility",
+          "kind": "method",
+          "signature": "pub fn reversibility (& self) -> InverseReport",
+          "source_path": "amari-rewrite/src/reversible/system.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::reversible::system",
+          "variants": [
+            {
+              "kind": "method",
+              "signature": "pub fn reversibility (& self) -> InverseReport",
+              "source_path": "amari-rewrite/src/reversible/system.rs",
+              "source_module": "amari_rewrite::reversible::system",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::reversible::system",
+              "declaration_ident": "BidirectionalSystem::reversibility"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::reversible::BidirectionalSystem::rules",
+          "kind": "method",
+          "signature": "pub fn rules (& self) -> & [BidirectionalRule]",
+          "source_path": "amari-rewrite/src/reversible/system.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::reversible::system",
+          "variants": [
+            {
+              "kind": "method",
+              "signature": "pub fn rules (& self) -> & [BidirectionalRule]",
+              "source_path": "amari-rewrite/src/reversible/system.rs",
+              "source_module": "amari_rewrite::reversible::system",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::reversible::system",
+              "declaration_ident": "BidirectionalSystem::rules"
+            }
+          ]
+        },
+        {
           "path": "amari_rewrite::reversible::ForwardTransition",
           "kind": "struct",
           "signature": "pub struct ForwardTransition",
@@ -380904,6 +381551,96 @@
         },
         {
           "trait_path": "Clone",
+          "impl_type_path": "amari_rewrite::analysis::BackwardKind",
+          "source_path": "amari-rewrite/src/analysis/inverse.rs",
+          "source_ordinal": 0,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Clone"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::analysis::inverse",
+            "ident": "BackwardKind"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Clone",
+          "impl_type_path": "amari_rewrite::analysis::BranchingEstimate",
+          "source_path": "amari-rewrite/src/analysis/inverse.rs",
+          "source_ordinal": 2,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Clone"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::analysis::inverse",
+            "ident": "BranchingEstimate"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Clone",
+          "impl_type_path": "amari_rewrite::analysis::InverseReport",
+          "source_path": "amari-rewrite/src/analysis/inverse.rs",
+          "source_ordinal": 4,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Clone"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::analysis::inverse",
+            "ident": "InverseReport"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Clone",
+          "impl_type_path": "amari_rewrite::analysis::ReversibilityClass",
+          "source_path": "amari-rewrite/src/analysis/inverse.rs",
+          "source_ordinal": 1,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Clone"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::analysis::inverse",
+            "ident": "ReversibilityClass"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Clone",
+          "impl_type_path": "amari_rewrite::analysis::RuleAnalysis",
+          "source_path": "amari-rewrite/src/analysis/inverse.rs",
+          "source_ordinal": 3,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Clone"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::analysis::inverse",
+            "ident": "RuleAnalysis"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Clone",
           "impl_type_path": "amari_rewrite::ars::RewriteStep",
           "source_path": "amari-rewrite/src/ars/mod.rs",
           "source_ordinal": 4,
@@ -381402,6 +382139,60 @@
             "kind": "local",
             "module": "amari_rewrite::relation::constraints",
             "ident": "TermConstraint"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Clone",
+          "impl_type_path": "amari_rewrite::reversible::BidirectionalRule",
+          "source_path": "amari-rewrite/src/reversible/system.rs",
+          "source_ordinal": 0,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Clone"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::reversible::system",
+            "ident": "BidirectionalRule"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Clone",
+          "impl_type_path": "amari_rewrite::reversible::BidirectionalStep",
+          "source_path": "amari-rewrite/src/reversible/system.rs",
+          "source_ordinal": 2,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Clone"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::reversible::system",
+            "ident": "BidirectionalStep"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Clone",
+          "impl_type_path": "amari_rewrite::reversible::BidirectionalSystem",
+          "source_path": "amari-rewrite/src/reversible/system.rs",
+          "source_ordinal": 3,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Clone"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::reversible::system",
+            "ident": "BidirectionalSystem"
           },
           "unsafe_trait": false,
           "negative": false,
@@ -381607,6 +382398,60 @@
         },
         {
           "trait_path": "Copy",
+          "impl_type_path": "amari_rewrite::analysis::BackwardKind",
+          "source_path": "amari-rewrite/src/analysis/inverse.rs",
+          "source_ordinal": 0,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Copy"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::analysis::inverse",
+            "ident": "BackwardKind"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Copy",
+          "impl_type_path": "amari_rewrite::analysis::BranchingEstimate",
+          "source_path": "amari-rewrite/src/analysis/inverse.rs",
+          "source_ordinal": 2,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Copy"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::analysis::inverse",
+            "ident": "BranchingEstimate"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Copy",
+          "impl_type_path": "amari_rewrite::analysis::ReversibilityClass",
+          "source_path": "amari-rewrite/src/analysis/inverse.rs",
+          "source_ordinal": 1,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Copy"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::analysis::inverse",
+            "ident": "ReversibilityClass"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Copy",
           "impl_type_path": "amari_rewrite::ars::Strategy",
           "source_path": "amari-rewrite/src/ars/mod.rs",
           "source_ordinal": 3,
@@ -381762,6 +382607,96 @@
             "kind": "local",
             "module": "amari_rewrite::error",
             "ident": "RewriteError"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Debug",
+          "impl_type_path": "amari_rewrite::analysis::BackwardKind",
+          "source_path": "amari-rewrite/src/analysis/inverse.rs",
+          "source_ordinal": 0,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Debug"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::analysis::inverse",
+            "ident": "BackwardKind"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Debug",
+          "impl_type_path": "amari_rewrite::analysis::BranchingEstimate",
+          "source_path": "amari-rewrite/src/analysis/inverse.rs",
+          "source_ordinal": 2,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Debug"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::analysis::inverse",
+            "ident": "BranchingEstimate"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Debug",
+          "impl_type_path": "amari_rewrite::analysis::InverseReport",
+          "source_path": "amari-rewrite/src/analysis/inverse.rs",
+          "source_ordinal": 4,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Debug"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::analysis::inverse",
+            "ident": "InverseReport"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Debug",
+          "impl_type_path": "amari_rewrite::analysis::ReversibilityClass",
+          "source_path": "amari-rewrite/src/analysis/inverse.rs",
+          "source_ordinal": 1,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Debug"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::analysis::inverse",
+            "ident": "ReversibilityClass"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Debug",
+          "impl_type_path": "amari_rewrite::analysis::RuleAnalysis",
+          "source_path": "amari-rewrite/src/analysis/inverse.rs",
+          "source_ordinal": 3,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Debug"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::analysis::inverse",
+            "ident": "RuleAnalysis"
           },
           "unsafe_trait": false,
           "negative": false,
@@ -382231,6 +383166,60 @@
             "kind": "local",
             "module": "amari_rewrite::relation::constraints",
             "ident": "TermConstraint"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Debug",
+          "impl_type_path": "amari_rewrite::reversible::BidirectionalRule",
+          "source_path": "amari-rewrite/src/reversible/system.rs",
+          "source_ordinal": 0,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Debug"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::reversible::system",
+            "ident": "BidirectionalRule"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Debug",
+          "impl_type_path": "amari_rewrite::reversible::BidirectionalStep",
+          "source_path": "amari-rewrite/src/reversible/system.rs",
+          "source_ordinal": 2,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Debug"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::reversible::system",
+            "ident": "BidirectionalStep"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Debug",
+          "impl_type_path": "amari_rewrite::reversible::BidirectionalSystem",
+          "source_path": "amari-rewrite/src/reversible/system.rs",
+          "source_ordinal": 3,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Debug"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::reversible::system",
+            "ident": "BidirectionalSystem"
           },
           "unsafe_trait": false,
           "negative": false,
@@ -382706,6 +383695,96 @@
         },
         {
           "trait_path": "Eq",
+          "impl_type_path": "amari_rewrite::analysis::BackwardKind",
+          "source_path": "amari-rewrite/src/analysis/inverse.rs",
+          "source_ordinal": 0,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Eq"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::analysis::inverse",
+            "ident": "BackwardKind"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Eq",
+          "impl_type_path": "amari_rewrite::analysis::BranchingEstimate",
+          "source_path": "amari-rewrite/src/analysis/inverse.rs",
+          "source_ordinal": 2,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Eq"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::analysis::inverse",
+            "ident": "BranchingEstimate"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Eq",
+          "impl_type_path": "amari_rewrite::analysis::InverseReport",
+          "source_path": "amari-rewrite/src/analysis/inverse.rs",
+          "source_ordinal": 4,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Eq"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::analysis::inverse",
+            "ident": "InverseReport"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Eq",
+          "impl_type_path": "amari_rewrite::analysis::ReversibilityClass",
+          "source_path": "amari-rewrite/src/analysis/inverse.rs",
+          "source_ordinal": 1,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Eq"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::analysis::inverse",
+            "ident": "ReversibilityClass"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Eq",
+          "impl_type_path": "amari_rewrite::analysis::RuleAnalysis",
+          "source_path": "amari-rewrite/src/analysis/inverse.rs",
+          "source_ordinal": 3,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Eq"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::analysis::inverse",
+            "ident": "RuleAnalysis"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Eq",
           "impl_type_path": "amari_rewrite::ars::RewriteStep",
           "source_path": "amari-rewrite/src/ars/mod.rs",
           "source_ordinal": 4,
@@ -383186,6 +384265,60 @@
             "kind": "local",
             "module": "amari_rewrite::relation::constraints",
             "ident": "TermConstraint"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Eq",
+          "impl_type_path": "amari_rewrite::reversible::BidirectionalRule",
+          "source_path": "amari-rewrite/src/reversible/system.rs",
+          "source_ordinal": 0,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Eq"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::reversible::system",
+            "ident": "BidirectionalRule"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Eq",
+          "impl_type_path": "amari_rewrite::reversible::BidirectionalStep",
+          "source_path": "amari-rewrite/src/reversible/system.rs",
+          "source_ordinal": 2,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Eq"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::reversible::system",
+            "ident": "BidirectionalStep"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Eq",
+          "impl_type_path": "amari_rewrite::reversible::BidirectionalSystem",
+          "source_path": "amari-rewrite/src/reversible/system.rs",
+          "source_ordinal": 3,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Eq"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::reversible::system",
+            "ident": "BidirectionalSystem"
           },
           "unsafe_trait": false,
           "negative": false,
@@ -383621,6 +384754,60 @@
             "kind": "local",
             "module": "amari_rewrite::rewritable",
             "ident": "Path"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Hash",
+          "impl_type_path": "amari_rewrite::analysis::BackwardKind",
+          "source_path": "amari-rewrite/src/analysis/inverse.rs",
+          "source_ordinal": 0,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Hash"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::analysis::inverse",
+            "ident": "BackwardKind"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Hash",
+          "impl_type_path": "amari_rewrite::analysis::BranchingEstimate",
+          "source_path": "amari-rewrite/src/analysis/inverse.rs",
+          "source_ordinal": 2,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Hash"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::analysis::inverse",
+            "ident": "BranchingEstimate"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Hash",
+          "impl_type_path": "amari_rewrite::analysis::ReversibilityClass",
+          "source_path": "amari-rewrite/src/analysis/inverse.rs",
+          "source_ordinal": 1,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Hash"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::analysis::inverse",
+            "ident": "ReversibilityClass"
           },
           "unsafe_trait": false,
           "negative": false,
@@ -384078,6 +385265,96 @@
         },
         {
           "trait_path": "PartialEq",
+          "impl_type_path": "amari_rewrite::analysis::BackwardKind",
+          "source_path": "amari-rewrite/src/analysis/inverse.rs",
+          "source_ordinal": 0,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "PartialEq"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::analysis::inverse",
+            "ident": "BackwardKind"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "PartialEq",
+          "impl_type_path": "amari_rewrite::analysis::BranchingEstimate",
+          "source_path": "amari-rewrite/src/analysis/inverse.rs",
+          "source_ordinal": 2,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "PartialEq"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::analysis::inverse",
+            "ident": "BranchingEstimate"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "PartialEq",
+          "impl_type_path": "amari_rewrite::analysis::InverseReport",
+          "source_path": "amari-rewrite/src/analysis/inverse.rs",
+          "source_ordinal": 4,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "PartialEq"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::analysis::inverse",
+            "ident": "InverseReport"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "PartialEq",
+          "impl_type_path": "amari_rewrite::analysis::ReversibilityClass",
+          "source_path": "amari-rewrite/src/analysis/inverse.rs",
+          "source_ordinal": 1,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "PartialEq"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::analysis::inverse",
+            "ident": "ReversibilityClass"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "PartialEq",
+          "impl_type_path": "amari_rewrite::analysis::RuleAnalysis",
+          "source_path": "amari-rewrite/src/analysis/inverse.rs",
+          "source_ordinal": 3,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "PartialEq"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::analysis::inverse",
+            "ident": "RuleAnalysis"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "PartialEq",
           "impl_type_path": "amari_rewrite::ars::RewriteStep",
           "source_path": "amari-rewrite/src/ars/mod.rs",
           "source_ordinal": 4,
@@ -384558,6 +385835,60 @@
             "kind": "local",
             "module": "amari_rewrite::relation::constraints",
             "ident": "TermConstraint"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "PartialEq",
+          "impl_type_path": "amari_rewrite::reversible::BidirectionalRule",
+          "source_path": "amari-rewrite/src/reversible/system.rs",
+          "source_ordinal": 0,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "PartialEq"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::reversible::system",
+            "ident": "BidirectionalRule"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "PartialEq",
+          "impl_type_path": "amari_rewrite::reversible::BidirectionalStep",
+          "source_path": "amari-rewrite/src/reversible/system.rs",
+          "source_ordinal": 2,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "PartialEq"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::reversible::system",
+            "ident": "BidirectionalStep"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "PartialEq",
+          "impl_type_path": "amari_rewrite::reversible::BidirectionalSystem",
+          "source_path": "amari-rewrite/src/reversible/system.rs",
+          "source_ordinal": 3,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "PartialEq"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::reversible::system",
+            "ident": "BidirectionalSystem"
           },
           "unsafe_trait": false,
           "negative": false,
@@ -385272,6 +386603,62 @@
           "gate": "always",
           "status": "enabled",
           "surface_kind": "module"
+        },
+        {
+          "path": "amari_rewrite::analysis::BackwardKind",
+          "source_path": "amari-rewrite/src/analysis/inverse.rs",
+          "source_ordinal": 0,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "top_level"
+        },
+        {
+          "path": "amari_rewrite::analysis::BranchingEstimate",
+          "source_path": "amari-rewrite/src/analysis/inverse.rs",
+          "source_ordinal": 2,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "top_level"
+        },
+        {
+          "path": "amari_rewrite::analysis::InverseAnalyzer",
+          "source_path": "amari-rewrite/src/analysis/inverse.rs",
+          "source_ordinal": 5,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "top_level"
+        },
+        {
+          "path": "amari_rewrite::analysis::InverseAnalyzer::analyze",
+          "source_path": "amari-rewrite/src/analysis/inverse.rs",
+          "source_ordinal": 0,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_method"
+        },
+        {
+          "path": "amari_rewrite::analysis::InverseReport",
+          "source_path": "amari-rewrite/src/analysis/inverse.rs",
+          "source_ordinal": 4,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "top_level"
+        },
+        {
+          "path": "amari_rewrite::analysis::ReversibilityClass",
+          "source_path": "amari-rewrite/src/analysis/inverse.rs",
+          "source_ordinal": 1,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "top_level"
+        },
+        {
+          "path": "amari_rewrite::analysis::RuleAnalysis",
+          "source_path": "amari-rewrite/src/analysis/inverse.rs",
+          "source_ordinal": 3,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "top_level"
         },
         {
           "path": "amari_rewrite::analysis::unify",
@@ -386696,6 +388083,118 @@
           "gate": "always",
           "status": "enabled",
           "surface_kind": "module"
+        },
+        {
+          "path": "amari_rewrite::reversible::BidirectionalRule",
+          "source_path": "amari-rewrite/src/reversible/system.rs",
+          "source_ordinal": 0,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "top_level"
+        },
+        {
+          "path": "amari_rewrite::reversible::BidirectionalRule::clause",
+          "source_path": "amari-rewrite/src/reversible/system.rs",
+          "source_ordinal": 2,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_method"
+        },
+        {
+          "path": "amari_rewrite::reversible::BidirectionalRule::compile",
+          "source_path": "amari-rewrite/src/reversible/system.rs",
+          "source_ordinal": 0,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_method"
+        },
+        {
+          "path": "amari_rewrite::reversible::BidirectionalRule::forward",
+          "source_path": "amari-rewrite/src/reversible/system.rs",
+          "source_ordinal": 1,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_method"
+        },
+        {
+          "path": "amari_rewrite::reversible::BidirectionalRule::rule_id",
+          "source_path": "amari-rewrite/src/reversible/system.rs",
+          "source_ordinal": 3,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_method"
+        },
+        {
+          "path": "amari_rewrite::reversible::BidirectionalStep",
+          "source_path": "amari-rewrite/src/reversible/system.rs",
+          "source_ordinal": 2,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "top_level"
+        },
+        {
+          "path": "amari_rewrite::reversible::BidirectionalSystem",
+          "source_path": "amari-rewrite/src/reversible/system.rs",
+          "source_ordinal": 3,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "top_level"
+        },
+        {
+          "path": "amari_rewrite::reversible::BidirectionalSystem::forward_step",
+          "source_path": "amari-rewrite/src/reversible/system.rs",
+          "source_ordinal": 3,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_method"
+        },
+        {
+          "path": "amari_rewrite::reversible::BidirectionalSystem::forward_system",
+          "source_path": "amari-rewrite/src/reversible/system.rs",
+          "source_ordinal": 2,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_method"
+        },
+        {
+          "path": "amari_rewrite::reversible::BidirectionalSystem::new",
+          "source_path": "amari-rewrite/src/reversible/system.rs",
+          "source_ordinal": 0,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_method"
+        },
+        {
+          "path": "amari_rewrite::reversible::BidirectionalSystem::predecessors",
+          "source_path": "amari-rewrite/src/reversible/system.rs",
+          "source_ordinal": 4,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_method"
+        },
+        {
+          "path": "amari_rewrite::reversible::BidirectionalSystem::replay",
+          "source_path": "amari-rewrite/src/reversible/system.rs",
+          "source_ordinal": 5,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_method"
+        },
+        {
+          "path": "amari_rewrite::reversible::BidirectionalSystem::reversibility",
+          "source_path": "amari-rewrite/src/reversible/system.rs",
+          "source_ordinal": 6,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_method"
+        },
+        {
+          "path": "amari_rewrite::reversible::BidirectionalSystem::rules",
+          "source_path": "amari-rewrite/src/reversible/system.rs",
+          "source_ordinal": 1,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_method"
         },
         {
           "path": "amari_rewrite::reversible::ForwardTransition",
