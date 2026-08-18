@@ -2,7 +2,7 @@
   "schema_version": 2,
   "version": "0.24.1",
   "description": "Generated structural catalog for Amari 0.24.1: 28 crates, 107 dependency edges",
-  "content_hash": "4e6acc8d1eb14f3ecbfea2d8c96d42628a656bd260e5d8aa73b36a7774620095",
+  "content_hash": "f0ba1f4e71b8da93e366699a25eee9991229927e99acf06e5bea9a148b6521bd",
   "crates": [
     {
       "name": "amari",
@@ -374201,6 +374201,18 @@
                 }
               },
               {
+                "name": "NoRule",
+                "data": {
+                  "kind": "struct",
+                  "fields": [
+                    {
+                      "name": "rule_name",
+                      "ty": "String"
+                    }
+                  ]
+                }
+              },
+              {
                 "name": "InvalidLimit",
                 "data": {
                   "kind": "struct",
@@ -374271,6 +374283,18 @@
                     }
                   ]
                 }
+              },
+              {
+                "name": "ResidualMismatch",
+                "data": {
+                  "kind": "struct",
+                  "fields": [
+                    {
+                      "name": "message",
+                      "ty": "String"
+                    }
+                  ]
+                }
               }
             ]
           },
@@ -374321,6 +374345,18 @@
                       "fields": [
                         {
                           "name": "message",
+                          "ty": "String"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "NoRule",
+                    "data": {
+                      "kind": "struct",
+                      "fields": [
+                        {
+                          "name": "rule_name",
                           "ty": "String"
                         }
                       ]
@@ -374388,6 +374424,18 @@
                   },
                   {
                     "name": "InvalidSubstitution",
+                    "data": {
+                      "kind": "struct",
+                      "fields": [
+                        {
+                          "name": "message",
+                          "ty": "String"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "ResidualMismatch",
                     "data": {
                       "kind": "struct",
                       "fields": [
@@ -374889,6 +374937,18 @@
                 }
               },
               {
+                "name": "NoRule",
+                "data": {
+                  "kind": "struct",
+                  "fields": [
+                    {
+                      "name": "rule_name",
+                      "ty": "String"
+                    }
+                  ]
+                }
+              },
+              {
                 "name": "InvalidLimit",
                 "data": {
                   "kind": "struct",
@@ -374959,6 +375019,18 @@
                     }
                   ]
                 }
+              },
+              {
+                "name": "ResidualMismatch",
+                "data": {
+                  "kind": "struct",
+                  "fields": [
+                    {
+                      "name": "message",
+                      "ty": "String"
+                    }
+                  ]
+                }
               }
             ]
           },
@@ -375009,6 +375081,18 @@
                       "fields": [
                         {
                           "name": "message",
+                          "ty": "String"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "NoRule",
+                    "data": {
+                      "kind": "struct",
+                      "fields": [
+                        {
+                          "name": "rule_name",
                           "ty": "String"
                         }
                       ]
@@ -375076,6 +375160,18 @@
                   },
                   {
                     "name": "InvalidSubstitution",
+                    "data": {
+                      "kind": "struct",
+                      "fields": [
+                        {
+                          "name": "message",
+                          "ty": "String"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "ResidualMismatch",
                     "data": {
                       "kind": "struct",
                       "fields": [
@@ -375817,6 +375913,18 @@
                 }
               },
               {
+                "name": "NoRule",
+                "data": {
+                  "kind": "struct",
+                  "fields": [
+                    {
+                      "name": "rule_name",
+                      "ty": "String"
+                    }
+                  ]
+                }
+              },
+              {
                 "name": "InvalidLimit",
                 "data": {
                   "kind": "struct",
@@ -375887,6 +375995,18 @@
                     }
                   ]
                 }
+              },
+              {
+                "name": "ResidualMismatch",
+                "data": {
+                  "kind": "struct",
+                  "fields": [
+                    {
+                      "name": "message",
+                      "ty": "String"
+                    }
+                  ]
+                }
               }
             ]
           },
@@ -375937,6 +376057,18 @@
                       "fields": [
                         {
                           "name": "message",
+                          "ty": "String"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "NoRule",
+                    "data": {
+                      "kind": "struct",
+                      "fields": [
+                        {
+                          "name": "rule_name",
                           "ty": "String"
                         }
                       ]
@@ -376004,6 +376136,18 @@
                   },
                   {
                     "name": "InvalidSubstitution",
+                    "data": {
+                      "kind": "struct",
+                      "fields": [
+                        {
+                          "name": "message",
+                          "ty": "String"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "ResidualMismatch",
                     "data": {
                       "kind": "struct",
                       "fields": [
@@ -378815,6 +378959,246 @@
           ]
         },
         {
+          "path": "amari_rewrite::reversible::ForwardTransition",
+          "kind": "struct",
+          "signature": "pub struct ForwardTransition",
+          "shape": {
+            "kind": "struct",
+            "fields": [
+              {
+                "label": "rule_id",
+                "ty": "RuleId"
+              },
+              {
+                "label": "position",
+                "ty": "Path"
+              },
+              {
+                "label": "from",
+                "ty": "Term"
+              },
+              {
+                "label": "to",
+                "ty": "Term"
+              }
+            ]
+          },
+          "source_path": "amari-rewrite/src/reversible/step.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::reversible::step",
+          "variants": [
+            {
+              "kind": "struct",
+              "signature": "pub struct ForwardTransition",
+              "shape": {
+                "kind": "struct",
+                "fields": [
+                  {
+                    "label": "rule_id",
+                    "ty": "RuleId"
+                  },
+                  {
+                    "label": "position",
+                    "ty": "Path"
+                  },
+                  {
+                    "label": "from",
+                    "ty": "Term"
+                  },
+                  {
+                    "label": "to",
+                    "ty": "Term"
+                  }
+                ]
+              },
+              "source_path": "amari-rewrite/src/reversible/step.rs",
+              "source_module": "amari_rewrite::reversible::step",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::reversible::step",
+              "declaration_ident": "ForwardTransition"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::reversible::ReversibleStep",
+          "kind": "struct",
+          "signature": "pub struct ReversibleStep",
+          "shape": {
+            "kind": "struct",
+            "fields": [
+              {
+                "label": "target",
+                "ty": "Term"
+              },
+              {
+                "label": "residual",
+                "ty": "RewriteResidual"
+              },
+              {
+                "label": "transition",
+                "ty": "ForwardTransition"
+              }
+            ]
+          },
+          "source_path": "amari-rewrite/src/reversible/step.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::reversible::step",
+          "variants": [
+            {
+              "kind": "struct",
+              "signature": "pub struct ReversibleStep",
+              "shape": {
+                "kind": "struct",
+                "fields": [
+                  {
+                    "label": "target",
+                    "ty": "Term"
+                  },
+                  {
+                    "label": "residual",
+                    "ty": "RewriteResidual"
+                  },
+                  {
+                    "label": "transition",
+                    "ty": "ForwardTransition"
+                  }
+                ]
+              },
+              "source_path": "amari-rewrite/src/reversible/step.rs",
+              "source_module": "amari_rewrite::reversible::step",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::reversible::step",
+              "declaration_ident": "ReversibleStep"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::reversible::ReversibleStep::apply",
+          "kind": "method",
+          "signature": "pub fn apply (system : & TermSystem , source : & Term , rule : & Rule , position : & Path , limits : & RelationLimits ,) -> RewriteResult < Self >",
+          "source_path": "amari-rewrite/src/reversible/step.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::reversible::step",
+          "variants": [
+            {
+              "kind": "method",
+              "signature": "pub fn apply (system : & TermSystem , source : & Term , rule : & Rule , position : & Path , limits : & RelationLimits ,) -> RewriteResult < Self >",
+              "source_path": "amari-rewrite/src/reversible/step.rs",
+              "source_module": "amari_rewrite::reversible::step",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::reversible::step",
+              "declaration_ident": "ReversibleStep::apply"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::reversible::RewriteResidual",
+          "kind": "struct",
+          "signature": "pub struct RewriteResidual",
+          "shape": {
+            "kind": "struct",
+            "fields": [
+              {
+                "label": "rule_id",
+                "ty": "RuleId"
+              },
+              {
+                "label": "position",
+                "ty": "Path"
+              },
+              {
+                "label": "erased_bindings",
+                "ty": "Vec < (LogicVar , Term) >"
+              },
+              {
+                "label": "source_hash",
+                "ty": "Sha256Digest"
+              },
+              {
+                "label": "target_hash",
+                "ty": "Sha256Digest"
+              }
+            ]
+          },
+          "source_path": "amari-rewrite/src/reversible/residual.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::reversible::residual",
+          "variants": [
+            {
+              "kind": "struct",
+              "signature": "pub struct RewriteResidual",
+              "shape": {
+                "kind": "struct",
+                "fields": [
+                  {
+                    "label": "rule_id",
+                    "ty": "RuleId"
+                  },
+                  {
+                    "label": "position",
+                    "ty": "Path"
+                  },
+                  {
+                    "label": "erased_bindings",
+                    "ty": "Vec < (LogicVar , Term) >"
+                  },
+                  {
+                    "label": "source_hash",
+                    "ty": "Sha256Digest"
+                  },
+                  {
+                    "label": "target_hash",
+                    "ty": "Sha256Digest"
+                  }
+                ]
+              },
+              "source_path": "amari-rewrite/src/reversible/residual.rs",
+              "source_module": "amari_rewrite::reversible::residual",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::reversible::residual",
+              "declaration_ident": "RewriteResidual"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::reversible::RewriteResidual::digest",
+          "kind": "method",
+          "signature": "pub fn digest (& self) -> Sha256Digest",
+          "source_path": "amari-rewrite/src/reversible/residual.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::reversible::residual",
+          "variants": [
+            {
+              "kind": "method",
+              "signature": "pub fn digest (& self) -> Sha256Digest",
+              "source_path": "amari-rewrite/src/reversible/residual.rs",
+              "source_module": "amari_rewrite::reversible::residual",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::reversible::residual",
+              "declaration_ident": "RewriteResidual::digest"
+            }
+          ]
+        },
+        {
+          "path": "amari_rewrite::reversible::RewriteResidual::replay",
+          "kind": "method",
+          "signature": "pub fn replay (& self , system : & TermSystem , target : & Term , limits : & RelationLimits ,) -> RewriteResult < Term >",
+          "source_path": "amari-rewrite/src/reversible/residual.rs",
+          "is_reexport": true,
+          "source_module": "amari_rewrite::reversible::residual",
+          "variants": [
+            {
+              "kind": "method",
+              "signature": "pub fn replay (& self , system : & TermSystem , target : & Term , limits : & RelationLimits ,) -> RewriteResult < Term >",
+              "source_path": "amari-rewrite/src/reversible/residual.rs",
+              "source_module": "amari_rewrite::reversible::residual",
+              "is_reexport": true,
+              "declaration_module": "amari_rewrite::reversible::residual",
+              "declaration_ident": "RewriteResidual::replay"
+            }
+          ]
+        },
+        {
           "path": "amari_rewrite::rewritable::Path",
           "kind": "struct",
           "signature": "pub struct Path",
@@ -381025,6 +381409,60 @@
         },
         {
           "trait_path": "Clone",
+          "impl_type_path": "amari_rewrite::reversible::ForwardTransition",
+          "source_path": "amari-rewrite/src/reversible/step.rs",
+          "source_ordinal": 0,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Clone"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::reversible::step",
+            "ident": "ForwardTransition"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Clone",
+          "impl_type_path": "amari_rewrite::reversible::ReversibleStep",
+          "source_path": "amari-rewrite/src/reversible/step.rs",
+          "source_ordinal": 1,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Clone"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::reversible::step",
+            "ident": "ReversibleStep"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Clone",
+          "impl_type_path": "amari_rewrite::reversible::RewriteResidual",
+          "source_path": "amari-rewrite/src/reversible/residual.rs",
+          "source_ordinal": 0,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Clone"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::reversible::residual",
+            "ident": "RewriteResidual"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Clone",
           "impl_type_path": "amari_rewrite::rewritable::Path",
           "source_path": "amari-rewrite/src/rewritable.rs",
           "source_ordinal": 0,
@@ -381793,6 +382231,60 @@
             "kind": "local",
             "module": "amari_rewrite::relation::constraints",
             "ident": "TermConstraint"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Debug",
+          "impl_type_path": "amari_rewrite::reversible::ForwardTransition",
+          "source_path": "amari-rewrite/src/reversible/step.rs",
+          "source_ordinal": 0,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Debug"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::reversible::step",
+            "ident": "ForwardTransition"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Debug",
+          "impl_type_path": "amari_rewrite::reversible::ReversibleStep",
+          "source_path": "amari-rewrite/src/reversible/step.rs",
+          "source_ordinal": 1,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Debug"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::reversible::step",
+            "ident": "ReversibleStep"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Debug",
+          "impl_type_path": "amari_rewrite::reversible::RewriteResidual",
+          "source_path": "amari-rewrite/src/reversible/residual.rs",
+          "source_ordinal": 0,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Debug"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::reversible::residual",
+            "ident": "RewriteResidual"
           },
           "unsafe_trait": false,
           "negative": false,
@@ -382694,6 +383186,60 @@
             "kind": "local",
             "module": "amari_rewrite::relation::constraints",
             "ident": "TermConstraint"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Eq",
+          "impl_type_path": "amari_rewrite::reversible::ForwardTransition",
+          "source_path": "amari-rewrite/src/reversible/step.rs",
+          "source_ordinal": 0,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Eq"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::reversible::step",
+            "ident": "ForwardTransition"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Eq",
+          "impl_type_path": "amari_rewrite::reversible::ReversibleStep",
+          "source_path": "amari-rewrite/src/reversible/step.rs",
+          "source_ordinal": 1,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Eq"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::reversible::step",
+            "ident": "ReversibleStep"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "Eq",
+          "impl_type_path": "amari_rewrite::reversible::RewriteResidual",
+          "source_path": "amari-rewrite/src/reversible/residual.rs",
+          "source_ordinal": 0,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "Eq"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::reversible::residual",
+            "ident": "RewriteResidual"
           },
           "unsafe_trait": false,
           "negative": false,
@@ -384012,6 +384558,60 @@
             "kind": "local",
             "module": "amari_rewrite::relation::constraints",
             "ident": "TermConstraint"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "PartialEq",
+          "impl_type_path": "amari_rewrite::reversible::ForwardTransition",
+          "source_path": "amari-rewrite/src/reversible/step.rs",
+          "source_ordinal": 0,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "PartialEq"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::reversible::step",
+            "ident": "ForwardTransition"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "PartialEq",
+          "impl_type_path": "amari_rewrite::reversible::ReversibleStep",
+          "source_path": "amari-rewrite/src/reversible/step.rs",
+          "source_ordinal": 1,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "PartialEq"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::reversible::step",
+            "ident": "ReversibleStep"
+          },
+          "unsafe_trait": false,
+          "negative": false,
+          "is_derived": true
+        },
+        {
+          "trait_path": "PartialEq",
+          "impl_type_path": "amari_rewrite::reversible::RewriteResidual",
+          "source_path": "amari-rewrite/src/reversible/residual.rs",
+          "source_ordinal": 0,
+          "trait_endpoint": {
+            "kind": "external",
+            "path": "PartialEq"
+          },
+          "impl_type_endpoint": {
+            "kind": "local",
+            "module": "amari_rewrite::reversible::residual",
+            "ident": "RewriteResidual"
           },
           "unsafe_trait": false,
           "negative": false,
@@ -386090,6 +386690,62 @@
           "surface_kind": "top_level"
         },
         {
+          "path": "amari_rewrite::reversible",
+          "source_path": "amari-rewrite/src/reversible/mod.rs",
+          "source_ordinal": 0,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "module"
+        },
+        {
+          "path": "amari_rewrite::reversible::ForwardTransition",
+          "source_path": "amari-rewrite/src/reversible/step.rs",
+          "source_ordinal": 0,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "top_level"
+        },
+        {
+          "path": "amari_rewrite::reversible::ReversibleStep",
+          "source_path": "amari-rewrite/src/reversible/step.rs",
+          "source_ordinal": 1,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "top_level"
+        },
+        {
+          "path": "amari_rewrite::reversible::ReversibleStep::apply",
+          "source_path": "amari-rewrite/src/reversible/step.rs",
+          "source_ordinal": 0,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_method"
+        },
+        {
+          "path": "amari_rewrite::reversible::RewriteResidual",
+          "source_path": "amari-rewrite/src/reversible/residual.rs",
+          "source_ordinal": 0,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "top_level"
+        },
+        {
+          "path": "amari_rewrite::reversible::RewriteResidual::digest",
+          "source_path": "amari-rewrite/src/reversible/residual.rs",
+          "source_ordinal": 0,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_method"
+        },
+        {
+          "path": "amari_rewrite::reversible::RewriteResidual::replay",
+          "source_path": "amari-rewrite/src/reversible/residual.rs",
+          "source_ordinal": 1,
+          "gate": "always",
+          "status": "enabled",
+          "surface_kind": "inherent_method"
+        },
+        {
           "path": "amari_rewrite::rewritable",
           "source_path": "amari-rewrite/src/rewritable.rs",
           "source_ordinal": 0,
@@ -386711,6 +387367,7 @@
         "amari_rewrite::prelude",
         "amari_rewrite::prelude::anti_unify",
         "amari_rewrite::relation",
+        "amari_rewrite::reversible",
         "amari_rewrite::rewritable",
         "amari_rewrite::smt",
         "amari_rewrite::synthesis",
