@@ -7,7 +7,13 @@
 //! synthesis. Critical pairs, LPO, and confluence land in later
 //! cohorts.
 
+mod inverse;
 mod unify;
+
+pub use inverse::{
+    BackwardKind, BranchingEstimate, InverseAnalyzer, InverseReport, ReversibilityClass,
+    RuleAnalysis,
+};
 
 // The module and its primary entry point share the name `unify`;
 // they live in different namespaces, so `analysis::unify(...)` calls

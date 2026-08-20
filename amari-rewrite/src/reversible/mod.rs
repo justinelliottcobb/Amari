@@ -11,6 +11,8 @@
 
 mod residual;
 mod step;
+mod system;
 
 pub use residual::RewriteResidual;
 pub use step::{ForwardTransition, ReversibleStep};
+pub use system::{BidirectionalRule, BidirectionalStep, BidirectionalSystem};
