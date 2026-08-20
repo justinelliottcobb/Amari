@@ -209,3 +209,48 @@ max_input_bytes = 65536
 max_output_bytes = 65536
 max_operations = 100000
 timeout_millis = 2000
+
+[[probes]]
+id = "amari-probe:rewrite:symbolic-predecessors:v1"
+capability_id = "amari:amari-rewrite:inverse:symbolic-predecessors"
+input_schema = "amari.discovery/probe/rewrite-symbolic-predecessors/input/v1"
+output_schema = "amari.discovery/probe/rewrite-symbolic-predecessors/output/v1"
+required_features = ["standard-probes"]
+cost = "moderate"
+deterministic = true
+side_effects = "none"
+[probes.limits]
+max_input_bytes = 65536
+max_output_bytes = 65536
+max_operations = 100000
+timeout_millis = 2000
+
+[[probes]]
+id = "amari-probe:rewrite:inverse-analysis:v1"
+capability_id = "amari:amari-rewrite:inverse:analysis"
+input_schema = "amari.discovery/probe/rewrite-inverse-analysis/input/v1"
+output_schema = "amari.discovery/probe/rewrite-inverse-analysis/output/v1"
+required_features = ["standard-probes"]
+cost = "moderate"
+deterministic = true
+side_effects = "none"
+[probes.limits]
+max_input_bytes = 65536
+max_output_bytes = 65536
+max_operations = 100000
+timeout_millis = 2000
+
+[[probes]]
+id = "amari-probe:rewrite:residual-replay:v1"
+capability_id = "amari:amari-rewrite:reversible:residual-replay"
+input_schema = "amari.discovery/probe/rewrite-residual-replay/input/v1"
+output_schema = "amari.discovery/probe/rewrite-residual-replay/output/v1"
+required_features = ["standard-probes"]
+cost = "moderate"
+deterministic = true
+side_effects = "none"
+[probes.limits]
+max_input_bytes = 65536
+max_output_bytes = 65536
+max_operations = 100000
+timeout_millis = 2000

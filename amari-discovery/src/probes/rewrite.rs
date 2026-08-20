@@ -1001,6 +1001,669 @@ fn enforce(kind: &str, observed: u64, maximum: u64) -> DiscoveryResult<()> {
     }
 }
 
+/// One step of the symbolic predecessor relation over checked rules.
+#[derive(
+    Clone,
+    Debug,
+    Eq,
+    PartialEq,
+    Serialize,
+    Deserialize,
+    schemars::JsonSchema,
+    amari_discovery_macros::WireContract,
+)]
+#[serde(deny_unknown_fields)]
+#[wire_contract(
+    id = "amari.discovery/probe/rewrite-symbolic-predecessors/input/v1",
+    role = "input",
+    compatibility = "additive_patch",
+    constraints(
+        max_results_limit = "max_results is no greater than 1024",
+        max_results_positive = "max_results is greater than zero",
+        rules_checked = "every rule RHS variable occurs in its LHS",
+        rules_count_limit = "at most 256 ordered rules are accepted",
+        term_bounds = "terms have depth at most 64 and at most 4096 nodes",
+        term_name_bytes_limit = "variable and symbol names contain at most 256 bytes"
+    ),
+    example(
+        label = "one_symbolic_step",
+        value = "{\"target\":{\"kind\":\"symbol\",\"name\":\"g\",\"arguments\":[{\"kind\":\"symbol\",\"name\":\"a\",\"arguments\":[]}]},\"rules\":[{\"lhs\":{\"kind\":\"symbol\",\"name\":\"f\",\"arguments\":[{\"kind\":\"variable\",\"name\":\"X\"},{\"kind\":\"variable\",\"name\":\"Y\"}]},\"rhs\":{\"kind\":\"symbol\",\"name\":\"g\",\"arguments\":[{\"kind\":\"variable\",\"name\":\"X\"}]}}],\"max_results\":16}"
+    )
+)]
+pub struct RewriteSymbolicPredecessorsRequest {
+    /// Target term whose one-step symbolic predecessors are requested.
+    pub target: RewriteTerm,
+    /// Ordered checked forward rules.
+    pub rules: Vec<RewriteRule>,
+    /// Maximum returned predecessors.
+    pub max_results: u64,
+}
+
+/// Provenance of one symbolic predecessor step.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct RewriteSymbolicProvenance {
+    /// Canonical 64-hex identity of the checked rule that inverted.
+    pub rule_id: String,
+    /// Position of the replaced subterm in the target.
+    pub position: Vec<u64>,
+    /// Freshening namespace scope of the query.
+    pub scope: u64,
+    /// Canonical 64-hex digest of the target term.
+    pub target_hash: String,
+    /// Canonical 64-hex digest of the predecessor term.
+    pub predecessor_hash: String,
+}
+
+/// One residual constraint attached to a symbolic predecessor.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
+pub enum RewriteTermConstraint {
+    /// Required term equality.
+    Equal {
+        /// Left side.
+        left: RewriteTerm,
+        /// Right side.
+        right: RewriteTerm,
+    },
+    /// Required term disequality.
+    NotEqual {
+        /// Left side.
+        left: RewriteTerm,
+        /// Right side.
+        right: RewriteTerm,
+    },
+}
+
+/// One symbolic predecessor with freshened existentials.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct RewriteSymbolicPredecessor {
+    /// The predecessor term (with freshened logic variables).
+    pub term: RewriteTerm,
+    /// Freshened existential variable names.
+    pub existentials: Vec<String>,
+    /// Residual constraints on this predecessor.
+    pub constraints: Vec<RewriteTermConstraint>,
+    /// Step provenance.
+    pub provenance: RewriteSymbolicProvenance,
+}
+
+/// Symbolic predecessor relation result.
+#[derive(
+    Clone,
+    Debug,
+    Eq,
+    PartialEq,
+    Serialize,
+    Deserialize,
+    schemars::JsonSchema,
+    amari_discovery_macros::WireContract,
+)]
+#[wire_contract(
+    id = "amari.discovery/probe/rewrite-symbolic-predecessors/output/v1",
+    role = "output",
+    compatibility = "additive_patch",
+    constraints(
+        predecessors_within_result_limit = "the predecessor count never exceeds max_results",
+        truncation_truthful = "truncated is true exactly when max_results omitted at least one discovered predecessor"
+    ),
+    example(
+        label = "one_symbolic_step",
+        value = "{\"predecessors\":[{\"term\":{\"kind\":\"symbol\",\"name\":\"f\",\"arguments\":[{\"kind\":\"symbol\",\"name\":\"a\",\"arguments\":[]},{\"kind\":\"variable\",\"name\":\"?0.0\"}]},\"existentials\":[\"?0.0\"],\"constraints\":[],\"provenance\":{\"rule_id\":\"0000000000000000000000000000000000000000000000000000000000000000\",\"position\":[],\"scope\":0,\"target_hash\":\"0000000000000000000000000000000000000000000000000000000000000000\",\"predecessor_hash\":\"0000000000000000000000000000000000000000000000000000000000000000\"}}],\"truncated\":false}"
+    )
+)]
+pub struct RewriteSymbolicPredecessorsOutput {
+    /// One-step symbolic predecessors in derivation order.
+    pub predecessors: Vec<RewriteSymbolicPredecessor>,
+    /// Whether max_results omitted at least one predecessor.
+    pub truncated: bool,
+}
+
+/// Typed input for structural inverse analysis.
+#[derive(
+    Clone,
+    Debug,
+    Eq,
+    PartialEq,
+    Serialize,
+    Deserialize,
+    schemars::JsonSchema,
+    amari_discovery_macros::WireContract,
+)]
+#[serde(deny_unknown_fields)]
+#[wire_contract(
+    id = "amari.discovery/probe/rewrite-inverse-analysis/input/v1",
+    role = "input",
+    compatibility = "additive_patch",
+    constraints(
+        rules_checked = "every rule RHS variable occurs in its LHS",
+        rules_count_limit = "at most 256 ordered rules are accepted",
+        term_bounds = "terms have depth at most 64 and at most 4096 nodes",
+        term_name_bytes_limit = "variable and symbol names contain at most 256 bytes"
+    ),
+    example(
+        label = "one_rule",
+        value = "{\"rules\":[{\"lhs\":{\"kind\":\"symbol\",\"name\":\"f\",\"arguments\":[{\"kind\":\"variable\",\"name\":\"X\"}]},\"rhs\":{\"kind\":\"symbol\",\"name\":\"g\",\"arguments\":[{\"kind\":\"variable\",\"name\":\"X\"}]}}]}"
+    )
+)]
+pub struct RewriteInverseAnalysisRequest {
+    /// Ordered checked forward rules analyzed as a system.
+    pub rules: Vec<RewriteRule>,
+}
+
+/// Structural branching estimate for one rule's backward behavior.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct RewriteBranchingEstimate {
+    /// Existential choices introduced by erased variables.
+    pub existentials: u64,
+    /// Other rules whose RHS unifies with this rule's RHS.
+    pub ambiguous_peers: u64,
+}
+
+/// Per-rule inverse analysis report.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct RewriteInverseRuleReport {
+    /// Canonical 64-hex identity of the analyzed rule.
+    pub rule_id: String,
+    /// LHS variables absent from the RHS (the residual schema).
+    pub erased_variables: Vec<String>,
+    /// "lossless" or "existential" backward behavior.
+    pub backward: String,
+    /// Canonical identities of rules whose RHS overlaps this RHS.
+    pub rhs_ambiguity: Vec<String>,
+    /// "reversible", "ambiguous", or "lossy_residual" classification.
+    pub reversibility: String,
+    /// Structural branching estimate.
+    pub branching: RewriteBranchingEstimate,
+    /// Unsupported or unknown reasons (empty for checked rules).
+    pub unsupported_reasons: Vec<String>,
+}
+
+/// System-wide inverse analysis report.
+#[derive(
+    Clone,
+    Debug,
+    Eq,
+    PartialEq,
+    Serialize,
+    Deserialize,
+    schemars::JsonSchema,
+    amari_discovery_macros::WireContract,
+)]
+#[wire_contract(
+    id = "amari.discovery/probe/rewrite-inverse-analysis/output/v1",
+    role = "output",
+    compatibility = "additive_patch",
+    constraints(classifier_honest = "reversible requires lossless and unambiguous evidence"),
+    example(
+        label = "one_rule",
+        value = "{\"rules\":[{\"rule_id\":\"0000000000000000000000000000000000000000000000000000000000000000\",\"erased_variables\":[],\"backward\":\"lossless\",\"rhs_ambiguity\":[],\"reversibility\":\"reversible\",\"branching\":{\"existentials\":0,\"ambiguous_peers\":0},\"unsupported_reasons\":[]}]}"
+    )
+)]
+pub struct RewriteInverseAnalysisOutput {
+    /// Per-rule analysis, in request rule order.
+    pub rules: Vec<RewriteInverseRuleReport>,
+}
+
+/// Typed input for a residual-backed forward step and exact replay.
+#[derive(
+    Clone,
+    Debug,
+    Eq,
+    PartialEq,
+    Serialize,
+    Deserialize,
+    schemars::JsonSchema,
+    amari_discovery_macros::WireContract,
+)]
+#[serde(deny_unknown_fields)]
+#[wire_contract(
+    id = "amari.discovery/probe/rewrite-residual-replay/input/v1",
+    role = "input",
+    compatibility = "additive_patch",
+    constraints(
+        path_indices_valid = "every path index selects a child of the enclosing term",
+        rule_index_in_range = "rule_index is less than the rule count",
+        rules_checked = "every rule RHS variable occurs in its LHS",
+        rules_count_limit = "at most 256 ordered rules are accepted",
+        term_bounds = "terms have depth at most 64 and at most 4096 nodes",
+        term_name_bytes_limit = "variable and symbol names contain at most 256 bytes"
+    ),
+    example(
+        label = "one_step",
+        value = "{\"source\":{\"kind\":\"symbol\",\"name\":\"f\",\"arguments\":[{\"kind\":\"symbol\",\"name\":\"a\",\"arguments\":[]},{\"kind\":\"symbol\",\"name\":\"b\",\"arguments\":[]}]},\"rules\":[{\"lhs\":{\"kind\":\"symbol\",\"name\":\"f\",\"arguments\":[{\"kind\":\"variable\",\"name\":\"X\"},{\"kind\":\"variable\",\"name\":\"Y\"}]},\"rhs\":{\"kind\":\"symbol\",\"name\":\"g\",\"arguments\":[{\"kind\":\"variable\",\"name\":\"X\"}]}}],\"rule_index\":0,\"path\":[]}"
+    )
+)]
+pub struct RewriteResidualReplayRequest {
+    /// Concrete source term.
+    pub source: RewriteTerm,
+    /// Ordered checked forward rules.
+    pub rules: Vec<RewriteRule>,
+    /// Index of the rule to apply.
+    pub rule_index: u64,
+    /// Child-index path of the rewritten subterm.
+    pub path: Vec<u64>,
+}
+
+/// One erased binding in a residual.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct RewriteErasedBinding {
+    /// Schema position of the erased variable (sorted order).
+    pub key_index: u64,
+    /// The bound term.
+    pub term: RewriteTerm,
+}
+
+/// Residual authority emitted by a forward step.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct RewriteResidualAuthority {
+    /// Canonical 64-hex identity of the rule that fired.
+    pub rule_id: String,
+    /// Position of the replaced subterm.
+    pub position: Vec<u64>,
+    /// Bindings the forward step erased.
+    pub erased_bindings: Vec<RewriteErasedBinding>,
+    /// Canonical 64-hex digest of the source term.
+    pub source_hash: String,
+    /// Canonical 64-hex digest of the target term.
+    pub target_hash: String,
+}
+
+/// Residual round-trip evidence.
+#[derive(
+    Clone,
+    Debug,
+    Eq,
+    PartialEq,
+    Serialize,
+    Deserialize,
+    schemars::JsonSchema,
+    amari_discovery_macros::WireContract,
+)]
+#[wire_contract(
+    id = "amari.discovery/probe/rewrite-residual-replay/output/v1",
+    role = "output",
+    compatibility = "additive_patch",
+    constraints(
+        roundtrip_exact = "matches_source is true and reconstructed equals the request source whenever the probe succeeds"
+    ),
+    example(
+        label = "one_step",
+        value = "{\"target\":{\"kind\":\"symbol\",\"name\":\"g\",\"arguments\":[{\"kind\":\"symbol\",\"name\":\"a\",\"arguments\":[]}]},\"residual\":{\"rule_id\":\"0000000000000000000000000000000000000000000000000000000000000000\",\"position\":[],\"erased_bindings\":[{\"key_index\":0,\"term\":{\"kind\":\"symbol\",\"name\":\"b\",\"arguments\":[]}}],\"source_hash\":\"0000000000000000000000000000000000000000000000000000000000000000\",\"target_hash\":\"0000000000000000000000000000000000000000000000000000000000000000\"},\"reconstructed\":{\"kind\":\"symbol\",\"name\":\"f\",\"arguments\":[{\"kind\":\"symbol\",\"name\":\"a\",\"arguments\":[]},{\"kind\":\"symbol\",\"name\":\"b\",\"arguments\":[]}]},\"matches_source\":true}"
+    )
+)]
+pub struct RewriteResidualReplayOutput {
+    /// The rewritten term.
+    pub target: RewriteTerm,
+    /// Residual authority from the forward step.
+    pub residual: RewriteResidualAuthority,
+    /// The term reconstructed by validating replay.
+    pub reconstructed: RewriteTerm,
+    /// Exact round-trip evidence: replay returned the source.
+    pub matches_source: bool,
+}
+
+#[cfg(feature = "standard-probes")]
+pub(super) fn symbolic_predecessors_registration() -> DiscoveryResult<AdapterRegistration> {
+    Ok(AdapterRegistration {
+        id: "amari-probe:rewrite:symbolic-predecessors:v1".parse()?,
+        capability_id: "amari:amari-rewrite:inverse:symbolic-predecessors".parse()?,
+        input_schema: "amari.discovery/probe/rewrite-symbolic-predecessors/input/v1".to_owned(),
+        output_schema: "amari.discovery/probe/rewrite-symbolic-predecessors/output/v1".to_owned(),
+        required_features: vec!["standard-probes".to_owned()],
+        limits: ProbeLimits {
+            max_input_bytes: 65_536,
+            max_output_bytes: 65_536,
+            max_operations: 100_000,
+            timeout_millis: 2_000,
+        },
+        deterministic: true,
+        side_effects: SideEffectPolicy::None,
+        network: false,
+        execute: execute_symbolic_predecessors,
+    })
+}
+
+#[cfg(feature = "standard-probes")]
+pub(super) fn inverse_analysis_registration() -> DiscoveryResult<AdapterRegistration> {
+    Ok(AdapterRegistration {
+        id: "amari-probe:rewrite:inverse-analysis:v1".parse()?,
+        capability_id: "amari:amari-rewrite:inverse:analysis".parse()?,
+        input_schema: "amari.discovery/probe/rewrite-inverse-analysis/input/v1".to_owned(),
+        output_schema: "amari.discovery/probe/rewrite-inverse-analysis/output/v1".to_owned(),
+        required_features: vec!["standard-probes".to_owned()],
+        limits: ProbeLimits {
+            max_input_bytes: 65_536,
+            max_output_bytes: 65_536,
+            max_operations: 100_000,
+            timeout_millis: 2_000,
+        },
+        deterministic: true,
+        side_effects: SideEffectPolicy::None,
+        network: false,
+        execute: execute_inverse_analysis,
+    })
+}
+
+#[cfg(feature = "standard-probes")]
+pub(super) fn residual_replay_registration() -> DiscoveryResult<AdapterRegistration> {
+    Ok(AdapterRegistration {
+        id: "amari-probe:rewrite:residual-replay:v1".parse()?,
+        capability_id: "amari:amari-rewrite:reversible:residual-replay".parse()?,
+        input_schema: "amari.discovery/probe/rewrite-residual-replay/input/v1".to_owned(),
+        output_schema: "amari.discovery/probe/rewrite-residual-replay/output/v1".to_owned(),
+        required_features: vec!["standard-probes".to_owned()],
+        limits: ProbeLimits {
+            max_input_bytes: 65_536,
+            max_output_bytes: 65_536,
+            max_operations: 100_000,
+            timeout_millis: 2_000,
+        },
+        deterministic: true,
+        side_effects: SideEffectPolicy::None,
+        network: false,
+        execute: execute_residual_replay,
+    })
+}
+
+#[cfg(feature = "standard-probes")]
+fn path_from_indices(indices: &[u64]) -> DiscoveryResult<amari_rewrite::rewritable::Path> {
+    let mut path = amari_rewrite::rewritable::Path::root();
+    for index in indices {
+        let index = usize::try_from(*index).map_err(|_| {
+            DiscoveryError::InvalidInput("rewrite path index overflows usize".to_owned())
+        })?;
+        path = path.child(index);
+    }
+    Ok(path)
+}
+
+#[cfg(feature = "standard-probes")]
+fn execute_symbolic_predecessors(
+    input: &Value,
+    limits: &EffectiveProbeLimits,
+) -> DiscoveryResult<AdapterOutput> {
+    let request: RewriteSymbolicPredecessorsRequest = serde_json::from_value(input.clone())
+        .map_err(|error| {
+            DiscoveryError::InvalidInput(format!(
+                "symbolic predecessor request has an invalid term, rule, or limit shape: {error}"
+            ))
+        })?;
+    if request.max_results == 0 {
+        return Err(DiscoveryError::InvalidInput(
+            "symbolic predecessor max results must be greater than zero".to_owned(),
+        ));
+    }
+    enforce(
+        "symbolic predecessor results",
+        request.max_results,
+        MAX_PREDECESSOR_RESULTS,
+    )?;
+
+    let bounds = effective_bounds(limits);
+    let analysis = validate_rewrite_request(&request, [&request.target], &request.rules, bounds)?;
+
+    let rules = request
+        .rules
+        .iter()
+        .map(RewriteRule::to_rule)
+        .collect::<DiscoveryResult<Vec<_>>>()?;
+    let system = TermSystem::new(rules);
+    let target = request.target.to_term()?;
+    let predecessors = amari_rewrite::inverse::symbolic_predecessors(
+        &system,
+        &target,
+        &amari_rewrite::relation::RelationLimits::default(),
+        0,
+    )
+    .map_err(|error| {
+        DiscoveryError::ProbeFailed(format!("symbolic predecessor derivation failed: {error}"))
+    })?;
+
+    let mut operations = analysis.rule_count.max(1);
+    let mut cumulative_nodes = analysis.input_nodes;
+    let mut truncated = false;
+    let mut predecessors_dto = Vec::new();
+    for predecessor in &predecessors {
+        operations = operations.checked_add(1).ok_or_else(|| {
+            DiscoveryError::LimitExceeded("symbolic predecessor operation overflow".to_owned())
+        })?;
+        enforce("operations", operations, limits.max_operations)?;
+        if u64::try_from(predecessors_dto.len()).map_err(|_| {
+            DiscoveryError::LimitExceeded("symbolic predecessor count overflow".to_owned())
+        })? >= request.max_results
+        {
+            truncated = true;
+            break;
+        }
+        let term_dto = RewriteTerm::from_term(&predecessor.term);
+        let stats = term_stats(&term_dto, bounds.max_term_depth, bounds.max_term_nodes)?;
+        cumulative_nodes = cumulative_nodes.checked_add(stats.nodes).ok_or_else(|| {
+            DiscoveryError::LimitExceeded("symbolic predecessor node overflow".to_owned())
+        })?;
+        enforce(
+            "symbolic predecessor nodes",
+            cumulative_nodes,
+            limits.max_nodes,
+        )?;
+        predecessors_dto.push(RewriteSymbolicPredecessor {
+            term: term_dto,
+            existentials: predecessor
+                .existentials
+                .iter()
+                .map(ToString::to_string)
+                .collect(),
+            constraints: predecessor
+                .constraints
+                .constraints()
+                .iter()
+                .map(|constraint| match constraint {
+                    amari_rewrite::relation::TermConstraint::Equal(left, right) => {
+                        RewriteTermConstraint::Equal {
+                            left: RewriteTerm::from_term(left),
+                            right: RewriteTerm::from_term(right),
+                        }
+                    }
+                    amari_rewrite::relation::TermConstraint::NotEqual(left, right) => {
+                        RewriteTermConstraint::NotEqual {
+                            left: RewriteTerm::from_term(left),
+                            right: RewriteTerm::from_term(right),
+                        }
+                    }
+                })
+                .collect(),
+            provenance: RewriteSymbolicProvenance {
+                rule_id: predecessor.provenance.rule_id.to_string(),
+                position: predecessor
+                    .provenance
+                    .position
+                    .as_slice()
+                    .iter()
+                    .map(|index| *index as u64)
+                    .collect(),
+                scope: u64::from(predecessor.provenance.scope),
+                target_hash: predecessor.provenance.target_hash.to_hex(),
+                predecessor_hash: predecessor.provenance.predecessor_hash.to_hex(),
+            },
+        });
+    }
+
+    let output = RewriteSymbolicPredecessorsOutput {
+        predecessors: predecessors_dto,
+        truncated,
+    };
+    validate_encoded_output(&output, bounds)?;
+    Ok(AdapterOutput {
+        resources: ResourceObservations {
+            operations,
+            nodes: cumulative_nodes,
+            iterations: 1,
+            bytes: 0,
+        },
+        output: serde_json::to_value(output)?,
+    })
+}
+
+#[cfg(feature = "standard-probes")]
+fn execute_inverse_analysis(
+    input: &Value,
+    limits: &EffectiveProbeLimits,
+) -> DiscoveryResult<AdapterOutput> {
+    let request: RewriteInverseAnalysisRequest =
+        serde_json::from_value(input.clone()).map_err(|error| {
+            DiscoveryError::InvalidInput(format!(
+                "inverse analysis request has an invalid rule shape: {error}"
+            ))
+        })?;
+    let bounds = effective_bounds(limits);
+    let analysis = validate_rewrite_request(&request, [], &request.rules, bounds)?;
+
+    let rules = request
+        .rules
+        .iter()
+        .map(RewriteRule::to_rule)
+        .collect::<DiscoveryResult<Vec<_>>>()?;
+    let system = amari_rewrite::reversible::BidirectionalSystem::new(rules).map_err(|error| {
+        DiscoveryError::InvalidInput(format!("inverse analysis rejected the rule set: {error}"))
+    })?;
+    let report = amari_rewrite::analysis::InverseAnalyzer::analyze(&system);
+    enforce(
+        "operations",
+        analysis.rule_count.max(1),
+        limits.max_operations,
+    )?;
+
+    let output = RewriteInverseAnalysisOutput {
+        rules: report
+            .rules
+            .iter()
+            .map(|rule| RewriteInverseRuleReport {
+                rule_id: rule.rule_id.to_string(),
+                erased_variables: rule.erased_variables.clone(),
+                backward: match rule.backward {
+                    amari_rewrite::analysis::BackwardKind::Lossless => "lossless",
+                    amari_rewrite::analysis::BackwardKind::Existential => "existential",
+                }
+                .to_owned(),
+                rhs_ambiguity: rule.rhs_ambiguity.iter().map(ToString::to_string).collect(),
+                reversibility: match rule.reversibility {
+                    amari_rewrite::analysis::ReversibilityClass::Reversible => "reversible",
+                    amari_rewrite::analysis::ReversibilityClass::Ambiguous => "ambiguous",
+                    amari_rewrite::analysis::ReversibilityClass::LossyResidual => "lossy_residual",
+                }
+                .to_owned(),
+                branching: RewriteBranchingEstimate {
+                    existentials: rule.branching.existentials as u64,
+                    ambiguous_peers: rule.branching.ambiguous_peers as u64,
+                },
+                unsupported_reasons: rule.unsupported_reasons.clone(),
+            })
+            .collect(),
+    };
+    validate_encoded_output(&output, bounds)?;
+    Ok(AdapterOutput {
+        resources: ResourceObservations {
+            operations: analysis.rule_count.max(1),
+            nodes: analysis.input_nodes,
+            iterations: 1,
+            bytes: 0,
+        },
+        output: serde_json::to_value(output)?,
+    })
+}
+
+#[cfg(feature = "standard-probes")]
+fn execute_residual_replay(
+    input: &Value,
+    limits: &EffectiveProbeLimits,
+) -> DiscoveryResult<AdapterOutput> {
+    let request: RewriteResidualReplayRequest =
+        serde_json::from_value(input.clone()).map_err(|error| {
+            DiscoveryError::InvalidInput(format!(
+                "residual replay request has an invalid term, rule, or path shape: {error}"
+            ))
+        })?;
+    let bounds = effective_bounds(limits);
+    let analysis = validate_rewrite_request(&request, [&request.source], &request.rules, bounds)?;
+
+    let rules = request
+        .rules
+        .iter()
+        .map(RewriteRule::to_rule)
+        .collect::<DiscoveryResult<Vec<_>>>()?;
+    let rule_index = usize::try_from(request.rule_index).map_err(|_| {
+        DiscoveryError::InvalidInput("residual replay rule index overflows usize".to_owned())
+    })?;
+    let rule = rules.get(rule_index).ok_or_else(|| {
+        DiscoveryError::InvalidInput(format!(
+            "residual replay rule index {rule_index} is out of range for {} rules",
+            rules.len()
+        ))
+    })?;
+    let path = path_from_indices(&request.path)?;
+    let rule_id = amari_rewrite::relation::RuleId::from_rule(rule);
+    let system = amari_rewrite::reversible::BidirectionalSystem::new(rules).map_err(|error| {
+        DiscoveryError::InvalidInput(format!("residual replay rejected the rule set: {error}"))
+    })?;
+    let source = request.source.to_term()?;
+    let relation_limits = amari_rewrite::relation::RelationLimits::default();
+
+    let step = system
+        .forward_step(&source, &rule_id, &path, true, &relation_limits)
+        .map_err(|error| {
+            DiscoveryError::InvalidInput(format!("residual replay forward step failed: {error}"))
+        })?;
+    let residual = step.residual.ok_or_else(|| {
+        DiscoveryError::ProbeFailed("residual replay did not emit residual authority".to_owned())
+    })?;
+    let reconstructed = system
+        .replay(&residual, &step.target, &relation_limits)
+        .map_err(|error| {
+            DiscoveryError::ProbeFailed(format!("residual replay reconstruction failed: {error}"))
+        })?;
+    let matches_source = reconstructed == source;
+
+    let output = RewriteResidualReplayOutput {
+        target: RewriteTerm::from_term(&step.target),
+        residual: RewriteResidualAuthority {
+            rule_id: residual.rule_id.to_string(),
+            position: residual
+                .position
+                .as_slice()
+                .iter()
+                .map(|index| *index as u64)
+                .collect(),
+            erased_bindings: residual
+                .erased_bindings
+                .iter()
+                .map(|(key, term)| RewriteErasedBinding {
+                    key_index: u64::from(key.index()),
+                    term: RewriteTerm::from_term(term),
+                })
+                .collect(),
+            source_hash: residual.source_hash.to_hex(),
+            target_hash: residual.target_hash.to_hex(),
+        },
+        reconstructed: RewriteTerm::from_term(&reconstructed),
+        matches_source,
+    };
+    validate_encoded_output(&output, bounds)?;
+    Ok(AdapterOutput {
+        resources: ResourceObservations {
+            operations: 2,
+            nodes: analysis.input_nodes,
+            iterations: 2,
+            bytes: 0,
+        },
+        output: serde_json::to_value(output)?,
+    })
+}
+
 #[cfg(all(test, feature = "standard-probes"))]
 mod tests {
     use amari_rewrite::trs::{Term, Variable};

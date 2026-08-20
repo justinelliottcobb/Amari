@@ -236,8 +236,13 @@ mod tests {
                 "amari-probe:network:shortest-path:v1".parse().unwrap(),
                 "amari-probe:optimization:pareto-front:v1".parse().unwrap(),
                 "amari-probe:rewrite:infer-rule:v1".parse().unwrap(),
+                "amari-probe:rewrite:inverse-analysis:v1".parse().unwrap(),
                 "amari-probe:rewrite:normalize:v1".parse().unwrap(),
                 "amari-probe:rewrite:predecessors:v1".parse().unwrap(),
+                "amari-probe:rewrite:residual-replay:v1".parse().unwrap(),
+                "amari-probe:rewrite:symbolic-predecessors:v1"
+                    .parse()
+                    .unwrap(),
                 "amari-probe:surcomplex:rational-division:v1"
                     .parse()
                     .unwrap(),

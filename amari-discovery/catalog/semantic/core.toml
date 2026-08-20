@@ -277,3 +277,45 @@ kind = "supports"
 from = "amari:amari-rewrite:macros:derive-rewritable"
 to = "amari:amari-rewrite:macros:term-rule-constructors"
 kind = "composes_with"
+
+[[capabilities]]
+id = "amari:amari-rewrite:inverse:symbolic-predecessors"
+name = "Symbolic predecessor relation"
+description = "One-step symbolic backward clauses with freshened existentials and digest provenance."
+aliases = ["symbolic predecessors", "backward clauses"]
+concepts = ["term rewriting system", "inverse rewriting", "logic variables"]
+crate_refs = ["amari-rewrite"]
+feature_refs = ["amari-rewrite:std"]
+symbol_refs = ["amari_rewrite::inverse::symbolic_predecessors"]
+example_refs = []
+probe_refs = ["amari-probe:rewrite:symbolic-predecessors:v1"]
+stability = "experimental"
+cost = "moderate"
+
+[[capabilities]]
+id = "amari:amari-rewrite:inverse:analysis"
+name = "Inverse rewrite analysis"
+description = "Structural reversibility reports: erased variables, RHS overlap classes, and conservative classifiers."
+aliases = ["reversibility analysis", "inverse classification"]
+concepts = ["term rewriting system", "reversibility", "information loss"]
+crate_refs = ["amari-rewrite"]
+feature_refs = ["amari-rewrite:std"]
+symbol_refs = ["amari_rewrite::analysis::InverseAnalyzer"]
+example_refs = []
+probe_refs = ["amari-probe:rewrite:inverse-analysis:v1"]
+stability = "experimental"
+cost = "moderate"
+
+[[capabilities]]
+id = "amari:amari-rewrite:reversible:residual-replay"
+name = "Residual-backed exact replay"
+description = "Forward steps with typed residual authority and validating exact backward replay."
+aliases = ["typed residuals", "reversible rewriting"]
+concepts = ["term rewriting system", "reversible computation", "provenance"]
+crate_refs = ["amari-rewrite"]
+feature_refs = ["amari-rewrite:std"]
+symbol_refs = ["amari_rewrite::reversible::RewriteResidual"]
+example_refs = []
+probe_refs = ["amari-probe:rewrite:residual-replay:v1"]
+stability = "experimental"
+cost = "moderate"
