@@ -175,12 +175,12 @@ mod tests {
         let b_coeffs: Vec<f64> = (0..8).map(|i| mv_b.get(i)).collect();
         let result = generic_geometric_product(3, 0, 0, &a_coeffs, &b_coeffs);
 
-        for i in 0..8 {
+        for (i, coeff) in result.iter().enumerate().take(8) {
             assert!(
-                (result[i] - expected.get(i)).abs() < 1e-10,
+                (coeff - expected.get(i)).abs() < 1e-10,
                 "Coefficient {} differs: {} vs {}",
                 i,
-                result[i],
+                coeff,
                 expected.get(i)
             );
         }
@@ -197,12 +197,12 @@ mod tests {
         let b_coeffs: Vec<f64> = (0..8).map(|i| mv_b.get(i)).collect();
         let result = generic_geometric_product(2, 1, 0, &a_coeffs, &b_coeffs);
 
-        for i in 0..8 {
+        for (i, coeff) in result.iter().enumerate().take(8) {
             assert!(
-                (result[i] - expected.get(i)).abs() < 1e-10,
+                (coeff - expected.get(i)).abs() < 1e-10,
                 "Coefficient {} differs: {} vs {}",
                 i,
-                result[i],
+                coeff,
                 expected.get(i)
             );
         }
@@ -223,12 +223,12 @@ mod tests {
 
         let result = generic_geometric_product(4, 1, 0, &a_coeffs, &b_coeffs);
 
-        for i in 0..32 {
+        for (i, coeff) in result.iter().enumerate().take(32) {
             assert!(
-                (result[i] - expected.get(i)).abs() < 1e-8,
+                (coeff - expected.get(i)).abs() < 1e-8,
                 "Coefficient {} differs: {} vs {}",
                 i,
-                result[i],
+                coeff,
                 expected.get(i)
             );
         }

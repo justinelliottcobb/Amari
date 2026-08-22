@@ -86,7 +86,7 @@ struct RosenbrockND {
 impl RosenbrockND {
     fn new(dimension: usize) -> Self {
         assert!(
-            dimension >= 2 && dimension % 2 == 0,
+            dimension >= 2 && dimension.is_multiple_of(2),
             "Dimension must be even and >= 2"
         );
         Self { dimension }

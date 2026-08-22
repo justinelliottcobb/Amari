@@ -371,18 +371,15 @@ pub fn classical_intersection_number(curve1: &Curve, curve2: &Curve) -> i64 {
 // Helper function for polygon constraint counting
 fn count_polygon_constraint(constraint: Constraint) -> i64 {
     match constraint {
-        Constraint::EdgeLengths(lengths) => {
-            // For a triangle with sides 3,4,5, there's exactly one (up to congruence)
+        // For a triangle with sides 3,4,5, there's exactly one (up to congruence)
+        Constraint::EdgeLengths(lengths)
             if lengths.len() == 3
                 && lengths.iter().all(|&x| x > 0.0)
                 && lengths[0] + lengths[1] > lengths[2]
                 && lengths[1] + lengths[2] > lengths[0]
-                && lengths[0] + lengths[2] > lengths[1]
-            {
-                1
-            } else {
-                0
-            }
+                && lengths[0] + lengths[2] > lengths[1] =>
+        {
+            1
         }
         _ => 0,
     }
