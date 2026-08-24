@@ -76,7 +76,9 @@ impl Sha256Digest {
         }
         let bytes = text.as_bytes();
         let mut digest = [0u8; 32];
-        for (index, pair) in bytes.chunks_exact(2).enumerate() {
+        let (pairs, remainder) = bytes.as_chunks::<2>();
+        debug_assert!(remainder.is_empty());
+        for (index, pair) in pairs.iter().enumerate() {
             let high =
                 hex_value(pair[0]).ok_or_else(|| invalid("non-hex or non-lowercase character"))?;
             let low =
