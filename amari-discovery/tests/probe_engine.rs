@@ -18,6 +18,9 @@ const PARETO_FRONT: &str = "amari-probe:optimization:pareto-front:v1";
 const REWRITE_INFER_RULE: &str = "amari-probe:rewrite:infer-rule:v1";
 const REWRITE_NORMALIZE: &str = "amari-probe:rewrite:normalize:v1";
 const REWRITE_PREDECESSORS: &str = "amari-probe:rewrite:predecessors:v1";
+const REWRITE_INVERSE_ANALYSIS: &str = "amari-probe:rewrite:inverse-analysis:v1";
+const REWRITE_RESIDUAL_REPLAY: &str = "amari-probe:rewrite:residual-replay:v1";
+const REWRITE_SYMBOLIC_PREDECESSORS: &str = "amari-probe:rewrite:symbolic-predecessors:v1";
 const RECALL: &str = "amari-probe:holographic:recall:v1";
 const SUPERPOSITION: &str = "amari-probe:holographic:superposition:v1";
 const RATIONAL_ARITHMETIC: &str = "amari-probe:surreal:rational-arithmetic:v1";
@@ -44,6 +47,9 @@ fn engine_derives_executable_state_from_the_private_registry() {
     let rewrite_infer_rule = REWRITE_INFER_RULE.parse().unwrap();
     let rewrite_normalize = REWRITE_NORMALIZE.parse().unwrap();
     let rewrite_predecessors = REWRITE_PREDECESSORS.parse().unwrap();
+    let rewrite_inverse_analysis = REWRITE_INVERSE_ANALYSIS.parse().unwrap();
+    let rewrite_residual_replay = REWRITE_RESIDUAL_REPLAY.parse().unwrap();
+    let rewrite_symbolic_predecessors = REWRITE_SYMBOLIC_PREDECESSORS.parse().unwrap();
     let recall = RECALL.parse().unwrap();
     let superposition = SUPERPOSITION.parse().unwrap();
     let surreal = RATIONAL_ARITHMETIC.parse().unwrap();
@@ -116,8 +122,11 @@ fn engine_derives_executable_state_from_the_private_registry() {
                 network,
                 optimization,
                 rewrite_infer_rule,
+                rewrite_inverse_analysis,
                 rewrite_normalize,
                 rewrite_predecessors,
+                rewrite_residual_replay,
+                rewrite_symbolic_predecessors,
                 surcomplex,
                 surreal,
                 viterbi,

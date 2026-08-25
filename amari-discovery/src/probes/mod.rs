@@ -34,9 +34,14 @@ pub use network::{NetworkPath, NetworkShortestPathOutput, NetworkShortestPathReq
 pub use optimization::{ObjectiveDirection, ParetoFrontOutput, ParetoFrontRequest, ParetoPoint};
 use registry::{AdapterRegistration, EffectiveProbeLimits, ProbeRegistry};
 pub use rewrite::{
-    RewriteExample, RewriteInferRuleOutput, RewriteInferRuleRequest, RewriteNormalizeOutput,
-    RewriteNormalizeRequest, RewritePredecessorsOutput, RewritePredecessorsRequest, RewriteRule,
-    RewriteTerm,
+    RewriteBranchingEstimate, RewriteErasedBinding, RewriteExample, RewriteInferRuleOutput,
+    RewriteInferRuleRequest, RewriteInverseAnalysisOutput, RewriteInverseAnalysisRequest,
+    RewriteInverseRuleReport, RewriteNormalizeOutput, RewriteNormalizeRequest,
+    RewritePredecessorsOutput, RewritePredecessorsRequest, RewriteResidualAuthority,
+    RewriteResidualReplayOutput, RewriteResidualReplayRequest, RewriteRule,
+    RewriteSymbolicPredecessor, RewriteSymbolicPredecessorsOutput,
+    RewriteSymbolicPredecessorsRequest, RewriteSymbolicProvenance, RewriteTerm,
+    RewriteTermConstraint,
 };
 pub use surreal::{
     DecimalRational, DecimalSurcomplex, RationalSurcomplexDivisionOutput,
@@ -394,6 +399,24 @@ fn schema_document(schema_id: &str) -> DiscoveryResult<ProbeSchemaDocument> {
         "amari.discovery/probe/rewrite-predecessors/output/v1" => {
             ProbeSchemaDocument::from_contract::<RewritePredecessorsOutput>()
         }
+        "amari.discovery/probe/rewrite-symbolic-predecessors/input/v1" => {
+            ProbeSchemaDocument::from_contract::<RewriteSymbolicPredecessorsRequest>()
+        }
+        "amari.discovery/probe/rewrite-symbolic-predecessors/output/v1" => {
+            ProbeSchemaDocument::from_contract::<RewriteSymbolicPredecessorsOutput>()
+        }
+        "amari.discovery/probe/rewrite-inverse-analysis/input/v1" => {
+            ProbeSchemaDocument::from_contract::<RewriteInverseAnalysisRequest>()
+        }
+        "amari.discovery/probe/rewrite-inverse-analysis/output/v1" => {
+            ProbeSchemaDocument::from_contract::<RewriteInverseAnalysisOutput>()
+        }
+        "amari.discovery/probe/rewrite-residual-replay/input/v1" => {
+            ProbeSchemaDocument::from_contract::<RewriteResidualReplayRequest>()
+        }
+        "amari.discovery/probe/rewrite-residual-replay/output/v1" => {
+            ProbeSchemaDocument::from_contract::<RewriteResidualReplayOutput>()
+        }
         "amari.discovery/probe/surreal-rational-arithmetic/input/v1" => {
             ProbeSchemaDocument::from_contract::<RationalSurrealArithmeticRequest>()
         }
@@ -461,8 +484,11 @@ fn compiled_registrations() -> DiscoveryResult<Vec<AdapterRegistration>> {
         network::registration()?,
         optimization::registration()?,
         rewrite::infer_rule_registration()?,
+        rewrite::inverse_analysis_registration()?,
         rewrite::normalize_registration()?,
         rewrite::predecessors_registration()?,
+        rewrite::residual_replay_registration()?,
+        rewrite::symbolic_predecessors_registration()?,
         surreal::surcomplex_division_registration()?,
         surreal::rational_arithmetic_registration()?,
         tropical::registration()?,

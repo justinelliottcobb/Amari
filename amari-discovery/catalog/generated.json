@@ -2,7 +2,7 @@
   "schema_version": 2,
   "version": "0.24.1",
   "description": "Generated structural catalog for Amari 0.24.1: 28 crates, 107 dependency edges",
-  "content_hash": "83ccd175ab7e5cfe6e547084113cf5c9853c5b167f0473b42e0fe5f29a6c2665",
+  "content_hash": "a32dd7d66e9d8a704fd7d8292cba730b4880d0567a1e95e43df36d9c8e037075",
   "crates": [
     {
       "name": "amari",
@@ -471389,6 +471389,60 @@
       "capability_id": "amari:amari-rewrite:synthesis:infer-rule",
       "input_schema": "amari.discovery/probe/rewrite-infer-rule/input/v1",
       "output_schema": "amari.discovery/probe/rewrite-infer-rule/output/v1",
+      "required_features": [
+        "standard-probes"
+      ],
+      "cost": "moderate",
+      "deterministic": true,
+      "side_effects": "none",
+      "limits": {
+        "max_input_bytes": 65536,
+        "max_output_bytes": 65536,
+        "max_operations": 100000,
+        "timeout_millis": 2000
+      }
+    },
+    {
+      "id": "amari-probe:rewrite:symbolic-predecessors:v1",
+      "capability_id": "amari:amari-rewrite:inverse:symbolic-predecessors",
+      "input_schema": "amari.discovery/probe/rewrite-symbolic-predecessors/input/v1",
+      "output_schema": "amari.discovery/probe/rewrite-symbolic-predecessors/output/v1",
+      "required_features": [
+        "standard-probes"
+      ],
+      "cost": "moderate",
+      "deterministic": true,
+      "side_effects": "none",
+      "limits": {
+        "max_input_bytes": 65536,
+        "max_output_bytes": 65536,
+        "max_operations": 100000,
+        "timeout_millis": 2000
+      }
+    },
+    {
+      "id": "amari-probe:rewrite:inverse-analysis:v1",
+      "capability_id": "amari:amari-rewrite:inverse:analysis",
+      "input_schema": "amari.discovery/probe/rewrite-inverse-analysis/input/v1",
+      "output_schema": "amari.discovery/probe/rewrite-inverse-analysis/output/v1",
+      "required_features": [
+        "standard-probes"
+      ],
+      "cost": "moderate",
+      "deterministic": true,
+      "side_effects": "none",
+      "limits": {
+        "max_input_bytes": 65536,
+        "max_output_bytes": 65536,
+        "max_operations": 100000,
+        "timeout_millis": 2000
+      }
+    },
+    {
+      "id": "amari-probe:rewrite:residual-replay:v1",
+      "capability_id": "amari:amari-rewrite:reversible:residual-replay",
+      "input_schema": "amari.discovery/probe/rewrite-residual-replay/input/v1",
+      "output_schema": "amari.discovery/probe/rewrite-residual-replay/output/v1",
       "required_features": [
         "standard-probes"
       ],
