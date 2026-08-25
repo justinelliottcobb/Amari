@@ -35,6 +35,32 @@ hypothesis-directed synthesis, Candle/Z3/holographic guidance, and
 discovery surfacing. The symbolic relation remains authoritative;
 learned/SMT guidance never creates rewrite transitions.
 
+### Post-rewrite discovery cohort (queued)
+
+Queued for the end of the 0.25.0 rewrite cohorts, sourced from
+`docs/development/discovery-feedback-2026-08-22-knopper.md`
+(practitioner feedback from running amari-discovery against a foreign
+workspace):
+
+1. **Two-tier catalog** — curated entries plus an auto-extracted,
+   explicitly-unverified public-surface tier, so code that exists but
+   is not yet curated (the Knopper run's dominant failure mode) is
+   still discoverable with honest confidence labels.
+2. **Codebase-aware search fallback** — catalog misses fall back to
+   structural source search instead of returning empty.
+3. **Runnable probe validation for foreign consumers** — probes
+   verify the consumer environment can actually execute what a plan
+   recommends.
+4. **Catalog entries for the Schubert machinery** — `SchubertCalculus`,
+   `schubert_cell_of`, `CayleyTable`, GA3-native Cayley navigation.
+5. **Hook friction follow-ups** — a skip path for docs-only commits
+   and a scheduled full-clippy cron so develop lint rot surfaces
+   continuously instead of tripping unrelated commits.
+
+These items start only after the rewrite/inverse cohorts close; they
+are discovery-layer work and do not gate 0.25.0's symbolic-relation
+scope.
+
 ## 0.25.x — `amari-relativistic` P1 correctness fixes
 
 Theme: known correctness bugs are fixed where they are found, not
