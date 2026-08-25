@@ -29,7 +29,7 @@ impl GpuDynamics {
         let dim = config.dim as usize;
         let num_trajectories = initial_conditions.len() / dim;
 
-        if initial_conditions.len() % dim != 0 {
+        if !initial_conditions.len().is_multiple_of(dim) {
             return Err(DynamicsError::invalid_parameter(
                 "Initial conditions length must be divisible by dimension",
             ));

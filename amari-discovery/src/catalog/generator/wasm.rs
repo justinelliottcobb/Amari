@@ -2266,7 +2266,7 @@ export class EmptyDoc {
         assert_eq!(cls.name, "EmptyDoc");
         // Empty JSDoc should yield None (no content) or Some("")
         assert!(
-            cls.doc.as_deref().map_or(true, |d| d.is_empty()),
+            cls.doc.as_deref().is_none_or(|d| d.is_empty()),
             "empty JSDoc must produce empty/None doc, got {:?}",
             cls.doc
         );
@@ -2283,7 +2283,7 @@ export class TripleDoc {
         let cls = &surface.classes[0];
         assert_eq!(cls.name, "TripleDoc");
         assert!(
-            cls.doc.as_deref().map_or(true, |d| d.is_empty()),
+            cls.doc.as_deref().is_none_or(|d| d.is_empty()),
             "empty triple-star JSDoc must produce empty/None doc, got {:?}",
             cls.doc
         );

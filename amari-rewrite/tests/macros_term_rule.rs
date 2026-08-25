@@ -64,6 +64,7 @@ fn rule_rhs_variables_are_checked() {
 #[test]
 fn rule_macro_resolves_trs_rule_not_ars_rule() {
     // Both Rule types in scope; the macro output is the TRS rule.
+    #[allow(unused_imports)]
     use amari_rewrite::ars::Rule as _;
     fn assert_trs_rule(_: &Rule) {}
     let built = rule!(f(X) => X).unwrap();
