@@ -104,10 +104,14 @@ pub use probes::{
     ParetoPoint, PolynomialDerivativeOutput, PolynomialDerivativeRequest, ProbeEngine,
     ProbeEngineLimits, ProbeExecution, ProbeIsolation, RationalSurcomplexDivisionOutput,
     RationalSurcomplexDivisionRequest, RationalSurrealArithmeticOutput,
-    RationalSurrealArithmeticRequest, RewriteExample, RewriteInferRuleOutput,
-    RewriteInferRuleRequest, RewriteNormalizeOutput, RewriteNormalizeRequest,
-    RewritePredecessorsOutput, RewritePredecessorsRequest, RewriteRule, RewriteTerm,
-    TropicalViterbiOutput, TropicalViterbiRequest,
+    RationalSurrealArithmeticRequest, RewriteBranchingEstimate, RewriteErasedBinding,
+    RewriteExample, RewriteInferRuleOutput, RewriteInferRuleRequest, RewriteInverseAnalysisOutput,
+    RewriteInverseAnalysisRequest, RewriteInverseRuleReport, RewriteNormalizeOutput,
+    RewriteNormalizeRequest, RewritePredecessorsOutput, RewritePredecessorsRequest,
+    RewriteResidualAuthority, RewriteResidualReplayOutput, RewriteResidualReplayRequest,
+    RewriteRule, RewriteSymbolicPredecessor, RewriteSymbolicPredecessorsOutput,
+    RewriteSymbolicPredecessorsRequest, RewriteSymbolicProvenance, RewriteTerm,
+    RewriteTermConstraint, TropicalViterbiOutput, TropicalViterbiRequest,
 };
 pub use protocol::{
     CandidatePlan, CapabilityId, CatalogIdentity, Compatibility, DiscoveryOutcome, Envelope,
